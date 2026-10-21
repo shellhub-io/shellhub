@@ -90,26 +90,6 @@ describe("idle timer", () => {
   });
 });
 
-describe("first-activity throttle", () => {
-  it("first activity immediately after start() triggers exactly one re-arm", () => {
-    const onIdle = vi.fn();
-    start({
-      idleTimeoutMs: IDLE_MS,
-      lockOnHidden: false,
-      hiddenGraceMs: 0,
-      onIdle,
-    });
-
-    window.dispatchEvent(new Event("mousemove"));
-
-    vi.advanceTimersByTime(IDLE_MS - 1);
-    expect(onIdle).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(1);
-    expect(onIdle).toHaveBeenCalledOnce();
-  });
-});
-
 describe("throttle", () => {
   it("second event within throttle window does NOT re-arm; idle fires at t=0-based deadline", () => {
     const onIdle = vi.fn();

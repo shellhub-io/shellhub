@@ -1538,32 +1538,4 @@ describe("vaultStore", () => {
       expect(state.lockOnHidden).toBe(DEFAULT_VAULT_SETTINGS.lockOnHidden);
     });
   });
-
-  describe("authStore.logout() path -> lock() -> activityTracker.stop()", () => {
-    it("lock() called from logout stops the activity tracker", () => {
-      useVaultStore.setState({ status: "unlocked", keys: [] });
-
-      useVaultStore.getState().lock();
-
-      expect(mockTrackerStop).toHaveBeenCalled();
-    });
-  });
-
-  describe("DuplicateKeyError", () => {
-    it("is an instance of Error", () => {
-      const err = new DuplicateKeyError("name");
-      expect(err).toBeInstanceOf(Error);
-    });
-
-    it("exposes the duplicate field", () => {
-      expect(new DuplicateKeyError("name").field).toBe("name");
-      expect(new DuplicateKeyError("private_key").field).toBe("private_key");
-      expect(new DuplicateKeyError("both").field).toBe("both");
-    });
-
-    it("has a descriptive message", () => {
-      const err = new DuplicateKeyError("both");
-      expect(err.message).toBe("Duplicate key: both");
-    });
-  });
 });

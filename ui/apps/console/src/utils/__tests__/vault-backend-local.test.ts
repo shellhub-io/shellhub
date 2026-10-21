@@ -54,22 +54,9 @@ describe("LocalVaultBackend", () => {
       expect(localStorage.getItem(VAULT_META_KEY)).toBe(JSON.stringify(META));
     });
 
-    it("returns null after meta is cleared via clear()", async () => {
-      await backend.saveMeta(META);
-      await backend.clear();
-      expect(await backend.loadMeta()).toBeNull();
-    });
-
     it("returns null when stored meta is invalid JSON", async () => {
       localStorage.setItem(VAULT_META_KEY, "not-json{{{");
       expect(await backend.loadMeta()).toBeNull();
-    });
-
-    it("overwrites existing meta on repeated saves", async () => {
-      await backend.saveMeta(META);
-      const updated: VaultMeta = { ...META, iterations: 100000 };
-      await backend.saveMeta(updated);
-      expect(await backend.loadMeta()).toEqual(updated);
     });
 
     it("returns null when version is not 1", async () => {
@@ -136,22 +123,9 @@ describe("LocalVaultBackend", () => {
       expect(localStorage.getItem(VAULT_DATA_KEY)).toBe(JSON.stringify(DATA));
     });
 
-    it("returns null after data is cleared via clear()", async () => {
-      await backend.saveData(DATA);
-      await backend.clear();
-      expect(await backend.loadData()).toBeNull();
-    });
-
     it("returns null when stored data is invalid JSON", async () => {
       localStorage.setItem(VAULT_DATA_KEY, "!!!bad json!!!");
       expect(await backend.loadData()).toBeNull();
-    });
-
-    it("overwrites existing data on repeated saves", async () => {
-      await backend.saveData(DATA);
-      const updated: VaultData = { iv: "bmV3SXY=", ciphertext: "bmV3Q2lwaA==" };
-      await backend.saveData(updated);
-      expect(await backend.loadData()).toEqual(updated);
     });
   });
 

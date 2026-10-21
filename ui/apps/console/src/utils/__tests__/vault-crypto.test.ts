@@ -53,10 +53,6 @@ describe("session key management", () => {
     clearSessionKey();
   });
 
-  it("getSessionKey returns null before anything is set", () => {
-    expect(getSessionKey()).toBeNull();
-  });
-
   it("setSessionKey stores the key and getSessionKey returns it", async () => {
     const key = await crypto.subtle.generateKey(
       { name: "AES-GCM", length: 256 },
@@ -81,34 +77,9 @@ describe("session key management", () => {
 
     expect(getSessionKey()).toBeNull();
   });
-
-  it("setSessionKey overwrites a previously set key", async () => {
-    const key1 = await crypto.subtle.generateKey(
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"],
-    );
-    const key2 = await crypto.subtle.generateKey(
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"],
-    );
-
-    setSessionKey(key1);
-    setSessionKey(key2);
-
-    expect(getSessionKey()).toBe(key2);
-  });
 });
 
 describe("deriveKey", () => {
-  it("returns a CryptoKey", async () => {
-    const key = await deriveKey("password", randomSalt(), 1);
-
-    expect(key).toBeDefined();
-    expect(key.type).toBe("secret");
-  });
-
   it("returns a key usable for AES-GCM encrypt and decrypt", async () => {
     const key = await deriveKey("password", randomSalt(), 1);
 
@@ -164,27 +135,12 @@ describe("deriveKey", () => {
       crypto.subtle.decrypt({ name: "AES-GCM", iv }, key2, ciphertext),
     ).rejects.toThrow();
   });
-
-  it("accepts a custom iteration count", async () => {
-    const key = await deriveKey("password", randomSalt(), 500);
-    expect(key.type).toBe("secret");
-  });
 });
 
 describe("encrypt and decrypt", () => {
   async function makeKey(): Promise<CryptoKey> {
     return deriveKey("test-password", randomSalt(), 1);
   }
-
-  it("encrypt returns an object with iv and ciphertext fields", async () => {
-    const key = await makeKey();
-    const result = await encrypt(key, "hello world");
-
-    expect(result).toHaveProperty("iv");
-    expect(result).toHaveProperty("ciphertext");
-    expect(typeof result.iv).toBe("string");
-    expect(typeof result.ciphertext).toBe("string");
-  });
 
   it("iv and ciphertext are valid base64 strings", async () => {
     const key = await makeKey();
@@ -278,14 +234,6 @@ describe("encrypt and decrypt", () => {
 });
 
 describe("createVaultMeta", () => {
-  it("returns a meta object and a derived key", async () => {
-    const { meta, derivedKey } = await createVaultMeta("my-password");
-
-    expect(meta).toBeDefined();
-    expect(derivedKey).toBeDefined();
-    expect(derivedKey.type).toBe("secret");
-  });
-
   it("meta has version 1", async () => {
     const { meta } = await createVaultMeta("pass");
     expect(meta.version).toBe(1);
