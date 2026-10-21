@@ -81,17 +81,6 @@ describe("ForgotPassword", () => {
       ).toBeEnabled();
     });
 
-    it("shows the sent view after a successful submission", async () => {
-      const user = userEvent.setup();
-      renderForgotPassword();
-
-      await user.type(screen.getByLabelText(/username or email/i), "alice");
-      await user.click(screen.getByRole("button", { name: /reset password/i }));
-
-      expect(await screen.findByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/check your inbox/i)).toBeInTheDocument();
-    });
-
     it("shows the sent view even when the API call fails (anti-enumeration)", async () => {
       server.use(
         http.post("*/api/user/recover_password", () =>

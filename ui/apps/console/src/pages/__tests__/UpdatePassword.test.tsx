@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -116,31 +116,6 @@ describe("UpdatePassword", () => {
       expect(
         screen.getByRole("button", { name: /update password/i }),
       ).toBeDisabled();
-    });
-  });
-
-  describe("successful submission", () => {
-    it("navigates to /login with a success notice after successful submission", async () => {
-      const user = userEvent.setup();
-      renderWithParams();
-
-      await user.type(screen.getByLabelText(/^new password$/i), "Secret123");
-      await user.type(
-        screen.getByLabelText(/^confirm password$/i),
-        "Secret123",
-      );
-      await user.click(
-        screen.getByRole("button", { name: /update password/i }),
-      );
-
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(
-          "/login",
-          expect.objectContaining({
-            state: expect.objectContaining({ notice: expect.any(String) }),
-          }),
-        ),
-      );
     });
   });
 

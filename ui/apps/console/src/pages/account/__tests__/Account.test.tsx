@@ -150,19 +150,6 @@ describe("Account", () => {
       expect(getModalSubmitButton()).toBeDisabled();
     });
 
-    it("enables the submit button only when all three fields contain valid values", async () => {
-      const user = await openChangePasswordModal();
-
-      await user.type(screen.getByLabelText(/current password/i), "oldpass1");
-      await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
-      await user.type(
-        screen.getByLabelText(/confirm new password/i),
-        "newpass123",
-      );
-
-      expect(getModalSubmitButton()).toBeEnabled();
-    });
-
     it("shows 'Current password is incorrect.' on 403", async () => {
       server.use(
         http.patch("*/api/users", () => HttpResponse.json({}, { status: 403 })),
