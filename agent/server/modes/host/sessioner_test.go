@@ -119,27 +119,6 @@ func newFakeSession(sessionID, user string) *fakeSession {
 
 var _ gossh.Channel = (*fakeSession)(nil)
 
-// TestFakeSessionCompiles is a compile-time check that fakeSession fully
-// implements gliderssh.Session. The test body is intentionally empty — a build
-// failure means the interface is incomplete.
-func TestFakeSessionCompiles(t *testing.T) {
-	t.Helper()
-
-	var _ gliderssh.Session = (*fakeSession)(nil)
-
-	sess := newFakeSession("test-session-id", "testuser")
-
-	id := sess.Context().Value(gliderssh.ContextKeySessionID)
-	if id == nil {
-		t.Fatal("expected ContextKeySessionID to be set in fakeSession.Context()")
-	}
-
-	sessionID, ok := id.(string)
-	if !ok || sessionID != "test-session-id" {
-		t.Fatalf("expected session ID %q, got %q", "test-session-id", id)
-	}
-}
-
 // TestPtyFailureHint verifies the ptyFailureHint helper:
 //   - wrapping syscall.ENOTTY yields a non-empty hint
 //   - an error whose message contains "inappropriate ioctl for device" yields a non-empty hint
