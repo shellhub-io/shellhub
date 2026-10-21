@@ -72,6 +72,7 @@ type Service interface {
 	APIKeyService
 	InstanceAPIKeyService
 	ProvisioningKeyService
+	WebhookService
 	FirewallService
 	LicenseService
 	BillingService
