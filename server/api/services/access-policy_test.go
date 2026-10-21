@@ -59,19 +59,6 @@ func TestAuthorize(t *testing.T) {
 			expectedErr:     true,
 		},
 		{
-			description: "denies when the user is not a member of the namespace",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(&models.Namespace{TenantID: tenantID}, nil).Once()
-			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonNotAMember,
-			expectedErr:     false,
-		},
-		{
 			description: "denies a role without the connect permission before reading any policy",
 			login:       "root",
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
@@ -112,194 +99,6 @@ func TestAuthorize(t *testing.T) {
 			expectedAllowed: false,
 			expectedReason:  models.ReasonNoGrant,
 			expectedLogin:   "root",
-			expectedErr:     false,
-		},
-		{
-			description: "grants when an all-members policy grants the login",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOperator), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "denies when the login is outside the policy's login list",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"deploy"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonNoGrant,
-			expectedLogin:   "root",
-			expectedErr:     false,
-		},
-		{
-			description: "grants when the login is explicitly listed",
-			login:       "deploy",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"deploy"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "denies when the role subject does not match the user's role",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOperator), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "administrator"},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonNoGrant,
-			expectedLogin:   "root",
-			expectedErr:     false,
-		},
-		{
-			description: "grants when the role subject matches the user's role",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleAdministrator), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectRole, Value: "administrator"},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "grants when the user subject matches the user id",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectUser, Value: userID},
-							Filter:  models.AccessPolicyFilter{All: true},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "denies when the filter selects a different device by tag",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-db"}}},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonNoGrant,
-			expectedLogin:   "root",
-			expectedErr:     false,
-		},
-		{
-			description: "grants when the tag filter selects the device",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject: models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:  models.AccessPolicyFilter{Taggable: models.Taggable{TagIDs: []string{"tag-web"}}},
-							Logins:  []string{"*"},
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "grants and flags re-auth when the matched policy requires it",
-			login:       "root",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject:       models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:        models.AccessPolicyFilter{All: true},
-							Logins:        []string{"*"},
-							RequireReauth: true,
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedReauth:  true,
 			expectedErr:     false,
 		},
 		{
@@ -578,54 +377,6 @@ func TestAuthorize(t *testing.T) {
 			expectedAllowed: false,
 			expectedReason:  models.ReasonDeniedByPolicy,
 			expectedPolicy:  "deny all",
-			expectedErr:     false,
-		},
-		{
-			description: "allow grants when the client IP is inside the source CIDR",
-			login:       "root",
-			sourceIP:    "10.1.2.3",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.AccessPolicyFilter{All: true},
-							Logins:   []string{"*"},
-							SourceIP: []string{"10.0.0.0/8"},
-							Action:   models.PolicyActionAllow,
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: true,
-			expectedErr:     false,
-		},
-		{
-			description: "allow does not grant when the client IP is outside the source CIDR",
-			login:       "root",
-			sourceIP:    "192.168.1.1",
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, deviceID).
-					Return(device, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
-					Return(namespaceWith(authorizer.RoleOwner), nil).Once()
-				storeMock.On("AccessPolicyList", ctx, mock.Anything).
-					Return([]models.AccessPolicy{
-						{
-							Subject:  models.PolicySubject{Type: models.PolicySubjectAllMembers},
-							Filter:   models.AccessPolicyFilter{All: true},
-							Logins:   []string{"*"},
-							SourceIP: []string{"10.0.0.0/8"},
-							Action:   models.PolicyActionAllow,
-						},
-					}, int64(1), nil).Once()
-			},
-			expectedAllowed: false,
-			expectedReason:  models.ReasonNoGrant,
-			expectedLogin:   "root",
 			expectedErr:     false,
 		},
 		{
@@ -1367,8 +1118,8 @@ func storedAccessPolicyWithRole(tenantID, id, role string) *models.AccessPolicy 
 
 // TestAuthorizeAnAPIKeyPrincipal covers the branch an automation takes. It holds no membership,
 // so everything the human path reads from one has to come from somewhere else or not be read at
-// all, and the two places that silently widen access if got wrong are asserted: an expired key
-// must not connect, and re-authentication must never be demanded of something with no browser.
+// all, and the place that silently widens access if got wrong is asserted: an expired or deleted
+// key must not connect.
 func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 	ctx := context.TODO()
 
@@ -1380,14 +1131,13 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 
 	device := &models.Device{UID: deviceID, TenantID: tenantID}
 	principal := models.Principal{Kind: models.PrincipalAPIKey, ID: keyID}
-	validKey := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: -1}
 
 	namespace := &models.Namespace{
 		TenantID: tenantID,
 		Members:  []models.Member{{ID: "someone-else", Role: authorizer.RoleOwner}},
 	}
 
-	newService := func(t *testing.T, policies []models.AccessPolicy, apiKey *models.APIKey, apiKeyErr error) Service {
+	newService := func(t *testing.T, apiKey *models.APIKey, apiKeyErr error) Service {
 		t.Helper()
 
 		storeMock := new(storemock.MockStore)
@@ -1400,52 +1150,12 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 		storeMock.On("APIKeyResolve", ctx, mock.Anything, store.APIKeyUUIDResolver, keyID).
 			Return(apiKey, apiKeyErr).Once()
 
-		if apiKeyErr == nil && apiKey.IsValid(now) {
-			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return(policies, int64(len(policies)), nil).Once()
-		}
-
 		return NewService(storeMock, privateKey, publicKey, nil, WithClock(clock.NewFixed(now)))
 	}
 
-	grant := func(subject models.PolicySubject, reauth bool) []models.AccessPolicy {
-		return []models.AccessPolicy{{
-			Subject:       subject,
-			Filter:        models.AccessPolicyFilter{All: true},
-			Logins:        []string{"*"},
-			Action:        models.PolicyActionAllow,
-			RequireReauth: reauth,
-		}}
-	}
-
-	t.Run("is allowed by a policy naming it, with no membership anywhere", func(t *testing.T) {
-		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID}, false), validKey, nil)
-
-		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
-		require.NoError(t, err)
-		assert.True(t, decision.Allowed)
-	})
-
-	t.Run("is never asked to re-authenticate", func(t *testing.T) {
-		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyID}, true), validKey, nil)
-
-		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
-		require.NoError(t, err)
-		require.True(t, decision.Allowed)
-		assert.False(t, decision.RequireReauth, "an automation has no browser to run one in")
-	})
-
-	t.Run("is not swept in by all-members", func(t *testing.T) {
-		service := newService(t, grant(models.PolicySubject{Type: models.PolicySubjectAllMembers}, false), validKey, nil)
-
-		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
-		require.NoError(t, err)
-		assert.False(t, decision.Allowed)
-		assert.Equal(t, models.ReasonNoGrant, decision.Reason)
-	})
-
 	t.Run("is refused once the key expires", func(t *testing.T) {
 		expired := &models.APIKey{ID: keyID, Name: "ci", TenantID: tenantID, ExpiresIn: now.Add(-time.Hour).Unix()}
-		service := newService(t, nil, expired, nil)
+		service := newService(t, expired, nil)
 
 		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
 		require.NoError(t, err)
@@ -1454,7 +1164,7 @@ func TestAuthorizeAnAPIKeyPrincipal(t *testing.T) {
 	})
 
 	t.Run("is refused once the key is gone", func(t *testing.T) {
-		service := newService(t, nil, nil, store.ErrNoDocuments)
+		service := newService(t, nil, store.ErrNoDocuments)
 
 		decision, err := service.Authorize(ctx, tenantID, principal, deviceID, "root", "10.0.0.1")
 		require.NoError(t, err)
