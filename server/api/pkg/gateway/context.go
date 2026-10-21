@@ -118,16 +118,6 @@ func (c *Context) DeviceUID() string {
 	return c.Request().Header.Get("X-Device-UID")
 }
 
-// Username returns the username got from JWT through gateway.
-func (c *Context) Username() *models.Username {
-	username := c.Request().Header.Get("X-Username")
-	if username != "" {
-		return &models.Username{ID: username}
-	}
-
-	return nil
-}
-
 // ID returns the user's ID got from JWT through gateway.
 func (c *Context) ID() *models.ID {
 	ID := c.Request().Header.Get("X-ID")
@@ -165,16 +155,6 @@ func (c *Context) GetTennat() (string, bool) {
 	tenant := c.Request().Header.Get("X-Tenant-ID")
 	if tenant != "" {
 		return tenant, true
-	}
-
-	return "", false
-}
-
-// GetUsername returns the username got from JWT through gateway.
-func (c *Context) GetUsername() (string, bool) {
-	username := c.Request().Header.Get("X-Username")
-	if username != "" {
-		return username, true
 	}
 
 	return "", false
