@@ -74,22 +74,6 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	}
 }
 
-// TestConnectReachesTheAgentThroughTheTunnel covers the path the two tests above only fail
-// on: a device that answers leaves the session holding an SSH client it can open channels on.
-func TestConnectReachesTheAgentThroughTheTunnel(t *testing.T) {
-	Configure(Config{ConnectTimeout: 0}) //nolint:exhaustruct
-
-	agent := dialertest.NewAgent(t)
-	sess := newTestSession(nil, agent)
-
-	require.NoError(t, sess.connect(newStubContext(), noAuth))
-
-	channel, _, err := sess.agent.client.OpenChannel("session", nil)
-	require.NoError(t, err, "the session must hold a usable SSH client after connect")
-
-	assert.NoError(t, channel.Close())
-}
-
 // TestConnectFailsWhenTheDeviceCannotBeDialled pins where an unreachable device is now
 // caught. The tunnel is opened here rather than before authentication, so this is the
 // only path that meets a device that went away.

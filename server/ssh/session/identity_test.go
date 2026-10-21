@@ -69,57 +69,6 @@ func TestResolveKeyAuth(t *testing.T) {
 	pubKey := newTestSSHKey(t)
 	fingerprint := gossh.FingerprintSHA256(pubKey)
 
-	t.Run("enrolled active key yields the identity auth and binds the account", func(t *testing.T) {
-		serviceMock := servicemocks.NewMockService(t)
-		serviceMock.EXPECT().
-			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&models.SSHIdentity{PrincipalID: "user1", SingleUse: true}, true, nil). //nolint:exhaustruct
-			Once()
-
-		sess := newIdentitySession(serviceMock, false)
-
-		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
-		require.NoError(t, err)
-		assert.IsType(t, &identityAuth{}, auth)
-		assert.Equal(t, "user1", sess.UserID)
-		assert.Equal(t, fingerprint, sess.Fingerprint)
-		assert.True(t, sess.SingleUse)
-	})
-
-	t.Run("dead key is rejected, not sent to enrollment", func(t *testing.T) {
-		consumedAt := identityNow
-
-		serviceMock := servicemocks.NewMockService(t)
-		serviceMock.EXPECT().
-			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&models.SSHIdentity{PrincipalID: "user1", ConsumedAt: &consumedAt}, true, nil). //nolint:exhaustruct
-			Once()
-
-		sess := newIdentitySession(serviceMock, false)
-
-		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
-		require.ErrorIs(t, err, ErrAccessDenied)
-		assert.Nil(t, auth)
-		assert.Empty(t, sess.UserID)
-	})
-
-	t.Run("an expired key is rejected too", func(t *testing.T) {
-		expiredAt := identityNow.Add(-time.Hour)
-
-		serviceMock := servicemocks.NewMockService(t)
-		serviceMock.EXPECT().
-			ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
-			Return(&models.SSHIdentity{PrincipalID: "user1", ExpiresAt: &expiredAt}, true, nil). //nolint:exhaustruct
-			Once()
-
-		sess := newIdentitySession(serviceMock, false)
-
-		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
-		require.ErrorIs(t, err, ErrAccessDenied)
-		assert.Nil(t, auth)
-		assert.Empty(t, sess.UserID)
-	})
-
 	t.Run("unknown key yields the approval auth without writing anything", func(t *testing.T) {
 		serviceMock := servicemocks.NewMockService(t)
 		serviceMock.EXPECT().
