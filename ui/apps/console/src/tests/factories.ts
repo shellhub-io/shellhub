@@ -16,6 +16,8 @@ import type {
   UserAdminResponse,
   UserAuth,
   Webendpoint,
+  Webhook,
+  WebhookDelivery,
 } from "@/client";
 import type { RecordingMeta } from "@/utils/recordings";
 
@@ -474,5 +476,46 @@ export function mockLegacyNamespace(
       ...base.settings,
       legacy: true,
     },
+  };
+}
+
+/**
+ * Builds an enabled webhook subscribed to device.accepted for a test, so a case names only what it
+ * is about.
+ */
+export function mockWebhook(overrides: Partial<Webhook> = {}): Webhook {
+  return {
+    id: "6f1c2b3a-0000-4000-8000-000000000001",
+    tenant_id: "00000000-0000-4000-0000-000000000000",
+    url: "https://hooks.example.com/shellhub",
+    events: ["device.accepted"],
+    enabled: true,
+    created_at: "2026-10-21T12:00:00Z",
+    updated_at: "2026-10-21T12:00:00Z",
+    ...overrides,
+  };
+}
+
+/**
+ * Builds a delivery of a device.accepted event for a test: abandoned after its last attempt was
+ * answered 500, so a case names only what it is about.
+ */
+export function mockWebhookDelivery(
+  overrides: Partial<WebhookDelivery> = {},
+): WebhookDelivery {
+  return {
+    id: "0b7e1f9a-0000-4000-8000-000000000002",
+    event_id: "9a1d0c3e-0000-4000-8000-000000000003",
+    event_type: "device.accepted",
+    webhook_id: "6f1c2b3a-0000-4000-8000-000000000001",
+    tenant_id: "00000000-0000-4000-0000-000000000000",
+    status: "failed",
+    attempts: 12,
+    next_attempt_at: "2026-10-21T18:00:00Z",
+    last_status_code: 500,
+    last_error: "webhook returned status 500",
+    created_at: "2026-10-21T12:00:00Z",
+    updated_at: "2026-10-21T18:00:00Z",
+    ...overrides,
   };
 }

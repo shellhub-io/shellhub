@@ -59,6 +59,7 @@ const WebEndpoints = lazy(() => import("./pages/WebEndpoints"));
 const SettingsLayout = lazy(() => import("./pages/settings/SettingsLayout"));
 const GeneralSettings = lazy(() => import("./pages/settings/GeneralSettings"));
 const SshSettings = lazy(() => import("./pages/settings/SshSettings"));
+const WebhookSettings = lazy(() => import("./pages/settings/WebhookSettings"));
 const BillingSettings = lazy(() => import("./pages/settings/BillingSettings"));
 const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
 const AccountProfile = lazy(() => import("./pages/account/AccountProfile"));
@@ -285,6 +286,7 @@ export default function App() {
                     <Route path="/settings" element={<SettingsLayout />}>
                       <Route path="general" element={<GeneralSettings />} />
                       <Route path="ssh" element={<SshSettings />} />
+                      <Route path="webhooks" element={<WebhookSettings />} />
                       {isCloud() && (
                         <Route path="billing" element={<BillingSettings />} />
                       )}
