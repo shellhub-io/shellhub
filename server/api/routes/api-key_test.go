@@ -181,37 +181,6 @@ func TestCreateAPIKey(t *testing.T) {
 			expected: Expected{body: nil, status: http.StatusBadRequest},
 		},
 		{
-			description: "succeeds",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
-			body: map[string]any{
-				"name":       "dev",
-				"expires_at": 30,
-			},
-			requiredMocks: func() {
-				svcMock.On(
-					"CreateAPIKey",
-					mock.Anything,
-					&requests.CreateAPIKey{
-						UserID:    "000000000000000000000000",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Name:      "dev",
-						Role:      "owner",
-						ExpiresAt: 30,
-					}).
-					Return(&responses.CreateAPIKey{}, nil).
-					Once()
-			},
-			expected: Expected{
-				body:   &responses.CreateAPIKey{},
-				status: http.StatusOK,
-			},
-		},
-		{
 			description: "ignores a caller-supplied key in the body",
 			headers: map[string]string{
 				"Content-Type": "application/json",

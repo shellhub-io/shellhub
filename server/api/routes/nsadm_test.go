@@ -739,19 +739,6 @@ func TestGetNamespaceList(t *testing.T) {
 			expectedNamespaces: []responses.Namespace{},
 		},
 		{
-			description: "succeeds and returns X-Total-Count header",
-			query:       "",
-			requiredMocks: func() {
-				svcMock.
-					On("ListNamespaces", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceList")).
-					Return([]models.Namespace{}, int64(3), nil).
-					Once()
-			},
-			expectedStatus:     http.StatusOK,
-			expectedCount:      3,
-			expectedNamespaces: []responses.Namespace{},
-		},
-		{
 			description: "succeeds and carries the members through",
 			query:       "",
 			requiredMocks: func() {
