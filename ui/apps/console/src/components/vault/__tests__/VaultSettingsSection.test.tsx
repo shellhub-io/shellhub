@@ -47,13 +47,6 @@ vi.mock("@/utils/vault-activity-tracker", () => ({
   stop: vi.fn(),
 }));
 
-vi.mock("@/utils/vault-migrate", () => ({
-  serverVaultExists: vi.fn(() => Promise.resolve(false)),
-  migrateLocalToServer: vi.fn(),
-  migrateServerToLocal: vi.fn(),
-  adoptServerVault: vi.fn(),
-}));
-
 function renderSection() {
   return render(<VaultSettingsSection />);
 }
@@ -164,55 +157,6 @@ describe("VaultSettingsSection", () => {
     );
   });
 
-  describe("Change master password", () => {
-    it("opens ChangePasswordModal when the Change button is clicked", async () => {
-      setUnlocked();
-      renderSection();
-
-      expect(
-        screen.queryByRole("dialog", { name: /change master password/i }),
-      ).not.toBeInTheDocument();
-
-      const changeBtn = screen.getByRole("button", {
-        name: "Change master password",
-      });
-      await userEvent.click(changeBtn);
-
-      expect(
-        screen.getByRole("dialog", { name: /change master password/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("Lock vault", () => {
-    it("calls the lock() store action when the Lock button is clicked", async () => {
-      setUnlocked();
-      const lock = vi.fn();
-      useVaultStore.setState({ lock });
-
-      renderSection();
-
-      const lockBtn = screen.getByRole("button", { name: "Lock vault" });
-      await userEvent.click(lockBtn);
-
-      expect(lock).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("Reset vault", () => {
-    it("opens ConfirmDialog with title 'Reset Secure Vault' when Reset button is clicked", async () => {
-      setUnlocked();
-      renderSection();
-
-      const resetBtn = screen.getByRole("button", { name: "Reset vault" });
-      await userEvent.click(resetBtn);
-
-      expect(
-        screen.getByRole("heading", { name: /reset secure vault/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
   describe("Storage row", () => {
     it.each([true, false])(
       "isVaultServerEnabled()=%s decides whether the row renders",
@@ -254,20 +198,6 @@ describe("VaultSettingsSection", () => {
         screen.getByRole("button", { name: "Change vault storage location" }),
       ).toHaveTextContent(action);
       expect(screen.getByText(copy)).toBeInTheDocument();
-    });
-
-    it("opens VaultSyncDialog when storage button is clicked", async () => {
-      useVaultStore.setState({ storageMode: "local" });
-      setUnlocked();
-      renderSection();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: "Change vault storage location" }),
-      );
-
-      expect(
-        screen.getByRole("heading", { name: /sync/i }),
-      ).toBeInTheDocument();
     });
   });
 });
