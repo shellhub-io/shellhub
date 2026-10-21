@@ -123,10 +123,12 @@ type Stack struct {
 // [BuildStackImages] or [BuildEditionImages] built them; later Ups reuse them. The stack's network is created by the run,
 // so Up returns an error when cfg has no run and when the daemon refuses the network. It also returns an error, after taking the
 // stack down, when compose fails, when the daemon cannot list the stack's containers, or when a
-// service comes up without the run's labels. A cloud stack bills through Stripe test mode: Up
-// returns an error naming the first of STRIPE_SECRET_KEY, STRIPE_PRICE_ID and
-// SHELLHUB_STRIPE_PUBLISHABLE_KEY missing from both the shell and .env.override, and an error when
-// Stripe returns no webhook secret for the key. Stripe's own events reach a cloud stack only with
+// service comes up without the run's labels. A cloud stack bills through Stripe test mode. Each
+// key is read under either of two spellings, the shell's value under either winning over the
+// file's: STRIPE_SECRET_KEY or SHELLHUB_STRIPE_SECRET_KEY, STRIPE_PRICE_ID or
+// SHELLHUB_STRIPE_PRICE_ID, and SHELLHUB_STRIPE_PUBLISHABLE_KEY or STRIPE_PUBLISHABLE_KEY. Up
+// returns an error naming both spellings of the first key missing from both the shell and
+// .env.override, and an error when Stripe returns no webhook secret for the key. Stripe's own events reach a cloud stack only with
 // StripeEvents set, and Up returns an error when a stack of another edition sets it; without it a
 // test delivers the events it needs, see [DockerCompose.StripeSignature]. A cloud stack delivers its
 // email over SMTP to a Mailpit whose HTTP API it publishes on a random host port, see

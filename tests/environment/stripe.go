@@ -19,7 +19,11 @@ var (
 	errStripeEventsOutsideCloud = errors.New("only a cloud stack receives Stripe's events")
 )
 
-var stripeKeyNames = []string{"STRIPE_SECRET_KEY", "STRIPE_PRICE_ID", "SHELLHUB_STRIPE_PUBLISHABLE_KEY"}
+var stripeKeyNames = []envKey{
+	{name: "STRIPE_SECRET_KEY", aliases: []string{"SHELLHUB_STRIPE_SECRET_KEY"}},
+	{name: "STRIPE_PRICE_ID", aliases: []string{"SHELLHUB_STRIPE_PRICE_ID"}},
+	{name: "SHELLHUB_STRIPE_PUBLISHABLE_KEY", aliases: []string{"STRIPE_PUBLISHABLE_KEY"}},
+}
 
 func stripeEnvs(ctx context.Context, cloudDir string) (map[string]string, error) {
 	envs, err := stripeKeys(envOverridePath)
@@ -48,9 +52,10 @@ func stripeKeys(overridePath string) (map[string]string, error) {
 		return nil, err
 	}
 
-	for _, name := range stripeKeyNames {
-		if keys[name] == "" {
-			return nil, fmt.Errorf("the cloud edition bills against Stripe test mode: set %s in the shell or %s", name, overridePath)
+	for _, key := range stripeKeyNames {
+		if keys[key.name] == "" {
+			return nil, fmt.Errorf("the cloud edition bills against Stripe test mode: set %s in the shell or %s",
+				strings.Join(key.spellings(), " or "), overridePath)
 		}
 	}
 

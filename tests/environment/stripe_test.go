@@ -36,6 +36,26 @@ func TestStripeKeys(t *testing.T) {
 			},
 		},
 		{
+			name: "reads the SHELLHUB_ spellings a developer override uses",
+			override: "SHELLHUB_STRIPE_SECRET_KEY=sk_file\nSHELLHUB_STRIPE_PRICE_ID=price_file\n" +
+				"STRIPE_PUBLISHABLE_KEY=pk_file\n",
+			want: map[string]string{
+				"STRIPE_SECRET_KEY":               "sk_file",
+				"STRIPE_PRICE_ID":                 "price_file",
+				"SHELLHUB_STRIPE_PUBLISHABLE_KEY": "pk_file",
+			},
+		},
+		{
+			name:     "prefers a shell spelling over any spelling in the override file",
+			override: allKeys,
+			shell:    map[string]string{"SHELLHUB_STRIPE_SECRET_KEY": "sk_shell"},
+			want: map[string]string{
+				"STRIPE_SECRET_KEY":               "sk_shell",
+				"STRIPE_PRICE_ID":                 "price_file",
+				"SHELLHUB_STRIPE_PUBLISHABLE_KEY": "pk_file",
+			},
+		},
+		{
 			name:     "prefers the shell over the override file",
 			override: allKeys,
 			shell:    map[string]string{"STRIPE_SECRET_KEY": "sk_shell"},
@@ -49,8 +69,10 @@ func TestStripeKeys(t *testing.T) {
 
 	setShell := func(t *testing.T, shell map[string]string) {
 		t.Helper()
-		for _, name := range stripeKeyNames {
-			t.Setenv(name, shell[name])
+		for _, key := range stripeKeyNames {
+			for _, name := range key.spellings() {
+				t.Setenv(name, shell[name])
+			}
 		}
 	}
 
@@ -81,7 +103,7 @@ func TestStripeKeys(t *testing.T) {
 		setShell(t, nil)
 
 		_, err := stripeKeys(writeOverride(t, "STRIPE_SECRET_KEY=sk_file\nSTRIPE_PRICE_ID=price_file\n"))
-		require.ErrorContains(t, err, "set SHELLHUB_STRIPE_PUBLISHABLE_KEY")
+		require.ErrorContains(t, err, "set SHELLHUB_STRIPE_PUBLISHABLE_KEY or STRIPE_PUBLISHABLE_KEY")
 	})
 }
 
