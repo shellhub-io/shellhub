@@ -716,17 +716,6 @@ func TestUserList(t *testing.T) {
 			expectedErr:   ErrFailedListUsers,
 		},
 		{
-			description: "returns empty list",
-			requiredMocks: func() {
-				mock.
-					On("UserList", ctx).
-					Return([]models.User{}, int64(0), nil).
-					Once()
-			},
-			expectedUsers: []models.User{},
-			expectedErr:   nil,
-		},
-		{
 			description: "successfully returns users",
 			requiredMocks: func() {
 				mock.

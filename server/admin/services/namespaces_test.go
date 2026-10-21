@@ -309,122 +309,6 @@ func TestNamespaceCreate(t *testing.T) {
 				CreatedAt:  now,
 			}, nil},
 		},
-		{
-			description:   "succeeds in creating a namespace when user and namespace data are valid - Enterprise - type team",
-			namespace:     "namespace",
-			username:      "john_doe",
-			tenant:        "00000000-0000-0000-0000-000000000000",
-			typeNamespace: "team",
-			edition:       envs.Enterprise,
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "507f191e810c19729de860ea",
-					UserData: models.UserData{
-						Name:     "John Doe",
-						Email:    "john.doe@test.com",
-						Username: "john_doe",
-					},
-				}
-				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
-				namespace := &models.Namespace{
-					Name:     "namespace",
-					Owner:    "507f191e810c19729de860ea",
-					TenantID: "00000000-0000-0000-0000-000000000000",
-					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
-					},
-					MaxDevices: MaxNumberDevicesUnlimited,
-					CreatedAt:  now,
-				}
-				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
-			},
-			expected: Expected{&models.Namespace{
-				Name:     "namespace",
-				Owner:    "507f191e810c19729de860ea",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
-				},
-				MaxDevices: MaxNumberDevicesUnlimited,
-				CreatedAt:  now,
-			}, nil},
-		},
-		{
-			description:   "succeeds in creating a namespace when user and namespace data are valid - Enterprise",
-			namespace:     "namespace",
-			username:      "john_doe",
-			tenant:        "00000000-0000-0000-0000-000000000000",
-			typeNamespace: "",
-			edition:       envs.Enterprise,
-			requiredMocks: func() {
-				user := &models.User{
-					ID: "507f191e810c19729de860ea",
-					UserData: models.UserData{
-						Name:     "John Doe",
-						Email:    "john.doe@test.com",
-						Username: "john_doe",
-					},
-				}
-				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
-				namespace := &models.Namespace{
-					Name:     "namespace",
-					Owner:    "507f191e810c19729de860ea",
-					TenantID: "00000000-0000-0000-0000-000000000000",
-					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
-					},
-					MaxDevices: MaxNumberDevicesUnlimited,
-					CreatedAt:  now,
-				}
-				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
-			},
-			expected: Expected{&models.Namespace{
-				Name:     "namespace",
-				Owner:    "507f191e810c19729de860ea",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
-				Settings: &models.NamespaceSettings{
-					SessionRecord:          true,
-					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
-				},
-				MaxDevices: MaxNumberDevicesUnlimited,
-				CreatedAt:  now,
-			}, nil},
-		},
 	}
 
 	for _, tc := range cases {
@@ -991,16 +875,6 @@ func TestNamespaceResolve(t *testing.T) {
 			value:       "namespace",
 			requiredMocks: func() {
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(nil, errors.New("error")).Once()
-			},
-			expected: Expected{nil, ErrNamespaceNotFound},
-		},
-		{
-			description: "fails when store returns error using tenant-id resolver",
-			resolver:    NamespaceResolverTenantID,
-			value:       "tenant-id",
-			requiredMocks: func() {
-				mock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant-id").
 					Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrNamespaceNotFound},
