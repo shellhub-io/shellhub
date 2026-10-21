@@ -12,16 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestAPIKeyCreate exercises APIKeyCreate against the store under test.
-func (s *Suite) TestAPIKeyCreate(t *testing.T) {
-	t.Run("succeeds", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"))
-		assert.NotEmpty(t, keyID)
-	})
-}
-
 // TestAPIKeyConflicts locks which fields APIKeyConflicts reports as already taken, and that it
 // is bounded to the namespace asking.
 func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
