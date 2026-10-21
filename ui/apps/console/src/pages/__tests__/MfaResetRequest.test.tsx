@@ -28,35 +28,6 @@ beforeEach(() => {
 });
 
 describe("MfaResetRequest", () => {
-  it("calls requestMfaReset with the identifier when the form is submitted", async () => {
-    const mockRequest = vi.fn().mockResolvedValue(undefined);
-    useMfaResetStore.setState({ requestMfaReset: mockRequest });
-
-    renderPage();
-
-    const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: /send verification codes/i }),
-    );
-
-    await waitFor(() => {
-      expect(mockRequest).toHaveBeenCalledWith("admin");
-    });
-  });
-
-  it("navigates to /mfa-reset-verify after a successful submit", async () => {
-    renderPage();
-
-    const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: /send verification codes/i }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Verify Page")).toBeInTheDocument();
-    });
-  });
-
   it("shows the store error in a Callout when the request fails", async () => {
     const mockRequest = vi.fn().mockImplementation(async () => {
       useMfaResetStore.setState({

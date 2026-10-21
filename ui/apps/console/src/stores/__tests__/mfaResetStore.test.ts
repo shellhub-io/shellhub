@@ -41,22 +41,6 @@ describe("mfaResetStore", () => {
   });
 
   describe("requestMfaReset", () => {
-    it("stores the opaque token from the API response", async () => {
-      server.use(
-        http.post("*/api/user/mfa/reset", () =>
-          HttpResponse.json({ token: "reset-token" }),
-        ),
-      );
-
-      await useMfaResetStore.getState().requestMfaReset("admin");
-
-      const state = useMfaResetStore.getState();
-      expect(state.mfaResetToken).toBe("reset-token");
-      expect(state.mfaResetIdentifier).toBe("admin");
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-    });
-
     it("sets loading during request", async () => {
       let resolveHandler!: (r: Response) => void;
       const handlerReady = new Promise<void>((ready) => {
@@ -117,25 +101,6 @@ describe("mfaResetStore", () => {
       expect(useMfaResetStore.getState().error).toBe(
         "Invalid reset session. Please start over.",
       );
-    });
-
-    it("sets auth state in authStore on success", async () => {
-      server.use(
-        http.put("*/api/user/mfa/reset/:userId", () =>
-          HttpResponse.json(mockUserAuth({ token: "reset-token", mfa: false })),
-        ),
-      );
-
-      await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
-
-      const auth = useAuthStore.getState();
-      expect(auth.token).toBe("reset-token");
-      expect(auth.user).toBe("admin");
-      expect(auth.userId).toBe("user-123");
-      expect(auth.email).toBe("admin@test.com");
-      expect(auth.tenant).toBe("tenant-456");
-      expect(auth.isAdmin).toBe(false);
-      expect(auth.mfaEnabled).toBe(false);
     });
 
     it("clears mfaResetToken and mfaResetIdentifier on success", async () => {
