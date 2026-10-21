@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import { toBase64Json } from "@/utils/encoding";
 import { usePagedList } from "@/hooks/usePagedList";
 import PageHeader from "@/components/common/PageHeader";
@@ -143,37 +144,19 @@ export default function PublicKeys() {
       }),
   });
   const invalidateKeys = useInvalidateByIds("getPublicKeys");
-  const deleteKey = useMutation({
+  const deleteKeyMutation = useMutation({
     ...deletePublicKeyMutation(),
     onSuccess: invalidateKeys,
   });
+  const deleteKey = useRowAction({
+    item: "public key",
+    run: (key: PublicKey) =>
+      deleteKeyMutation.mutateAsync({
+        path: { fingerprint: key.fingerprint },
+      }),
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    fingerprint: string;
-    name: string;
-  } | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteKey.mutateAsync({
-        path: { fingerprint: deleteTarget.fingerprint },
-      });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete public key.",
-      );
-    }
-  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -246,12 +229,7 @@ export default function PublicKeys() {
               variant="danger"
               title="Delete"
               aria-label={`Delete ${pk.name}`}
-              onClick={() =>
-                setDeleteTarget({
-                  fingerprint: pk.fingerprint,
-                  name: pk.name,
-                })
-              }
+              onClick={() => deleteKey.open(pk)}
             >
               <TrashIcon className="w-4 h-4" strokeWidth={2} />
             </IconButton>
@@ -361,23 +339,20 @@ export default function PublicKeys() {
       <KeyModal open={modalOpen} editKey={editTarget} onClose={closeModal} />
 
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!deleteKey.target}
+        onClose={deleteKey.close}
+        onConfirm={deleteKey.confirm}
         icon={<TrashIcon />}
         title="Delete public key"
         description={
           <>
-            Whoever holds <ObjectName>{deleteTarget?.name}</ObjectName> can no
+            Whoever holds <ObjectName>{deleteKey.target?.name}</ObjectName> can no
             longer connect with it. This can't be undone.
           </>
         }
         confirmLabel="Delete key"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
-        )}
-      </ConfirmDialog>
+        errorMessage={deleteKey.error}
+      />
     </div>
   );
 }

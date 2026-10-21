@@ -25,6 +25,7 @@ import {
 } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -64,35 +65,17 @@ export default function FirewallRules() {
       }),
   });
   const invalidateRules = useInvalidateByIds("getFirewallRules");
-  const deleteRule = useMutation({
+  const deleteRuleMutation = useMutation({
     ...deleteFirewallRuleMutation(),
     onSuccess: invalidateRules,
   });
+  const deleteRule = useRowAction({
+    item: "firewall rule",
+    run: (rule: FirewallRule) =>
+      deleteRuleMutation.mutateAsync({ path: { id: rule.id } }),
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    id: string;
-    priority: number;
-  } | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete firewall rule.",
-      );
-    }
-  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -201,9 +184,7 @@ export default function FirewallRules() {
               variant="danger"
               aria-label={`Delete firewall rule with priority ${rule.priority}`}
               title="Delete"
-              onClick={() =>
-                setDeleteTarget({ id: rule.id, priority: rule.priority })
-              }
+              onClick={() => deleteRule.open(rule)}
             >
               <TrashIcon className="w-4 h-4" aria-hidden="true" />
             </IconButton>
@@ -331,26 +312,21 @@ export default function FirewallRules() {
       />
 
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!deleteRule.target}
+        onClose={deleteRule.close}
+        onConfirm={deleteRule.confirm}
         icon={<TrashIcon />}
         title="Delete firewall rule"
         description={
           <>
             The rule with priority{" "}
-            <ObjectName>{deleteTarget?.priority}</ObjectName> stops filtering
+            <ObjectName>{deleteRule.target?.priority}</ObjectName> stops filtering
             connections. This can't be undone.
           </>
         }
         confirmLabel="Delete rule"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red" role="alert">
-            {deleteError}
-          </p>
-        )}
-      </ConfirmDialog>
+        errorMessage={deleteRule.error}
+      />
     </div>
   );
 }

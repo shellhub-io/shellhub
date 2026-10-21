@@ -25,6 +25,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
@@ -243,37 +244,22 @@ export default function AccessPolicies() {
   const roleSubjectCount = (role: string) =>
     countRoleSubject({ role, members });
   const invalidatePolicies = useInvalidateByIds("listAccessPolicies");
-  const deletePolicy = useMutation({
+  const deletePolicyMutation = useMutation({
     ...deleteAccessPolicyMutation(),
     onSuccess: invalidatePolicies,
   });
+  const deletePolicy = useRowAction({
+    item: "access policy",
+    run: (policy: AccessPolicy) =>
+      deletePolicyMutation.mutateAsync({ path: { id: policy.id } }),
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<AccessPolicy | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const filtered = policies.filter((p) =>
     p.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deletePolicy.mutateAsync({ path: { id: deleteTarget.id } });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete access policy.",
-      );
-    }
-  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -364,7 +350,7 @@ export default function AccessPolicies() {
                 <Dropdown.Item
                   label="Delete"
                   variant="danger"
-                  onSelect={() => setDeleteTarget(p)}
+                  onSelect={() => deletePolicy.open(p)}
                   className="gap-2.5 px-3 py-2"
                 >
                   <TrashIcon className="w-4 h-4" />
@@ -485,24 +471,21 @@ export default function AccessPolicies() {
       />
 
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!deletePolicy.target}
+        onClose={deletePolicy.close}
+        onConfirm={deletePolicy.confirm}
         icon={<TrashIcon />}
         title="Delete access policy"
         description={
           <>
-            <ObjectName>{deleteTarget?.name}</ObjectName> stops granting access.
+            <ObjectName>{deletePolicy.target?.name}</ObjectName> stops granting access.
             Anyone who reached a device only through it loses that access. This
             can't be undone.
           </>
         }
         confirmLabel="Delete policy"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
-        )}
-      </ConfirmDialog>
+        errorMessage={deletePolicy.error}
+      />
     </div>
   );
 }

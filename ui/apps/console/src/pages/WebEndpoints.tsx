@@ -4,6 +4,7 @@ import { apiErrorMessage, isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { usePagedList } from "@/hooks/usePagedList";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import {
   createWebEndpointMutation,
   deleteWebEndpointMutation,
@@ -852,36 +853,18 @@ function WebEndpointsContent() {
       }),
   });
   const invalidateEndpoints = useInvalidateByIds("listWebEndpoints");
-  const deleteEndpoint = useMutation({
+  const deleteEndpointMutation = useMutation({
     ...deleteWebEndpointMutation(),
     onSuccess: invalidateEndpoints,
   });
+  const deleteEndpoint = useRowAction({
+    item: "web endpoint",
+    run: (endpoint: Webendpoint) =>
+      deleteEndpointMutation.mutateAsync({
+        path: { address: endpoint.address },
+      }),
+  });
   const [modalOpen, setModalOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{
-    address: string;
-    deviceName: string;
-  } | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteEndpoint.mutateAsync({
-        path: { address: deleteTarget.address },
-      });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete web endpoint.",
-      );
-    }
-  };
 
   const openNew = () => {
     setModalOpen(true);
@@ -1004,12 +987,7 @@ function WebEndpointsContent() {
                   <li key={ep.address}>
                     <EndpointCard
                       endpoint={ep}
-                      onDelete={() =>
-                        setDeleteTarget({
-                          address: ep.address,
-                          deviceName: ep.device?.name || ep.device_uid,
-                        })
-                      }
+                      onDelete={() => deleteEndpoint.open(ep)}
                     />
                   </li>
                 ))}
@@ -1027,25 +1005,23 @@ function WebEndpointsContent() {
       <EndpointModal open={modalOpen} onClose={closeModal} />
 
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!deleteEndpoint.target}
+        onClose={deleteEndpoint.close}
+        onConfirm={deleteEndpoint.confirm}
         icon={<TrashIcon />}
         title="Delete web endpoint"
         description={
           <>
-            The endpoint for <ObjectName>{deleteTarget?.deviceName}</ObjectName>{" "}
+            The endpoint for{" "}
+            <ObjectName>
+              {deleteEndpoint.target?.device?.name || deleteEndpoint.target?.device_uid}
+            </ObjectName>{" "}
             stops serving traffic. This can't be undone.
           </>
         }
         confirmLabel="Delete endpoint"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red" role="alert">
-            {deleteError}
-          </p>
-        )}
-      </ConfirmDialog>
+        errorMessage={deleteEndpoint.error}
+      />
     </>
   );
 }

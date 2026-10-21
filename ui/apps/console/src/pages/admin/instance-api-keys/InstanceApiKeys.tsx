@@ -9,6 +9,7 @@ import { Button, Callout, IconButton } from "@shellhub/design-system/primitives"
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { usePagedList } from "@/hooks/usePagedList";
 import {
@@ -54,33 +55,17 @@ function InstanceApiKeys() {
   const page = params.page;
 
   const invalidateKeys = useInvalidateByIds("listInstanceApiKeys");
-  const deleteKey = useMutation({
+  const revokeKeyMutation = useMutation({
     ...deleteInstanceApiKeyMutation(),
     onSuccess: invalidateKeys,
   });
+  const revokeKey = useRowAction({
+    item: "instance API key",
+    verb: "revoke",
+    run: (key: InstanceApiKey) =>
+      revokeKeyMutation.mutateAsync({ path: { name: key.name } }),
+  });
   const [generateOpen, setGenerateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<InstanceApiKey | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteKey.mutateAsync({ path: { name: deleteTarget.name } });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error
-          ? err.message
-          : "Failed to revoke the instance API key.",
-      );
-    }
-  };
 
   const columns: Column<InstanceApiKey>[] = [
     {
@@ -127,7 +112,7 @@ function InstanceApiKeys() {
             variant="danger"
             title="Revoke"
             aria-label="Revoke instance API key"
-            onClick={() => setDeleteTarget(key)}
+            onClick={() => revokeKey.open(key)}
           >
             <TrashIcon className="w-4 h-4" />
           </IconButton>
@@ -194,23 +179,20 @@ function InstanceApiKeys() {
         onClose={() => setGenerateOpen(false)}
       />
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!revokeKey.target}
+        onClose={revokeKey.close}
+        onConfirm={revokeKey.confirm}
         icon={<NoSymbolIcon />}
         title="Revoke instance API key"
         description={
           <>
-            Automation using <ObjectName>{deleteTarget?.name}</ObjectName> stops
+            Automation using <ObjectName>{revokeKey.target?.name}</ObjectName> stops
             working right away.
           </>
         }
         confirmLabel="Revoke key"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
-        )}
-      </ConfirmDialog>
+        errorMessage={revokeKey.error}
+      />
     </div>
   );
 }
