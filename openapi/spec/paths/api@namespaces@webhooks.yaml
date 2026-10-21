@@ -1,0 +1,66 @@
+post:
+  operationId: webhookCreate
+  summary: Create a webhook
+  description: |
+    Subscribes a URL to the namespace's device events. The server generates the signing
+    secret and returns it only in this response and through reveal. A namespace can have
+    at most 10 webhooks. Restricted to administrators and owners, and cannot be
+    authenticated with an API key.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/webhookCreate.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/webhookWithSecret.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+get:
+  operationId: webhookList
+  summary: List webhooks
+  description: Lists the namespace's webhooks, oldest first, without their secrets.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/webhook.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

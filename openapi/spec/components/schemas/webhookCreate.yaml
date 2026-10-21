@@ -1,0 +1,18 @@
+type: object
+properties:
+  url:
+    type: string
+    format: uri
+    description: |
+      Where ShellHub POSTs each event, over `http` or `https`. The server refuses to reach
+      loopback, private and link-local addresses unless the instance allows them.
+    example: https://hooks.example.com/shellhub
+  events:
+    type: array
+    description: The event types to send. At least one.
+    minItems: 1
+    items:
+      $ref: webhookEventType.yaml
+required:
+  - url
+  - events
