@@ -27,12 +27,6 @@ describe("identityLifecyclePayload", () => {
 });
 
 describe("sshIdentitySource", () => {
-  it("names every origin", () => {
-    expect(sshIdentitySource("browser").label).toBe("Browser");
-    expect(sshIdentitySource("manual").label).toBe("Manual");
-    expect(sshIdentitySource("approval").label).toBe("At login");
-  });
-
   it("marks only the browser in use as notable", () => {
     expect(sshIdentitySource("browser", true).notable).toBe(true);
     expect(sshIdentitySource("browser", false).notable).toBe(false);

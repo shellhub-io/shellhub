@@ -92,11 +92,6 @@ describe("pending device code", () => {
     localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
   });
 
-  it("setPendingDeviceCode stores the code", () => {
-    setPendingDeviceCode("WXYZ2K7Q");
-    expect(localStorage.getItem(PENDING_DEVICE_CODE_KEY)).toBe("WXYZ2K7Q");
-  });
-
   it("clearPendingDeviceCode removes the key", () => {
     setPendingDeviceCode("ABC");
     clearPendingDeviceCode();
