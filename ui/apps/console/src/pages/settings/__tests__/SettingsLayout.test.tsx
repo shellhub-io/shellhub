@@ -53,6 +53,18 @@ describe("SettingsLayout", () => {
     expect(screen.getByText("General content")).toBeInTheDocument();
   });
 
+  it("lists Webhooks to an owner", () => {
+    renderAt("/settings/general");
+    expect(screen.getByRole("link", { name: "Webhooks" })).toBeInTheDocument();
+  });
+
+  it("hides Webhooks from an operator", () => {
+    seedAuthStore({ role: "operator" });
+    renderAt("/settings/general");
+
+    expect(screen.queryByRole("link", { name: "Webhooks" })).not.toBeInTheDocument();
+  });
+
   it("lists Billing on cloud", () => {
     renderAt("/settings/general");
 
