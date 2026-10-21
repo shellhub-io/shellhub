@@ -65,7 +65,8 @@ type AuthService interface {
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new
 	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
-	// or legacy key, or its counters cannot be read or written.
+	// or legacy key, or its counters cannot be read or written, or when the device.pending event of a
+	// new or re-registered device cannot be recorded.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. Claims without a tenant,
 	// which servers before 0.15 minted and agents of that era reuse for the life of their process,
@@ -169,6 +170,53 @@ func (s *service) applyProvisioningKeyTags(ctx context.Context, deviceUID string
 			log.WithError(err).WithField("tag_id", tagID).Warn("failed to apply provisioning key tag to device")
 		}
 	}
+}
+
+func (s *service) recordRegistration(ctx context.Context, sc scope.Scope, uid string, provisioningKey *models.ProvisioningKey) error {
+	if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
+		s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
+	}
+
+	registered, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
+	if err != nil {
+		return err
+	}
+
+	return s.recordDeviceEvent(ctx, models.WebhookEventDevicePending, registered)
+}
+
+func (s *service) reviveRemovedDevice(ctx context.Context, sc scope.Scope, device *models.Device, provisioningKey *models.ProvisioningKey) (*models.Device, error) {
+	var revivedElsewhere *models.Device
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		locked, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, device.UID, s.store.Options().ForUpdate())
+		if err != nil {
+			return err
+		}
+
+		if locked.RemovedAt == nil {
+			revivedElsewhere = locked
+
+			return nil
+		}
+
+		if err := s.store.DeviceUpdate(ctx, device); err != nil {
+			return err
+		}
+
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
+			return err
+		}
+
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
+			return err
+		}
+
+		return s.recordRegistration(ctx, sc, device.UID, provisioningKey)
+	}); err != nil {
+		return nil, err
+	}
+
+	return revivedElsewhere, nil
 }
 
 func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
@@ -587,16 +635,18 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			}
 		}
 
-		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
-			return nil, NewErrDeviceCreate(models.Device{}, err)
-		}
+		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+			if _, err := s.store.DeviceCreate(ctx, device); err != nil {
+				return NewErrDeviceCreate(models.Device{}, err)
+			}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
+				return err
+			}
+
+			return s.recordRegistration(ctx, sc, uid, provisioningKey)
+		}); err != nil {
 			return nil, err
-		}
-
-		if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
-			s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
 		}
 
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
@@ -610,6 +660,7 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 
 		revived := device.RemovedAt != nil
+		revivedConcurrently := false
 
 		if ip := net.ParseIP(req.RealIP); ip != nil {
 			device.RemoteAddr = req.RealIP
@@ -636,29 +687,28 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = s.clock.Now()
 			device.EnrollWith(provisioningKey)
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
+			revivedElsewhere, err := s.reviveRemovedDevice(ctx, sc, device, provisioningKey)
+			if err != nil {
 				return nil, err
 			}
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
-				return nil, err
-			}
 
-			if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
-				s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
-			}
+			if revivedElsewhere != nil {
+				device = revivedElsewhere
+				revivedConcurrently = true
+			} else {
+				decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
 
-			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
-
-			if decision == enrollAccept || decision == enrollReject {
-				if err := s.store.DeviceUpdate(ctx, device); err != nil {
-					return nil, err
+				if decision == enrollAccept || decision == enrollReject {
+					if err := s.store.DeviceUpdate(ctx, device); err != nil {
+						return nil, err
+					}
 				}
-			}
 
-			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment.ownerID, true, true)
-			if status != models.DeviceStatusPending {
-				device.Status = status
-				device.StatusUpdatedAt = s.clock.Now()
+				status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment.ownerID, true, true)
+				if status != models.DeviceStatusPending {
+					device.Status = status
+					device.StatusUpdatedAt = s.clock.Now()
+				}
 			}
 		} else if device.Status == models.DeviceStatusPending {
 			if !s.adoptPresentedKey(ctx, device, req, uid, hostname) {
@@ -681,10 +731,12 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			update = s.store.DeviceUpdate
 		}
 
-		if err := update(ctx, device); err != nil {
-			log.WithError(err).Error("failed to update the authenticated device")
+		if !revivedConcurrently {
+			if err := update(ctx, device); err != nil {
+				log.WithError(err).Error("failed to update the authenticated device")
 
-			return nil, err
+				return nil, err
+			}
 		}
 	}
 

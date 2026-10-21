@@ -112,7 +112,7 @@ func (e *enrollmentE2E) remove(ctx context.Context, sc scope.Scope, uid string) 
 	return e.st.DeviceDelete(ctx, device)
 }
 
-func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T) {
+func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T, minWaiters int) {
 	t.Helper()
 
 	require.Eventually(t, func() bool {
@@ -121,8 +121,8 @@ func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T) {
 			"SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'",
 		).Scan(&waiting)
 
-		return err == nil && waiting > 0
-	}, 10*time.Second, 10*time.Millisecond, "the second writer never blocked on a lock held by the open transaction")
+		return err == nil && waiting >= minWaiters
+	}, 10*time.Second, 10*time.Millisecond, "fewer than %d writers blocked on a lock held by the open transaction", minWaiters)
 }
 
 func (e *enrollmentE2E) acceptWhileHeldOpen(t *testing.T, writes func(ctx context.Context) error, acceptedUID string) error {
@@ -133,7 +133,7 @@ func (e *enrollmentE2E) acceptWhileHeldOpen(t *testing.T, writes func(ctx contex
 	loser := make(chan error, 1)
 	go func() { loser <- e.accept(context.Background(), acceptedUID) }()
 
-	e.waitUntilBlockedOnLock(t)
+	e.waitUntilBlockedOnLock(t, 1)
 	commit()
 
 	return <-loser

@@ -30,6 +30,8 @@ import (
 // (which drives UpdateDeviceStatus) is left to end-to-end verification.
 func TestAuthDevice_ProvisioningKey(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 	queryOptionsMock := mocks.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
@@ -116,6 +118,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 					ProvisioningKeyID: "legacydigest",
 				}).Return(uid, nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenant), models.DeviceStatusPending, int64(1)).Return(nil).Once()
+				storeMock.On("DeviceResolve", ctx, scope.MustBounded(tenant), store.DeviceUIDResolver, uid).Return(&models.Device{UID: uid, TenantID: tenant, Status: models.DeviceStatusPending}, nil).Once()
 				storeMock.On("ProvisioningKeyEventCreate", ctx, testifymock.Anything).Return(nil).Once()
 				cacheMock.On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "d", "namespace_name": "test"}, time.Second*30).Return(nil).Once()
 			},
@@ -246,6 +249,8 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 // resulting status, and a key that resolves to nothing is refused before any namespace is touched.
 func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 	queryOptionsMock := mocks.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
@@ -312,6 +317,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 					ProvisioningKeyID: keyDigest,
 				}).Return(uid, nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenant), models.DeviceStatusPending, int64(1)).Return(nil).Once()
+				storeMock.On("DeviceResolve", ctx, scope.MustBounded(tenant), store.DeviceUIDResolver, uid).Return(&models.Device{UID: uid, TenantID: tenant, Status: models.DeviceStatusPending}, nil).Once()
 				storeMock.On("ProvisioningKeyEventCreate", ctx, testifymock.Anything).Return(nil).Once()
 				cacheMock.On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "fleet-a", "namespace_name": "test"}, time.Second*30).Return(nil).Once()
 			},

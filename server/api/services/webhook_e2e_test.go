@@ -110,7 +110,7 @@ func TestWebhookE2E_ConcurrentUpdatesKeepBothChanges(t *testing.T) {
 		updated <- err
 	}()
 
-	e.waitUntilBlockedOnLock(t)
+	e.waitUntilBlockedOnLock(t, 1)
 	commit()
 	require.NoError(t, <-updated)
 
