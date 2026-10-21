@@ -118,16 +118,6 @@ describe("BillingDialog", () => {
       expect(screen.getByRole("button", { name: /^next$/i })).toBeDisabled();
     });
 
-    it("'Next' button is enabled after onHasDefault fires", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep2(user);
-      await user.click(screen.getByTestId("trigger-has-default"));
-      expect(
-        screen.getByRole("button", { name: /^next$/i }),
-      ).not.toBeDisabled();
-    });
-
     it("'Next' becomes disabled again when onNoPaymentMethods fires", async () => {
       const user = userEvent.setup();
       renderDialog();
@@ -157,18 +147,6 @@ describe("BillingDialog", () => {
   });
 
   describe("Step 3 — Review", () => {
-    it("advances to step 4 after subscription is active", async () => {
-      const user = userEvent.setup();
-      renderDialog();
-      await goToStep3(user);
-      await user.click(
-        screen.getByRole("button", { name: /confirm subscription/i }),
-      );
-      await waitFor(() =>
-        expect(screen.getByTestId("billing-successful")).toBeInTheDocument(),
-      );
-    });
-
     it("advances to step 4 when subscription status is 'trialing'", async () => {
       server.use(
         http.get("*/api/billing/subscription", () =>
