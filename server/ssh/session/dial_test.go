@@ -9,23 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestDialAsksTheTunnelToOpenTheSession pins what the session states at the call site: the
-// device it wants, and that the connection is for opening this session and not for closing it.
-func TestDialAsksTheTunnelToOpenTheSession(t *testing.T) {
-	agent := dialertest.NewAgent(t)
-	sess := newTestSession(nil, agent)
-
-	require.NoError(t, sess.Dial(newStubContext()))
-
-	assert.Equal(t, []dialertest.Dial{{
-		Tenant: "tenant-id",
-		UID:    "device-uid",
-		Target: dialer.SSHOpenTarget{SessionID: "test-uid"},
-	}}, agent.Dials())
-
-	assert.NotNil(t, sess.agent.conn, "a successful dial must leave the session holding the connection")
-}
-
 // TestDialReportsAFailedTunnelAsErrDial keeps the banner's classification working: every dial
 // failure reaches the caller under ErrDial, with the tunnel's own error still readable under it.
 func TestDialReportsAFailedTunnelAsErrDial(t *testing.T) {

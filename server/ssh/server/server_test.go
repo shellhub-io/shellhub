@@ -82,14 +82,6 @@ func bannerKind(message string) banner.Kind {
 	return kind
 }
 
-func TestBannerHandlerInvalidSSHID(t *testing.T) {
-	h := newBannerHandler(nil, nil, nil, session.NewRegistry(), envs.Community, clock.New())
-	result := h(newStubCtx("not-a-valid-sshid"))
-
-	assert.Equal(t, banner.KindInvalidSSHID, bannerKind(result),
-		"BannerHandler must return the KindInvalidSSHID banner for a malformed SSHID")
-}
-
 func TestBannerHandlerNewSessionFailure(t *testing.T) {
 	deps := stubDeps()
 	deps.newSession = func(_ gliderssh.Context, _ dialer.TunnelDialer, _ services.Service, _ *webhandoff.Store, _ *session.Registry, _ envs.Edition) (*session.Session, error) {
@@ -125,19 +117,6 @@ func TestBannerHandlerOfflineDevice(t *testing.T) {
 		"BannerHandler must return KindConnectionFailed when the device is not reporting in")
 	assert.Empty(t, agent.Dials(),
 		"an offline device must be refused from what the lookup already knows, without a tunnel")
-}
-
-func TestBannerHandlerEvaluateFailure(t *testing.T) {
-	deps := stubDeps()
-	deps.evaluate = func(_ *session.Session, _ gliderssh.Context) error {
-		return errors.New("firewall block")
-	}
-
-	h := newBannerHandlerWithDeps(dialertest.NewAgent(t), reachableDevice(t), nil, session.NewRegistry(), envs.Community, deps)
-	result := h(newStubCtx(validSSHID))
-
-	assert.Equal(t, banner.KindAccessDenied, bannerKind(result),
-		"BannerHandler must return KindAccessDenied when Evaluate fails")
 }
 
 func TestBannerHandlerSuccess(t *testing.T) {

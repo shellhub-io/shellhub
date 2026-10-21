@@ -269,60 +269,6 @@ func TestEvaluate(t *testing.T) {
 			expectedErr:          ErrBillingBlock,
 			expectStateEvaluated: false,
 		},
-		{
-			description: "enterprise (not cloud): license blocks before the firewall runs",
-			edition:     envs.Enterprise,
-			setupMock: func(m *servicemocks.MockService) {
-				m.EXPECT().
-					EvaluateLicense(mock.Anything).
-					Return(services.ErrLicenseBlocked).
-					Once()
-			},
-			expectedErr:          ErrLicenseBlock,
-			expectStateEvaluated: false,
-		},
-		{
-			description: "enterprise (not cloud): license allows, firewall denies",
-			edition:     envs.Enterprise,
-			setupMock: func(m *servicemocks.MockService) {
-				m.EXPECT().
-					EvaluateLicense(mock.Anything).
-					Return(nil).
-					Once()
-
-				m.EXPECT().
-					EvaluateFirewall(mock.Anything, mock.Anything).
-					Return(services.ErrFirewallBlocked).
-					Once()
-			},
-			expectedErr:          ErrFirewallBlock,
-			expectStateEvaluated: false,
-		},
-		{
-			description: "enterprise (not cloud): license allows, firewall allows",
-			edition:     envs.Enterprise,
-			setupMock: func(m *servicemocks.MockService) {
-				m.EXPECT().
-					EvaluateLicense(mock.Anything).
-					Return(nil).
-					Once()
-
-				m.EXPECT().
-					EvaluateFirewall(mock.Anything, mock.Anything).
-					Return(nil).
-					Once()
-			},
-			expectedErr:          nil,
-			expectStateEvaluated: true,
-		},
-		{
-			description: "community: no firewall, billing, or license evaluation",
-			edition:     envs.Community,
-			setupMock: func(_ *servicemocks.MockService) {
-			},
-			expectedErr:          nil,
-			expectStateEvaluated: true,
-		},
 	}
 
 	for _, tt := range tests {

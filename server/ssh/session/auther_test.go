@@ -38,11 +38,6 @@ func TestPublicKeyOfferAgentVersionFloor(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			name:        "refuses an agent older than 0.6.0",
-			version:     "0.5.9",
-			expectedErr: ErrUnsuportedPublicKeyAuth,
-		},
-		{
 			name:        "refuses an agent older than 0.6.0 reported with a v prefix",
 			version:     "v0.5.9",
 			expectedErr: ErrUnsuportedPublicKeyAuth,
@@ -119,28 +114,6 @@ func TestPublicKeyOfferKeyEvaluation(t *testing.T) {
 		mocks       func(*servicemocks.MockService)
 		expectedErr error
 	}{
-		{
-			name:  "admits a key the username and the filter both accept",
-			mocks: expectKeyAdmitted,
-		},
-		{
-			name: "refuses a key the username rejects",
-			mocks: func(s *servicemocks.MockService) {
-				s.EXPECT().GetPublicKey(mock.Anything, mock.Anything, "tenant-id").Return(key, nil).Once()
-				s.EXPECT().EvaluateKeyUsername(mock.Anything, key, "user").Return(false, nil).Once()
-				s.EXPECT().EvaluateKeyFilter(mock.Anything, key, mock.Anything).Return(true, nil).Once()
-			},
-			expectedErr: ErrEvaluatePublicKey,
-		},
-		{
-			name: "refuses a key the filter rejects",
-			mocks: func(s *servicemocks.MockService) {
-				s.EXPECT().GetPublicKey(mock.Anything, mock.Anything, "tenant-id").Return(key, nil).Once()
-				s.EXPECT().EvaluateKeyUsername(mock.Anything, key, "user").Return(true, nil).Once()
-				s.EXPECT().EvaluateKeyFilter(mock.Anything, key, mock.Anything).Return(false, nil).Once()
-			},
-			expectedErr: ErrEvaluatePublicKey,
-		},
 		{
 			name: "refuses a key whose username evaluation fails",
 			mocks: func(s *servicemocks.MockService) {

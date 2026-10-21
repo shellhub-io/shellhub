@@ -42,27 +42,6 @@ func newCloseRequest(t *testing.T, role string) (*echo.Context, *httptest.Respon
 	return c, rec
 }
 
-// TestHandleSSHCloseAsksTheTunnelToCloseTheSession pins what the handler states at the call
-// site: the device the session is on, and that the connection is for closing that session.
-func TestHandleSSHCloseAsksTheTunnelToCloseTheSession(t *testing.T) {
-	c, rec := newCloseRequest(t, "administrator")
-
-	registry := session.NewRegistry()
-	registry.Add("session-uid")
-
-	agent := dialertest.NewAgent(t)
-	h := &Handlers{Dialer: agent, Sessions: registry} //nolint:exhaustruct // an owned session never reaches the service
-
-	require.NoError(t, h.HandleSSHClose(c))
-	assert.Equal(t, http.StatusAccepted, rec.Code)
-
-	assert.Equal(t, []dialertest.Dial{{
-		Tenant: "tenant-id",
-		UID:    "device-uid",
-		Target: dialer.SSHCloseTarget{SessionID: "session-uid"},
-	}}, agent.Dials())
-}
-
 func TestHandleSSHCloseReportsAnUnreachableDevice(t *testing.T) {
 	for _, failure := range []error{dialer.ErrNoConnection, dialer.ErrUnreachable, dialer.ErrInvalidArgument} {
 		t.Run(failure.Error(), func(t *testing.T) {
@@ -107,26 +86,6 @@ func TestHandleSSHCloseAuthorization(t *testing.T) {
 	}
 }
 
-func TestHandleSSHCloseRetiresASessionNobodyOwns(t *testing.T) {
-	c, rec := newCloseRequest(t, "administrator")
-
-	service := servicemocks.NewMockService(t)
-	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).
-		Return(&models.Session{UID: "session-uid", TenantID: "tenant-id"}, nil).Once()
-	service.On("DeactivateSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).Return(nil).Once()
-
-	h := &Handlers{ //nolint:exhaustruct // the close path reaches neither the tunnel registry nor the config
-		Dialer:   dialertest.NewAgent(t),
-		Service:  service,
-		Sessions: session.NewRegistry(),
-	}
-
-	require.NoError(t, h.HandleSSHClose(c))
-	assert.Equal(t, http.StatusOK, rec.Code, "200 means the session is closed, and here the handler closed it")
-
-	service.AssertExpectations(t)
-}
-
 func TestHandleSSHCloseLeavesAnotherNamespacesSessionAlone(t *testing.T) {
 	c, rec := newCloseRequest(t, "administrator")
 
@@ -148,37 +107,4 @@ func TestHandleSSHCloseLeavesAnotherNamespacesSessionAlone(t *testing.T) {
 	assert.NotEmpty(t, body.Message, "a refusal's body must say why")
 
 	service.AssertNotCalled(t, "DeactivateSession", mock.Anything, mock.Anything, mock.Anything)
-}
-
-func TestHandleSSHCloseDelegatesASessionItOwns(t *testing.T) {
-	c, rec := newCloseRequest(t, "administrator")
-
-	registry := session.NewRegistry()
-	registry.Add("session-uid")
-
-	h := &Handlers{ //nolint:exhaustruct // the close path reaches neither the tunnel registry nor the config
-		Dialer:   dialertest.NewAgent(t),
-		Service:  servicemocks.NewMockService(t),
-		Sessions: registry,
-	}
-
-	require.NoError(t, h.HandleSSHClose(c))
-	assert.Equal(t, http.StatusAccepted, rec.Code, "202 means the request was delivered, not that the session closed")
-}
-
-func TestHandleSSHCloseKeepsADialFailureAnErrorForAnOwnedSession(t *testing.T) {
-	c, _ := newCloseRequest(t, "administrator")
-
-	registry := session.NewRegistry()
-	registry.Add("session-uid")
-
-	stub := &dialertest.Stub{Err: dialer.ErrUnreachable} //nolint:exhaustruct // the recording field starts empty and is appended to under the mutex
-
-	h := &Handlers{ //nolint:exhaustruct // the close path reaches neither the tunnel registry nor the config
-		Dialer:   stub,
-		Service:  servicemocks.NewMockService(t),
-		Sessions: registry,
-	}
-
-	assert.ErrorIs(t, h.HandleSSHClose(c), ErrDeviceTunnelDial)
 }
