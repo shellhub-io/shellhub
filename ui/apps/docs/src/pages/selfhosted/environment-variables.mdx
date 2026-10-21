@@ -125,6 +125,7 @@ value that is not a positive duration under one minute.
 | `SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS` | *(empty)* | Empty blocks all private, loopback and metadata addresses |
 | `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` | `false` | Permit public-key auth from agents older than 0.6.0 |
 | `SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY` | `true` | Whether a namespace created from now on starts with [Device signature enforcement](/manage/settings#device-signature-enforcement) on. Namespaces that already exist keep their own setting |
+| `SHELLHUB_TELEMETRY` | `true` | `false` turns [telemetry](/selfhosted/telemetry) off and overrides the admin console setting. The server then opens no connection to the collector |
 
 <Callout variant="info">
 `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` contains a misspelling — "BELLOW".

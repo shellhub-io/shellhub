@@ -1,0 +1,108 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Telemetry
+description: What a ShellHub server reports about itself, and how to turn it off.
+---
+
+# Telemetry
+
+A ShellHub server sends a few usage counts to `telemetry.shellhub.io`. We use them to learn how many
+instances run, which versions and editions they run, and how large they get. Telemetry is on by
+default, and one setting turns it off.
+
+## What is sent
+
+Every edition sends two events, and ShellHub Cloud sends a third. All of them are identified by a
+random instance ID that the database generates once. Nothing in them names a person, a namespace, a
+device or a host.
+
+**`instance started`**, each time the server starts:
+
+| Property | Example | Meaning |
+|---|---|---|
+| `edition` | `community` | `community`, `enterprise` or `cloud` |
+| `version` | `v0.27.0` | The server's `SHELLHUB_VERSION` |
+| `os` | `linux` | Operating system the server runs on |
+| `arch` | `amd64` | CPU architecture |
+| `database` | `postgres` | Database type |
+
+**`instance heartbeat`**, once a day at 05:30 UTC, with the properties above plus:
+
+| Property | Meaning |
+|---|---|
+| `namespaces` | Namespaces on the instance |
+| `users` | User accounts on the instance |
+| `devices_accepted` | Accepted devices |
+| `devices_pending` | Devices waiting for acceptance |
+| `devices_rejected` | Rejected devices |
+| `sessions` | Sessions started in the last 24 hours |
+
+**`namespace heartbeat`**, ShellHub Cloud only, one per namespace with each instance heartbeat:
+
+| Property | Meaning |
+|---|---|
+| `$groups` | `{"namespace": "<hash>"}`: an HMAC-SHA256 of the namespace's tenant ID under a key the collector does not hold, so it cannot recover the tenant ID |
+| `members` | Members of the namespace |
+| `devices_accepted` | Accepted devices |
+| `devices_pending` | Devices waiting for acceptance |
+| `devices_rejected` | Rejected devices |
+| `sessions` | Sessions started in the last 24 hours |
+
+Every event also carries `schema_version`, which changes when a property changes meaning. The
+server sends events in PostHog's capture v1 format, asks the collector to create no person profile,
+and the PostHog client adds an event ID, a timestamp and these properties:
+
+| Property | Example | Meaning |
+|---|---|---|
+| `$os` | `Linux` | Operating system the server runs on |
+| `$os_version` | `3.24.0` | Its version, when the host reports one |
+| `$os_distro` | `alpine` | Its distribution, when the host reports one. In the official image this is the container's distribution, not the host's |
+| `$go_version` | `go1.26.9` | Go version the server was built with |
+| `$is_server` | `true` | Marks the event as sent by a server |
+| `$geoip_disable` | `true` | Asks the collector not to look up a location |
+
+## What is not sent
+
+No IP addresses, hostnames, domains, email addresses, usernames, namespace names, device names,
+session contents or command lines. The collector drops the address the request came from before it
+stores anything.
+
+## How long it is kept
+
+The collector keeps each event for 365 days. After that only monthly totals remain, with no
+instance ID. Cloud and Enterprise customers can have an instance's events deleted sooner through
+their support channel.
+
+The instance ID, the `distinct_id` in the payload preview, lets whoever holds it send events as
+your instance. The server shows it nowhere else. Do not post it in a public issue.
+
+## Seeing the exact payload
+
+The Admin Console on Enterprise and Cloud shows the events the next heartbeat will send, under
+**Settings > Telemetry**.
+
+## Turning it off
+
+On any edition, set `SHELLHUB_TELEMETRY=false` in `.env.override` and restart:
+
+```bash
+# .env.override
+SHELLHUB_TELEMETRY=false
+```
+
+```bash
+$ make restart
+```
+
+The server then opens no connection to the collector. The startup log says which way it is set:
+
+```
+level=info msg="telemetry is off: SHELLHUB_TELEMETRY is false"
+```
+
+On Enterprise and Cloud, an administrator can also turn it off in the Admin Console under
+**Settings > Telemetry**, without a restart. The change applies to the next event. When
+`SHELLHUB_TELEMETRY=false` is set, or the server could not set up telemetry, the console shows the
+switch as disabled by the environment and the server log says why.
+
+Turning telemetry off changes nothing else. The server sends no final event when you do.

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 	"testing"
 
@@ -184,8 +185,17 @@ func TestPreviewIsTheEventOnTheWire(t *testing.T) {
 
 	for name := range wire.Properties {
 		if _, ours := properties[name]; !ours {
-			assert.Contains(t, telemetry.ClientProperties, name, "posthog-go added a property the telemetry page does not list")
+			assert.Contains(t, telemetry.ClientProperties, name, "posthog-go added a property missing from ClientProperties")
 		}
+	}
+}
+
+func TestTelemetryPageListsEveryClientProperty(t *testing.T) {
+	page, err := os.ReadFile("../../ui/apps/docs/src/pages/selfhosted/telemetry.mdx")
+	require.NoError(t, err)
+
+	for _, name := range telemetry.ClientProperties {
+		assert.Contains(t, string(page), "| `"+name+"` |", "the telemetry page does not list %s", name)
 	}
 }
 
