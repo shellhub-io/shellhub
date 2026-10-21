@@ -7,8 +7,9 @@ import {
   type UserAdminResponse,
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
-import { isSdkError } from "../api/errors";
+import { adminQueryDefaults } from "./useAdminRequests";
 import { toBase64Json } from "@/utils/encoding";
 
 /**
@@ -77,7 +78,7 @@ function buildUsersFilter(
   ]);
 }
 
-interface UseAdminUsersParams {
+interface AdminUsersQueryParams {
   page?: number;
   perPage?: number;
   search?: string;
@@ -85,30 +86,34 @@ interface UseAdminUsersParams {
 }
 
 /**
- * A page of users for the admin list.
+ * Query options for a page of users for the admin list. Nothing is requested unless isAdmin, and a
+ * 401 is never retried.
  */
-export function useAdminUsers({
-  page = 1,
-  perPage = 10,
-  search = "",
-  subset = "",
-}: UseAdminUsersParams = {}) {
-  const isAdmin = useAuthStore((s) => s.isAdmin);
-
+export function adminUsersQueryOptions(
+  { page = 1, perPage = PER_PAGE, search = "", subset = "" }: AdminUsersQueryParams,
+  isAdmin: boolean,
+) {
   const query: GetUsersData["query"] = { page, per_page: perPage };
   const filter = buildUsersFilter(search, subset);
   if (filter) query.filter = filter;
   const options = { query };
 
-  const result = useQuery<PaginatedResult<UserAdminResponse>>({
+  return {
     queryKey: getUsersQueryKey(options),
     queryFn: paginatedQueryFn(getUsersSdk, options),
     enabled: isAdmin,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count, err) =>
-      isSdkError(err) && err.status === 401 ? false : count < 1,
-    refetchOnWindowFocus: false,
-  });
+    ...adminQueryDefaults,
+  };
+}
+
+/**
+ * A page of users for the admin list. Admin-only, so it does not run for anyone else.
+ */
+export function useAdminUsers(params: AdminUsersQueryParams = {}) {
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const result = useQuery<PaginatedResult<UserAdminResponse>>(
+    adminUsersQueryOptions(params, isAdmin),
+  );
 
   return {
     users: result.data?.data ?? [],
@@ -128,9 +133,6 @@ export function useAdminUser(id: string) {
   return useQuery({
     ...getUserOptions({ path: { id } }),
     enabled: isAdmin && !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count, err) =>
-      isSdkError(err) && err.status === 401 ? false : count < 1,
-    refetchOnWindowFocus: false,
+    ...adminQueryDefaults,
   });
 }

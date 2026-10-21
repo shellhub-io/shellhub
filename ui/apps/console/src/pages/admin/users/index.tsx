@@ -11,13 +11,13 @@ import {
 import FilterTabs, { type FilterTab } from "@/components/common/FilterTabs";
 import { isEnterprise } from "@/env";
 import {
-  useAdminUsers,
+  adminUsersQueryOptions,
   usersSearchScope,
   type AdminUserSubset,
 } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
+import { useAuthStore } from "@/stores/authStore";
 import type { ListParamConstraints } from "@/hooks/paginatedListParams";
 import type { UserAdminResponse } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -37,9 +37,7 @@ import {
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
-import { PER_PAGE, pageCount } from "@/utils/pagination";
-
-const SEARCH_DEBOUNCE_MS = 300;
+import { PER_PAGE } from "@/utils/pagination";
 
 const subsetTabs: FilterTab<AdminUserSubset>[] = [
   { label: "All", value: "" },
@@ -69,12 +67,24 @@ const DEFAULTS: AdminUsersParams = {
  */
 export default function AdminUsers() {
   const navigate = useNavigate();
-  const { params, setPage, setSearch, setFilter } =
-    usePaginatedListState<AdminUsersParams>({
-      defaults: DEFAULTS,
-      constraints: CONSTRAINTS,
-    });
-  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const tabs = subsetTabs.filter(
+    (tab) => tab.value !== "awaiting_approval" || isEnterprise(),
+  );
+  const visibleSubset = (subset: AdminUserSubset) =>
+    tabs.some((tab) => tab.value === subset) ? subset : "";
+  const {
+    params, appliedSearch: searchTerm, setSearch, setFilter, rows: users, isLoading, error,
+    pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    constraints: CONSTRAINTS,
+    query: ({ page, search, subset }: AdminUsersParams) =>
+      adminUsersQueryOptions(
+        { page, perPage: PER_PAGE, search, subset: visibleSubset(subset) },
+        isAdmin,
+      ),
+  });
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<UserAdminResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserAdminResponse | null>(
@@ -92,22 +102,8 @@ export default function AdminUsers() {
     errorId: loginAsError,
   } = useLoginAsUser();
 
-  const tabs = subsetTabs.filter(
-    (tab) => tab.value !== "awaiting_approval" || isEnterprise(),
-  );
-  const subset = tabs.some((tab) => tab.value === params.subset)
-    ? params.subset
-    : "";
+  const subset = visibleSubset(params.subset);
   const searchScope = usersSearchScope(subset);
-
-  const { users, totalCount, isLoading, error } = useAdminUsers({
-    page: params.page,
-    perPage: PER_PAGE,
-    search: debouncedSearch,
-    subset,
-  });
-
-  const totalPages = pageCount(totalCount);
 
   const columns: Column<UserAdminResponse>[] = [
     {
@@ -267,11 +263,8 @@ export default function AdminUsers() {
         rowKey={(user) => user.id}
         isLoading={isLoading}
         loadingMessage="Loading users..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="user"
-        onPageChange={setPage}
         onRowClick={(user) => void navigate(`/admin/users/${user.id}`)}
         emptyState={
           <div className="text-center">
@@ -280,8 +273,8 @@ export default function AdminUsers() {
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
-              {debouncedSearch
-                ? `No users matching "${debouncedSearch}"`
+              {searchTerm
+                ? `No users matching "${searchTerm}"`
                 : "No users found"}
             </p>
           </div>

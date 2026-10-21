@@ -5,9 +5,9 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { adminNamespacesQueryOptions } from "@/hooks/useAdminNamespaces";
+import { usePagedList } from "@/hooks/usePagedList";
+import { useAuthStore } from "@/stores/authStore";
 import type { Namespace } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import { adminNavSectionTitle } from "@/components/layout/adminNav";
@@ -19,9 +19,7 @@ import { formatDateShort } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import { Callout, IconButton } from "@shellhub/design-system/primitives";
 import { apiErrorMessage } from "@/api/errors";
-import { PER_PAGE, pageCount } from "@/utils/pagination";
-
-const SEARCH_DEBOUNCE_MS = 300;
+import { PER_PAGE } from "@/utils/pagination";
 
 type AdminNamespacesParams = {
   page: number;
@@ -43,19 +41,16 @@ function getOwnerEmail(namespace: Namespace): string {
  */
 export default function AdminNamespaces() {
   const navigate = useNavigate();
-  const { params, setPage, setSearch } =
-    usePaginatedListState<AdminNamespacesParams>({ defaults: DEFAULTS });
-  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const {
+    params, appliedSearch: searchTerm, setSearch, rows: namespaces, isLoading, error, pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    query: ({ page, search }: AdminNamespacesParams) =>
+      adminNamespacesQueryOptions({ page, perPage: PER_PAGE, search }, isAdmin),
+  });
   const [editTarget, setEditTarget] = useState<Namespace | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Namespace | null>(null);
-
-  const { namespaces, totalCount, isLoading, error } = useAdminNamespaces({
-    page: params.page,
-    perPage: PER_PAGE,
-    search: debouncedSearch,
-  });
-
-  const totalPages = pageCount(totalCount);
 
   const columns: Column<Namespace>[] = [
     {
@@ -163,11 +158,8 @@ export default function AdminNamespaces() {
         rowKey={(ns) => ns.tenant_id}
         isLoading={isLoading}
         loadingMessage="Loading namespaces..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="namespace"
-        onPageChange={setPage}
         onRowClick={(ns) => void navigate(`/admin/namespaces/${ns.tenant_id}`)}
         emptyState={
           <div className="text-center">
@@ -176,8 +168,8 @@ export default function AdminNamespaces() {
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
-              {debouncedSearch
-                ? `No namespaces matching "${debouncedSearch}"`
+              {searchTerm
+                ? `No namespaces matching "${searchTerm}"`
                 : "No namespaces found"}
             </p>
           </div>
