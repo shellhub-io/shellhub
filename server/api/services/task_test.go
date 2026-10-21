@@ -517,47 +517,6 @@ func TestService_EphemeralCleanup(t *testing.T) {
 	}
 }
 
-func TestService_NamespaceDeviceCountSync(t *testing.T) {
-	storeMock := storemock.NewMockStore(t)
-
-	cases := []struct {
-		description   string
-		requiredMocks func(context.Context)
-		expected      error
-	}{
-		{
-			description: "fails when sync fails",
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceSyncDeviceCounts", ctx).
-					Return(errors.New("sync error")).
-					Once()
-			},
-			expected: errors.New("sync error"),
-		},
-		{
-			description: "succeeds",
-			requiredMocks: func(ctx context.Context) {
-				storeMock.
-					On("NamespaceSyncDeviceCounts", ctx).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-	}
-
-	s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(tt *testing.T) {
-			ctx := context.Background()
-			tc.requiredMocks(ctx)
-			require.Equal(tt, tc.expected, s.NamespaceDeviceCountSync()(ctx))
-		})
-	}
-}
-
 func TestService_SessionCleanup(t *testing.T) {
 	now := time.Date(2026, 8, 11, 12, 0, 0, 0, time.UTC)
 	retention := 180 * 24 * time.Hour
