@@ -292,6 +292,7 @@ export const sidebar: SidebarSection[] = [
         featured: true,
       },
       { label: "Backup", href: "/selfhosted/backup" },
+      { label: "Telemetry", href: "/selfhosted/telemetry" },
       {
         label: "Upgrade",
         href: "/selfhosted/upgrade",
