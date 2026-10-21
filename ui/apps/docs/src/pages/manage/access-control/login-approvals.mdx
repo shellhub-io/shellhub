@@ -52,7 +52,7 @@ a client with nobody in front of it (a CI job, a script, anything using an SSH l
 refused straight away instead of hanging: it has no way to answer, and the server does not wait
 for an answer that is not coming.
 
-<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
+<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the key, the account it would be added to and the namespace, with the login details folded" />
 
 **The identity is created for whoever approves, not for whoever was connecting.** Approve a
 stranger's key and you have handed them a key that connects as you, with session records in
