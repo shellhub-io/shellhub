@@ -308,6 +308,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return err
 	}
 
+	s.nudgeWebhookDelivery(ctx)
 	s.SettleMemberDeparture(ctx, departed)
 
 	return nil
@@ -406,6 +407,7 @@ func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID 
 		return nil, err
 	}
 
+	s.nudgeWebhookDelivery(ctx)
 	s.SettleMemberDeparture(ctx, departed)
 
 	return departed, nil

@@ -231,6 +231,7 @@ type Server struct {
 	http          *http.Server
 	authn         *middleware.Authenticator
 	worker        worker.Server
+	tasks         worker.Client
 	ssh           *sshserver.Server
 	heartbeater   *services.DeviceHeartbeater
 	tunnels       *dialer.Manager
@@ -383,6 +384,13 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, s.telemetryOptions()...)
 
+	s.tasks, err = asynq.NewClient(s.env.RedisURI)
+	if err != nil {
+		return errors.Join(errors.New("failed to create the task client"), err)
+	}
+
+	servicesOptions = append(servicesOptions, services.WithWebhookDispatcher(s.tasks))
+
 	service := services.NewService(store, privKey, pubKey, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
@@ -406,6 +414,9 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronActiveSessionCleanup, service.ActiveSessionCleanup(s.env.SessionKeepAliveTimeout), asynq.Unique())
 	s.worker.HandleCron(services.CronTelemetryHeartbeat, service.TelemetryHeartbeat(), asynq.Unique())
+	s.worker.HandleCron(services.CronWebhookDeliverySweep, service.WebhookDeliverySweep(), asynq.Unique())
+	s.worker.HandleCron(services.CronWebhookDeliveryCleanup, service.WebhookDeliveryCleanup(), asynq.Unique())
+	s.worker.HandleTask(services.TaskWebhookDelivery, service.DeliverWebhooks())
 
 	if retention := time.Duration(s.env.SessionRetentionDays) * 24 * time.Hour; retention > 0 {
 		s.worker.HandleCron(services.CronSessionCleanup, service.SessionCleanup(retention), asynq.Unique())
@@ -568,6 +579,10 @@ func (s *Server) Shutdown() {
 	s.worker.Shutdown()
 
 	s.stopGateway()
+
+	if s.tasks != nil {
+		s.tasks.Close() //nolint:errcheck // the server is exiting, and an unsent nudge is picked up by the next sweep
+	}
 
 	if s.http != nil {
 		s.http.Close() //nolint:errcheck
