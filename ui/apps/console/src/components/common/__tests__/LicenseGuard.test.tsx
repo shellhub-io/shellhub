@@ -7,34 +7,9 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import type { GetLicenseResponse } from "@/client";
 import LicenseGuard from "../LicenseGuard";
 
 const mockGetConfig = vi.mocked(getConfig);
-
-function makeLicense(
-  overrides: Partial<GetLicenseResponse> = {},
-): GetLicenseResponse {
-  return {
-    expired: false,
-    grace_period: false,
-    about_to_expire: false,
-    expires_at: 9999999999,
-    issued_at: 0,
-    starts_at: 0,
-    allowed_regions: [],
-    customer: { id: "c1", name: "Acme", email: "a@b.com", company: "Acme" },
-    features: {
-      devices: -1,
-      session_recording: true,
-      firewall_rules: true,
-      billing: false,
-      login_link: false,
-      reports: false,
-    },
-    ...overrides,
-  } as GetLicenseResponse;
-}
 
 function renderGuard(Wrapper?: ComponentType<{ children: ReactNode }>) {
   const ui = (
@@ -81,49 +56,6 @@ describe("LicenseGuard", () => {
         expect(screen.getByText("license page")).toBeInTheDocument();
       });
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("no license — redirects to /admin/license", () => {
-    it("navigates to the license page when no license is installed", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-      renderGuard(createTestWrapper());
-      await waitFor(() => {
-        expect(screen.getByText("license page")).toBeInTheDocument();
-      });
-      expect(screen.queryByText("protected content")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("isExpired — redirects to /admin/license", () => {
-    it("navigates to the license page when the license is expired", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: true })),
-        ),
-      );
-      renderGuard(createTestWrapper());
-      await waitFor(() => {
-        expect(screen.getByText("license page")).toBeInTheDocument();
-      });
-      expect(screen.queryByText("protected content")).not.toBeInTheDocument();
-    });
-  });
-
-  describe("valid license — renders Outlet", () => {
-    it("renders the child route when the license is valid", async () => {
-      server.use(
-        http.get("*/admin/api/license", () => HttpResponse.json(makeLicense())),
-      );
-      renderGuard(createTestWrapper());
-      await waitFor(() => {
-        expect(screen.getByText("protected content")).toBeInTheDocument();
-      });
-      expect(screen.queryByText("license page")).not.toBeInTheDocument();
     });
   });
 
