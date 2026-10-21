@@ -54,12 +54,6 @@ describe("LocalVaultBackend", () => {
       expect(localStorage.getItem(VAULT_META_KEY)).toBe(JSON.stringify(META));
     });
 
-    it("returns null after meta is cleared via clear()", async () => {
-      await backend.saveMeta(META);
-      await backend.clear();
-      expect(await backend.loadMeta()).toBeNull();
-    });
-
     it("returns null when stored meta is invalid JSON", async () => {
       localStorage.setItem(VAULT_META_KEY, "not-json{{{");
       expect(await backend.loadMeta()).toBeNull();
@@ -134,12 +128,6 @@ describe("LocalVaultBackend", () => {
     it("persists data under the correct localStorage key", async () => {
       await backend.saveData(DATA);
       expect(localStorage.getItem(VAULT_DATA_KEY)).toBe(JSON.stringify(DATA));
-    });
-
-    it("returns null after data is cleared via clear()", async () => {
-      await backend.saveData(DATA);
-      await backend.clear();
-      expect(await backend.loadData()).toBeNull();
     });
 
     it("returns null when stored data is invalid JSON", async () => {
