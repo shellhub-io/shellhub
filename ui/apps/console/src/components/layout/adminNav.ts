@@ -6,6 +6,7 @@ import {
   KeyIcon,
   LockClosedIcon,
   DocumentCheckIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { isEnterprise } from "@/env";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
@@ -13,6 +14,7 @@ import { useAuthStore } from "@/stores/authStore";
 import {
   ADMIN_AUTHENTICATION_PATH,
   ADMIN_INSTANCE_PATH,
+  ADMIN_TELEMETRY_PATH,
 } from "@/utils/adminRoute";
 import { navSectionTitle, type NavSection } from "./navSections";
 
@@ -51,12 +53,18 @@ const instanceApiKeysLink: AdminNavLink = {
   icon: LockClosedIcon,
 };
 
+const telemetryLink: AdminNavLink = {
+  to: ADMIN_TELEMETRY_PATH,
+  label: "Telemetry",
+  icon: ChartBarIcon,
+};
+
 const licenseOnlySections: AdminNavSection[] = [{ items: [licenseLink] }];
 
 function buildFullSections(): AdminNavSection[] {
   const instance = isEnterprise()
-    ? [authenticationLink, instanceApiKeysLink, licenseLink]
-    : [instanceApiKeysLink];
+    ? [authenticationLink, instanceApiKeysLink, telemetryLink, licenseLink]
+    : [instanceApiKeysLink, telemetryLink];
 
   return [
     {

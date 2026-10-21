@@ -12,7 +12,15 @@ describe("adminNavSectionTitle", () => {
     ["/admin/settings/authentication", "Instance"],
     ["/admin/instance-api-keys", "Instance"],
     ["/admin/license", "Instance"],
+    ["/admin/settings/telemetry", "Instance"],
   ])("places %s under %s", (route, title) => {
     expect(adminNavSectionTitle(route)).toBe(title);
+  });
+
+  it("offers telemetry on cloud, which has no authentication page", () => {
+    setEdition("cloud");
+
+    expect(adminNavSectionTitle("/admin/settings/telemetry")).toBe("Instance");
+    expect(adminNavSectionTitle("/admin/settings/authentication")).toBeUndefined();
   });
 });

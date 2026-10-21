@@ -5,6 +5,7 @@ import type {
   GetLicenseResponse,
   GetSshApprovalResponses,
   GetStatusDevicesResponse,
+  GetTelemetryResponse,
   Info,
   MembershipInvitation,
   ProvisioningKey,
@@ -333,6 +334,28 @@ export function mockLicense(
       login_link: true,
       billing: true,
     },
+    ...overrides,
+  };
+}
+
+/**
+ * Builds the admin telemetry status for a test: on, not forced off, and a preview of one instance
+ * heartbeat as the collector receives it, so a case names only what it is about.
+ */
+export function mockTelemetryStatus(
+  overrides: Partial<GetTelemetryResponse> = {},
+): GetTelemetryResponse {
+  return {
+    enabled: true,
+    disabled_by_environment: false,
+    preview: [
+      {
+        event: "instance heartbeat",
+        distinct_id: "55555555-5555-4555-8555-555555555555",
+        options: { process_person_profile: false },
+        properties: { edition: "enterprise", devices_accepted: 10 },
+      },
+    ],
     ...overrides,
   };
 }
