@@ -133,13 +133,13 @@ describe("ApiKeysTab — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete API key."),
+        within(dialog).getByText("Failed to delete API key. You do not have permission to do this."),
       ).toBeInTheDocument(),
     );
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows the status code as fallback when the server returns no message", async () => {
+  it("shows the server-error text when the request fails with a 500", async () => {
     server.use(
       http.delete("*/api/namespaces/api-key/:key", () =>
         HttpResponse.json({}, { status: 500 }),
@@ -152,7 +152,7 @@ describe("ApiKeysTab — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete API key."),
+        within(dialog).getByText("Failed to delete API key. Something went wrong on our side. Try again."),
       ).toBeInTheDocument(),
     );
   });

@@ -23,7 +23,7 @@ import { useNamespaceMembers } from "@/hooks/useNamespaceRequests";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
-import { isSdkError } from "@/api/errors";
+import { useRowAction } from "@/hooks/useRowAction";
 import { invitationStatusFilter, isInvitationExpired } from "@/utils/invitations";
 import { formatDateShort } from "@/utils/date";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -70,18 +70,6 @@ function Badge({
   );
 }
 
-function cancelErrorMessage(err: unknown): string {
-  if (isSdkError(err)) {
-    switch (err.status) {
-      case 403:
-        return "You don't have permission to cancel invitations.";
-      case 404:
-        return "This invitation no longer exists.";
-    }
-  }
-  return "Failed to cancel the invitation. Please try again.";
-}
-
 /**
  * The members tab: who is in the namespace, in what role, and the pending invitations alongside
  * them.
@@ -115,25 +103,34 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const invalidateInvitations = useInvalidateByIds(
     "getNamespaceMembershipInvitationList",
   );
-  const cancelInvitation = useMutation({
+  const cancelInvitationMutation = useMutation({
     ...cancelMembershipInvitationMutation(),
     onSuccess: invalidateInvitations,
   });
-  const regenerateInvitation = useGenerateInvitationLink();
+  const cancelInvitation = useRowAction({
+    item: "invitation",
+    verb: "cancel",
+    run: (invite: MembershipInvitation) =>
+      cancelInvitationMutation.mutateAsync({
+        path: { tenant: tenantId, "user-id": invite.user.id },
+      }),
+  });
+  const regenerateLinkMutation = useGenerateInvitationLink();
+  const regenerateLink = useRowAction({
+    item: "invitation link",
+    verb: "regenerate",
+    run: (invite: MembershipInvitation) =>
+      regenerateLinkMutation.mutateAsync({
+        path: { tenant: tenantId },
+        body: { email: invite.user.email, role: invite.role },
+      }),
+  });
 
   const currentUserEmail = useAuthStore((s) => s.email);
   const isSuperAdmin = useAuthStore((s) => s.isAdmin);
 
   const [addOpen, setAddOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<MemberView | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<MembershipInvitation | null>(
-    null,
-  );
-  const [regenTarget, setRegenTarget] = useState<MembershipInvitation | null>(
-    null,
-  );
-  const [cancelError, setCancelError] = useState<string | null>(null);
-  const [regenError, setRegenError] = useState<string | null>(null);
 
   const members = memberViews
     .filter((m) => !!m.id && !!m.email)
@@ -263,7 +260,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                       : "The current link is still valid; copy it instead"
                   }
                   aria-label="Regenerate invitation link"
-                  onClick={() => setRegenTarget(inv)}
+                  onClick={() => regenerateLink.open(inv)}
                 >
                   <ArrowPathIcon className="w-4 h-4" />
                 </IconButton>
@@ -273,7 +270,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                   variant="danger"
                   title="Cancel invitation"
                   aria-label="Cancel invitation"
-                  onClick={() => setCancelTarget(inv)}
+                  onClick={() => cancelInvitation.open(inv)}
                 >
                   <TrashIcon className="w-4 h-4" />
                 </IconButton>
@@ -386,70 +383,38 @@ function MembersTab({ tenantId }: { tenantId: string }) {
       )}
 
       <ConfirmDialog
-        open={!!cancelTarget}
-        onClose={() => {
-          setCancelTarget(null);
-          setCancelError(null);
-        }}
-        onConfirm={async () => {
-          if (!cancelTarget) return;
-          setCancelError(null);
-          try {
-            await cancelInvitation.mutateAsync({
-              path: { tenant: tenantId, "user-id": cancelTarget.user.id },
-            });
-            setCancelTarget(null);
-          } catch (err) {
-            setCancelError(cancelErrorMessage(err));
-          }
-        }}
+        open={!!cancelInvitation.target}
+        onClose={cancelInvitation.close}
+        onConfirm={cancelInvitation.confirm}
         icon={<EnvelopeIcon />}
         title="Cancel invitation"
         description={
           <>
-            The link sent to <ObjectName>{cancelTarget?.user.email}</ObjectName>{" "}
+            The link sent to <ObjectName>{cancelInvitation.target?.user.email}</ObjectName>{" "}
             stops working.
           </>
         }
         confirmLabel="Cancel invitation"
         cancelLabel="Keep"
         variant="danger"
-        errorMessage={cancelError}
+        errorMessage={cancelInvitation.error}
       />
 
       <ConfirmDialog
-        open={!!regenTarget}
-        onClose={() => {
-          setRegenTarget(null);
-          setRegenError(null);
-        }}
-        onConfirm={async () => {
-          if (!regenTarget) return;
-          setRegenError(null);
-          try {
-            await regenerateInvitation.mutateAsync({
-              path: { tenant: tenantId },
-              body: {
-                email: regenTarget.user.email,
-                role: regenTarget.role,
-              },
-            });
-            setRegenTarget(null);
-          } catch {
-            setRegenError("Failed to regenerate the link. Please try again.");
-          }
-        }}
+        open={!!regenerateLink.target}
+        onClose={regenerateLink.close}
+        onConfirm={regenerateLink.confirm}
         icon={<ArrowPathIcon />}
         title="Regenerate link"
         description={
           <>
-            <ObjectName>{regenTarget?.user.email}</ObjectName> gets a new
+            <ObjectName>{regenerateLink.target?.user.email}</ObjectName> gets a new
             invitation link, and the current one stops working.
           </>
         }
         confirmLabel="Regenerate link"
         variant="primary"
-        errorMessage={regenError}
+        errorMessage={regenerateLink.error}
       />
     </div>
   );

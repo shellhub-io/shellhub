@@ -10,6 +10,7 @@ import { Button, Callout, IconButton } from "@shellhub/design-system/primitives"
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useRowAction } from "@/hooks/useRowAction";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useApiKeySshIdentities } from "@/hooks/useSSHIdentityRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -108,34 +109,19 @@ function ApiKeysTab() {
   const page = params.page;
 
   const invalidateKeys = useInvalidateByIds("apiKeyList");
-  const deleteKey = useMutation({
+  const deleteKeyMutation = useMutation({
     ...apiKeyDeleteMutation(),
     onSuccess: invalidateKeys,
+  });
+  const deleteKey = useRowAction({
+    item: "API key",
+    run: (key: ApiKey) =>
+      deleteKeyMutation.mutateAsync({ path: { key: key.name } }),
   });
   const canManageIdentities = useHasPermission("sshIdentity:manage");
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ApiKey | null>(null);
   const [sshTarget, setSshTarget] = useState<ApiKey | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteKey.mutateAsync({ path: { key: deleteTarget.name } });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete API key.",
-      );
-    }
-  };
 
   const columns: Column<ApiKey>[] = [
     {
@@ -219,7 +205,7 @@ function ApiKeysTab() {
               variant="danger"
               title="Delete"
               aria-label="Delete API key"
-              onClick={() => setDeleteTarget(key)}
+              onClick={() => deleteKey.open(key)}
             >
               <TrashIcon className="w-4 h-4" />
             </IconButton>
@@ -296,23 +282,20 @@ function ApiKeysTab() {
         apiKey={editTarget}
       />
       <ConfirmDialog
-        open={!!deleteTarget}
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
+        open={!!deleteKey.target}
+        onClose={deleteKey.close}
+        onConfirm={deleteKey.confirm}
         icon={<TrashIcon />}
         title="Delete API key"
         description={
           <>
-            Integrations using <ObjectName>{deleteTarget?.name}</ObjectName> stop
+            Integrations using <ObjectName>{deleteKey.target?.name}</ObjectName> stop
             working on their next request.
           </>
         }
         confirmLabel="Delete key"
-      >
-        {deleteError && (
-          <p className="text-xs text-accent-red">{deleteError}</p>
-        )}
-      </ConfirmDialog>
+        errorMessage={deleteKey.error}
+      />
     </div>
   );
 }

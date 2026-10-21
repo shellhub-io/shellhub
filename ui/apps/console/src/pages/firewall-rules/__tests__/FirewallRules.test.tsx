@@ -68,13 +68,13 @@ describe("FirewallRules — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete firewall rule."),
+        within(dialog).getByText("Failed to delete firewall rule. You do not have permission to do this."),
       ).toBeInTheDocument(),
     );
     expect(dialog).toBeInTheDocument();
   });
 
-  it("shows the status code as fallback when the server returns no message", async () => {
+  it("shows the server-error text when the request fails with a 500", async () => {
     server.use(
       http.delete("*/api/firewall/rules/:id", () =>
         HttpResponse.json({}, { status: 500 }),
@@ -87,7 +87,7 @@ describe("FirewallRules — delete error handling", () => {
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete firewall rule."),
+        within(dialog).getByText("Failed to delete firewall rule. Something went wrong on our side. Try again."),
       ).toBeInTheDocument(),
     );
   });
@@ -122,7 +122,7 @@ describe("FirewallRules — delete error handling", () => {
     let dialog = await getDialog();
 
     await user.click(within(dialog).getByRole("button", { name: /^delete rule$/i }));
-    await within(dialog).findByText("Failed to delete firewall rule.");
+    await within(dialog).findByText("Failed to delete firewall rule. Something went wrong on our side. Try again.");
 
     await user.click(within(dialog).getByRole("button", { name: /cancel/i }));
     await waitFor(() =>
@@ -136,7 +136,7 @@ describe("FirewallRules — delete error handling", () => {
     );
     dialog = await getDialog();
     expect(
-      within(dialog).queryByText("Failed to delete firewall rule."),
+      within(dialog).queryByText("Failed to delete firewall rule. Something went wrong on our side. Try again."),
     ).not.toBeInTheDocument();
   });
 });

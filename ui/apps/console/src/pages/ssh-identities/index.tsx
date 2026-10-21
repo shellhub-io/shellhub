@@ -25,6 +25,7 @@ import {
   useDeleteSSHIdentity,
   useSSHIdentities,
 } from "@/hooks/useSSHIdentityRequests";
+import { useRowAction } from "@/hooks/useRowAction";
 import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
@@ -93,29 +94,15 @@ export default function SSHIdentities() {
     { value: "mine" as const, label: "Mine" },
     { value: "all" as const, label: "Everyone" },
   ];
-  const deleteIdentity = useDeleteSSHIdentity();
+  const revokeIdentityMutation = useDeleteSSHIdentity();
+  const revokeIdentity = useRowAction({
+    item: "key",
+    verb: "revoke",
+    run: (identity: SshIdentity) =>
+      revokeIdentityMutation.mutateAsync({ path: { id: identity.id } }),
+  });
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<SshIdentity | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<SshIdentity | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  const closeDelete = () => {
-    setDeleteError(null);
-    setDeleteTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleteError(null);
-    try {
-      await deleteIdentity.mutateAsync({ path: { id: deleteTarget.id } });
-      closeDelete();
-    } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to revoke key.",
-      );
-    }
-  };
 
   const openNew = () => {
     setEditTarget(null);
@@ -288,7 +275,7 @@ export default function SSHIdentities() {
                   <Dropdown.Item
                     label="Revoke"
                     variant="danger"
-                    onSelect={() => setDeleteTarget(i)}
+                    onSelect={() => revokeIdentity.open(i)}
                     className="gap-2.5 px-3 py-2"
                   >
                     <TrashIcon className="w-4 h-4" />
@@ -403,28 +390,26 @@ export default function SSHIdentities() {
           />
 
           <ConfirmDialog
-            open={!!deleteTarget}
-            onClose={closeDelete}
-            onConfirm={confirmDelete}
+            open={!!revokeIdentity.target}
+            onClose={revokeIdentity.close}
+            onConfirm={revokeIdentity.confirm}
             icon={<NoSymbolIcon />}
             title="Revoke key"
             description={
               <>
-                <ObjectName>{deleteTarget?.name}</ObjectName> is revoked.{" "}
+                <ObjectName>{revokeIdentity.target?.name}</ObjectName> is revoked.{" "}
                 {
                   sshIdentitySource(
-                    deleteTarget?.source,
-                    !!deleteTarget && isCurrentBrowser(deleteTarget),
+                    revokeIdentity.target?.source,
+                    !!revokeIdentity.target
+                      && isCurrentBrowser(revokeIdentity.target),
                   ).revokeConsequence
                 }
               </>
             }
             confirmLabel="Revoke key"
-          >
-            {deleteError && (
-              <p className="text-xs text-accent-red">{deleteError}</p>
-            )}
-          </ConfirmDialog>
+            errorMessage={revokeIdentity.error}
+          />
         </div>
       )}
       <IdentityModal
