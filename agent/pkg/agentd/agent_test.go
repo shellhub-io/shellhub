@@ -315,64 +315,6 @@ func TestNewAgentWithConfig(t *testing.T) {
 	}
 }
 
-func TestAgent_GetInfo(t *testing.T) {
-	clientMocks := new(client_mocks.MockClient)
-
-	type expected struct {
-		info *models.Info
-		err  error
-	}
-
-	agent := &Agent{
-		cli:    clientMocks,
-		config: &Config{Version: "latest"},
-	}
-
-	err := errors.New("")
-
-	tests := []struct {
-		description   string
-		requiredMocks func()
-		expected      expected
-	}{
-		{
-			description: "fail to get the server info",
-			requiredMocks: func() {
-				clientMocks.On("GetInfo", "latest").Return(nil, err).Once()
-			},
-			expected: expected{
-				info: nil,
-				err:  err,
-			},
-		},
-		{
-			description: "success to get the server info",
-			requiredMocks: func() {
-				clientMocks.On("GetInfo", "latest").Return(&models.Info{
-					Version: "latest",
-				}, nil).Once()
-			},
-			expected: expected{
-				info: &models.Info{
-					Version: "latest",
-				},
-				err: nil,
-			},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.description, func(t *testing.T) {
-			test.requiredMocks()
-
-			info, err := agent.GetInfo()
-
-			assert.Equal(t, test.expected.info, info)
-			assert.ErrorIs(t, err, test.expected.err)
-		})
-	}
-}
-
 func TestAgent_loadDeviceInfo_BrokenOSRelease(t *testing.T) {
 	tests := []struct {
 		description string

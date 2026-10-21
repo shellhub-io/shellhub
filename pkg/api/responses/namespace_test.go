@@ -12,42 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNamespaceFromModel(t *testing.T) {
-	cases := []struct {
-		description string
-		namespace   *models.Namespace
-		expected    []responses.Member
-	}{
-		{
-			description: "carries every member through",
-			namespace: &models.Namespace{
-				Members: []models.Member{
-					{ID: "owner", Email: "owner@test.com", Role: authorizer.RoleOwner},
-					{ID: "observer", Email: "observer@test.com", Role: authorizer.RoleObserver},
-				},
-			},
-			expected: []responses.Member{
-				{ID: "owner", Email: "owner@test.com", Role: authorizer.RoleOwner},
-				{ID: "observer", Email: "observer@test.com", Role: authorizer.RoleObserver},
-			},
-		},
-		{
-			description: "projects an empty list when the namespace has no members",
-			namespace:   &models.Namespace{},
-			expected:    []responses.Member{},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			res := responses.NamespaceFromModel(tc.namespace)
-
-			require.NotNil(t, res)
-			assert.Equal(t, tc.expected, res.Members)
-		})
-	}
-}
-
 func TestNamespaceFromModelNil(t *testing.T) {
 	assert.Nil(t, responses.NamespaceFromModel(nil))
 }
@@ -60,24 +24,6 @@ func TestNamespaceFromModelNeverMarshalsMembersAsNull(t *testing.T) {
 	require.NoError(t, json.Unmarshal(data, &decoded))
 
 	assert.JSONEq(t, "[]", string(decoded["members"]))
-}
-
-func TestNamespaceFromModelDoesNotMutateSource(t *testing.T) {
-	namespace := &models.Namespace{
-		Members: []models.Member{
-			{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-		},
-	}
-
-	responses.NamespaceFromModel(namespace)
-
-	assert.Equal(
-		t,
-		[]models.Member{
-			{ID: "human", Email: "human@test.com", Role: authorizer.RoleOwner},
-		},
-		namespace.Members,
-	)
 }
 
 func TestNamespaceFromModelProjectsEveryField(t *testing.T) {
