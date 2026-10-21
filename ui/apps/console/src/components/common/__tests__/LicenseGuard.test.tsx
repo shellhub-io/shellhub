@@ -67,12 +67,6 @@ describe("LicenseGuard", () => {
       expect(screen.getByText("Checking license...")).toBeInTheDocument();
       expect(screen.queryByText("protected content")).not.toBeInTheDocument();
     });
-
-    it("does not render the Outlet while loading", () => {
-      server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
-      renderGuard(createTestWrapper());
-      expect(screen.queryByText("protected content")).not.toBeInTheDocument();
-    });
   });
 
   describe("isError — redirects to /admin/license", () => {

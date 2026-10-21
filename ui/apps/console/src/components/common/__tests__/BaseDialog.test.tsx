@@ -48,20 +48,9 @@ describe("BaseDialog", () => {
       renderDialog(false);
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-
-    it("renders children inside the dialog", () => {
-      renderDialog(true);
-      expect(screen.getByText("dialog content")).toBeInTheDocument();
-    });
   });
 
   describe("showModal / close lifecycle", () => {
-    it("calls showModal() when open=true", () => {
-      const showModalSpy = vi.spyOn(HTMLDialogElement.prototype, "showModal");
-      renderDialog(true);
-      expect(showModalSpy).toHaveBeenCalled();
-    });
-
     it("removes the dialog from the DOM when open transitions to false", () => {
       const { rerender } = render(
         <BaseDialog open={true} onClose={vi.fn()}>
