@@ -122,7 +122,7 @@ func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T) {
 		).Scan(&waiting)
 
 		return err == nil && waiting > 0
-	}, 10*time.Second, 10*time.Millisecond, "the accept never blocked on a lock held by the concurrent merge")
+	}, 10*time.Second, 10*time.Millisecond, "the second writer never blocked on a lock held by the open transaction")
 }
 
 func (e *enrollmentE2E) acceptWhileHeldOpen(t *testing.T, writes func(ctx context.Context) error, acceptedUID string) error {
