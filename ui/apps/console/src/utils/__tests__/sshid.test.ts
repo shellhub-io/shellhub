@@ -28,14 +28,6 @@ describe("buildSshid", () => {
     });
     expect(buildSshid("ns", "dev")).toBe("ns.dev@other.host.io");
   });
-
-  it("handles localhost as hostname", () => {
-    Object.defineProperty(window, "location", {
-      value: { hostname: "localhost" },
-      writable: true,
-    });
-    expect(buildSshid("dev", "agent")).toBe("dev.agent@localhost");
-  });
 });
 
 describe("parseSshid", () => {

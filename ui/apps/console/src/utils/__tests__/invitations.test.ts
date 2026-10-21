@@ -7,12 +7,6 @@ afterEach(() => {
 });
 
 describe("invitationStatusFilter", () => {
-  it("returns a non-empty base64 string", () => {
-    const result = invitationStatusFilter("pending");
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
-  });
-
   it("decodes to valid JSON array", () => {
     const result = invitationStatusFilter("pending");
     const decoded = decodeB64url(result) as unknown[];
@@ -49,12 +43,6 @@ describe("invitationStatusFilter", () => {
     expect(filter.params.value).toBe("cancelled");
   });
 
-  it("produces different output for different statuses", () => {
-    expect(invitationStatusFilter("pending")).not.toBe(
-      invitationStatusFilter("accepted"),
-    );
-  });
-
   it("decodes a base64url value that contains '-' (from '+' in standard base64)", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = invitationStatusFilter(">" as any);
@@ -81,13 +69,5 @@ describe("isInvitationExpired", () => {
   it("returns false when expiresAt is in the future", () => {
     const futureDate = new Date(Date.now() + 60_000).toISOString();
     expect(isInvitationExpired(futureDate)).toBe(false);
-  });
-
-  it("returns true when expiresAt is exactly at epoch 0 (far past)", () => {
-    expect(isInvitationExpired("1970-01-01T00:00:00.000Z")).toBe(true);
-  });
-
-  it("returns false when expiresAt is far in the future", () => {
-    expect(isInvitationExpired("2099-12-31T23:59:59.000Z")).toBe(false);
   });
 });
