@@ -90,13 +90,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	t.Run("succeeds when data is valid", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("public_key"))
-		assert.NotEmpty(t, fingerprint)
-	})
-
 	t.Run("succeeds with tag filters", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

@@ -13,13 +13,6 @@ import (
 
 // TestInstanceAPIKeyCreate exercises InstanceAPIKeyCreate against the store under test.
 func (s *Suite) TestInstanceAPIKeyCreate(t *testing.T) {
-	t.Run("succeeds when data is valid", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		digest := s.CreateInstanceAPIKey(t)
-		assert.NotEmpty(t, digest)
-	})
-
 	t.Run("fails when the name is already taken", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

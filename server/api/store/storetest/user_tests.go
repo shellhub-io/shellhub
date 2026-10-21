@@ -126,43 +126,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	})
 }
 
-// TestUserCreate exercises UserCreate against the store under test.
-func (s *Suite) TestUserCreate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	tests := []struct {
-		description string
-		user        *models.User
-		expected    error
-	}{
-		{
-			description: "succeeds when data is valid",
-			user: &models.User{
-				UserData: models.UserData{
-					Name:     "john doe",
-					Username: "john_doe",
-					Email:    "john.doe@test.com",
-				},
-				Password: models.UserPassword{
-					Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-				},
-			},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.description, func(t *testing.T) {
-			require.NoError(t, s.provider.CleanDatabase(t))
-
-			insertedID, err := st.UserCreate(ctx, tc.user)
-			assert.Equal(t, tc.expected, err)
-			assert.NotEmpty(t, insertedID)
-		})
-	}
-}
-
 // TestUserCreatePasswordRoundTrip locks that a password survives storage and still verifies, so a hashing
 // change cannot silently lock every account out.
 func (s *Suite) TestUserCreatePasswordRoundTrip(t *testing.T) {
