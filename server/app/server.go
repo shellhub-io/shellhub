@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/publicurl"
+	"github.com/shellhub-io/shellhub/pkg/telemetry"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
@@ -112,6 +113,17 @@ type Env struct {
 
 	Version string `env:"SHELLHUB_VERSION"`
 
+	// Telemetry false turns telemetry off whatever the administrator set, and keeps the instance
+	// from opening any connection to the collector.
+	Telemetry bool `env:"SHELLHUB_TELEMETRY,default=true"`
+
+	// TelemetryEndpoint replaces the collector address, for tests that run their own collector.
+	TelemetryEndpoint string `env:"SHELLHUB_TELEMETRY_ENDPOINT"`
+
+	// TelemetryWriteKey is Cloud's collector write key, a secret of the Cloud deployment. The
+	// other editions compile theirs in.
+	TelemetryWriteKey string `env:"SHELLHUB_TELEMETRY_WRITE_KEY"`
+
 	// SSHPort is the SSH port the instance reports to its clients.
 	SSHPort string `env:"SHELLHUB_SSH_PORT"`
 
@@ -196,6 +208,7 @@ type Server struct {
 	worker      worker.Server
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
+	telemetry   *telemetry.Client
 	clock       clock.Clock
 	publicURL   string
 }
@@ -328,6 +341,8 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, services.WithClock(s.clock))
 
+	servicesOptions = append(servicesOptions, s.telemetryOptions()...)
+
 	service := services.NewService(store, privKey, pubKey, cache, servicesOptions...)
 
 	s.authn = middleware.NewAuthenticator(service)
@@ -349,6 +364,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronEnrollmentCallbackCleanup, service.EnrollmentCallbackCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronActiveSessionCleanup, service.ActiveSessionCleanup(s.env.SessionKeepAliveTimeout), asynq.Unique())
+	s.worker.HandleCron(services.CronTelemetryHeartbeat, service.TelemetryHeartbeat(), asynq.Unique())
 
 	if retention := time.Duration(s.env.SessionRetentionDays) * 24 * time.Hour; retention > 0 {
 		s.worker.HandleCron(services.CronSessionCleanup, service.SessionCleanup(retention), asynq.Unique())
@@ -363,6 +379,10 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	if err := s.setupSSH(service); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
+	}
+
+	if err := service.TelemetryInstanceStarted(ctx); err != nil {
+		log.WithError(err).Warn("failed to send the instance started telemetry event")
 	}
 
 	log.Info("Server setup completed successfully")
@@ -492,7 +512,53 @@ func (s *Server) Shutdown() {
 		}
 	}
 
+	if s.telemetry != nil {
+		if err := s.telemetry.Close(); err != nil {
+			log.WithError(err).Debug("telemetry events were still pending at shutdown")
+		}
+	}
+
 	log.Info("Server shutdown complete")
+}
+
+func (s *Server) telemetryOptions() []services.Option {
+	if !s.env.Telemetry {
+		return []services.Option{services.WithTelemetryDisabledByEnvironment()}
+	}
+
+	endpoint := s.env.TelemetryEndpoint
+	if endpoint == "" {
+		endpoint = telemetry.DefaultEndpoint
+	}
+
+	writeKey, ok := s.telemetryWriteKey()
+	if !ok {
+		log.Warn("SHELLHUB_TELEMETRY_WRITE_KEY is not set; the instance sends no telemetry")
+
+		return nil
+	}
+
+	client, err := telemetry.New(endpoint, writeKey)
+	if err != nil {
+		log.WithError(err).Warn("failed to create the telemetry client; the instance sends no telemetry")
+
+		return nil
+	}
+
+	s.telemetry = client
+
+	return []services.Option{services.WithTelemetry(client)}
+}
+
+func (s *Server) telemetryWriteKey() (string, bool) {
+	switch s.env.Edition {
+	case envs.Cloud:
+		return s.env.TelemetryWriteKey, s.env.TelemetryWriteKey != ""
+	case envs.Enterprise:
+		return telemetry.EnterpriseWriteKey, true
+	default:
+		return telemetry.CommunityWriteKey, true
+	}
 }
 
 func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {

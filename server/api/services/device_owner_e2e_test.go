@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -64,6 +65,24 @@ func (c *memoryCache) SetNX(ctx context.Context, key string, value any, ttl time
 	}
 
 	return true, c.Set(ctx, key, value, ttl)
+}
+
+func (c *memoryCache) CompareAndDelete(_ context.Context, key, value string) (bool, error) {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return false, err
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if !bytes.Equal(c.entries[key], raw) {
+		return false, nil
+	}
+
+	delete(c.entries, key)
+
+	return true, nil
 }
 
 func (c *memoryCache) Delete(_ context.Context, key string) error {

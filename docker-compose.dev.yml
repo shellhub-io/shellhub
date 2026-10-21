@@ -29,6 +29,7 @@ services:
       - TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=${SHELLHUB_DEV_DOCKER_SOCKET:-/var/run/docker.sock}
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
+      - SHELLHUB_TELEMETRY=false
   ui:
     image: ui:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
