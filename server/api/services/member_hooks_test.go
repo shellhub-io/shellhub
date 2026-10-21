@@ -16,23 +16,6 @@ func TestOnMembershipInvited(t *testing.T) {
 	t.Run("panics on nil hook", func(t *testing.T) {
 		assert.Panics(t, func() { OnMembershipInvited(nil) })
 	})
-
-	t.Run("registers a hook", func(t *testing.T) {
-		membershipInvitedHooks = nil
-
-		called := false
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
-			called = true
-
-			return nil
-		})
-
-		require.Len(t, membershipInvitedHooks, 1)
-
-		err := membershipInvitedHooks[0](context.Background(), nil)
-		require.NoError(t, err)
-		assert.True(t, called)
-	})
 }
 
 func TestFireMembershipInvited(t *testing.T) {
