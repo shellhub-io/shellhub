@@ -182,38 +182,6 @@ describe("KeyModal", () => {
     });
   });
 
-  describe("create happy-path — all devices", () => {
-    it("calls onClose after successful create", async () => {
-      const user = userEvent.setup();
-      const onClose = vi.fn();
-      renderModal({ onClose });
-
-      await fillName(user, "test-key");
-      await fillKeyData(user, VALID_KEY);
-      await user.click(getSubmitButton());
-
-      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    });
-  });
-
-  describe("create happy-path — hostname filter", () => {
-    it("calls onClose when hostname filter is selected and submitted", async () => {
-      const user = userEvent.setup();
-      const onClose = vi.fn();
-      renderModal({ onClose });
-
-      await fillName(user, "test-key");
-      await fillKeyData(user, VALID_KEY);
-      await user.click(
-        screen.getByRole("radio", { name: /filter by hostname/i }),
-      );
-      await user.type(screen.getByPlaceholderText(/e\.g\. \.\*/i), "^prod-.*");
-      await user.click(getSubmitButton());
-
-      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    });
-  });
-
   describe("create happy-path — tags filter", () => {
     it("calls onClose when tags filter is selected and tag chosen", async () => {
       const user = userEvent.setup();

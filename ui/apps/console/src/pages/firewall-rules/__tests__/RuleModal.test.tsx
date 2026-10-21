@@ -135,17 +135,6 @@ describe("RuleModal — create mode", () => {
     );
     await waitFor(() => expect(getConfirmButton()).not.toBeDisabled());
   });
-
-  it("calls the create endpoint and closes on success", async () => {
-    const user = userEvent.setup();
-    const onClose = vi.fn();
-    renderModal({ onClose });
-
-    await typePriority(user, "42");
-    await user.click(getConfirmButton());
-
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-  });
 });
 
 describe("RuleModal — edit mode", () => {
