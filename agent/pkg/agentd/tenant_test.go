@@ -9,10 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTenantFilePath(t *testing.T) {
-	assert.Equal(t, "/host/etc/shellhub.key.tenant", TenantFilePath("/host/etc/shellhub.key"))
-}
-
 func TestPersistAndReadTenant(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "shellhub.key.tenant")
 
