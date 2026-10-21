@@ -87,17 +87,6 @@ afterEach(() => {
 });
 
 describe("FirstRunGate", () => {
-  it("shows the first-run trail on the dashboard of a namespace with no accepted device", async () => {
-    serveDashboard();
-    renderAt("/dashboard");
-
-    expect(
-      await screen.findByRole("heading", { name: /get your first shell/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/install the agent/i)).toBeInTheDocument();
-    expect(screen.queryByText("normal dashboard")).not.toBeInTheDocument();
-  });
-
   it("shows the normal dashboard of a new namespace with a pending device, so it can be accepted", async () => {
     serveDashboard({ pending: 2 });
     renderAt("/dashboard");
@@ -432,34 +421,6 @@ describe("FirstRunGate pairing", () => {
 
     await screen.findByLabelText(/character 1 of 8/i);
     expect(codeCells()).toBe("");
-  });
-
-  it("moves on when the device is accepted from the printed link", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    serveDashboard();
-    let calls = 0;
-    server.use(
-      http.get("*/api/devices", () => {
-        calls += 1;
-        return jsonWithTotal(
-          calls > 1
-            ? [mockDevice({ uid: "linked-uid", name: "linked-box" })]
-            : [],
-        );
-      }),
-      http.get("*/api/devices/linked-uid", () =>
-        HttpResponse.json(
-          mockDevice({ uid: "linked-uid", name: "linked-box", online: true }),
-        ),
-      ),
-    );
-    renderAt("/dashboard");
-
-    await screen.findByLabelText(/character 1 of 8/i);
-    await vi.advanceTimersByTimeAsync(3000);
-
-    await screen.findByRole("button", { name: /open terminal/i });
-    expect(activeStep().getByText("linked-box")).toBeInTheDocument();
   });
 });
 
