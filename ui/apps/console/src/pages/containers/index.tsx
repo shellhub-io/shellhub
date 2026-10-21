@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { getContainers, getContainersQueryKey } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
 import { toBase64Json } from "@/utils/encoding";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -48,15 +46,11 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { apiErrorMessage } from "@/api/errors";
-import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 const VALID_STATUSES = ["accepted", "pending", "rejected"] as const;
 
-/** Stable module-level constant — avoids a new object identity every render,
- *  which would invalidate the `update` useCallback in usePaginatedListState. */
 const CONSTRAINTS = { status: VALID_STATUSES } as const;
 
 type ValidStatus = (typeof VALID_STATUSES)[number];
@@ -105,22 +99,6 @@ type SortField = "name" | "last_seen";
  */
 export default function Containers() {
   const sectionTitle = useNavSectionTitle("/containers");
-  const {
-    params,
-    setPage,
-    setSearch,
-    setFilter,
-    setArrayFilter,
-    mapArrayFilter,
-  } = usePaginatedListState<ContainersParams>({
-    defaults: DEFAULTS,
-    constraints: CONSTRAINTS,
-  });
-
-  const debouncedSearch = useDebouncedValue(
-    params.search.trim(),
-    SEARCH_DEBOUNCE_MS,
-  );
 
   const addContainerTag = useAddContainerTag();
   const removeContainerTag = useRemoveContainerTag();
@@ -141,28 +119,32 @@ export default function Containers() {
     onSortChange: () => setPage(1),
   });
 
-  const { data, isLoading, error, refetch } = useQuery(
-    paginatedQueryOptions(getContainers, getContainersQueryKey, {
-      query: {
-        page: params.page,
-        per_page: PER_PAGE,
-        sort_by: sortBy,
-        order_by: orderBy,
-        ...(params.status ? { status: params.status } : {}),
-        ...(debouncedSearch || params.tags.length > 0
-          ? { filter: nameAndTagsFilter(debouncedSearch, params.tags) }
-          : {}),
-      },
-    }),
-  );
-  const containers = data?.data.map(normalizeDeviceTags) ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  const {
+    params, appliedSearch: searchTerm, setPage, setSearch, setFilter, mapArrayFilter, rows,
+    isLoading, error, refetch, pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    constraints: CONSTRAINTS,
+    query: ({ page, search, status, tags }: ContainersParams) =>
+      paginatedQueryOptions(getContainers, getContainersQueryKey, {
+        query: {
+          page,
+          per_page: PER_PAGE,
+          sort_by: sortBy,
+          order_by: orderBy,
+          ...(status ? { status } : {}),
+          ...(search || tags.length > 0
+            ? { filter: nameAndTagsFilter(search, tags) }
+            : {}),
+        },
+      }),
+  });
+  const containers = rows.map(normalizeDeviceTags);
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
 
-  const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
 
   const handleStatusChange = (newStatus: ValidStatus) => {
@@ -180,7 +162,7 @@ export default function Containers() {
   };
 
   const clearFilterTags = () => {
-    setArrayFilter("tags", []);
+    setFilter("tags", []);
   };
 
   const columns = ((): Column<TaggedDevice>[] => {
@@ -498,11 +480,8 @@ export default function Containers() {
         rowKey={(container) => container.uid}
         isLoading={isLoading}
         loadingMessage="Loading containers..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="container"
-        onPageChange={setPage}
         onRowClick={(container) =>
           void navigate(`/containers/${container.uid}`)
         }
@@ -516,8 +495,8 @@ export default function Containers() {
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
-              {debouncedSearch
-                ? `No containers matching "${debouncedSearch}"`
+              {searchTerm
+                ? `No containers matching "${searchTerm}"`
                 : "No containers found"}
             </p>
           </div>

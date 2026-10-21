@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { CommandLineIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import {
@@ -9,7 +8,7 @@ import {
   Spinner,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useCloseSession } from "@/hooks/useSessionRequests";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
 import { useLocalRecordings } from "@/hooks/useLocalRecordings";
@@ -31,7 +30,7 @@ import SessionLogin from "@/components/sessions/SessionLogin";
 import EmptyCell from "@/components/common/EmptyCell";
 import { isEnterpriseOrCloud } from "@/env";
 import { apiErrorMessage } from "@/api/errors";
-import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 
 const PLAY_BTN =
@@ -142,16 +141,15 @@ function SessionActions({
 export default function Sessions() {
   const sectionTitle = useNavSectionTitle("/sessions");
   const principalName = usePrincipalName();
-  const { params, setPage } = usePaginatedListState<SessionsParams>({
+  const {
+    rows: sessions, isLoading, error, pagination,
+  } = usePagedList({
     defaults: DEFAULTS,
+    query: ({ page }: SessionsParams) =>
+      paginatedQueryOptions(getSessions, getSessionsQueryKey, {
+        query: { page, per_page: PER_PAGE },
+      }),
   });
-  const { data, isLoading, error } = useQuery(
-    paginatedQueryOptions(getSessions, getSessionsQueryKey, {
-      query: { page: params.page, per_page: PER_PAGE },
-    }),
-  );
-  const sessions = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
   const closeSession = useCloseSession();
   const navigate = useNavigate();
   const premium = isEnterpriseOrCloud();
@@ -165,8 +163,6 @@ export default function Sessions() {
   } = useSessionRecording();
 
   useLocalRecordings();
-
-  const totalPages = pageCount(totalCount);
 
   const handlePlay = async (s: Session, canPlay: boolean) => {
     if (!canPlay) {
@@ -316,11 +312,8 @@ export default function Sessions() {
         rowKey={(s) => s.uid}
         isLoading={isLoading}
         loadingMessage="Loading sessions..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="session"
-        onPageChange={setPage}
         onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}
         rowClassName={(s) =>
           !s.authenticated

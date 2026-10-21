@@ -90,8 +90,6 @@ export function useListState<T extends Record<string, unknown>>({
     setSearch: (search: string) => update(() => ({ search, page: defaults.page })),
     setFilter: <K extends keyof T>(key: K, value: T[K]) =>
       update(() => ({ [key]: value, page: defaults.page })),
-    setArrayFilter: <K extends keyof T>(key: K, values: T[K]) =>
-      update(() => ({ [key]: values, page: defaults.page })),
     mapArrayFilter: <K extends keyof T>(key: K, fn: (current: T[K]) => T[K]) =>
       update((current) => ({ [key]: fn(current[key]), page: defaults.page })),
   };
