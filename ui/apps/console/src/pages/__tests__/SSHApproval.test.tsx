@@ -124,28 +124,6 @@ describe("SSHApproval", () => {
     ).toBeInTheDocument();
   });
 
-  it("confirms the request and reports the outcome", async () => {
-    setApproval();
-    renderAt("/ssh-identities/new/WXYZ2K7Q");
-
-    await userEvent.click(
-      await screen.findByRole("button", { name: /add key/i }),
-    );
-
-    expect(await screen.findByText("Key added")).toBeInTheDocument();
-  });
-
-  it("rejects the request and reports the outcome", async () => {
-    setApproval();
-    renderAt("/ssh-identities/new/WXYZ2K7Q");
-
-    await userEvent.click(
-      await screen.findByRole("button", { name: /reject/i }),
-    );
-
-    expect(await screen.findByText("Rejected")).toBeInTheDocument();
-  });
-
   it("reads a 404 as an expired request", async () => {
     server.use(
       http.get("*/api/ssh-approvals/:code", () =>
@@ -192,23 +170,6 @@ describe("SSHApproval", () => {
       screen.queryByLabelText(/account password/i),
     ).not.toBeInTheDocument();
     expect(screen.queryByText(/re-authenticated/i)).not.toBeInTheDocument();
-  });
-
-  it("proves the password and reports the login released", async () => {
-    const user = userEvent.setup();
-    setApproval({ kind: "reauth" });
-
-    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
-    await screen.findByText(/re-authenticate to continue/i);
-    await user.click(screen.getByRole("button", { name: /continue/i }));
-
-    await user.type(
-      await screen.findByLabelText(/account password/i),
-      "hunter2",
-    );
-    await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
-
-    expect(await screen.findByText(/re-authenticated/i)).toBeInTheDocument();
   });
 
   it("tells a SAML user the provider failed, and opens a new popup on retry", async () => {

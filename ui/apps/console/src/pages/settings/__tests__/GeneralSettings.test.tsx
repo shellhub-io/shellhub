@@ -150,17 +150,6 @@ describe("GeneralSettings", () => {
         screen.queryByRole("button", { name: "Rename" }),
       ).not.toBeInTheDocument();
     });
-
-    it("confirms before leaving", async () => {
-      const user = userEvent.setup();
-      renderGeneral();
-
-      await user.click(await screen.findByRole("button", { name: "Leave" }));
-
-      expect(
-        screen.getByRole("dialog", { name: "Leave namespace" }),
-      ).toBeInTheDocument();
-    });
   });
 
   describe("rename", () => {

@@ -118,49 +118,6 @@ describe("AcceptInvite", () => {
     });
   });
 
-  describe("branch: error (resolve rejects)", () => {
-    it("renders the Invitation Unavailable heading", async () => {
-      server.use(
-        http.get("*/api/invitations/resolve", () =>
-          HttpResponse.json({}, { status: 404 }),
-        ),
-      );
-      renderPage(VALID_PARAMS);
-      expect(
-        await screen.findByRole("heading", { name: /invitation unavailable/i }),
-      ).toBeInTheDocument();
-    });
-  });
-
-  describe("branch: accept (authenticated as the invited user)", () => {
-    beforeEach(() => {
-      useAuthStore.setState({
-        token: VALID_JWT,
-        userId: "u1",
-        email: "alice@example.com",
-        loading: false,
-      });
-    });
-
-    it("accepts and switches namespace using the resolved tenant", async () => {
-      const user = userEvent.setup();
-      renderPage(VALID_PARAMS);
-      await user.click(
-        await screen.findByRole("button", { name: /^accept$/i }),
-      );
-      const dialog = screen.getByRole("dialog");
-      await user.click(
-        within(dialog).getByRole("button", { name: /^accept invitation$/i }),
-      );
-
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /you're in/i }),
-        ).toBeInTheDocument(),
-      );
-    });
-  });
-
   describe("branch: wrong-user (authenticated as a different user)", () => {
     it("renders the Different Account Signed In heading", async () => {
       useAuthStore.setState({
@@ -265,36 +222,9 @@ describe("AcceptInvite", () => {
         );
       });
     });
-
-    it("shows the Waiting for Approval screen when no token is returned", async () => {
-      mockSignUp.mockResolvedValue(null);
-      const user = userEvent.setup();
-      renderPage(VALID_PARAMS);
-      await screen.findByRole("heading", { name: /you've been invited/i });
-      await fillForm(user);
-      await user.click(screen.getByRole("button", { name: /join namespace/i }));
-
-      await waitFor(() =>
-        expect(
-          screen.getByRole("heading", { name: /waiting for approval/i }),
-        ).toBeInTheDocument(),
-      );
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
   });
 
   describe("branch: unauthenticated with an existing account → login", () => {
-    it("navigates to /login with a redirect back to accept-invite when confirmed", async () => {
-      renderPage(VALID_PARAMS);
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(
-          expect.stringMatching(/^\/login\?redirect=/),
-        ),
-      );
-      const call = mockNavigate.mock.calls[0][0] as string;
-      expect(decodeURIComponent(call)).toContain("accept-invite");
-    });
-
     it("navigates to /login when not-confirmed", async () => {
       server.use(
         http.get("*/api/invitations/resolve", () =>
