@@ -21,3 +21,8 @@ export const ADMIN_INSTANCE_PATH = "/admin/instance";
  * the instance overview.
  */
 export const ADMIN_AUTHENTICATION_PATH = "/admin/settings/authentication";
+
+/**
+ * The instance's telemetry setting and payload preview, on every edition with an admin console.
+ */
+export const ADMIN_TELEMETRY_PATH = "/admin/settings/telemetry";

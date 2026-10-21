@@ -1,0 +1,91 @@
+get:
+  operationId: getTelemetry
+  summary: Get telemetry settings
+  description: |
+    Get whether the instance sends telemetry, whether `SHELLHUB_TELEMETRY=false` forces it off,
+    and the events the next heartbeat sends. The preview is built whether telemetry is on or off.
+  tags:
+    - admin
+    - enterprise
+  security:
+    - jwt: []
+  responses:
+    '200':
+      description: The telemetry settings and the next heartbeat.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [enabled, disabled_by_environment, preview]
+            properties:
+              enabled:
+                description: Whether the administrator lets the instance send telemetry.
+                type: boolean
+              disabled_by_environment:
+                description: |
+                  Whether the environment keeps telemetry off: `SHELLHUB_TELEMETRY=false`, or
+                  a server with no telemetry client, such as Cloud without
+                  `SHELLHUB_TELEMETRY_WRITE_KEY`. When it does, the instance sends nothing,
+                  whatever `enabled` says.
+                type: boolean
+              preview:
+                description: |
+                  The events the next heartbeat sends, as the collector receives them in capture
+                  v1, without the `uuid`, the `timestamp` and the `$os`, `$os_version`,
+                  `$os_distro`, `$go_version`, `$is_server` and `$geoip_disable` properties that
+                  the client adds.
+                type: array
+                items:
+                  type: object
+                  required: [event, distinct_id, options, properties]
+                  properties:
+                    event:
+                      type: string
+                      example: instance heartbeat
+                    distinct_id:
+                      description: The instance ID.
+                      type: string
+                    options:
+                      type: object
+                      additionalProperties: true
+                      example:
+                        process_person_profile: false
+                    properties:
+                      type: object
+                      additionalProperties: true
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+put:
+  operationId: configureTelemetry
+  summary: Configure telemetry
+  description: |
+    Turn the instance's telemetry on or off. The change takes effect within a minute. It is
+    stored even while `SHELLHUB_TELEMETRY=false` forces telemetry off, and applies once that is
+    removed.
+  tags:
+    - admin
+    - enterprise
+  security:
+    - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required: [enabled]
+          properties:
+            enabled:
+              type: boolean
+              description: Whether the instance sends telemetry.
+  responses:
+    '200':
+      $ref: '../components/responses/200.yaml'
+    '400':
+      $ref: '../components/responses/400.yaml'
+    '401':
+      $ref: '../components/responses/401.yaml'
+    '500':
+      $ref: '../components/responses/500.yaml'
