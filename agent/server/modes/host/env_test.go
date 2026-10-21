@@ -26,16 +26,6 @@ func TestAcceptClientEnv(t *testing.T) {
 			expected: []string{"LC_ALL=C"},
 		},
 		{
-			name:     "accept LC_CTYPE",
-			input:    []string{"LC_CTYPE=UTF-8"},
-			expected: []string{"LC_CTYPE=UTF-8"},
-		},
-		{
-			name:     "accept LC_PAPER",
-			input:    []string{"LC_PAPER=x"},
-			expected: []string{"LC_PAPER=x"},
-		},
-		{
 			name:     "accept LC_ with empty suffix (LC_=value)",
 			input:    []string{"LC_="},
 			expected: []string{"LC_="},

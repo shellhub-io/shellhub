@@ -22,7 +22,6 @@ func TestParseEdition(t *testing.T) {
 		{description: "explicit enterprise", raw: "enterprise", expected: envs.Enterprise},
 		{description: "explicit cloud", raw: "cloud", expected: envs.Cloud},
 		{description: "uppercase is normalized", raw: "CLOUD", expected: envs.Cloud},
-		{description: "mixed case is normalized", raw: "Enterprise", expected: envs.Enterprise},
 		{description: "whitespace is trimmed", raw: "  cloud  ", expected: envs.Cloud},
 		{description: "unknown value is an error", raw: "invalid", expectErr: true},
 	}

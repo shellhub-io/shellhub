@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	cacheMock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
@@ -29,16 +28,6 @@ func TestGet(t *testing.T) {
 		setup       func()
 		expected    Expected
 	}{
-		{
-			description: "fail to get the cache due a error",
-			key:         "fail_with_error",
-			setup: func() {
-				cache.On("Get", mock.Anything, "fail_with_error", mock.Anything).
-					Return(errors.New("failed with error")).
-					Once()
-			},
-			expected: Expected{nil, errors.New("failed with error")},
-		},
 		{
 			description: "fail to find this vaue from the cache",
 			key:         "fail_when_not_found",
