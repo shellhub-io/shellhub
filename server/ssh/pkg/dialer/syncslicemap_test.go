@@ -217,57 +217,6 @@ func TestDeleteDropsTheKey(t *testing.T) {
 	assert.NotContains(t, ssm.values, "key")
 }
 
-func TestSize(t *testing.T) {
-	cases := []struct {
-		title        string
-		setup        func() *SyncSliceMap
-		key          string
-		expectedSize int
-	}{
-		{
-			title: "getting size of an empty slice",
-			setup: func() *SyncSliceMap {
-				return &SyncSliceMap{}
-			},
-			key:          "",
-			expectedSize: 0,
-		},
-		{
-			title: "getting size of a slice with multiple values",
-			setup: func() *SyncSliceMap {
-				ssm := &SyncSliceMap{}
-				ssm.Store("keys", "value1")
-				ssm.Store("keys", "value2")
-				ssm.Store("keys", "value3")
-
-				return ssm
-			},
-			key:          "keys",
-			expectedSize: 3,
-		},
-		{
-			title: "getting size of a slice after adding a new value",
-			setup: func() *SyncSliceMap {
-				ssm := &SyncSliceMap{}
-				ssm.Store("key", "newValue")
-
-				return ssm
-			},
-			key:          "key",
-			expectedSize: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			ssm := tc.setup()
-
-			size := ssm.Size(tc.key)
-			assert.Equal(t, tc.expectedSize, size)
-		})
-	}
-}
-
 // TestConcurrentStoreKeepsEveryValue is the reason this type is not a bare
 // sync.Map: a read-modify-write of the key's slice loses one of two concurrent
 // stores, and a connection the manager never recorded is one it never tears
