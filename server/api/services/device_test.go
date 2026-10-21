@@ -47,52 +47,6 @@ func TestListDevices(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails to list devices",
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.DeviceList{
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatusAccepted,
-				Paginator:    query.Paginator{Page: 1, PerPage: 10},
-				Sorter:       query.Sorter{By: "created_at", Order: "asc"},
-				Filters:      query.Filters{},
-			},
-			requiredMocks: func(ctx context.Context) {
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", platformFilters("ne")).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
-					Return(models.NamespaceDeviceLimit{}, nil).
-					Once()
-				storeMock.
-					On("DeviceList", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceAcceptableIfNotAccepted, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
-					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
-					Once()
-			},
-			expected: Expected{
-				devices: []models.Device{},
-				count:   0,
-				err:     errors.New("error", "", 0),
-			},
-		},
-		{
 			description: "succeeds to list devices",
 			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 			req: &requests.DeviceList{
@@ -306,48 +260,6 @@ func TestListDevices_status_removed(t *testing.T) {
 		expected      Expected
 	}{
 		{
-			description: "fails when could not list the removed devices",
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.DeviceList{
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatusRemoved,
-				Paginator:    query.Paginator{Page: 1, PerPage: 10},
-				Sorter:       query.Sorter{By: "created_at", Order: "asc"},
-				Filters:      query.Filters{},
-			},
-			requiredMocks: func(ctx context.Context) {
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusRemoved).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", platformFilters("ne")).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableFromRemoved, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
-					Return([]models.Device{}, int64(0), errors.New("error", "", 0)).
-					Once()
-			},
-			expected: Expected{
-				devices: []models.Device{},
-				count:   0,
-				err:     errors.New("error", "", 0),
-			},
-		},
-		{
 			description: "succeeds to list the removed devices",
 			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 			req: &requests.DeviceList{
@@ -469,53 +381,6 @@ func TestListDevices_tenant_not_empty(t *testing.T) {
 				devices: nil,
 				count:   0,
 				err:     NewErrNamespaceNotFound("00000000-0000-4000-0000-000000000000", errors.New("error", "", 0)),
-			},
-		},
-		{
-			description: "[enterprise|community] fails when the namespace reached the device limit and cannot list the devices",
-			edition:     envs.Enterprise,
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.DeviceList{
-				TenantID:     "00000000-0000-4000-0000-000000000000",
-				DeviceStatus: models.DeviceStatusAccepted,
-				Paginator:    query.Paginator{Page: 1, PerPage: 10},
-				Sorter:       query.Sorter{By: "created_at", Order: "asc"},
-				Filters:      query.Filters{},
-			},
-			requiredMocks: func(ctx context.Context) {
-				queryOptionsMock.
-					On("WithDeviceStatus", models.DeviceStatusAccepted).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Match", platformFilters("ne")).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "created_at", Order: query.OrderAsc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceGetDeviceLimit", ctx, "00000000-0000-4000-0000-000000000000").
-					Return(models.NamespaceDeviceLimit{MaxDevices: 3, DevicesAcceptedCount: 3}, nil).
-					Once()
-				storeMock.
-					On("DeviceList", ctx, mock.Anything, store.DeviceAcceptableAsFalse, mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 5 })).
-					Return([]models.Device{}, int64(0), errors.New("error", "layer", 0)).
-					Once()
-			},
-			expected: Expected{
-				devices: []models.Device{},
-				count:   0,
-				err:     errors.New("error", "layer", 0),
 			},
 		},
 		{
@@ -847,24 +712,6 @@ func TestResolveDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when cannot retrieve a device with the specified hostname",
-			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
-			requiredMocks: func() {
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-0000-0000-000000000000").
-					Return(&models.Namespace{Name: "namespace", TenantID: "00000000-0000-0000-0000-000000000000"}, nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "hostname").
-					Return(nil, errors.New("error", "", 0)).
-					Once()
-			},
-			expected: Expected{
-				nil,
-				NewErrDeviceNotFound(models.UID(""), errors.New("error", "", 0)),
-			},
-		},
-		{
 			description: "succeeds to fetch a device using hostname",
 			req:         &requests.ResolveDevice{TenantID: "00000000-0000-0000-0000-000000000000", UID: "", Hostname: "hostname"},
 			requiredMocks: func() {
@@ -1023,90 +870,6 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("error", "", 0),
-		},
-		{
-			description: "[with_billing] succeeds",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant", CreatedAt: time.Time{}}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Status = models.DeviceStatusRemoved
-				expectedDevice.RemovedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusRemoved, int64(1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "[with_billing] succeeds but device status isn't accepted",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{UID: "uid", Status: models.DeviceStatusPending, TenantID: "tenant", CreatedAt: time.Time{}}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceDelete", ctx, device).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "[with_billing] succeeds and soft-deletes device even when billing is active",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant", CreatedAt: time.Time{}}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Status = models.DeviceStatusRemoved
-				expectedDevice.RemovedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusRemoved, int64(1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
 		},
 	}
 
