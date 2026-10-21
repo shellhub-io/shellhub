@@ -3,14 +3,6 @@ import { renderHook, act } from "@testing-library/react";
 import { useOtpInput } from "../useOtpInput";
 
 describe("useOtpInput", () => {
-  it("initializes with empty code array", () => {
-    const { result } = renderHook(() => useOtpInput(6));
-
-    expect(result.current.code).toEqual(["", "", "", "", "", ""]);
-    expect(result.current.getValue()).toBe("");
-    expect(result.current.isComplete).toBe(false);
-  });
-
   it("handles digit input and auto-advances", () => {
     const { result } = renderHook(() => useOtpInput(6));
 

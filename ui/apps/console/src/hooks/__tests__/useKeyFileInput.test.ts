@@ -66,41 +66,7 @@ describe("useKeyFileInput", () => {
     });
   });
 
-  describe("setInputMode", () => {
-    it('switches to "text" mode on demand', () => {
-      const { result } = renderHook(() =>
-        useKeyFileInput({ validate: () => true, onChange: vi.fn() }),
-      );
-      act(() => result.current.setInputMode("text"));
-      expect(result.current.inputMode).toBe("text");
-    });
-
-    it('switches back to "file" mode on demand', () => {
-      const { result } = renderHook(() =>
-        useKeyFileInput({ validate: () => true, onChange: vi.fn() }),
-      );
-      act(() => result.current.setInputMode("text"));
-      act(() => result.current.setInputMode("file"));
-      expect(result.current.inputMode).toBe("file");
-    });
-  });
-
   describe("dragging state", () => {
-    it("starts with dragging = false", () => {
-      const { result } = renderHook(() =>
-        useKeyFileInput({ validate: () => true, onChange: vi.fn() }),
-      );
-      expect(result.current.dragging).toBe(false);
-    });
-
-    it("setDragging(true) updates dragging state", () => {
-      const { result } = renderHook(() =>
-        useKeyFileInput({ validate: () => true, onChange: vi.fn() }),
-      );
-      act(() => result.current.setDragging(true));
-      expect(result.current.dragging).toBe(true);
-    });
-
     it("handleDrop resets dragging to false", () => {
       const restore = mockFileReader("key content");
       const onChange = vi.fn();

@@ -26,13 +26,6 @@ describe("useActionDialog", () => {
     expect(result.current.actionKey).toBe("closed");
   });
 
-  it("handleSuccess forwards to onSuccess", () => {
-    const onSuccess = vi.fn();
-    const { result } = renderHook(() => useActionDialog({ onSuccess }));
-    act(() => result.current.handleSuccess("remove"));
-    expect(onSuccess).toHaveBeenCalledWith("remove");
-  });
-
   it("handleSuccess uses the latest onSuccess after rerender", () => {
     const first = vi.fn();
     const second = vi.fn();

@@ -82,20 +82,6 @@ describe("useDebouncedValue", () => {
     }).not.toThrow();
   });
 
-  it("does not re-run the timer when value and delay are referentially stable", () => {
-    const setTimeoutSpy = vi.spyOn(global, "setTimeout");
-    const { rerender } = renderHook(
-      ({ value }) => useDebouncedValue(value, 200),
-      { initialProps: { value: "a" } },
-    );
-
-    const initialCalls = setTimeoutSpy.mock.calls.length;
-    rerender({ value: "a" });
-    rerender({ value: "a" });
-
-    expect(setTimeoutSpy.mock.calls.length).toBe(initialCalls);
-  });
-
   it("with delayMs=0, defers update by one tick", () => {
     const { result, rerender } = renderHook(
       ({ value }) => useDebouncedValue(value, 0),

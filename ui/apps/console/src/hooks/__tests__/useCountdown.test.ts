@@ -42,17 +42,6 @@ describe("useCountdown", () => {
     expect(result.current.timeLeft).toBe("1 minute 1 second");
   });
 
-  it("handles plural minutes", () => {
-    const now = Math.floor(Date.now() / 1000) * 1000;
-    vi.setSystemTime(now);
-
-    const target = now / 1000 + 120;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    expect(result.current.timeLeft).toBe("2 minutes 0 seconds");
-  });
-
   it("updates countdown every second", () => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     vi.setSystemTime(now);

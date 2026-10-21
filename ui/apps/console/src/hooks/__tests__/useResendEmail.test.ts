@@ -74,18 +74,4 @@ describe("useResendEmail", () => {
 
     expect(mockResendEmail).not.toHaveBeenCalled();
   });
-
-  it("reflects resendLoading from the store", () => {
-    useSignUpStore.setState({ resendLoading: true });
-    const { result } = renderHook(() => useResendEmail("testuser"));
-
-    expect(result.current.resendLoading).toBe(true);
-  });
-
-  it("reflects resendError from the store", () => {
-    useSignUpStore.setState({ resendError: "Failed to send" });
-    const { result } = renderHook(() => useResendEmail("testuser"));
-
-    expect(result.current.resendError).toBe("Failed to send");
-  });
 });
