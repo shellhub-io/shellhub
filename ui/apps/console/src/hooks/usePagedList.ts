@@ -45,10 +45,7 @@ function stripPrefix<T extends Record<string, unknown>>(
   return stripped;
 }
 
-/**
- * The URL state of a paginated list without its query, for the lists not yet on usePagedList.
- */
-export function useListState<T extends Record<string, unknown>>({
+function useListState<T extends Record<string, unknown>>({
   defaults,
   constraints = {},
   prefix,
