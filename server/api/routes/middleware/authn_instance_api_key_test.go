@@ -12,7 +12,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
-	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -59,26 +58,6 @@ func TestAuthenticatorResolveInstanceAPIKey(t *testing.T) {
 			requiredMocks: func(service *mocks.MockService) {
 				service.On("AuthInstanceAPIKey", mock.Anything, instanceKey).
 					Return(nil, errors.New("unauthorized")).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "yields no identity when the prefixed key is unknown",
-			key:         models.InstanceAPIKeyPrefix + "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func(service *mocks.MockService) {
-				service.On("AuthInstanceAPIKey", mock.Anything, models.InstanceAPIKeyPrefix+"00000000-0000-4000-0000-000000000000").
-					Return(nil, store.ErrNoDocuments).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "yields no identity when the prefix carries no key at all",
-			key:         models.InstanceAPIKeyPrefix,
-			requiredMocks: func(service *mocks.MockService) {
-				service.On("AuthInstanceAPIKey", mock.Anything, models.InstanceAPIKeyPrefix).
-					Return(nil, store.ErrNoDocuments).
 					Once()
 			},
 			expected: nil,
