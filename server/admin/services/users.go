@@ -102,7 +102,12 @@ func (s *service) deleteUser(ctx context.Context, user *models.User, userInfo *m
 		}
 
 		for _, ns := range userInfo.AssociatedNamespaces {
-			if _, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(ns.TenantID), user.ID, store.MemberDeparture{}); err != nil {
+			departed, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(ns.TenantID), user.ID, store.MemberDeparture{})
+			if err != nil {
+				return err
+			}
+
+			if err := apiservices.RecordDepartureRemovals(ctx, s.store, s.clock, departed); err != nil {
 				return err
 			}
 		}

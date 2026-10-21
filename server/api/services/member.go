@@ -57,7 +57,12 @@ type MemberService interface {
 	// their API keys are revoked and, unless departure keeps it, their membership is deleted. It
 	// commits that as one unit and then settles it (see SettleMemberDeparture). A caller that must
 	// fold the departure into a transaction of its own calls the store's NamespaceDepartMember and
-	// SettleMemberDeparture instead.
+	// RecordDepartureRemovals inside it, and SettleMemberDeparture after it commits, or the devices
+	// that left send no device.removed. It returns ErrForbidden when tenantID names no tenant,
+	// ErrDeviceNotOwned when departure keeps a device the member does not own, ErrNamespaceNotFound
+	// when the membership to delete does not exist, ctx's error when it is cancelled or its deadline
+	// passes, and the store's error when the transaction or the departure fails, a removed device
+	// cannot be resolved or its device.removed event cannot be recorded.
 	DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)
 
 	// SettleMemberDeparture does what a committed departure leaves to the process: it closes the
@@ -412,15 +417,8 @@ func (s *service) departMember(ctx context.Context, tenantID, memberID string, d
 		return nil, err
 	}
 
-	for _, uid := range departed.RemovedDevices {
-		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, device); err != nil {
-			return nil, err
-		}
+	if err := RecordDepartureRemovals(ctx, s.store, s.clock, departed); err != nil {
+		return nil, err
 	}
 
 	return departed, nil

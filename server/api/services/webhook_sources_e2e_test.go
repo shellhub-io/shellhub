@@ -11,7 +11,9 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -281,6 +283,25 @@ func TestWebhookSourcesE2E_RemovingAMemberSendsRemovedForTheirDevices(t *testing
 
 	_, err := e.svc.RemoveNamespaceMember(context.Background(), &requests.NamespaceRemoveMember{UserID: e.ownerID, TenantID: e.tenantID, MemberID: member})
 	require.NoError(t, err)
+	e.deliver(t)
+
+	require.Equal(t, []sentEvent{{Type: "device.removed", UID: owned.UID, Status: models.DeviceStatusRemoved}}, receiver.events(t))
+}
+
+func TestWebhookSourcesE2E_ADepartureOutsideTheServiceSendsRemovedWhenRecorded(t *testing.T) {
+	e := setupOwnershipE2E(t)
+	member := e.member(t, "member", authorizer.RoleOperator)
+	owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
+	receiver := subscribeToEveryDeviceEvent(t, e.enrollmentE2E)
+
+	require.NoError(t, e.st.WithTransaction(context.Background(), func(ctx context.Context) error {
+		departed, err := e.st.NamespaceDepartMember(ctx, scope.MustBounded(e.tenantID), member, store.MemberDeparture{})
+		if err != nil {
+			return err
+		}
+
+		return RecordDepartureRemovals(ctx, e.st, e.clock, departed)
+	}))
 	e.deliver(t)
 
 	require.Equal(t, []sentEvent{{Type: "device.removed", UID: owned.UID, Status: models.DeviceStatusRemoved}}, receiver.events(t))

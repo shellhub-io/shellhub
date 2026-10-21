@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/pkg/worker"
@@ -329,6 +330,10 @@ func (s *service) removedDevice(device models.Device) *models.Device {
 	return &device
 }
 
+func (s *service) recordDeviceEvent(ctx context.Context, eventType models.WebhookEventType, device *models.Device) error {
+	return recordDeviceEvent(ctx, s.store, s.clock, eventType, device)
+}
+
 type webhookDevice struct {
 	UID             string                 `json:"uid"`
 	Name            string                 `json:"name"`
@@ -364,21 +369,51 @@ func newWebhookDevice(device *models.Device) webhookDevice {
 	}
 }
 
-func (s *service) recordDeviceEvent(ctx context.Context, eventType models.WebhookEventType, device *models.Device) error {
+func recordDeviceEvent(ctx context.Context, st store.WebhookStore, clk clock.Clock, eventType models.WebhookEventType, device *models.Device) error {
 	data, err := json.Marshal(map[string]webhookDevice{"device": newWebhookDevice(device)})
 	if err != nil {
 		return err
 	}
 
-	_, err = s.store.WebhookEventRecord(ctx, &models.WebhookEvent{
+	_, err = st.WebhookEventRecord(ctx, &models.WebhookEvent{
 		ID:        uuid.Generate(),
 		TenantID:  device.TenantID,
 		Type:      eventType,
 		Data:      data,
-		CreatedAt: s.clock.Now(),
+		CreatedAt: clk.Now(),
 	})
 
 	return err
+}
+
+// RecordDepartureRemovals records a device.removed event for each device departed removed, as the
+// store holds it after the departure and stamped with clk's time. Call it with the ctx of the
+// transaction that departed the member, so the events commit or roll back with the departure; the
+// next delivery sweep sends them. A departure that removed no device records nothing. It returns
+// ErrForbidden when departed names no tenant, and the store's error when a removed device cannot be
+// resolved or an event cannot be recorded, a ctx cancelled or past its deadline included.
+func RecordDepartureRemovals(ctx context.Context, st store.Store, clk clock.Clock, departed *models.MemberDeparted) error {
+	if len(departed.RemovedDevices) == 0 {
+		return nil
+	}
+
+	sc, err := BoundTo(departed.TenantID)
+	if err != nil {
+		return err
+	}
+
+	for _, uid := range departed.RemovedDevices {
+		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
+		if err != nil {
+			return err
+		}
+
+		if err := recordDeviceEvent(ctx, st, clk, models.WebhookEventDeviceRemoved, device); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *service) DeliverWebhooks() worker.TaskHandler {
