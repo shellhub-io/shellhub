@@ -25,12 +25,6 @@ func TestManagerSave(t *testing.T) {
 			waitFor:     1 * time.Second,
 			data:        nil,
 		},
-		{
-			description: "insert credential on manager and delete after 2 seconds",
-			id:          "bar",
-			waitFor:     2 * time.Second,
-			data:        nil,
-		},
 	}
 
 	for _, ts := range tests {

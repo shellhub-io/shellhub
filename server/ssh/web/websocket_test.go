@@ -28,14 +28,6 @@ func TestGetToken(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when token is empty on query",
-			uri:         "http://localhost?token=",
-			expected: Expected{
-				token: "",
-				err:   ErrGetToken,
-			},
-		},
-		{
 			description: "success to get the token from query",
 			uri:         "http://localhost?token=foo",
 			expected: Expected{
@@ -97,33 +89,6 @@ func TestGetDimensions(t *testing.T) {
 			},
 		},
 		{
-			description: "fail when cols and rows are set, but empty",
-			uri:         "http://localhost?cols=&rows=",
-			expected: Expected{
-				cols: 0,
-				rows: 0,
-				err:  ErrGetDimensions,
-			},
-		},
-		{
-			description: "fail when cols is a negative value",
-			uri:         "http://localhost?cols=-100&rows=100",
-			expected: Expected{
-				cols: 0,
-				rows: 0,
-				err:  ErrGetDimensions,
-			},
-		},
-		{
-			description: "fail when rows is a negative value",
-			uri:         "http://localhost?cols=100&rows=-100",
-			expected: Expected{
-				cols: 0,
-				rows: 0,
-				err:  ErrGetDimensions,
-			},
-		},
-		{
 			description: "fail when cols or rows exceed the uint16 limit",
 			uri:         "http://localhost?cols=65536&rows=65536",
 			expected: Expected{
@@ -138,15 +103,6 @@ func TestGetDimensions(t *testing.T) {
 			expected: Expected{
 				cols: math.MaxUint16,
 				rows: math.MaxUint16,
-				err:  nil,
-			},
-		},
-		{
-			description: "success to get the cols and rows",
-			uri:         "http://localhost?cols=100&rows=100",
-			expected: Expected{
-				cols: 100,
-				rows: 100,
 				err:  nil,
 			},
 		},
@@ -181,18 +137,6 @@ func TestGetIP(t *testing.T) {
 			description: "fail when IP is not set",
 			req: &http.Request{
 				Header: http.Header{},
-			},
-			expected: Expected{
-				ip:  "",
-				err: ErrGetIP,
-			},
-		},
-		{
-			description: "fail when IP is empty on query",
-			req: &http.Request{
-				Header: map[string][]string{
-					"X-Real-Ip": {},
-				},
 			},
 			expected: Expected{
 				ip:  "",

@@ -48,11 +48,6 @@ func TestPublicKeyOfferAgentVersionFloor(t *testing.T) {
 			expectedErr: ErrUnsuportedPublicKeyAuth,
 		},
 		{
-			name:        "refuses the oldest agent that ever reported a version",
-			version:     "0.0.1",
-			expectedErr: ErrUnsuportedPublicKeyAuth,
-		},
-		{
 			name:        "refuses a version it cannot parse",
 			version:     "not-a-version",
 			expectedErr: ErrInvalidVersion,

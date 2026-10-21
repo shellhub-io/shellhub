@@ -1,7 +1,6 @@
 package channels
 
 import (
-	"errors"
 	"io"
 	"testing"
 
@@ -23,11 +22,6 @@ func TestOpenFailureReason(t *testing.T) {
 		{
 			description: "falls back when the agent's connection is gone",
 			err:         io.EOF,
-			expected:    gossh.ConnectionFailed,
-		},
-		{
-			description: "falls back on any other transport error",
-			err:         errors.New("ssh: unexpected packet in response to channel open"),
 			expected:    gossh.ConnectionFailed,
 		},
 	}

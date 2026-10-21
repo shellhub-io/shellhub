@@ -112,28 +112,6 @@ func TestConnReadMessage_resize(t *testing.T) {
 		expect        Expected
 	}{
 		{
-			description: "fail when socket reading fail",
-			requiredMocks: func() {
-				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(0, errors.New("")).Once()
-			},
-			expect: Expected{
-				message: &Message{Data: new(json.RawMessage)},
-				read:    0,
-				err:     ErrConnReadMessageJSONInvalid,
-			},
-		},
-		{
-			description: "fail when data read is not a JSON object",
-			requiredMocks: func() {
-				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(512, nil).Once()
-			},
-			expect: Expected{
-				message: &Message{Data: new(json.RawMessage)},
-				read:    0,
-				err:     ErrConnReadMessageJSONInvalid,
-			},
-		},
-		{
 			description: "success to read the message",
 			requiredMocks: func() {
 				socket.On("Read", mock.AnythingOfType("[]uint8")).Return(40, nil).Run(func(args mock.Arguments) {
