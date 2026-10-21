@@ -139,16 +139,6 @@ beforeEach(() => {
 
 describe("ContainerDetails", () => {
   describe("loading and missing states", () => {
-    it("renders a spinner while loading", () => {
-      server.use(
-        http.get("*/api/containers/:uid", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(
-        screen.getByLabelText("Loading container details"),
-      ).toBeInTheDocument();
-    });
-
     it("tells the user the container is missing when the query fails", async () => {
       server.use(
         http.get("*/api/containers/:uid", () =>

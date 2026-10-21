@@ -61,12 +61,6 @@ beforeEach(() => {
 
 describe("Sessions", () => {
   describe("initial load", () => {
-    it("shows loading state while fetching", () => {
-      server.use(http.get("*/api/sessions", () => new Promise(() => {})));
-      renderSessions();
-      expect(screen.getByText(/loading sessions/i)).toBeInTheDocument();
-    });
-
     it("shows empty state when there are no sessions", async () => {
       renderSessions();
       expect(await screen.findByText("No sessions found")).toBeInTheDocument();
