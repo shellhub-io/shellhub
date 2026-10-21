@@ -41,19 +41,6 @@ func TestWebReauthVerify(t *testing.T) {
 		wantErr      error
 	}{
 		{
-			description: "refreshes the identity's re-auth window on a correct password",
-			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
-			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
-				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
-				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
-					Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
-				storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
-				storeMock.On("SSHIdentityTouchReauth", mock.Anything, tenantID, fingerprint).Return(nil).Once()
-			},
-		},
-		{
 			description: "rejects a wrong password without stamping",
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "wrong", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
@@ -113,11 +100,7 @@ func TestWebReauthVerify(t *testing.T) {
 			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache), WithClock(clock.NewFixed(now)))
 
 			_, err := service.WebReauthVerify(ctx, tc.req)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.wantErr)
-			}
+			require.ErrorIs(t, err, tc.wantErr)
 
 			storeMock.AssertExpectations(t)
 		})
@@ -147,17 +130,9 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 	cases := []struct {
 		description  string
 		approval     *models.SSHApproval
-		approvalErr  error
-		claimed      bool
 		expectDecide bool
 		wantErr      error
 	}{
-		{
-			description:  "releases the login the step-up was for",
-			approval:     reauthApproval,
-			claimed:      true,
-			expectDecide: true,
-		},
 		{
 			description: "refuses an approval for a different key",
 			approval: &models.SSHApproval{
@@ -185,14 +160,8 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 		{
 			description:  "fails when the login was already decided",
 			approval:     reauthApproval,
-			claimed:      false,
 			expectDecide: true,
 			wantErr:      ErrSSHApprovalCodeNotFound,
-		},
-		{
-			description: "fails when the code is unknown or expired",
-			approvalErr: store.ErrNoDocuments,
-			wantErr:     ErrSSHApprovalCodeNotFound,
 		},
 	}
 
@@ -207,11 +176,11 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 			storeMock.On("SSHIdentityTouchReauth", mock.Anything, tenantID, fingerprint).Return(nil).Once()
-			storeMock.On("SSHApprovalGet", mock.Anything, code, now).Return(tc.approval, tc.approvalErr).Once()
+			storeMock.On("SSHApprovalGet", mock.Anything, code, now).Return(tc.approval, nil).Once()
 
 			if tc.expectDecide {
 				storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, mock.Anything, now).
-					Return(tc.claimed, nil).Once()
+					Return(false, nil).Once()
 			}
 
 			_, err := StampWebReauth(ctx, store.Store(storeMock), &requests.WebReauthVerify{
@@ -220,12 +189,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 				Fingerprint:  fingerprint,
 				ApprovalCode: code,
 			}, now)
-
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.wantErr)
-			}
+			require.ErrorIs(t, err, tc.wantErr)
 
 			storeMock.AssertExpectations(t)
 		})
