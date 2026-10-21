@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import React from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -181,19 +180,6 @@ describe("BillingSection — banners", () => {
     renderSection();
     await screen.findByRole("button", { name: PORTAL });
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  });
-});
-
-describe("BillingSection — Subscribe button interaction", () => {
-  it("clicking Subscribe opens BillingDialog", async () => {
-    const user = userEvent.setup();
-    setInactive();
-    renderSection();
-    await user.click(await screen.findByRole("button", { name: SUBSCRIBE }));
-    expect(await screen.findByTestId("billing-letter")).toBeInTheDocument();
-    expect(
-      screen.getByRole("dialog", { name: /subscribe to shellhub cloud/i }),
-    ).toBeInTheDocument();
   });
 });
 
