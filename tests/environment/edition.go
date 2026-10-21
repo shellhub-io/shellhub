@@ -125,6 +125,7 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 		"SHELLHUB_ENV":           "production",
 		"SHELLHUB_BIND_ADDRESS":  "127.0.0.1",
 		"SHELLHUB_LOG_LEVEL":     "trace",
+		"SHELLHUB_TELEMETRY":     "false",
 	}
 
 	if e != EditionCommunity {
