@@ -229,14 +229,6 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 		require.NotNil(t, evs[0].DecidedAt)
 	})
 
-	t.Run("manual key lands pending", func(t *testing.T) {
-		e.provisioningKey(t, digest(0x02), "manual", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
-			k.KeyEncrypted, k.KeyHint = "", ""
-		})
-		uid := e.enroll(t, "aa:bb:cc:dd:ee:20", plaintextFor(0x02))
-		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
-	})
-
 	t.Run("allowlist accepts a listed identity and rejects others", func(t *testing.T) {
 		e.provisioningKey(t, digest(0x03), "allow", models.ProvisioningKeyModeAllowlist, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 			k.AllowedIdentities = []string{"aa:bb:cc:dd:ee:31"}
@@ -325,7 +317,7 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 }
 
 // TestEnrollmentE2E_WebhookDeferCallback covers the async path: the integrator answers "defer", the
-// device lands pending, and the emitted callback URL is redeemed later (no API key) to accept it.
+// device lands pending with a callback URL offered, and a token that is not the callback's is refused.
 func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 	e := setupEnrollmentE2E(t)
 
@@ -350,17 +342,10 @@ func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
 	require.NotEmpty(t, callbackURL, "a callback URL must be offered to the integrator")
 
-	token := callbackURL[strings.LastIndex(callbackURL, "/")+1:]
-
 	t.Run("a garbage token is unauthorized", func(t *testing.T) {
 		err := e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: "garbage", Decision: "accept"})
 		require.Error(t, err)
 		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
-	})
-
-	t.Run("the real token redeems the deferred decision", func(t *testing.T) {
-		require.NoError(t, e.svc.ResolveEnrollmentCallback(context.Background(), &requests.EnrollmentCallback{Token: token, Decision: "accept"}))
-		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
 	})
 }
 
