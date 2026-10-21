@@ -10,6 +10,18 @@ type System struct {
 	InstanceTenantID string `json:"instance_tenant_id"`
 	// Authentication manages the settings for available authentication methods.
 	Authentication *SystemAuthentication `json:"authentication"`
+	// InstanceID identifies the instance to the telemetry collector. The store generates it
+	// once and never rewrites it, so SystemSet ignores whatever value the caller passes.
+	InstanceID string `json:"instance_id"`
+	// Telemetry is whether the administrator lets the instance send telemetry. SystemSet
+	// ignores it; it changes only through the telemetry setting.
+	Telemetry *SystemTelemetry `json:"telemetry"`
+}
+
+// SystemTelemetry is the administrator's telemetry setting. The SHELLHUB_TELEMETRY environment
+// variable can still force telemetry off when Enabled is true.
+type SystemTelemetry struct {
+	Enabled bool `json:"enabled"`
 }
 
 // SystemAuthentication groups the authentication methods an instance offers. A nil Local is

@@ -116,6 +116,30 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		assert.False(t, system.Authentication.Local.Enabled)
 	})
 
+	t.Run("keeps the instance ID and the telemetry setting", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		require.NoError(t, st.SystemSet(ctx, &models.System{Setup: false}))
+
+		created, err := st.SystemGet(ctx)
+		require.NoError(t, err)
+		require.NotEmpty(t, created.InstanceID)
+		require.NotNil(t, created.Telemetry)
+		assert.True(t, created.Telemetry.Enabled, "telemetry defaults to on")
+
+		require.NoError(t, st.SystemSet(ctx, &models.System{
+			Setup:      true,
+			InstanceID: "44444444-4444-4444-8444-444444444444",
+			Telemetry:  &models.SystemTelemetry{Enabled: false},
+		}))
+
+		updated, err := st.SystemGet(ctx)
+		require.NoError(t, err)
+		assert.True(t, updated.Setup)
+		assert.Equal(t, created.InstanceID, updated.InstanceID)
+		assert.True(t, updated.Telemetry.Enabled)
+	})
+
 	t.Run("succeeds with minimal system data", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
