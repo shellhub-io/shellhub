@@ -111,6 +111,8 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	entities := make([]entity.Device, 0)
 	err := db.NewSelect().
 		Model(&entities).
+		Relation("Namespace").
+		Relation("Tags").
 		Where("ephemeral = TRUE").
 		Where("NOT (disconnected_at IS NULL AND last_seen > ?)", OnlineCutoff(pg.clock)).
 		Where("status = ? OR disconnected_at > status_updated_at", models.DeviceStatusAccepted).

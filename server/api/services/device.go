@@ -112,8 +112,8 @@ type DeviceService interface {
 	//     * Billing evaluation determines if the namespace can accept more devices based on subscription status
 	//
 	// All operations are performed within a database transaction to ensure consistency during device merging
-	// and counter updates. It returns the store's error when the device.<status> event of the new status
-	// cannot be recorded, and the status change rolls back.
+	// and counter updates. It returns the store's error when the device.<status> event of the new status, or
+	// on a merge the device.removed event of the old device, cannot be recorded, and the status change rolls back.
 	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
 
 	// MakeTeamDevice clears the owner of an accepted device, so it stays in the namespace whoever
@@ -224,51 +224,62 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 	return device, nil
 }
 
-// DeleteDevice deletes a device from a namespace.
+// DeleteDevice deletes a device from a namespace: an accepted device is kept as removed, any other is deleted.
+// It reads the device locked inside its transaction, so it waits for a concurrent delete or status change of
+// the same device to commit.
 //
-// It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
-// from models.Namespace.
-//
-// It can return an error if the device is not found, NewErrDeviceNotFound(uid, err), if the namespace is not found,
-// NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
-// delete the device fails.
+// It returns ErrForbidden when tenant names no tenant, NewErrDeviceNotFound(uid, err) when the device cannot be
+// read, a ctx cancelled while waiting for the lock included, ctx's error when it is cancelled or its deadline
+// passes before the transaction starts or commits, and the store's error when the transaction cannot start or
+// commit, the device cannot be removed, its owner cannot be cleared, its counters cannot be updated or its
+// device.removed event cannot be recorded. Deleting a device that is already removed records no event, since
+// its removal already sent one.
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	sc, err := BoundTo(tenant)
 	if err != nil {
 		return err
 	}
 
-	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
-	if err != nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	if device.Status == models.DeviceStatusAccepted {
-		now := s.clock.Now()
-
-		deviceCopy := *device
-		deviceCopy.Status = models.DeviceStatusRemoved
-		deviceCopy.RemovedAt = &now
-		if err := s.store.DeviceUpdate(ctx, &deviceCopy); err != nil {
-			return err
+	var device *models.Device
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		device, err = s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid), s.store.Options().ForUpdate())
+		if err != nil {
+			return NewErrDeviceNotFound(uid, err)
 		}
 
-		if device.OwnerID != "" {
-			if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ""); err != nil {
+		removed := s.removedDevice(*device)
+
+		if device.Status == models.DeviceStatusAccepted {
+			if err := s.store.DeviceUpdate(ctx, removed); err != nil {
+				return err
+			}
+
+			if device.OwnerID != "" {
+				if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ""); err != nil {
+					return err
+				}
+			}
+
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, 1); err != nil {
+				return err
+			}
+		} else {
+			if err := s.store.DeviceDelete(ctx, device); err != nil {
 				return err
 			}
 		}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, 1); err != nil {
+		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil {
 			return err
 		}
-	} else {
-		if err := s.store.DeviceDelete(ctx, device); err != nil {
-			return err
-		}
-	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil {
+		if device.Status == models.DeviceStatusRemoved {
+			return nil
+		}
+
+		return s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, removed)
+	}); err != nil {
 		return err
 	}
 
@@ -724,6 +735,10 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), oldDevice.Status, -1); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
 
+		return err
+	}
+
+	if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, s.removedDevice(*oldDevice)); err != nil {
 		return err
 	}
 
