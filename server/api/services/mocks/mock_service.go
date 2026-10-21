@@ -8534,3 +8534,95 @@ func (_c *MockService_WebReauthVerify_Call) RunAndReturn(run func(ctx context.Co
 	_c.Call.Return(run)
 	return _c
 }
+
+// WebhookDeliveryCleanup provides a mock function for the type MockService
+func (_mock *MockService) WebhookDeliveryCleanup() worker.CronHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDeliveryCleanup")
+	}
+
+	var r0 worker.CronHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.CronHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.CronHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_WebhookDeliveryCleanup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDeliveryCleanup'
+type MockService_WebhookDeliveryCleanup_Call struct {
+	*mock.Call
+}
+
+// WebhookDeliveryCleanup is a helper method to define mock.On call
+func (_e *MockService_Expecter) WebhookDeliveryCleanup() *MockService_WebhookDeliveryCleanup_Call {
+	return &MockService_WebhookDeliveryCleanup_Call{Call: _e.mock.On("WebhookDeliveryCleanup")}
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) Run(run func()) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) Return(cronHandler worker.CronHandler) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Return(cronHandler)
+	return _c
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) RunAndReturn(run func() worker.CronHandler) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookDeliverySweep provides a mock function for the type MockService
+func (_mock *MockService) WebhookDeliverySweep() worker.CronHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDeliverySweep")
+	}
+
+	var r0 worker.CronHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.CronHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.CronHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_WebhookDeliverySweep_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDeliverySweep'
+type MockService_WebhookDeliverySweep_Call struct {
+	*mock.Call
+}
+
+// WebhookDeliverySweep is a helper method to define mock.On call
+func (_e *MockService_Expecter) WebhookDeliverySweep() *MockService_WebhookDeliverySweep_Call {
+	return &MockService_WebhookDeliverySweep_Call{Call: _e.mock.On("WebhookDeliverySweep")}
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) Run(run func()) *MockService_WebhookDeliverySweep_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) Return(cronHandler worker.CronHandler) *MockService_WebhookDeliverySweep_Call {
+	_c.Call.Return(cronHandler)
+	return _c
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) RunAndReturn(run func() worker.CronHandler) *MockService_WebhookDeliverySweep_Call {
+	_c.Call.Return(run)
+	return _c
+}

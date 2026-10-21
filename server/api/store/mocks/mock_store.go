@@ -9505,6 +9505,72 @@ func (_c *MockStore_WebhookDeliveryList_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// WebhookDeliveryPrune provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookDeliveryPrune(ctx context.Context, before time.Time) (int64, error) {
+	ret := _mock.Called(ctx, before)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDeliveryPrune")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) (int64, error)); ok {
+		return returnFunc(ctx, before)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) int64); ok {
+		r0 = returnFunc(ctx, before)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = returnFunc(ctx, before)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_WebhookDeliveryPrune_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDeliveryPrune'
+type MockStore_WebhookDeliveryPrune_Call struct {
+	*mock.Call
+}
+
+// WebhookDeliveryPrune is a helper method to define mock.On call
+//   - ctx context.Context
+//   - before time.Time
+func (_e *MockStore_Expecter) WebhookDeliveryPrune(ctx any, before any) *MockStore_WebhookDeliveryPrune_Call {
+	return &MockStore_WebhookDeliveryPrune_Call{Call: _e.mock.On("WebhookDeliveryPrune", ctx, before)}
+}
+
+func (_c *MockStore_WebhookDeliveryPrune_Call) Run(run func(ctx context.Context, before time.Time)) *MockStore_WebhookDeliveryPrune_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookDeliveryPrune_Call) Return(n int64, err error) *MockStore_WebhookDeliveryPrune_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_WebhookDeliveryPrune_Call) RunAndReturn(run func(ctx context.Context, before time.Time) (int64, error)) *MockStore_WebhookDeliveryPrune_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WebhookEventRecord provides a mock function for the type MockStore
 func (_mock *MockStore) WebhookEventRecord(ctx context.Context, event *models.WebhookEvent) (int64, error) {
 	ret := _mock.Called(ctx, event)

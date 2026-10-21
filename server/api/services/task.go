@@ -47,7 +47,13 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 // removed-device cleanup.
 func (s *service) EphemeralCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+		if err := s.store.WithTransaction(ctx, s.ephemeralCleanup()); err != nil {
+			return err
+		}
+
+		s.nudgeWebhookDelivery(ctx)
+
+		return nil
 	}
 }
 

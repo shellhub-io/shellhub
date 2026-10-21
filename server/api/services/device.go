@@ -283,6 +283,8 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return err
 	}
 
+	s.nudgeWebhookDelivery(ctx)
+
 	endRemovedDevice(ctx, s.cache, tenant, device.UID)
 
 	return nil
@@ -443,6 +445,8 @@ func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.D
 	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID, licensed, licenseErr)); err != nil {
 		return err
 	}
+
+	s.nudgeWebhookDelivery(ctx)
 
 	status := models.DeviceStatus(req.Status)
 	if status == models.DeviceStatusAccepted || status == models.DeviceStatusRejected {
