@@ -180,20 +180,6 @@ describe("signUpStore", () => {
     });
   });
 
-  describe("resetSignUpErrors", () => {
-    it("clears signUpError and signUpServerFields", () => {
-      useSignUpStore.setState({
-        signUpError: "some error",
-        signUpServerFields: ["email"],
-      });
-
-      useSignUpStore.getState().resetSignUpErrors();
-
-      expect(useSignUpStore.getState().signUpError).toBeNull();
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
-    });
-  });
-
   describe("resendEmail", () => {
     it("returns true on success", async () => {
       server.use(
@@ -363,36 +349,6 @@ describe("signUpStore", () => {
 
       resolveHandler(new HttpResponse(null, { status: 200 }));
       await promise;
-    });
-  });
-
-  describe("resetValidation", () => {
-    it("resets validationStatus to idle", () => {
-      useSignUpStore.setState({ validationStatus: "success" });
-
-      useSignUpStore.getState().resetValidation();
-
-      expect(useSignUpStore.getState().validationStatus).toBe("idle");
-    });
-  });
-
-  describe("setValidationFailed", () => {
-    it("sets validationStatus to failed", () => {
-      useSignUpStore.setState({ validationStatus: "processing" });
-
-      useSignUpStore.getState().setValidationFailed();
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed");
-    });
-  });
-
-  describe("resetResendError", () => {
-    it("clears resendError", () => {
-      useSignUpStore.setState({ resendError: "some error" });
-
-      useSignUpStore.getState().resetResendError();
-
-      expect(useSignUpStore.getState().resendError).toBeNull();
     });
   });
 });

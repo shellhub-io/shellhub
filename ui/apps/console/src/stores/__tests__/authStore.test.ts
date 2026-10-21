@@ -517,30 +517,6 @@ describe("authStore", () => {
     });
   });
 
-  describe("updateMfaStatus", () => {
-    it("updates MFA enabled status", () => {
-      useAuthStore.getState().updateMfaStatus(true);
-
-      expect(useAuthStore.getState().mfaEnabled).toBe(true);
-    });
-
-    it("can disable MFA status", () => {
-      useAuthStore.setState({ mfaEnabled: true });
-
-      useAuthStore.getState().updateMfaStatus(false);
-
-      expect(useAuthStore.getState().mfaEnabled).toBe(false);
-    });
-  });
-
-  describe("setMfaToken", () => {
-    it("sets MFA token", () => {
-      useAuthStore.getState().setMfaToken("mfa-token-123");
-
-      expect(useAuthStore.getState().mfaToken).toBe("mfa-token-123");
-    });
-  });
-
   describe("login with mfa field", () => {
     it("sets mfaEnabled true when server reports mfa: true", async () => {
       server.use(

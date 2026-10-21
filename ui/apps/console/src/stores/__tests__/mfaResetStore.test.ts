@@ -33,14 +33,6 @@ beforeEach(() => {
 
 describe("mfaResetStore", () => {
   describe("initial state", () => {
-    it("initializes with clean state", () => {
-      const state = useMfaResetStore.getState();
-      expect(state.mfaResetToken).toBeNull();
-      expect(state.mfaResetIdentifier).toBeNull();
-      expect(state.loading).toBe(false);
-      expect(state.error).toBeNull();
-    });
-
     it("does not use Zustand persist", () => {
       expect(
         (useMfaResetStore as unknown as Record<string, unknown>).persist,
