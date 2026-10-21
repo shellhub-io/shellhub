@@ -181,12 +181,6 @@ describe("getFingerprint", () => {
     expect(fingerprint).toMatch(/^[0-9a-f]{2}(:[0-9a-f]{2}){15}$/);
   });
 
-  it("returns the same fingerprint on repeated calls for the same key", () => {
-    const first = getFingerprint(RSA_PRIVATE_KEY);
-    const second = getFingerprint(RSA_PRIVATE_KEY);
-    expect(first).toBe(second);
-  });
-
   it("returns different fingerprints for different keys", () => {
     const rsa = getFingerprint(RSA_PRIVATE_KEY);
     const ed = getFingerprint(ED25519_PRIVATE_KEY);

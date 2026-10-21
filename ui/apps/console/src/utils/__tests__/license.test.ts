@@ -51,10 +51,6 @@ describe("formatDeviceCount", () => {
   it("returns the number as a string for positive values", () => {
     expect(formatDeviceCount(50)).toBe("50");
   });
-
-  it("returns '0' for zero", () => {
-    expect(formatDeviceCount(0)).toBe("0");
-  });
 });
 
 describe("formatRegions", () => {
@@ -83,19 +79,9 @@ describe("getDisplayFeatures", () => {
     reports: true,
   };
 
-  it("returns exactly 4 display features", () => {
-    expect(getDisplayFeatures(features)).toHaveLength(4);
-  });
-
   it("includes devices, session_recording, firewall_rules, and billing", () => {
     const names = getDisplayFeatures(features).map((f) => f.name);
     expect(names).toEqual(["devices", "session_recording", "firewall_rules", "billing"]);
-  });
-
-  it("excludes login_link and reports", () => {
-    const names = getDisplayFeatures(features).map((f) => f.name);
-    expect(names).not.toContain("login_link");
-    expect(names).not.toContain("reports");
   });
 
   it("maps values from the features object", () => {

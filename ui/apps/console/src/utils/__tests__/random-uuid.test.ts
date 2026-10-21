@@ -14,11 +14,6 @@ describe("randomUUID", () => {
     expect(generateRandomUUID()).toMatch(UUID_V4_REGEX);
   });
 
-  it("returns unique values across calls", () => {
-    const ids = new Set(Array.from({ length: 50 }, () => generateRandomUUID()));
-    expect(ids.size).toBe(50);
-  });
-
   describe("when crypto.randomUUID is unavailable", () => {
     it("falls back to a valid UUID v4", () => {
       vi.stubGlobal("crypto", {

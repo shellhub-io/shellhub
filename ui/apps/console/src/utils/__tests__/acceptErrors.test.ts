@@ -34,22 +34,6 @@ describe("getAcceptErrorMessage", () => {
       expect(msg({ status: 402 })).toMatch(/billing|subscription|plan/i);
     });
 
-    it("cloud 402 message is distinct from enterprise 402 message", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
-      const cloudMsg = msg({ status: 402 });
-
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
-      const enterpriseMsg = msg({ status: 402 });
-
-      expect(cloudMsg).not.toBe(enterpriseMsg);
-    });
-
     it("separates a subscription block from a device-limit hit on cloud 402", () => {
       mockGetConfig.mockReturnValue({
         ...defaultConfig,

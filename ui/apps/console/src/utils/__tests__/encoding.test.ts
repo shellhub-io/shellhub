@@ -43,20 +43,6 @@ describe("toBase64Json", () => {
     expect(decoded).toEqual(value);
   });
 
-  it("does not throw on non-Latin-1 characters", () => {
-    const value = [
-      {
-        type: "property",
-        params: {
-          name: "tags.name",
-          operator: "contains",
-          value: "日本語タグ",
-        },
-      },
-    ];
-    expect(() => toBase64Json(value)).not.toThrow();
-  });
-
   it("round-trips Unicode through base64url → UTF-8 → JSON", () => {
     const value = { tag: "日本語タグ", emoji: "🚀", arabic: "سلام" };
     const decoded = decodeB64url(toBase64Json(value)) as typeof value;
@@ -71,12 +57,5 @@ describe("toBase64Json", () => {
       .replace(/=+$/, "");
     expect(toBase64Json(">>>")).toBe(expected);
     expect(toBase64Json(">>>")).not.toMatch(/[+/=]/);
-  });
-
-  it("produces stable output for the same input (used as a cache key)", () => {
-    const value = [
-      { type: "property", params: { name: "x", operator: "eq", value: 1 } },
-    ];
-    expect(toBase64Json(value)).toBe(toBase64Json(value));
   });
 });

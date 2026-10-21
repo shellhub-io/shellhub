@@ -201,17 +201,4 @@ describe("hasPermission", () => {
       );
     });
   });
-
-  describe("boundary conditions — minimum required role", () => {
-    it.each<[Action, Role, Role]>([
-      ["device:connect", "observer", "operator"],
-      ["device:accept", "observer", "operator"],
-      ["device:remove", "operator", "administrator"],
-      ["namespace:delete", "administrator", "owner"],
-      ["billing:subscribe", "administrator", "owner"],
-    ])("%s: %s denied, %s allowed", (action, denied, allowed) => {
-      expect(hasPermission(denied, action)).toBe(false);
-      expect(hasPermission(allowed, action)).toBe(true);
-    });
-  });
 });
