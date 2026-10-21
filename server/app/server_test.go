@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/telemetry"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -155,4 +156,47 @@ func TestAccountLockoutConfiguration(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 30, env.Cache.MaximumAccountLockout)
 	})
+}
+
+func TestTelemetryWriteKey(t *testing.T) {
+	cases := []struct {
+		description string
+		env         *Env
+		key         string
+		ok          bool
+	}{
+		{
+			description: "an unset edition is community and uses its compiled key",
+			env:         &Env{},
+			key:         telemetry.CommunityWriteKey,
+			ok:          true,
+		},
+		{
+			description: "enterprise uses its compiled key",
+			env:         &Env{Edition: envs.Enterprise},
+			key:         telemetry.EnterpriseWriteKey,
+			ok:          true,
+		},
+		{
+			description: "cloud uses the key from its deployment secret",
+			env:         &Env{Edition: envs.Cloud, TelemetryWriteKey: "cloud-secret-key"},
+			key:         "cloud-secret-key",
+			ok:          true,
+		},
+		{
+			description: "cloud without its secret has no key",
+			env:         &Env{Edition: envs.Cloud},
+			ok:          false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			s := &Server{env: tc.env}
+
+			key, ok := s.telemetryWriteKey()
+			assert.Equal(t, tc.ok, ok)
+			assert.Equal(t, tc.key, key)
+		})
+	}
 }

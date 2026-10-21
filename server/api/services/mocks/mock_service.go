@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -7116,6 +7117,165 @@ func (_c *MockService_SystemDownloadInstallScript_Call) Return(s string, err err
 }
 
 func (_c *MockService_SystemDownloadInstallScript_Call) RunAndReturn(run func(ctx context.Context, req *requests.SystemInstallScript) (string, error)) *MockService_SystemDownloadInstallScript_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TelemetryHeartbeat provides a mock function for the type MockService
+func (_mock *MockService) TelemetryHeartbeat() worker.CronHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TelemetryHeartbeat")
+	}
+
+	var r0 worker.CronHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.CronHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.CronHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_TelemetryHeartbeat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TelemetryHeartbeat'
+type MockService_TelemetryHeartbeat_Call struct {
+	*mock.Call
+}
+
+// TelemetryHeartbeat is a helper method to define mock.On call
+func (_e *MockService_Expecter) TelemetryHeartbeat() *MockService_TelemetryHeartbeat_Call {
+	return &MockService_TelemetryHeartbeat_Call{Call: _e.mock.On("TelemetryHeartbeat")}
+}
+
+func (_c *MockService_TelemetryHeartbeat_Call) Run(run func()) *MockService_TelemetryHeartbeat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_TelemetryHeartbeat_Call) Return(cronHandler worker.CronHandler) *MockService_TelemetryHeartbeat_Call {
+	_c.Call.Return(cronHandler)
+	return _c
+}
+
+func (_c *MockService_TelemetryHeartbeat_Call) RunAndReturn(run func() worker.CronHandler) *MockService_TelemetryHeartbeat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TelemetryInstanceStarted provides a mock function for the type MockService
+func (_mock *MockService) TelemetryInstanceStarted(ctx context.Context) error {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TelemetryInstanceStarted")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_TelemetryInstanceStarted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TelemetryInstanceStarted'
+type MockService_TelemetryInstanceStarted_Call struct {
+	*mock.Call
+}
+
+// TelemetryInstanceStarted is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockService_Expecter) TelemetryInstanceStarted(ctx any) *MockService_TelemetryInstanceStarted_Call {
+	return &MockService_TelemetryInstanceStarted_Call{Call: _e.mock.On("TelemetryInstanceStarted", ctx)}
+}
+
+func (_c *MockService_TelemetryInstanceStarted_Call) Run(run func(ctx context.Context)) *MockService_TelemetryInstanceStarted_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_TelemetryInstanceStarted_Call) Return(err error) *MockService_TelemetryInstanceStarted_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_TelemetryInstanceStarted_Call) RunAndReturn(run func(ctx context.Context) error) *MockService_TelemetryInstanceStarted_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// TelemetryStatus provides a mock function for the type MockService
+func (_mock *MockService) TelemetryStatus(ctx context.Context) (*responses0.TelemetryStatus, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TelemetryStatus")
+	}
+
+	var r0 *responses0.TelemetryStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*responses0.TelemetryStatus, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *responses0.TelemetryStatus); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses0.TelemetryStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_TelemetryStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'TelemetryStatus'
+type MockService_TelemetryStatus_Call struct {
+	*mock.Call
+}
+
+// TelemetryStatus is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockService_Expecter) TelemetryStatus(ctx any) *MockService_TelemetryStatus_Call {
+	return &MockService_TelemetryStatus_Call{Call: _e.mock.On("TelemetryStatus", ctx)}
+}
+
+func (_c *MockService_TelemetryStatus_Call) Run(run func(ctx context.Context)) *MockService_TelemetryStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_TelemetryStatus_Call) Return(telemetryStatus *responses0.TelemetryStatus, err error) *MockService_TelemetryStatus_Call {
+	_c.Call.Return(telemetryStatus, err)
+	return _c
+}
+
+func (_c *MockService_TelemetryStatus_Call) RunAndReturn(run func(ctx context.Context) (*responses0.TelemetryStatus, error)) *MockService_TelemetryStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
