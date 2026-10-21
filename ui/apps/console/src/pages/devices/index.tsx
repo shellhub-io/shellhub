@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { devicesQueryOptions, type NormalizedDevice } from "@/hooks/useDevices";
 import { useTableSort } from "@/hooks/useTableSort";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
 import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
@@ -42,10 +41,8 @@ import {
 import RestrictedAction from "@/components/common/RestrictedAction";
 import RenameableName from "@/components/common/RenameableName";
 import { apiErrorMessage } from "@/api/errors";
-import { PER_PAGE, pageCount } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 type DevicesParams = {
   page: number;
@@ -70,18 +67,30 @@ export default function Devices() {
   const queue = useTenantRegistrationQueue();
   const pendingCount = queue.waiting;
   const showPending = queue.reachable;
-  const { params, setPage, setSearch, setArrayFilter, mapArrayFilter } =
-    usePaginatedListState<DevicesParams>({
-      defaults: DEFAULTS,
-    });
+  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
+    defaultField: "last_seen",
+    onSortChange: () => setPage(1),
+  });
+  const {
+    params, appliedSearch: searchTerm, setPage, setSearch, mapArrayFilter, rows: devices, isLoading,
+    error, refetch, setFilter, pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    query: ({ page, search, tags }: DevicesParams) =>
+      devicesQueryOptions({
+        page,
+        perPage: PER_PAGE,
+        status: "accepted",
+        search,
+        filterTags: tags,
+        sortBy,
+        orderBy,
+      }),
+  });
 
-  const debouncedSearch = useDebouncedValue(
-    params.search.trim(),
-    SEARCH_DEBOUNCE_MS,
-  );
   const firstRunOpen =
     useFirstRunEligible() === true &&
-    !debouncedSearch &&
+    !searchTerm &&
     params.tags.length === 0;
 
   const addDeviceTag = useAddDeviceTag();
@@ -94,26 +103,11 @@ export default function Devices() {
     sshid: string;
   } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
-  const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
-    defaultField: "last_seen",
-    onSortChange: () => setPage(1),
-  });
-
-  const { devices, totalCount, isLoading, error, refetch } = useDevices({
-    page: params.page,
-    perPage: PER_PAGE,
-    status: "accepted",
-    search: debouncedSearch,
-    filterTags: params.tags,
-    sortBy,
-    orderBy,
-  });
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const navigate = useNavigate();
 
-  const totalPages = pageCount(totalCount);
   const nsName = currentNamespace?.name ?? "";
 
   const addFilterTag = (tag: string) => {
@@ -127,7 +121,7 @@ export default function Devices() {
   };
 
   const clearFilterTags = () => {
-    setArrayFilter("tags", []);
+    setFilter("tags", []);
   };
 
   const columns = ((): Column<NormalizedDevice>[] => {
@@ -349,11 +343,8 @@ export default function Devices() {
         rowKey={(device) => device.uid}
         isLoading={isLoading}
         loadingMessage="Loading devices..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="device"
-        onPageChange={setPage}
         onRowClick={(device) => void navigate(`/devices/${device.uid}`)}
         sortField={sortBy}
         sortOrder={orderBy}
@@ -365,8 +356,8 @@ export default function Devices() {
               strokeWidth={1}
             />
             <p className="text-xs font-mono text-text-muted">
-              {debouncedSearch
-                ? `No devices matching "${debouncedSearch}"`
+              {searchTerm
+                ? `No devices matching "${searchTerm}"`
                 : "No devices found"}
             </p>
             {firstRunOpen && (

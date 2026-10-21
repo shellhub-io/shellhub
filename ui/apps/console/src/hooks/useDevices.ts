@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import {
   getDevices as getDevicesSdk,
@@ -8,6 +7,7 @@ import {
   type Device as GeneratedDevice,
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { toBase64Json } from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 
@@ -42,36 +42,41 @@ export function buildFilter(search: string, tags: string[]): string {
   return toBase64Json(filters);
 }
 
-interface UseDevicesParams {
+interface DevicesQueryParams {
   page?: number;
   perPage?: number;
   status?: DeviceStatus | "";
   search?: string;
   filterTags?: string[];
+  sortBy?: string;
+  orderBy?: "asc" | "desc";
+}
+
+interface UseDevicesParams extends DevicesQueryParams {
   enabled?: boolean;
   refetchInterval?:
     | number
     | false
     | ((page?: PaginatedResult<GeneratedDevice>) => number | false);
-  sortBy?: string;
-  orderBy?: "asc" | "desc";
+}
+
+function normalizePage(page: PaginatedResult<GeneratedDevice>) {
+  return { ...page, data: page.data.map(normalizeDeviceTags) };
 }
 
 /**
- * A page of the namespace's devices, filtered by status, search and tags. refetchInterval keeps it
- * polling, and as a function it gets the latest page and returns false to stop.
+ * Query options for a page of the namespace's devices, filtered by status, search and tags, with
+ * each device's tags normalized.
  */
-export function useDevices({
+export function devicesQueryOptions({
   page = 1,
-  perPage = 10,
+  perPage = PER_PAGE,
   status = "",
   search = "",
   filterTags = [],
-  enabled = true,
-  refetchInterval = false,
   sortBy = "last_seen",
   orderBy = "desc",
-}: UseDevicesParams = {}) {
+}: DevicesQueryParams = {}) {
   const query: GetDevicesData["query"] = { page, per_page: perPage };
   if (status) query.status = status;
   if (search || filterTags.length > 0)
@@ -81,9 +86,24 @@ export function useDevices({
 
   const options = { query };
 
-  const result = useQuery<PaginatedResult<GeneratedDevice>>({
+  return {
     queryKey: getDevicesQueryKey(options),
     queryFn: paginatedQueryFn(getDevicesSdk, options),
+    select: normalizePage,
+  };
+}
+
+/**
+ * A page of the namespace's devices, filtered by status, search and tags. refetchInterval keeps it
+ * polling, and as a function it gets the latest page and returns false to stop.
+ */
+export function useDevices({
+  enabled = true,
+  refetchInterval = false,
+  ...params
+}: UseDevicesParams = {}) {
+  const result = useQuery({
+    ...devicesQueryOptions(params),
     enabled,
     refetchInterval:
       typeof refetchInterval === "function"
@@ -91,13 +111,8 @@ export function useDevices({
         : refetchInterval,
   });
 
-  const devices = useMemo(
-    () => result.data?.data.map(normalizeDeviceTags) ?? [],
-    [result.data],
-  );
-
   return {
-    devices,
+    devices: result.data?.data ?? [],
     totalCount: result.data?.totalCount ?? 0,
     isLoading: result.isLoading,
     error: result.error,
