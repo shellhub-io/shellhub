@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -8,6 +7,7 @@ import {
   WindowChrome,
 } from "@shellhub/design-system/primitives";
 import CopyButton from "@/components/common/CopyButton";
+import { apiErrorMessage } from "@/api/errors";
 import {
   provisioningKeyList,
   provisioningKeyListQueryKey,
@@ -18,7 +18,7 @@ import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useRevealProvisioningKey } from "@/hooks/useProvisioningKeyRequests";
 import { methodsForNewNamespace, type Method } from "@/pages/install/methods";
 import CreateProvisioningKeyModal from "@/pages/provisioning-keys/CreateProvisioningKeyModal";
@@ -33,7 +33,7 @@ import {
 } from "@/pages/provisioning-keys/helpers";
 import { useToggleProvisioningKey } from "@/pages/provisioning-keys/useToggleProvisioningKey";
 import { buildConnectorCommand } from "@/utils/installCommand";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import InstallCommand from "./InstallCommand";
 
 type ProvisioningKeyListParams = {
@@ -79,19 +79,16 @@ const PROVISIONING_KEY_LIST_DEFAULTS: ProvisioningKeyListParams = { page: 1 };
  * of showing a command without it; the secret is only requested for a role that may read it.
  */
 export default function Fleet() {
-  const { params, setPage } = usePaginatedListState<ProvisioningKeyListParams>({
+  const {
+    rows: provisioningKeys, totalCount, totalPages, isLoading, error, pagination,
+  } = usePagedList({
     prefix: "provisioningKey",
     defaults: PROVISIONING_KEY_LIST_DEFAULTS,
+    query: ({ page }: ProvisioningKeyListParams) =>
+      paginatedQueryOptions(provisioningKeyList, provisioningKeyListQueryKey, {
+        query: { page, per_page: PER_PAGE, sort_by: "created_at", order_by: "desc" },
+      }),
   });
-  const page = params.page;
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(provisioningKeyList, provisioningKeyListQueryKey, {
-      query: { page, per_page: PER_PAGE, sort_by: "created_at", order_by: "desc" },
-    }),
-  );
-  const provisioningKeys = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
-  const totalPages = pageCount(totalCount);
 
   const [openName, setOpenName] = useState<string | null>(null);
   const [method, setMethod] = useState<FleetMethod>("auto");
@@ -140,6 +137,10 @@ export default function Fleet() {
             </Button>
           </RestrictedAction>
         </div>
+
+        {error && (
+          <Callout variant="error">{apiErrorMessage(error)}</Callout>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center py-24">
@@ -198,11 +199,9 @@ export default function Fleet() {
                   )}
                 </div>
               )}
-              page={page}
-              totalPages={totalPages}
+              {...pagination}
               totalCount={listedCount}
               noCustomKeys={noCustomKeys}
-              onPageChange={setPage}
               onCreate={() => setCreateOpen(true)}
               onEdit={setEditTarget}
               onToggleDisabled={(k) => void toggle(k)}

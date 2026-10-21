@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   KeyIcon,
   TrashIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { Button, Callout, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { apiErrorMessage } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { paginatedQueryOptions } from "@/api/pagination";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import {
   deleteInstanceApiKeyMutation,
   listInstanceApiKeys,
@@ -21,7 +22,7 @@ import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import { formatDateShort } from "@/utils/date";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import GenerateInstanceKeyModal from "./GenerateInstanceKeyModal";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -41,17 +42,16 @@ function hasExpired(expiresAt: string) {
  * alongside a namespace's own keys.
  */
 function InstanceApiKeys() {
-  const { params, setPage } = usePaginatedListState<InstanceApiKeyListParams>({
+  const {
+    params, setPage, rows: apiKeys, totalCount, totalPages, isLoading, error,
+  } = usePagedList({
     defaults: INSTANCE_API_KEY_LIST_DEFAULTS,
+    query: ({ page }: InstanceApiKeyListParams) =>
+      paginatedQueryOptions(listInstanceApiKeys, listInstanceApiKeysQueryKey, {
+        query: { page, per_page: PER_PAGE, order_by: "desc" },
+      }),
   });
   const page = params.page;
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(listInstanceApiKeys, listInstanceApiKeysQueryKey, {
-      query: { page, per_page: PER_PAGE, order_by: "desc" },
-    }),
-  );
-  const apiKeys = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
 
   const invalidateKeys = useInvalidateByIds("listInstanceApiKeys");
   const deleteKey = useMutation({
@@ -72,7 +72,6 @@ function InstanceApiKeys() {
     setDeleteError(null);
     try {
       await deleteKey.mutateAsync({ path: { name: deleteTarget.name } });
-      if (apiKeys.length === 1 && page > 1) setPage(page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -159,6 +158,12 @@ function InstanceApiKeys() {
         </p>
       </div>
 
+      {error && (
+        <Callout variant="error" className="mb-4">
+          {apiErrorMessage(error)}
+        </Callout>
+      )}
+
       <DataTable
         columns={columns}
         data={apiKeys}
@@ -166,7 +171,7 @@ function InstanceApiKeys() {
         isLoading={isLoading}
         loadingMessage="Loading instance API keys..."
         page={page}
-        totalPages={pageCount(totalCount)}
+        totalPages={totalPages}
         onPageChange={setPage}
         rowClassName={(key) =>
           hasExpired(key.expires_at)
