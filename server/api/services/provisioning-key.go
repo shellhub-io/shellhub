@@ -108,7 +108,7 @@ func provisioningKeyHint(key string) string {
 	return key[:8]
 }
 
-func (s *service) provisioningKeyAEAD() (cipher.AEAD, error) {
+func (s *service) atRestAEAD() (cipher.AEAD, error) {
 	sum := sha256.Sum256(x509.MarshalPKCS1PrivateKey(s.privKey))
 
 	block, err := aes.NewCipher(sum[:])
@@ -119,8 +119,8 @@ func (s *service) provisioningKeyAEAD() (cipher.AEAD, error) {
 	return cipher.NewGCM(block)
 }
 
-func (s *service) encryptProvisioningKey(plaintext string) (string, error) {
-	gcm, err := s.provisioningKeyAEAD()
+func (s *service) encryptAtRest(plaintext string) (string, error) {
+	gcm, err := s.atRestAEAD()
 	if err != nil {
 		return "", err
 	}
@@ -133,8 +133,8 @@ func (s *service) encryptProvisioningKey(plaintext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func (s *service) decryptProvisioningKey(encoded string) (string, error) {
-	gcm, err := s.provisioningKeyAEAD()
+func (s *service) decryptAtRest(encoded string) (string, error) {
+	gcm, err := s.atRestAEAD()
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +145,7 @@ func (s *service) decryptProvisioningKey(encoded string) (string, error) {
 	}
 
 	if len(data) < gcm.NonceSize() {
-		return "", errors.New("malformed provisioning key ciphertext")
+		return "", errors.New("malformed at-rest ciphertext")
 	}
 
 	nonce, ciphertext := data[:gcm.NonceSize()], data[gcm.NonceSize():]
@@ -264,7 +264,7 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 
 	hashedKey := hashProvisioningKey(key)
 
-	encryptedKey, err := s.encryptProvisioningKey(key)
+	encryptedKey, err := s.encryptAtRest(key)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +516,7 @@ func (s *service) RevealProvisioningKey(ctx context.Context, req *requests.Revea
 		return "", NewErrProvisioningKeyNotFound(req.Name, nil)
 	}
 
-	return s.decryptProvisioningKey(provisioningKey.KeyEncrypted)
+	return s.decryptAtRest(provisioningKey.KeyEncrypted)
 }
 
 func (s *service) ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) ([]models.ProvisioningKeyEvent, int64, error) {

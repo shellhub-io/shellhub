@@ -9144,6 +9144,412 @@ func (_c *MockStore_UserUpdateRevokingTokens_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// WebhookCreate provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookCreate(ctx context.Context, webhook *models.Webhook) (string, error) {
+	ret := _mock.Called(ctx, webhook)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookCreate")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Webhook) (string, error)); ok {
+		return returnFunc(ctx, webhook)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Webhook) string); ok {
+		r0 = returnFunc(ctx, webhook)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.Webhook) error); ok {
+		r1 = returnFunc(ctx, webhook)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_WebhookCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookCreate'
+type MockStore_WebhookCreate_Call struct {
+	*mock.Call
+}
+
+// WebhookCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - webhook *models.Webhook
+func (_e *MockStore_Expecter) WebhookCreate(ctx any, webhook any) *MockStore_WebhookCreate_Call {
+	return &MockStore_WebhookCreate_Call{Call: _e.mock.On("WebhookCreate", ctx, webhook)}
+}
+
+func (_c *MockStore_WebhookCreate_Call) Run(run func(ctx context.Context, webhook *models.Webhook)) *MockStore_WebhookCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Webhook
+		if args[1] != nil {
+			arg1 = args[1].(*models.Webhook)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookCreate_Call) Return(s string, err error) *MockStore_WebhookCreate_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockStore_WebhookCreate_Call) RunAndReturn(run func(ctx context.Context, webhook *models.Webhook) (string, error)) *MockStore_WebhookCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookDelete provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookDelete(ctx context.Context, sc scope.Scope, id string) error {
+	ret := _mock.Called(ctx, sc, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDelete")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) error); ok {
+		r0 = returnFunc(ctx, sc, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_WebhookDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDelete'
+type MockStore_WebhookDelete_Call struct {
+	*mock.Call
+}
+
+// WebhookDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - id string
+func (_e *MockStore_Expecter) WebhookDelete(ctx any, sc any, id any) *MockStore_WebhookDelete_Call {
+	return &MockStore_WebhookDelete_Call{Call: _e.mock.On("WebhookDelete", ctx, sc, id)}
+}
+
+func (_c *MockStore_WebhookDelete_Call) Run(run func(ctx context.Context, sc scope.Scope, id string)) *MockStore_WebhookDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookDelete_Call) Return(err error) *MockStore_WebhookDelete_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_WebhookDelete_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, id string) error) *MockStore_WebhookDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookList provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookList(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Webhook, int64, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, sc, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, sc)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookList")
+	}
+
+	var r0 []models.Webhook
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.Webhook, int64, error)); ok {
+		return returnFunc(ctx, sc, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.Webhook); ok {
+		r0 = returnFunc(ctx, sc, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Webhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) int64); ok {
+		r1 = returnFunc(ctx, sc, opts...)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_WebhookList_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookList'
+type MockStore_WebhookList_Call struct {
+	*mock.Call
+}
+
+// WebhookList is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) WebhookList(ctx any, sc any, opts ...any) *MockStore_WebhookList_Call {
+	return &MockStore_WebhookList_Call{Call: _e.mock.On("WebhookList",
+		append([]any{ctx, sc}, opts...)...)}
+}
+
+func (_c *MockStore_WebhookList_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_WebhookList_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookList_Call) Return(webhooks []models.Webhook, n int64, err error) *MockStore_WebhookList_Call {
+	_c.Call.Return(webhooks, n, err)
+	return _c
+}
+
+func (_c *MockStore_WebhookList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.Webhook, int64, error)) *MockStore_WebhookList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookLockNamespace provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookLockNamespace(ctx context.Context, sc scope.Scope) error {
+	ret := _mock.Called(ctx, sc)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookLockNamespace")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) error); ok {
+		r0 = returnFunc(ctx, sc)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_WebhookLockNamespace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookLockNamespace'
+type MockStore_WebhookLockNamespace_Call struct {
+	*mock.Call
+}
+
+// WebhookLockNamespace is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) WebhookLockNamespace(ctx any, sc any) *MockStore_WebhookLockNamespace_Call {
+	return &MockStore_WebhookLockNamespace_Call{Call: _e.mock.On("WebhookLockNamespace", ctx, sc)}
+}
+
+func (_c *MockStore_WebhookLockNamespace_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_WebhookLockNamespace_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookLockNamespace_Call) Return(err error) *MockStore_WebhookLockNamespace_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_WebhookLockNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) error) *MockStore_WebhookLockNamespace_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookResolve provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookResolve(ctx context.Context, sc scope.Scope, id string) (*models.Webhook, error) {
+	ret := _mock.Called(ctx, sc, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookResolve")
+	}
+
+	var r0 *models.Webhook
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) (*models.Webhook, error)); ok {
+		return returnFunc(ctx, sc, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) *models.Webhook); ok {
+		r0 = returnFunc(ctx, sc, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Webhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, string) error); ok {
+		r1 = returnFunc(ctx, sc, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_WebhookResolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookResolve'
+type MockStore_WebhookResolve_Call struct {
+	*mock.Call
+}
+
+// WebhookResolve is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - id string
+func (_e *MockStore_Expecter) WebhookResolve(ctx any, sc any, id any) *MockStore_WebhookResolve_Call {
+	return &MockStore_WebhookResolve_Call{Call: _e.mock.On("WebhookResolve", ctx, sc, id)}
+}
+
+func (_c *MockStore_WebhookResolve_Call) Run(run func(ctx context.Context, sc scope.Scope, id string)) *MockStore_WebhookResolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookResolve_Call) Return(webhook *models.Webhook, err error) *MockStore_WebhookResolve_Call {
+	_c.Call.Return(webhook, err)
+	return _c
+}
+
+func (_c *MockStore_WebhookResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, id string) (*models.Webhook, error)) *MockStore_WebhookResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookUpdate provides a mock function for the type MockStore
+func (_mock *MockStore) WebhookUpdate(ctx context.Context, webhook *models.Webhook) error {
+	ret := _mock.Called(ctx, webhook)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookUpdate")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Webhook) error); ok {
+		r0 = returnFunc(ctx, webhook)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_WebhookUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookUpdate'
+type MockStore_WebhookUpdate_Call struct {
+	*mock.Call
+}
+
+// WebhookUpdate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - webhook *models.Webhook
+func (_e *MockStore_Expecter) WebhookUpdate(ctx any, webhook any) *MockStore_WebhookUpdate_Call {
+	return &MockStore_WebhookUpdate_Call{Call: _e.mock.On("WebhookUpdate", ctx, webhook)}
+}
+
+func (_c *MockStore_WebhookUpdate_Call) Run(run func(ctx context.Context, webhook *models.Webhook)) *MockStore_WebhookUpdate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Webhook
+		if args[1] != nil {
+			arg1 = args[1].(*models.Webhook)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WebhookUpdate_Call) Return(err error) *MockStore_WebhookUpdate_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_WebhookUpdate_Call) RunAndReturn(run func(ctx context.Context, webhook *models.Webhook) error) *MockStore_WebhookUpdate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // WithTransaction provides a mock function for the type MockStore
 func (_mock *MockStore) WithTransaction(ctx context.Context, cb store.TransactionCb) error {
 	ret := _mock.Called(ctx, cb)
