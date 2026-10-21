@@ -82,4 +82,10 @@ type WebhookStore interface {
 	// constructed, ctx's error when it is cancelled or its deadline passes and [ErrInternal] for
 	// any other failure.
 	WebhookDeliveryList(ctx context.Context, sc scope.Scope, webhookID string, opts ...QueryOption) ([]models.WebhookDelivery, int64, error)
+
+	// WebhookDeliveryPrune deletes the delivered and failed deliveries last updated before before,
+	// then the events created before before that no delivery points at any more, and returns how
+	// many deliveries it deleted. It reads every namespace. It returns ctx's error when it is
+	// cancelled or its deadline passes and [ErrInternal] for any other failure.
+	WebhookDeliveryPrune(ctx context.Context, before time.Time) (int64, error)
 }

@@ -267,3 +267,27 @@ func (pg *Pg) WebhookDeliveryList(ctx context.Context, sc scope.Scope, webhookID
 
 	return deliveries, count, nil
 }
+
+// WebhookDeliveryPrune implements [store.WebhookStore].
+func (pg *Pg) WebhookDeliveryPrune(ctx context.Context, before time.Time) (int64, error) {
+	db := pg.GetConnection(ctx)
+
+	res, err := db.NewDelete().
+		Model((*entity.WebhookDelivery)(nil)).
+		Where("status IN (?)", bun.List([]string{string(models.WebhookDeliveryDelivered), string(models.WebhookDeliveryFailed)})).
+		Where("updated_at < ?", before).
+		Exec(ctx)
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	if _, err := db.NewDelete().
+		Model((*entity.WebhookEvent)(nil)).
+		Where("created_at < ?", before).
+		Where("NOT EXISTS (SELECT 1 FROM webhook_deliveries WHERE webhook_deliveries.event_id = webhook_event.id)").
+		Exec(ctx); err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	return res.RowsAffected()
+}

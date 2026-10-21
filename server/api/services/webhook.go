@@ -38,7 +38,20 @@ const (
 	webhookDeliveryLease      = time.Minute
 	webhookRequestTimeout     = 10 * time.Second
 	webhookResponseDrainLimit = 64 << 10
+
+	webhookDeliveryRetention = 7 * 24 * time.Hour
 )
+
+// CronWebhookDeliverySweep and CronWebhookDeliveryCleanup are when the webhook delivery jobs run:
+// the sweep every minute, the cleanup at night like the other cleanups.
+const (
+	CronWebhookDeliverySweep   = worker.CronSpec("* * * * *")
+	CronWebhookDeliveryCleanup = worker.CronSpec("30 4 * * *")
+)
+
+// TaskWebhookDelivery is the task a committed event submits so its deliveries go out at once,
+// rather than at the next CronWebhookDeliverySweep.
+const TaskWebhookDelivery = worker.TaskPattern("webhook:deliver")
 
 // WebhookService manages the webhooks a namespace's events are sent to.
 type WebhookService interface {
@@ -91,6 +104,14 @@ type WebhookService interface {
 	// schedules a retry with backoff, and the last allowed attempt failing abandons it. The task
 	// returns only a failure to claim deliveries; a failed send is recorded on the delivery.
 	DeliverWebhooks() worker.TaskHandler
+
+	// WebhookDeliverySweep returns the cron job that does what DeliverWebhooks does, for the
+	// deliveries no submitted task reached and the retries that came due.
+	WebhookDeliverySweep() worker.CronHandler
+
+	// WebhookDeliveryCleanup returns the cron job that deletes the deliveries delivered or
+	// abandoned more than seven days ago, and the events left with no delivery.
+	WebhookDeliveryCleanup() worker.CronHandler
 }
 
 func uniqueWebhookEvents(events []models.WebhookEventType) []models.WebhookEventType {
@@ -475,4 +496,31 @@ func (s *service) sendWebhook(ctx context.Context, client *http.Client, dispatch
 	}
 
 	return resp.StatusCode, nil
+}
+
+func (s *service) nudgeWebhookDelivery(ctx context.Context) {
+	if s.webhookDispatcher == nil {
+		return
+	}
+
+	if err := s.webhookDispatcher.Submit(ctx, TaskWebhookDelivery, nil); err != nil {
+		log.WithError(err).Warn("failed to submit the webhook delivery task; the next sweep sends the deliveries")
+	}
+}
+
+func (s *service) WebhookDeliverySweep() worker.CronHandler {
+	return s.deliverWebhooks
+}
+
+func (s *service) WebhookDeliveryCleanup() worker.CronHandler {
+	return func(ctx context.Context) error {
+		deleted, err := s.store.WebhookDeliveryPrune(ctx, s.clock.Now().Add(-webhookDeliveryRetention))
+		if err != nil {
+			return err
+		}
+
+		log.WithField("deleted", deleted).Info("webhook delivery cleanup completed")
+
+		return nil
+	}
 }

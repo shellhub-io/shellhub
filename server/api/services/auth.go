@@ -605,6 +605,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			return nil, err
 		}
 
+		s.nudgeWebhookDelivery(ctx)
+
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
 	} else {
 		if enrollment.verification.refusedFor(device.KeyVerifiedAt != nil) {
@@ -659,6 +661,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			}); err != nil {
 				return nil, err
 			}
+
+			s.nudgeWebhookDelivery(ctx)
 
 			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
 

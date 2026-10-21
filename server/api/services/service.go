@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -46,6 +47,8 @@ type service struct {
 	sshPort      string
 	development  bool
 	webhookCIDRs []netip.Prefix
+
+	webhookDispatcher worker.Client
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -179,6 +182,14 @@ func WithDevelopmentMode(development bool) Option {
 func WithEnrollmentWebhookCIDRs(prefixes []netip.Prefix) Option {
 	return func(service *APIService) {
 		service.webhookCIDRs = prefixes
+	}
+}
+
+// WithWebhookDispatcher submits TaskWebhookDelivery through client after a change records an
+// event. Without it deliveries wait for the next sweep.
+func WithWebhookDispatcher(client worker.Client) Option {
+	return func(service *APIService) {
+		service.webhookDispatcher = client
 	}
 }
 
