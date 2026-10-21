@@ -117,7 +117,8 @@ func TestBuildInstallOverrides(t *testing.T) {
 
 func TestSystemGet(t *testing.T) {
 	setupSystem := &models.System{
-		Setup: true,
+		Setup:      true,
+		InstanceID: "55555555-5555-4555-8555-555555555555",
 		Authentication: &models.SystemAuthentication{
 			Local: &models.SystemAuthenticationLocal{Enabled: true},
 		},
@@ -189,6 +190,27 @@ func TestSystemGet(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, system.Authentication)
 		assert.True(t, system.Authentication.Local.Enabled)
+	})
+
+	t.Run("ignores a cached row with no instance ID", func(t *testing.T) {
+		storeMock := storemock.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+
+		cacheMock.
+			On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*models.System)
+				require.True(t, ok)
+				*arg = models.System{Setup: true, Authentication: setupSystem.Authentication}
+			}).
+			Return(nil).
+			Once()
+		storeMock.On("SystemGet", mock.Anything).Return(setupSystem, nil).Once()
+		cacheMock.On("Set", mock.Anything, cache.SystemKey, setupSystem, systemCacheTTL).Return(nil).Once()
+
+		system, err := NewService(storeMock, privateKey, publicKey, cacheMock).systemGet(context.TODO())
+		require.NoError(t, err)
+		assert.Equal(t, setupSystem.InstanceID, system.InstanceID)
 	})
 
 	t.Run("serves the row when the cache is unreachable", func(t *testing.T) {

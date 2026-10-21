@@ -2863,6 +2863,74 @@ func (_c *MockStore_InstanceAPIKeyResolve_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
+// InstanceUsage provides a mock function for the type MockStore
+func (_mock *MockStore) InstanceUsage(ctx context.Context, since time.Time) (*models.InstanceUsage, error) {
+	ret := _mock.Called(ctx, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InstanceUsage")
+	}
+
+	var r0 *models.InstanceUsage
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) (*models.InstanceUsage, error)); ok {
+		return returnFunc(ctx, since)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) *models.InstanceUsage); ok {
+		r0 = returnFunc(ctx, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.InstanceUsage)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = returnFunc(ctx, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_InstanceUsage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InstanceUsage'
+type MockStore_InstanceUsage_Call struct {
+	*mock.Call
+}
+
+// InstanceUsage is a helper method to define mock.On call
+//   - ctx context.Context
+//   - since time.Time
+func (_e *MockStore_Expecter) InstanceUsage(ctx any, since any) *MockStore_InstanceUsage_Call {
+	return &MockStore_InstanceUsage_Call{Call: _e.mock.On("InstanceUsage", ctx, since)}
+}
+
+func (_c *MockStore_InstanceUsage_Call) Run(run func(ctx context.Context, since time.Time)) *MockStore_InstanceUsage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_InstanceUsage_Call) Return(instanceUsage *models.InstanceUsage, err error) *MockStore_InstanceUsage_Call {
+	_c.Call.Return(instanceUsage, err)
+	return _c
+}
+
+func (_c *MockStore_InstanceUsage_Call) RunAndReturn(run func(ctx context.Context, since time.Time) (*models.InstanceUsage, error)) *MockStore_InstanceUsage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MembershipInvitationCreate provides a mock function for the type MockStore
 func (_mock *MockStore) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	ret := _mock.Called(ctx, invitation)
@@ -4407,6 +4475,74 @@ func (_c *MockStore_NamespaceUpgrade_Call) Return(err error) *MockStore_Namespac
 }
 
 func (_c *MockStore_NamespaceUpgrade_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockStore_NamespaceUpgrade_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NamespaceUsages provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceUsages(ctx context.Context, since time.Time) ([]models.NamespaceUsage, error) {
+	ret := _mock.Called(ctx, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceUsages")
+	}
+
+	var r0 []models.NamespaceUsage
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) ([]models.NamespaceUsage, error)); ok {
+		return returnFunc(ctx, since)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) []models.NamespaceUsage); ok {
+		r0 = returnFunc(ctx, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.NamespaceUsage)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = returnFunc(ctx, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NamespaceUsages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceUsages'
+type MockStore_NamespaceUsages_Call struct {
+	*mock.Call
+}
+
+// NamespaceUsages is a helper method to define mock.On call
+//   - ctx context.Context
+//   - since time.Time
+func (_e *MockStore_Expecter) NamespaceUsages(ctx any, since any) *MockStore_NamespaceUsages_Call {
+	return &MockStore_NamespaceUsages_Call{Call: _e.mock.On("NamespaceUsages", ctx, since)}
+}
+
+func (_c *MockStore_NamespaceUsages_Call) Run(run func(ctx context.Context, since time.Time)) *MockStore_NamespaceUsages_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceUsages_Call) Return(namespaceUsages []models.NamespaceUsage, err error) *MockStore_NamespaceUsages_Call {
+	_c.Call.Return(namespaceUsages, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceUsages_Call) RunAndReturn(run func(ctx context.Context, since time.Time) ([]models.NamespaceUsage, error)) *MockStore_NamespaceUsages_Call {
 	_c.Call.Return(run)
 	return _c
 }
