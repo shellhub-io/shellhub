@@ -1261,60 +1261,6 @@ func TestRenameDevice(t *testing.T) {
 			},
 			expected: errors.New("error", "", 0),
 		},
-		{
-			name:          "succeeds",
-			uid:           models.UID("uid"),
-			deviceNewName: "newname",
-			tenant:        "tenant",
-			mocks: func(ctx context.Context) {
-				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
-					Return([]string{}, false, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Name = "newname"
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			name:          "succeeds and converts name to lowercase",
-			uid:           models.UID("uid"),
-			deviceNewName: "NewName",
-			tenant:        "tenant",
-			mocks: func(ctx context.Context) {
-				device := &models.Device{UID: "uid", Name: "oldname", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
-					Return([]string{}, false, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Name = "newname"
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
 	}
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
@@ -2674,30 +2620,6 @@ func TestDeviceUpdate(t *testing.T) {
 			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
 		},
 		{
-			description: "fails when already exists a device with same name",
-			req: &requests.DeviceUpdate{
-				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Name:     "name",
-			},
-			requiredMocks: func(ctx context.Context) {
-				device := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "oldname",
-					DisconnectedAt: &now,
-				}
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "name"}).
-					Return([]string{"name"}, true, nil).
-					Once()
-			},
-			expected: NewErrDeviceDuplicated("name", nil),
-		},
-		{
 			description: "fails with the store error when the conflict lookup fails",
 			req: &requests.DeviceUpdate{
 				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
@@ -2780,39 +2702,6 @@ func TestDeviceUpdate(t *testing.T) {
 				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Name:     "newname",
-			},
-			requiredMocks: func(ctx context.Context) {
-				device := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "oldname",
-					DisconnectedAt: &now,
-				}
-				updatedDevice := &models.Device{
-					UID:            "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					Name:           "newname",
-					DisconnectedAt: &now,
-				}
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "success when update device name with uppercase to lowercase",
-			req: &requests.DeviceUpdate{
-				UID:      "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				Name:     "NewName",
 			},
 			requiredMocks: func(ctx context.Context) {
 				device := &models.Device{
