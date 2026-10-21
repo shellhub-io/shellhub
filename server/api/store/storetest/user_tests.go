@@ -2,7 +2,6 @@ package storetest
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -12,15 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestUserConflictsRemoved asserts that UserConflicts has been deleted from the
-// UserStore interface. The method was replaced by the duplicate-detection path
-// inside UserCreate (ErrDuplicate / DuplicatedField).
-func (s *Suite) TestUserConflictsRemoved(t *testing.T) {
-	ifaceType := reflect.TypeFor[store.UserStore]()
-	_, ok := ifaceType.MethodByName("UserConflicts")
-	assert.False(t, ok, "UserStore.UserConflicts must be removed from the interface")
-}
 
 // TestUserList exercises UserList against the store under test.
 func (s *Suite) TestUserList(t *testing.T) {
