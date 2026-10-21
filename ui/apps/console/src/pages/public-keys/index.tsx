@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { toBase64Json } from "@/utils/encoding";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -32,9 +31,10 @@ import {
   getPublicKeysQueryKey,
   type PublicKeyResponse as PublicKey,
 } from "@/client";
-import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { Button, Callout, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { apiErrorMessage } from "@/api/errors";
+import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -98,8 +98,6 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
   );
 }
 
-const SEARCH_DEBOUNCE_MS = 300;
-
 type PublicKeysParams = {
   page: number;
   search: string;
@@ -130,23 +128,20 @@ const DEFAULTS: PublicKeysParams = {
  */
 export default function PublicKeys() {
   const sectionTitle = useNavSectionTitle("/sshkeys/public-keys");
-  const { params, setPage, setSearch } =
-    usePaginatedListState<PublicKeysParams>({
-      defaults: DEFAULTS,
-    });
-
-  const debouncedSearch = useDebouncedValue(params.search, SEARCH_DEBOUNCE_MS);
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(getPublicKeys, getPublicKeysQueryKey, {
-      query: {
-        page: params.page,
-        per_page: PER_PAGE,
-        ...(debouncedSearch ? { filter: nameOrFingerprintFilter(debouncedSearch) } : {}),
-      },
-    }),
-  );
-  const publicKeys = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  const {
+    params, appliedSearch: searchTerm, setSearch, rows: publicKeys, totalCount, isLoading, error,
+    pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    query: ({ page, search }: PublicKeysParams) =>
+      paginatedQueryOptions(getPublicKeys, getPublicKeysQueryKey, {
+        query: {
+          page,
+          per_page: PER_PAGE,
+          ...(search ? { filter: nameOrFingerprintFilter(search) } : {}),
+        },
+      }),
+  });
   const invalidateKeys = useInvalidateByIds("getPublicKeys");
   const deleteKey = useMutation({
     ...deletePublicKeyMutation(),
@@ -172,7 +167,6 @@ export default function PublicKeys() {
       await deleteKey.mutateAsync({
         path: { fingerprint: deleteTarget.fingerprint },
       });
-      if (publicKeys.length === 1 && params.page > 1) setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -193,8 +187,6 @@ export default function PublicKeys() {
     setModalOpen(false);
     setEditTarget(null);
   };
-
-  const totalPages = pageCount(totalCount);
 
   const columns: Column<PublicKey>[] = [
     {
@@ -269,7 +261,7 @@ export default function PublicKeys() {
     },
   ];
 
-  if (!isLoading && publicKeys.length === 0 && !debouncedSearch) {
+  if (!isLoading && !error && totalCount === 0 && !searchTerm) {
     return (
       <>
         <EmptyState
@@ -345,20 +337,23 @@ export default function PublicKeys() {
         aria-label="Search public keys by name or fingerprint"
       />
 
+      {error && (
+        <Callout variant="error" className="mb-4">
+          {apiErrorMessage(error)}
+        </Callout>
+      )}
+
       <DataTable
         columns={columns}
         data={publicKeys}
         rowKey={(pk) => pk.fingerprint}
         isLoading={isLoading}
         loadingMessage="Loading public keys..."
-        page={params.page}
-        totalPages={totalPages}
-        totalCount={totalCount}
+        {...pagination}
         itemLabel="key"
-        onPageChange={setPage}
         emptyMessage={
-          debouncedSearch
-            ? `No keys matching \u201C${debouncedSearch}\u201D`
+          searchTerm
+            ? `No keys matching \u201C${searchTerm}\u201D`
             : "No public keys found"
         }
       />

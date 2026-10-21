@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -10,7 +10,13 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button, IconButton } from "@shellhub/design-system/primitives";
+import {
+  Badge,
+  Button,
+  Callout,
+  IconButton,
+} from "@shellhub/design-system/primitives";
+import { apiErrorMessage } from "@/api/errors";
 import {
   deleteFirewallRuleMutation,
   getFirewallRules,
@@ -27,10 +33,10 @@ import FilterBadge from "@/components/common/FilterBadge";
 import PageHeader from "@/components/common/PageHeader";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SearchField from "@/components/common/fields/SearchField";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import RuleModal from "./RuleModal";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import ObjectName from "@/components/common/ObjectName";
 
 type FirewallRulesParams = {
@@ -48,16 +54,15 @@ const DEFAULTS: FirewallRulesParams = {
  */
 export default function FirewallRules() {
   const sectionTitle = useNavSectionTitle("/firewall-rules");
-  const { params, setPage, setSearch } =
-    usePaginatedListState<FirewallRulesParams>({ defaults: DEFAULTS });
-
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(getFirewallRules, getFirewallRulesQueryKey, {
-      query: { page: params.page, per_page: PER_PAGE },
-    }),
-  );
-  const rules = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  const {
+    params, setSearch, rows: rules, totalCount, isLoading, error, pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    query: ({ page }: FirewallRulesParams) =>
+      paginatedQueryOptions(getFirewallRules, getFirewallRulesQueryKey, {
+        query: { page, per_page: PER_PAGE },
+      }),
+  });
   const invalidateRules = useInvalidateByIds("getFirewallRules");
   const deleteRule = useMutation({
     ...deleteFirewallRuleMutation(),
@@ -81,7 +86,6 @@ export default function FirewallRules() {
     setDeleteError(null);
     try {
       await deleteRule.mutateAsync({ path: { id: deleteTarget.id } });
-      if (rules.length === 1 && params.page > 1 && !params.search) setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -104,8 +108,6 @@ export default function FirewallRules() {
     setModalOpen(false);
     setEditTarget(null);
   };
-
-  const totalPages = pageCount(totalCount);
 
   const filtered = params.search
     ? rules.filter(
@@ -211,7 +213,7 @@ export default function FirewallRules() {
     },
   ];
 
-  if (!isLoading && rules.length === 0) {
+  if (!isLoading && !error && totalCount === 0) {
     return (
       <>
         <EmptyState
@@ -299,6 +301,12 @@ export default function FirewallRules() {
         aria-label="Search firewall rules by action, priority, IP, or username"
       />
 
+      {error && (
+        <Callout variant="error" className="mb-4">
+          {apiErrorMessage(error)}
+        </Callout>
+      )}
+
       <DataTable
         columns={columns}
         data={filtered}
@@ -306,11 +314,8 @@ export default function FirewallRules() {
         isLoading={isLoading}
         loadingMessage="Loading firewall rules..."
         {...(!params.search && {
-          page: params.page,
-          totalPages,
-          totalCount,
+          ...pagination,
           itemLabel: "rule",
-          onPageChange: setPage,
         })}
         emptyMessage={
           params.search

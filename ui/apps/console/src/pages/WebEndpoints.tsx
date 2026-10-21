@@ -1,9 +1,8 @@
 import { useState, FormEvent } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { isSdkError } from "@/api/errors";
+import { useMutation } from "@tanstack/react-query";
+import { apiErrorMessage, isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
+import { usePagedList } from "@/hooks/usePagedList";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   createWebEndpointMutation,
@@ -45,12 +44,13 @@ import Pagination from "@/components/common/Pagination";
 import {
   Badge,
   Button,
+  Callout,
   Dropdown,
   IconButton,
   Toggle,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
 
@@ -816,8 +816,6 @@ function EndpointCard({
   );
 }
 
-const SEARCH_DEBOUNCE_MS = 300;
-
 type WebEndpointsParams = {
   page: number;
   search: string;
@@ -839,24 +837,20 @@ function addressFilter(address: string): string {
 
 function WebEndpointsContent() {
   const sectionTitle = useNavSectionTitle("/web-endpoints");
-  const { params, setPage, setSearch } =
-    usePaginatedListState<WebEndpointsParams>({ defaults: DEFAULTS });
-  const debouncedSearch = useDebouncedValue(
-    params.search.trim(),
-    SEARCH_DEBOUNCE_MS,
-  );
-
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(listWebEndpoints, listWebEndpointsQueryKey, {
-      query: {
-        page: params.page,
-        per_page: PER_PAGE,
-        ...(debouncedSearch ? { filter: addressFilter(debouncedSearch) } : {}),
-      },
-    }),
-  );
-  const webEndpoints = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  const {
+    params, appliedSearch: searchTerm, setSearch, rows: webEndpoints, totalCount, isLoading, error,
+    pagination,
+  } = usePagedList({
+    defaults: DEFAULTS,
+    query: ({ page, search }: WebEndpointsParams) =>
+      paginatedQueryOptions(listWebEndpoints, listWebEndpointsQueryKey, {
+        query: {
+          page,
+          per_page: PER_PAGE,
+          ...(search ? { filter: addressFilter(search) } : {}),
+        },
+      }),
+  });
   const invalidateEndpoints = useInvalidateByIds("listWebEndpoints");
   const deleteEndpoint = useMutation({
     ...deleteWebEndpointMutation(),
@@ -881,8 +875,6 @@ function WebEndpointsContent() {
       await deleteEndpoint.mutateAsync({
         path: { address: deleteTarget.address },
       });
-      if (webEndpoints.length === 1 && params.page > 1)
-        setPage(params.page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -899,10 +891,9 @@ function WebEndpointsContent() {
     setModalOpen(false);
   };
 
-  const totalPages = pageCount(totalCount);
-  const isSearching = debouncedSearch.length > 0;
-  const isTrulyEmpty = !isLoading && !isSearching && totalCount === 0;
-  const isNoResults = !isLoading && isSearching && totalCount === 0;
+  const isSearching = searchTerm.length > 0;
+  const isTrulyEmpty = !isLoading && !error && !isSearching && totalCount === 0;
+  const isNoResults = !isLoading && !error && isSearching && totalCount === 0;
 
   return (
     <>
@@ -984,6 +975,12 @@ function WebEndpointsContent() {
             aria-label="Search web endpoints by address"
           />
 
+          {error && (
+            <Callout variant="error" className="mb-4">
+              {apiErrorMessage(error)}
+            </Callout>
+          )}
+
           {isNoResults ? (
             <div
               className="py-12 text-center animate-fade-in"
@@ -992,7 +989,7 @@ function WebEndpointsContent() {
             >
               <p className="text-sm text-text-muted">
                 No endpoints matching &ldquo;
-                {debouncedSearch}
+                {searchTerm}
                 &rdquo;
               </p>
             </div>
@@ -1019,11 +1016,8 @@ function WebEndpointsContent() {
               </ul>
 
               <Pagination
-                page={params.page}
-                totalPages={totalPages}
-                totalCount={totalCount}
+                {...pagination}
                 itemLabel="endpoint"
-                onPageChange={setPage}
               />
             </>
           )}

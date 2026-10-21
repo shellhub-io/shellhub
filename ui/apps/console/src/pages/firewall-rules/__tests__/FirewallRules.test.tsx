@@ -176,3 +176,25 @@ describe("FirewallRules — pagination suppressed while searching", () => {
     );
   });
 });
+
+describe("FirewallRules — list error", () => {
+  it("does not show the first-rule splash when the list fails to load", async () => {
+    server.use(
+      http.get("*/api/firewall/rules", () => HttpResponse.json({}, { status: 500 })),
+    );
+    renderPage();
+
+    await screen.findByRole("alert");
+    expect(screen.queryByText("Add your first rule")).not.toBeInTheDocument();
+  });
+});
+
+describe("FirewallRules — empty page", () => {
+  it("keeps the table when a page comes back empty but the namespace has rules", async () => {
+    server.use(http.get("*/api/firewall/rules", () => jsonWithTotal([], 11)));
+    renderPage(["/?page=2"]);
+
+    expect(await screen.findByText("No firewall rules found")).toBeInTheDocument();
+    expect(screen.queryByText("Add your first rule")).not.toBeInTheDocument();
+  });
+});
