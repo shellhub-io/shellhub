@@ -1,10 +1,28 @@
-import { describe, it, expect } from "vitest";
-import { act } from "@testing-library/react";
-import {
-  usePaginatedListState,
-  type SortFieldDef,
-} from "../usePaginatedListState";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { useLocation } from "react-router-dom";
+import { server, jsonWithTotal } from "@/tests/msw";
+import { paginatedQueryOptions } from "@/api/pagination";
+import { getPublicKeys, getPublicKeysQueryKey } from "@/client";
+import { PER_PAGE } from "@/utils/pagination";
 import { renderHookWithRouter } from "@/tests/renderHookWithRouter";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
+import { usePagedList, type ListStateConfig } from "../usePagedList";
+
+function pendingQuery() {
+  return {
+    queryKey: ["pending"],
+    queryFn: () => new Promise<{ data: never[]; totalCount: number }>(() => {}),
+  };
+}
+
+function useListState<T extends Record<string, unknown> & { page: number }>(
+  config: ListStateConfig<T>,
+) {
+  const searchString = new URLSearchParams(useLocation().search).toString();
+  return { ...usePagedList({ ...config, query: pendingQuery }), searchString };
+}
 
 type TestParams = {
   page: number;
@@ -16,10 +34,10 @@ const DEFAULTS: TestParams = {
   search: "",
 };
 
-describe("usePaginatedListState — page", () => {
+describe("usePagedList — page", () => {
   it("setPage updates the page param", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
+      useListState({ defaults: DEFAULTS }),
     );
 
     act(() => {
@@ -30,17 +48,17 @@ describe("usePaginatedListState — page", () => {
   });
 });
 
-describe("usePaginatedListState — search", () => {
+describe("usePagedList — search", () => {
   it("reads empty search from default URL", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
+      useListState({ defaults: DEFAULTS }),
     );
     expect(result.current.params.search).toBe("");
   });
 
   it("reads search from URL search param", () => {
     const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
+      () => useListState({ defaults: DEFAULTS }),
       { initialEntries: ["/?search=hello"] },
     );
     expect(result.current.params.search).toBe("hello");
@@ -48,7 +66,7 @@ describe("usePaginatedListState — search", () => {
 
   it("setSearch updates the search param", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
+      useListState({ defaults: DEFAULTS }),
     );
 
     act(() => {
@@ -59,10 +77,10 @@ describe("usePaginatedListState — search", () => {
   });
 });
 
-describe("usePaginatedListState — non-page setter resets page to 1", () => {
+describe("usePagedList — non-page setter resets page to 1", () => {
   it("setSearch resets page to 1 when page was > 1", () => {
     const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
+      () => useListState({ defaults: DEFAULTS }),
       { initialEntries: ["/?page=4"] },
     );
 
@@ -76,29 +94,10 @@ describe("usePaginatedListState — non-page setter resets page to 1", () => {
   });
 });
 
-describe("usePaginatedListState — reset", () => {
-  it("reset() clears all params back to defaults", () => {
-    const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
-      { initialEntries: ["/?page=3&search=filter"] },
-    );
-
-    expect(result.current.params.page).toBe(3);
-    expect(result.current.params.search).toBe("filter");
-
-    act(() => {
-      result.current.reset();
-    });
-
-    expect(result.current.params.page).toBe(1);
-    expect(result.current.params.search).toBe("");
-  });
-});
-
-describe("usePaginatedListState — replace-history mode omits default-valued params", () => {
+describe("usePagedList — replace-history mode omits default-valued params", () => {
   it("does not write page=1 to URL when it equals the default", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
+      useListState({ defaults: DEFAULTS }),
     );
 
     act(() => {
@@ -115,7 +114,7 @@ describe("usePaginatedListState — replace-history mode omits default-valued pa
 
   it("does not write search= when search equals the default (empty string)", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: DEFAULTS }),
+      useListState({ defaults: DEFAULTS }),
     );
 
     act(() => {
@@ -130,10 +129,10 @@ describe("usePaginatedListState — replace-history mode omits default-valued pa
   });
 });
 
-describe("usePaginatedListState — unrelated params are preserved", () => {
+describe("usePagedList — unrelated params are preserved", () => {
   it("leaves unrelated URL params untouched when updating page", () => {
     const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
+      () => useListState({ defaults: DEFAULTS }),
       { initialEntries: ["/?unrelated=keep&page=2"] },
     );
 
@@ -143,130 +142,6 @@ describe("usePaginatedListState — unrelated params are preserved", () => {
 
     expect(result.current.searchString).toContain("unrelated=keep");
     expect(result.current.params.page).toBe(3);
-  });
-
-  it("leaves unrelated URL params untouched when resetting", () => {
-    const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: DEFAULTS }),
-      { initialEntries: ["/?unrelated=keep&page=2&search=foo"] },
-    );
-
-    act(() => {
-      result.current.reset();
-    });
-
-    expect(result.current.searchString).toContain("unrelated=keep");
-    expect(result.current.params.page).toBe(1);
-    expect(result.current.params.search).toBe("");
-  });
-});
-
-type SortableParams = {
-  page: number;
-  search: string;
-  sortField: string;
-  sortOrder: "asc" | "desc";
-};
-
-const SORT_DEFAULTS: SortableParams = {
-  page: 1,
-  search: "",
-  sortField: "name",
-  sortOrder: "asc",
-};
-
-const SORT_FIELDS: SortFieldDef[] = [
-  { field: "name", initialOrder: "asc" },
-  { field: "created_at", initialOrder: "desc" },
-];
-
-describe("usePaginatedListState — handleSort", () => {
-  it("toggles order from asc to desc when clicking the same field", () => {
-    const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
-        defaults: SORT_DEFAULTS,
-        sortFields: SORT_FIELDS,
-      }),
-    );
-
-    act(() => {
-      result.current.handleSort("name");
-    });
-
-    expect(result.current.params.sortField).toBe("name");
-    expect(result.current.params.sortOrder).toBe("desc");
-  });
-
-  it("toggles order from desc to asc when clicking the same field again", () => {
-    const { result } = renderHookWithRouter(
-      () =>
-        usePaginatedListState({
-          defaults: SORT_DEFAULTS,
-          sortFields: SORT_FIELDS,
-        }),
-      { initialEntries: ["/?sortField=name&sortOrder=desc"] },
-    );
-
-    act(() => {
-      result.current.handleSort("name");
-    });
-
-    expect(result.current.params.sortField).toBe("name");
-    expect(result.current.params.sortOrder).toBe("asc");
-  });
-
-  it("uses the field's initialOrder when switching to a different field", () => {
-    const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
-        defaults: SORT_DEFAULTS,
-        sortFields: SORT_FIELDS,
-      }),
-    );
-
-    act(() => {
-      result.current.handleSort("created_at");
-    });
-
-    expect(result.current.params.sortField).toBe("created_at");
-    expect(result.current.params.sortOrder).toBe("desc");
-  });
-
-  it("resets page to 1 when sorting changes", () => {
-    const { result } = renderHookWithRouter(
-      () =>
-        usePaginatedListState({
-          defaults: SORT_DEFAULTS,
-          sortFields: SORT_FIELDS,
-        }),
-      { initialEntries: ["/?page=3"] },
-    );
-
-    expect(result.current.params.page).toBe(3);
-
-    act(() => {
-      result.current.handleSort("name");
-    });
-
-    expect(result.current.params.page).toBe(1);
-  });
-
-  it("resets page to 1 when switching to a different sort field", () => {
-    const { result } = renderHookWithRouter(
-      () =>
-        usePaginatedListState({
-          defaults: SORT_DEFAULTS,
-          sortFields: SORT_FIELDS,
-        }),
-      { initialEntries: ["/?page=5&sortField=name&sortOrder=asc"] },
-    );
-
-    act(() => {
-      result.current.handleSort("created_at");
-    });
-
-    expect(result.current.params.page).toBe(1);
-    expect(result.current.params.sortField).toBe("created_at");
-    expect(result.current.params.sortOrder).toBe("desc");
   });
 });
 
@@ -284,11 +159,11 @@ const FILTER_DEFAULTS: FilterParams = {
   status: "active",
 };
 
-describe("usePaginatedListState — scalar filter with allowlist", () => {
+describe("usePagedList — scalar filter with allowlist", () => {
   it("setFilter updates a scalar param and resets page", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: FILTER_DEFAULTS,
           constraints: { status: VALID_STATUSES },
         }),
@@ -306,7 +181,7 @@ describe("usePaginatedListState — scalar filter with allowlist", () => {
   it("rejects values not in the allowlist and falls back to default", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: FILTER_DEFAULTS,
           constraints: { status: VALID_STATUSES },
         }),
@@ -325,7 +200,7 @@ describe("usePaginatedListState — scalar filter with allowlist", () => {
   it("omits the param from the URL when it equals the default", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: FILTER_DEFAULTS,
           constraints: { status: VALID_STATUSES },
         }),
@@ -355,17 +230,17 @@ const ARRAY_FILTER_DEFAULTS: ArrayFilterParams = {
   tags: [],
 };
 
-describe("usePaginatedListState — array filters", () => {
-  it("setArrayFilter writes repeated-key params to the URL", () => {
+describe("usePagedList — array filters", () => {
+  it("writes an array filter to the URL as repeated keys", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
+      useListState({
         defaults: ARRAY_FILTER_DEFAULTS,
         constraints: { tags: VALID_TAGS },
       }),
     );
 
     act(() => {
-      result.current.setArrayFilter("tags", ["web", "prod"]);
+      result.current.setFilter("tags", ["web", "prod"]);
     });
 
     expect(result.current.params.tags).toEqual(["web", "prod"]);
@@ -375,14 +250,14 @@ describe("usePaginatedListState — array filters", () => {
 
   it("filters out invalid values against the allowlist", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({
+      useListState({
         defaults: ARRAY_FILTER_DEFAULTS,
         constraints: { tags: VALID_TAGS },
       }),
     );
 
     act(() => {
-      result.current.setArrayFilter("tags", ["web", "invalid", "prod"]);
+      result.current.setFilter("tags", ["web", "invalid", "prod"]);
     });
 
     expect(result.current.params.tags).toEqual(["web", "prod"]);
@@ -391,7 +266,7 @@ describe("usePaginatedListState — array filters", () => {
   it("omits tag params from URL when array is reset to default (empty)", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: ARRAY_FILTER_DEFAULTS,
           constraints: { tags: VALID_TAGS },
         }),
@@ -399,7 +274,7 @@ describe("usePaginatedListState — array filters", () => {
     );
 
     act(() => {
-      result.current.setArrayFilter("tags", []);
+      result.current.setFilter("tags", []);
     });
 
     expect(result.current.params.tags).toEqual([]);
@@ -409,7 +284,7 @@ describe("usePaginatedListState — array filters", () => {
   it("resets page to 1 when array filter changes", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: ARRAY_FILTER_DEFAULTS,
           constraints: { tags: VALID_TAGS },
         }),
@@ -417,7 +292,7 @@ describe("usePaginatedListState — array filters", () => {
     );
 
     act(() => {
-      result.current.setArrayFilter("tags", ["api"]);
+      result.current.setFilter("tags", ["api"]);
     });
 
     expect(result.current.params.page).toBe(1);
@@ -425,11 +300,11 @@ describe("usePaginatedListState — array filters", () => {
   });
 });
 
-describe("usePaginatedListState — mapArrayFilter", () => {
+describe("usePagedList — mapArrayFilter", () => {
   it("applies the functional updater to the current array value", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: ARRAY_FILTER_DEFAULTS,
           constraints: { tags: VALID_TAGS },
         }),
@@ -450,7 +325,7 @@ describe("usePaginatedListState — mapArrayFilter", () => {
   it("resets page to 1 when the array changes", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: ARRAY_FILTER_DEFAULTS,
           constraints: { tags: VALID_TAGS },
         }),
@@ -473,10 +348,10 @@ type PrefixedParams = {
 
 const PREFIXED_DEFAULTS: PrefixedParams = { page: 1, search: "" };
 
-describe("usePaginatedListState — prefix option", () => {
+describe("usePagedList — prefix option", () => {
   it("namespaces params with the given prefix", () => {
     const { result } = renderHookWithRouter(() =>
-      usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "devices" }),
+      useListState({ defaults: PREFIXED_DEFAULTS, prefix: "devices" }),
     );
 
     act(() => {
@@ -492,7 +367,7 @@ describe("usePaginatedListState — prefix option", () => {
   it("reads params from prefixed URL keys", () => {
     const { result } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: PREFIXED_DEFAULTS,
           prefix: "devices",
         }),
@@ -506,7 +381,7 @@ describe("usePaginatedListState — prefix option", () => {
   it("reads page from its own prefixed key when the URL contains both prefixed keys", () => {
     const { result: r1 } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: PREFIXED_DEFAULTS,
           prefix: "devices",
         }),
@@ -514,7 +389,7 @@ describe("usePaginatedListState — prefix option", () => {
     );
     const { result: r2 } = renderHookWithRouter(
       () =>
-        usePaginatedListState({
+        useListState({
           defaults: PREFIXED_DEFAULTS,
           prefix: "sessions",
         }),
@@ -527,11 +402,11 @@ describe("usePaginatedListState — prefix option", () => {
 
   it("updating one prefixed instance does not clobber another instance's params", () => {
     function useTwo() {
-      const h1 = usePaginatedListState({
+      const h1 = useListState({
         defaults: PREFIXED_DEFAULTS,
         prefix: "devices",
       });
-      const h2 = usePaginatedListState({
+      const h2 = useListState({
         defaults: PREFIXED_DEFAULTS,
         prefix: "sessions",
       });
@@ -552,7 +427,7 @@ describe("usePaginatedListState — prefix option", () => {
 
   it("does not touch the unprefixed key when a prefix is set", () => {
     const { result } = renderHookWithRouter(
-      () => usePaginatedListState({ defaults: PREFIXED_DEFAULTS, prefix: "a" }),
+      () => useListState({ defaults: PREFIXED_DEFAULTS, prefix: "a" }),
       { initialEntries: ["/?page=99&a.page=2"] },
     );
 
@@ -561,11 +436,11 @@ describe("usePaginatedListState — prefix option", () => {
 
   it("preserves prefixed params when updating another prefixed instance", () => {
     function useTwo() {
-      const h1 = usePaginatedListState({
+      const h1 = useListState({
         defaults: PREFIXED_DEFAULTS,
         prefix: "devices",
       });
-      const h2 = usePaginatedListState({
+      const h2 = useListState({
         defaults: PREFIXED_DEFAULTS,
         prefix: "sessions",
       });
@@ -582,5 +457,112 @@ describe("usePaginatedListState — prefix option", () => {
 
     expect(result.current.h1.params.page).toBe(5);
     expect(result.current.h2.params.page).toBe(3);
+  });
+});
+
+const PUBLIC_KEYS = "*/api/sshkeys/public-keys";
+
+function servePublicKeys(totalCount: number) {
+  const filters: (string | null)[] = [];
+  server.use(
+    http.get(PUBLIC_KEYS, ({ request }) => {
+      filters.push(new URL(request.url).searchParams.get("filter"));
+      return jsonWithTotal([], totalCount);
+    }),
+  );
+  return filters;
+}
+
+function usePublicKeyList() {
+  return usePagedList({
+    defaults: DEFAULTS,
+    query: (params) =>
+      paginatedQueryOptions(getPublicKeys, getPublicKeysQueryKey, {
+        query: {
+          page: params.page,
+          per_page: PER_PAGE,
+          ...(params.search ? { filter: params.search } : {}),
+        },
+      }),
+  });
+}
+
+describe("usePagedList — query", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("sends a typed search only after the debounce", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const filters = servePublicKeys(0);
+    const { result } = renderHookWithRouter(usePublicKeyList);
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setSearch("alice");
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
+    expect(result.current.params.search).toBe("alice");
+    expect(result.current.appliedSearch).toBe("");
+    expect(filters).not.toContain("alice");
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => expect(filters).toContain("alice"));
+    expect(result.current.appliedSearch).toBe("alice");
+  });
+
+  it("moves to the last page once the total shrinks below the current page", async () => {
+    servePublicKeys(PER_PAGE + 1);
+    const { result } = renderHookWithRouter(usePublicKeyList, {
+      initialEntries: ["/?page=3"],
+    });
+
+    expect(result.current.params.page).toBe(3);
+    await waitFor(() => expect(result.current.params.page).toBe(2));
+    expect(result.current.totalPages).toBe(2);
+  });
+
+  it("waits for a refetch before moving off a page the cache counts out", async () => {
+    servePublicKeys(2 * PER_PAGE + 1);
+    const queryClient = createTestQueryClient();
+    queryClient.setQueryData(
+      getPublicKeysQueryKey({ query: { page: 3, per_page: PER_PAGE } }),
+      { data: [], totalCount: 2 * PER_PAGE },
+    );
+    const { result } = renderHook(usePublicKeyList, {
+      wrapper: createTestWrapper({ queryClient, initialEntries: ["/?page=3"] }),
+    });
+
+    await waitFor(() => expect(result.current.totalPages).toBe(3));
+    expect(result.current.params.page).toBe(3);
+  });
+
+  it("moves to the first page when the list is empty", async () => {
+    servePublicKeys(0);
+    const { result } = renderHookWithRouter(usePublicKeyList, {
+      initialEntries: ["/?page=2"],
+    });
+
+    await waitFor(() => expect(result.current.params.page).toBe(1));
+  });
+
+  it("surfaces a failed request as error", async () => {
+    server.use(
+      http.get(PUBLIC_KEYS, () => HttpResponse.json({}, { status: 500 })),
+    );
+    const { result } = renderHookWithRouter(usePublicKeyList, {
+      initialEntries: ["/?page=2"],
+    });
+
+    await waitFor(() => expect(result.current.error).toMatchObject({ status: 500 }));
+    expect(result.current.params.page).toBe(2);
+    expect(result.current.rows).toEqual([]);
   });
 });
