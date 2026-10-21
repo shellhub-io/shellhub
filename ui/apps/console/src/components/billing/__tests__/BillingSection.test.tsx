@@ -197,19 +197,6 @@ describe("BillingSection — Subscribe button interaction", () => {
   });
 });
 
-describe("BillingSection — status badge", () => {
-  it.each([
-    ["inactive", "Inactive"],
-    ["active", "Active"],
-    ["past_due", "Past due"],
-  ] as const)("status %s shows the '%s' badge", async (status, badge) => {
-    if (status === "inactive") setInactive();
-    else setStatus(status);
-    renderSection();
-    expect(await screen.findByText(badge)).toBeInTheDocument();
-  });
-});
-
 describe("BillingSection — plan", () => {
   it.each([
     ["inactive", "Inactive", "Free", "Free plan, up to 3 devices."],
