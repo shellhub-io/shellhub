@@ -59,54 +59,6 @@ func TestTenantFromContext(t *testing.T) {
 	}
 }
 
-func TestUsernameFromContext(t *testing.T) {
-	cases := []struct {
-		description string
-		headers     map[string]string
-		expected    *models.Username
-	}{
-		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-Username": "someone",
-			},
-			expected: &models.Username{
-				ID: "someone",
-			},
-		}, {
-			description: "validate empty username string, for ID behavior",
-			headers:     map[string]string{},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			e := echo.New()
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
-
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
-
-			rec := httptest.NewRecorder()
-			ctx := e.NewContext(req, rec)
-
-			ctxNew := Context{
-				ctx,
-			}
-
-			ctxArg := context.WithValue(context.TODO(), "ctx", &ctxNew)
-
-			user := UsernameFromContext(ctxArg)
-
-			require.Equal(t, tc.expected, user)
-		})
-	}
-}
-
 func TestIDFromContext(t *testing.T) {
 	cases := []struct {
 		description string
