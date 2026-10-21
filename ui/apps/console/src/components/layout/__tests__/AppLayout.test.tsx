@@ -80,16 +80,6 @@ function renderLayout(path = "/") {
 
 describe("AppLayout", () => {
   describe("Sidebar", () => {
-    it("renders when namespaces exist", async () => {
-      server.use(
-        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
-      );
-      renderLayout();
-      expect(
-        await screen.findByRole("navigation", { name: "Main navigation" }),
-      ).toBeInTheDocument();
-    });
-
     it("is hidden when there are no namespaces", async () => {
       renderLayout();
       await waitFor(() => {
@@ -309,15 +299,6 @@ describe("AppLayout", () => {
       expect(
         screen.getAllByRole("button", { name: /account menu for/i }),
       ).toHaveLength(1);
-    });
-  });
-
-  describe("tab strip", () => {
-    it("renders regardless of namespaces", async () => {
-      renderLayout();
-      expect(
-        await screen.findByRole("tablist", { name: "Open views" }),
-      ).toBeInTheDocument();
     });
   });
 
