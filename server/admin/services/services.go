@@ -38,8 +38,10 @@ type Services interface {
 	// A failed eviction is logged and does not fail the call. It returns ErrUserNotFound,
 	// ErrNamespaceNotFound when the user's namespaces cannot be read, ErrFailedDeleteUser when the
 	// user row cannot be deleted, the API services' ErrForbidden for an owned tenant ID that is not a
-	// valid scope, and the store's error when an owned namespace's devices cannot be listed, the namespaces cannot be
-	// deleted or the user cannot depart an associated namespace, evicting nothing on any of them. ctx
+	// valid scope, and the store's error when an owned namespace's devices cannot be listed, the
+	// transaction cannot start or commit, the namespaces cannot be deleted, the user cannot depart an
+	// associated namespace, a device that leaves with them cannot be resolved or its device.removed
+	// event cannot be recorded, evicting nothing on any of them. ctx
 	// bounds the listing, the deletion and the evictions, so a ctx cancelled after the deletion leaves
 	// the cached authorizations to expire on their own.
 	UserDelete(ctx context.Context, input *inputs.UserDelete) error
@@ -78,7 +80,10 @@ type Services interface {
 	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 	// NamespaceAddMember adds a new member with a specified role to a namespace.
 	NamespaceAddMember(ctx context.Context, input *inputs.MemberAdd) (*models.Namespace, error)
-	// NamespaceRemoveMember removes a member from a namespace.
+	// NamespaceRemoveMember removes a member from a namespace and, in the same transaction, records
+	// the device.removed event of every device that leaves with them. It returns ErrUserNotFound,
+	// ErrNamespaceNotFound, ErrFailedNamespaceRemoveMember when the user is not a member or the
+	// departure or its events cannot be stored, and ErrNamespaceRemoveOwner for the owner.
 	NamespaceRemoveMember(ctx context.Context, input *inputs.MemberRemove) (*models.Namespace, error)
 	// NamespaceDeviceCounts returns the actual device counts for a namespace.
 	NamespaceDeviceCounts(ctx context.Context, tenantID string) (*models.Stats, error)

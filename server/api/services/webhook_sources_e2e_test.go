@@ -333,3 +333,22 @@ func TestWebhookSourcesE2E_RemovingAMemberSendsRemovedForTheirDevices(t *testing
 
 	require.Equal(t, []sentEvent{{Type: "device.removed", UID: owned.UID, Status: models.DeviceStatusRemoved}}, receiver.events(t))
 }
+
+func TestWebhookSourcesE2E_ADepartureOutsideTheServiceSendsRemovedWhenRecorded(t *testing.T) {
+	e := setupOwnershipE2E(t)
+	member := e.member(t, "member", authorizer.RoleOperator)
+	owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
+	receiver := subscribeToEveryDeviceEvent(t, e.enrollmentE2E)
+
+	require.NoError(t, e.st.WithTransaction(context.Background(), func(ctx context.Context) error {
+		departed, err := e.st.NamespaceDepartMember(ctx, scope.MustBounded(e.tenantID), member, store.MemberDeparture{})
+		if err != nil {
+			return err
+		}
+
+		return RecordDepartureRemovals(ctx, e.st, e.clock, departed)
+	}))
+	e.deliver(t)
+
+	require.Equal(t, []sentEvent{{Type: "device.removed", UID: owned.UID, Status: models.DeviceStatusRemoved}}, receiver.events(t))
+}

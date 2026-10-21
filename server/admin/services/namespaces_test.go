@@ -642,6 +642,9 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
 				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(nil, errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
@@ -675,7 +678,7 @@ func TestNamespaceRemoveMember(t *testing.T) {
 			expected: Expected{nil, ErrNamespaceRemoveOwner},
 		},
 		{
-			description: "successfully remove member from the namespace",
+			description: "fails when a removed device's event cannot be recorded",
 			username:    "john_doe",
 			namespace:   "namespace",
 			requiredMocks: func() {
@@ -702,7 +705,61 @@ func TestNamespaceRemoveMember(t *testing.T) {
 					CreatedAt: now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
-				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(&models.MemberDeparted{}, nil).Once()
+				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-0000-0000-000000000000", RemovedDevices: []string{"paired-uid"}}, nil).
+					Once()
+				mock.On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceUIDResolver, "paired-uid").
+					Return(&models.Device{UID: "paired-uid", TenantID: "00000000-0000-0000-0000-000000000000", Status: models.DeviceStatusRemoved}, nil).
+					Once()
+				mock.On("WebhookEventRecord", ctx, testifymock.MatchedBy(func(event *models.WebhookEvent) bool {
+					return event.Type == models.WebhookEventDeviceRemoved && event.TenantID == "00000000-0000-0000-0000-000000000000"
+				})).Return(int64(1), errors.New("error")).Once()
+			},
+			expected: Expected{nil, ErrFailedNamespaceRemoveMember},
+		},
+		{
+			description: "removes the member and records the removal of the devices that leave with them",
+			username:    "john_doe",
+			namespace:   "namespace",
+			requiredMocks: func() {
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "608f191e810c19729de860eb",
+					TenantID: "00000000-0000-0000-0000-000000000000",
+					Members: []models.Member{
+						{ID: "608f191e810c19729de860eb", Role: "owner"},
+						{ID: "507f191e810c19729de860ea", Role: "operator"},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord: true,
+					},
+					CreatedAt: now,
+				}
+				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
+				mock.On("WithTransaction", ctx, testifymock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				mock.On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "507f191e810c19729de860ea", store.MemberDeparture{}).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-0000-0000-000000000000", RemovedDevices: []string{"paired-uid"}}, nil).
+					Once()
+				mock.On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), store.DeviceUIDResolver, "paired-uid").
+					Return(&models.Device{UID: "paired-uid", TenantID: "00000000-0000-0000-0000-000000000000", Status: models.DeviceStatusRemoved}, nil).
+					Once()
+				mock.On("WebhookEventRecord", ctx, testifymock.MatchedBy(func(event *models.WebhookEvent) bool {
+					return event.Type == models.WebhookEventDeviceRemoved && event.TenantID == "00000000-0000-0000-0000-000000000000"
+				})).Return(int64(1), nil).Once()
 			},
 			expected: Expected{&models.Namespace{
 				Name:     "namespace",

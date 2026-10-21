@@ -57,11 +57,14 @@ type MemberService interface {
 	// and, unless departure keeps it, their membership is deleted. The API keys they created stay,
 	// since a key belongs to the namespace. It commits that as one unit and then settles it (see
 	// SettleMemberDeparture). A caller that must fold the departure into a transaction of its own
-	// calls the store's NamespaceDepartMember and SettleMemberDeparture instead.
+	// calls the store's NamespaceDepartMember and RecordDepartureRemovals inside it, and
+	// SettleMemberDeparture after it commits, or the devices that left send no device.removed.
 	//
 	// It returns ErrForbidden when tenantID is empty, ErrDeviceNotOwned when departure keeps a device
-	// the member does not own, ErrNamespaceNotFound when the membership to delete does not exist, and
-	// any other store error unchanged; none of them leaves anything changed or settled.
+	// the member does not own, ErrNamespaceNotFound when the membership to delete does not exist,
+	// ctx's error when it is cancelled or its deadline passes, and the store's error when the
+	// transaction or the departure fails, a removed device cannot be resolved or its device.removed
+	// event cannot be recorded; none of them leaves anything changed or settled.
 	DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)
 
 	// SettleMemberDeparture does what a committed departure leaves to the process: it closes the
@@ -426,15 +429,8 @@ func (s *service) departMember(ctx context.Context, tenantID, memberID string, d
 		return nil, err
 	}
 
-	for _, uid := range departed.RemovedDevices {
-		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, device); err != nil {
-			return nil, err
-		}
+	if err := RecordDepartureRemovals(ctx, s.store, s.clock, departed); err != nil {
+		return nil, err
 	}
 
 	return departed, nil
