@@ -333,6 +333,21 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			return err
 		}
 
+		listed := make(map[string]models.Device, len(devices))
+		for _, device := range devices {
+			listed[device.UID] = device
+		}
+
+		for _, deletedDevice := range deleted {
+			if deletedDevice.Status == models.DeviceStatusRemoved {
+				continue
+			}
+
+			if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, s.removedDevice(listed[deletedDevice.UID])); err != nil {
+				return err
+			}
+		}
+
 		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)
 		for _, device := range deleted {
 			if deletedPerTenant[device.TenantID] == nil {

@@ -125,8 +125,8 @@ type DeviceStore interface {
 	// DeviceListExpiredEphemeral lists up to 1000 ephemeral devices the cleanup can remove: those
 	// that do not read online and whose last tunnel beat and last status change, whichever is later,
 	// are older than their per-device ephemeral timeout (in minutes). A device that is not accepted
-	// is listed only once the server has seen its tunnel close since its last status change. It
-	// returns ctx's error when ctx ends, and an error wrapping [ErrInternal] for any other database
-	// failure.
+	// is listed only once the server has seen its tunnel close since its last status change. Each
+	// device carries its namespace name and its tags. It returns ctx's error when ctx ends, and an
+	// error wrapping [ErrInternal] for any other database failure.
 	DeviceListExpiredEphemeral(ctx context.Context) (devices []models.Device, err error)
 }

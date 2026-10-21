@@ -920,8 +920,11 @@ func TestDeleteDevice(t *testing.T) {
 	clk := clock.NewFixed(now)
 
 	storeMock := storemock.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 
 	ctx := context.TODO()
 
@@ -938,7 +941,7 @@ func TestDeleteDevice(t *testing.T) {
 			tenant:      "tenant",
 			requiredMocks: func() {
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "_uid").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "_uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
@@ -956,7 +959,7 @@ func TestDeleteDevice(t *testing.T) {
 					CreatedAt: time.Time{},
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -978,7 +981,7 @@ func TestDeleteDevice(t *testing.T) {
 					CreatedAt: time.Time{},
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -1009,7 +1012,7 @@ func TestDeleteDevice(t *testing.T) {
 				device := &models.Device{UID: "uid", TenantID: "tenant", CreatedAt: time.Time{}, Status: models.DeviceStatusAccepted}
 
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 
@@ -1032,7 +1035,7 @@ func TestDeleteDevice(t *testing.T) {
 				device := &models.Device{UID: "uid", Status: models.DeviceStatusPending, TenantID: "tenant", CreatedAt: time.Time{}}
 
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -1446,7 +1449,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
+	ignoreWebhookEvents(storeMock)
 
 	ctx := context.Background()
 	cases := []struct {
@@ -2141,7 +2144,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
+	ignoreWebhookEvents(storeMock)
 
 	licenseEvaluator := &mockLicenseEvaluator{}
 	licenseEvaluator.Test(t)
@@ -2526,7 +2529,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	storeMock.On("WebhookEventRecord", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
+	ignoreWebhookEvents(storeMock)
 
 	ctx := context.Background()
 	const tenantID = "00000000-0000-0000-0000-000000000000"

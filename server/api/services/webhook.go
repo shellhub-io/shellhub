@@ -300,6 +300,14 @@ func deviceStatusEvent(status models.DeviceStatus) (models.WebhookEventType, boo
 	}
 }
 
+func (s *service) removedDevice(device models.Device) *models.Device {
+	now := s.clock.Now()
+	device.Status = models.DeviceStatusRemoved
+	device.RemovedAt = &now
+
+	return &device
+}
+
 type webhookDevice struct {
 	UID             string                 `json:"uid"`
 	Name            string                 `json:"name"`

@@ -382,8 +382,13 @@ func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID 
 		return nil, err
 	}
 
-	departed, err := s.departMember(ctx, tenantID, memberID, departure)
-	if err != nil {
+	var departed *models.MemberDeparted
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		departed, err = s.departMember(ctx, tenantID, memberID, departure)
+
+		return err
+	}); err != nil {
 		return nil, err
 	}
 
@@ -393,7 +398,9 @@ func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID 
 }
 
 func (s *service) departMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
-	departed, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(tenantID), memberID, departure)
+	sc := scope.MustBounded(tenantID)
+
+	departed, err := s.store.NamespaceDepartMember(ctx, sc, memberID, departure)
 	switch {
 	case errors.Is(err, store.ErrDeviceNotOwned):
 		return nil, NewErrDeviceNotOwned(err)
@@ -401,6 +408,17 @@ func (s *service) departMember(ctx context.Context, tenantID, memberID string, d
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	case err != nil:
 		return nil, err
+	}
+
+	for _, uid := range departed.RemovedDevices {
+		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, device); err != nil {
+			return nil, err
+		}
 	}
 
 	return departed, nil
