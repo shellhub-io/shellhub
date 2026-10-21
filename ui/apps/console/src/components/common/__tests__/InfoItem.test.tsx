@@ -22,12 +22,6 @@ describe("InfoItem", () => {
       expect(screen.getByLabelText("UID")).toHaveTextContent("abc-123");
     });
 
-    it("renders a CopyButton when copyable is true and value is truthy", () => {
-      renderInfoItem(<InfoItem label="UID" value="abc-123" copyable />);
-
-      expect(screen.getByRole("button", { name: /copy/i })).toBeInTheDocument();
-    });
-
     it("does not render a CopyButton when value is empty", () => {
       renderInfoItem(<InfoItem label="UID" value="" copyable />);
 

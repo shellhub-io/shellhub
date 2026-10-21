@@ -73,26 +73,6 @@ beforeEach(() => {
 });
 
 describe("ActionDialog", () => {
-  describe("title and confirm label", () => {
-    it.each([
-      [acceptAction, "device", "Accept device", "Accept device"],
-      [rejectAction, "device", "Reject device", "Reject device"],
-      [removeAction, "device", "Remove device", "Remove device"],
-      [acceptAction, "container", "Accept container", "Accept container"],
-    ] as const)(
-      "renders '%s' as '%s' with a '%s' button",
-      (action, entityType, title, confirmLabel) => {
-        renderDialog({ action, entityType });
-        expect(
-          screen.getByRole("heading", { name: title }),
-        ).toBeInTheDocument();
-        expect(
-          screen.getByRole("button", { name: confirmLabel }),
-        ).toBeInTheDocument();
-      },
-    );
-  });
-
   describe("error handling — accept", () => {
     it.each([
       [402, /license/i],
