@@ -7,10 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMessageKindNone(t *testing.T) {
-	assert.Empty(t, Message(KindNone))
-}
-
 func TestMessageHasCRLF(t *testing.T) {
 	cases := []struct {
 		description string

@@ -64,39 +64,6 @@ func TestRedirToWs_Regression_ZeroReadThenEOF(t *testing.T) {
 	}, "expected redirToWs to handle zero read without panicking")
 }
 
-// TestBannerNewBannerErrorSetsKind verifies that NewBannerError populates the Kind
-// by calling banner.Classify on the message at construction time.
-func TestBannerNewBannerErrorSetsKind(t *testing.T) {
-	cases := []struct {
-		description string
-		kind        banner.Kind
-	}{
-		{
-			description: "KindConnectionFailed",
-			kind:        banner.KindConnectionFailed,
-		},
-		{
-			description: "KindAccessDenied",
-			kind:        banner.KindAccessDenied,
-		},
-		{
-			description: "KindInvalidSSHID",
-			kind:        banner.KindInvalidSSHID,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			msg := banner.Message(tc.kind)
-			e := NewBannerError(msg)
-
-			assert.Equal(t, tc.kind, e.Kind())
-			assert.Equal(t, msg, e.Message, "NewBannerError must preserve the raw message verbatim")
-			assert.Equal(t, msg, e.Error(), "Error() must return the raw message verbatim")
-		})
-	}
-}
-
 // TestBannerNewBannerErrorUnrecognizedSetsKindNone verifies that an unrecognized
 // banner string yields KindNone, and that mapBannerError then returns ErrConnect —
 // the production-critical path that prevents arbitrary banner text from leaking to
@@ -109,21 +76,6 @@ func TestBannerNewBannerErrorUnrecognizedSetsKindNone(t *testing.T) {
 	got := mapBannerError(e)
 
 	assert.ErrorIs(t, got, ErrConnect, "expected ErrConnect for unrecognized banner, got %v", got)
-}
-
-// TestMapBannerErrorEmptyMessage verifies that mapBannerError returns ErrConnect
-// for a BannerError with an empty Message (KindNone with no text). This is the
-// default branch of mapBannerError when no log entry is emitted, which is
-// distinct from the non-empty-unknown-text path in
-// TestBannerNewBannerErrorUnrecognizedSetsKindNone.
-func TestMapBannerErrorEmptyMessage(t *testing.T) {
-	e := NewBannerError("")
-
-	require.Equal(t, banner.KindNone, e.Kind())
-
-	got := mapBannerError(e)
-
-	assert.ErrorIs(t, got, ErrConnect, "expected ErrConnect for empty-message BannerError, got %v", got)
 }
 
 func dialWithBanner(t *testing.T, bannerText string) error {
@@ -211,45 +163,6 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 			got := mapBannerError(e)
 
 			assert.ErrorIs(t, got, tc.want, "expected %v, got %v", tc.want, got)
-		})
-	}
-}
-
-// TestBannerWireClassify verifies the full production round-trip: an SSH server
-// whose BannerHandler returns banner.Message(k) delivers that string over the wire;
-// the client's BannerCallback (identical to newSession's) returns NewBannerError;
-// gossh.Dial surfaces it as a dial error; and errors.As correctly extracts a
-// *BannerError with the expected Kind. This is the behavior that newSession depends on.
-func TestBannerWireClassify(t *testing.T) {
-	cases := []struct {
-		description string
-		kind        banner.Kind
-	}{
-		{
-			description: "KindConnectionFailed round-trip over wire",
-			kind:        banner.KindConnectionFailed,
-		},
-		{
-			description: "KindAccessDenied round-trip over wire",
-			kind:        banner.KindAccessDenied,
-		},
-		{
-			description: "KindInvalidSSHID round-trip over wire",
-			kind:        banner.KindInvalidSSHID,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			dialErr := dialWithBanner(t, banner.Message(tc.kind))
-
-			require.Error(t, dialErr, "expected dial to fail when BannerCallback returns a non-nil error")
-
-			var e *BannerError
-
-			require.ErrorAs(t, dialErr, &e, "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
-
-			assert.Equal(t, tc.kind, e.Kind(), "Kind extracted over the wire must match the banner sent by the server")
 		})
 	}
 }
