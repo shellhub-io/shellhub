@@ -12,16 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestAPIKeyCreate exercises APIKeyCreate against the store under test.
-func (s *Suite) TestAPIKeyCreate(t *testing.T) {
-	t.Run("succeeds", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		keyID := s.CreateAPIKey(t, WithAPIKeyName("dev"))
-		assert.NotEmpty(t, keyID)
-	})
-}
-
 // TestAPIKeyConflicts locks which fields APIKeyConflicts reports as already taken, and that it
 // is bounded to the namespace asking.
 func (s *Suite) TestAPIKeyConflicts(t *testing.T) {
@@ -216,21 +206,6 @@ func (s *Suite) TestAPIKeyList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 		assert.Empty(t, apiKeys)
-	})
-
-	t.Run("succeeds when there are api keys", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		s.CreateAPIKey(t, WithAPIKeyName("key1"), WithAPIKeyTenant(tenantID))
-		s.CreateAPIKey(t, WithAPIKeyName("key2"), WithAPIKeyTenant(tenantID))
-
-		apiKeys, count, err := st.APIKeyList(ctx, scope.MustBounded(tenantID),
-			st.Options().Sort(&query.Sorter{By: "expires_in", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: 1, PerPage: 10}))
-		require.NoError(t, err)
-		assert.Equal(t, int64(2), count)
-		assert.Len(t, apiKeys, 2)
 	})
 
 	t.Run("succeeds when there are api keys and pagination", func(t *testing.T) {

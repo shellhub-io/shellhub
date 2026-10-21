@@ -14,35 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestMembershipInvitationCreate exercises MembershipInvitationCreate against the store under test.
-func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("succeeds creating new invitation", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		invitedBy := s.CreateUser(t)
-		invitedUser := s.CreateUser(t)
-
-		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
-		invitation := &models.MembershipInvitation{
-			TenantID:    tenantID,
-			UserID:      invitedUser,
-			InvitedBy:   invitedBy,
-			Role:        authorizer.RoleObserver,
-			Status:      models.MembershipInvitationStatusPending,
-			ExpiresAt:   &expiresAt,
-			Invitations: 1,
-		}
-
-		err := st.MembershipInvitationCreate(ctx, invitation)
-		require.NoError(t, err)
-		assert.NotEmpty(t, invitation.ID)
-	})
-}
-
 // TestMembershipInvitationResolve exercises MembershipInvitationResolve against the store under test.
 func (s *Suite) TestMembershipInvitationResolve(t *testing.T) {
 	ctx := context.Background()

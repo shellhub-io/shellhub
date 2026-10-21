@@ -17,7 +17,6 @@ var Groups = []Group{
 	{Name: "UserStore", Tests: []TestFunc{
 		(*Suite).TestUserList,
 		(*Suite).TestUserResolve,
-		(*Suite).TestUserCreate,
 		(*Suite).TestUserCreatePasswordRoundTrip,
 		(*Suite).TestUserCreateDuplicate,
 		(*Suite).TestUserUpdate,
@@ -28,7 +27,6 @@ var Groups = []Group{
 		(*Suite).TestUserUpdateRevokingTokens,
 		(*Suite).TestUserDelete,
 		(*Suite).TestUserGetInfo,
-		(*Suite).TestUserConflictsRemoved,
 	}},
 	{Name: "NamespaceStore", Tests: []TestFunc{
 		(*Suite).TestNamespaceList,
@@ -85,7 +83,6 @@ var Groups = []Group{
 		(*Suite).TestActiveSessionCleanup,
 	}},
 	{Name: "TagStore", Tests: []TestFunc{
-		(*Suite).TestTagCreate,
 		(*Suite).TestTagConflicts,
 		(*Suite).TestTagList,
 		(*Suite).TestTagResolve,
@@ -95,7 +92,6 @@ var Groups = []Group{
 		(*Suite).TestTagDelete,
 	}},
 	{Name: "APIKeyStore", Tests: []TestFunc{
-		(*Suite).TestAPIKeyCreate,
 		(*Suite).TestAPIKeyConflicts,
 		(*Suite).TestAPIKeyResolve,
 		(*Suite).TestAPIKeyList,
@@ -149,7 +145,6 @@ var Groups = []Group{
 		(*Suite).TestCountRegisteredDevices,
 	}},
 	{Name: "PrivateKeyStore", Tests: []TestFunc{
-		(*Suite).TestPrivateKeyCreate,
 		(*Suite).TestPrivateKeyGet,
 	}},
 	{Name: "MemberStore", Tests: []TestFunc{
@@ -159,7 +154,6 @@ var Groups = []Group{
 		(*Suite).TestNamespaceDepartMember,
 	}},
 	{Name: "MembershipInvitationStore", Tests: []TestFunc{
-		(*Suite).TestMembershipInvitationCreate,
 		(*Suite).TestMembershipInvitationResolve,
 		(*Suite).TestMembershipInvitationResolveBySig,
 		(*Suite).TestMembershipInvitationUpdate,

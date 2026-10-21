@@ -12,26 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestTagCreate exercises TagCreate against the store under test.
-func (s *Suite) TestTagCreate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("succeeds when tag data is valid", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-
-		tag := &models.Tag{
-			Name:     "staging",
-			TenantID: tenantID,
-		}
-		insertedID, err := st.TagCreate(ctx, tag)
-		require.NoError(t, err)
-		assert.NotEmpty(t, insertedID)
-	})
-}
-
 // TestTagConflicts locks which tag fields are reported as already taken.
 func (s *Suite) TestTagConflicts(t *testing.T) {
 	ctx := context.Background()

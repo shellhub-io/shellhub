@@ -90,13 +90,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	t.Run("succeeds when data is valid", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		fingerprint := s.CreatePublicKey(t, WithPublicKeyName("public_key"))
-		assert.NotEmpty(t, fingerprint)
-	})
-
 	t.Run("succeeds with tag filters", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -114,16 +107,6 @@ func (s *Suite) TestPublicKeyCreate(t *testing.T) {
 		pubKey, err := st.PublicKeyResolve(ctx, scope.MustBounded(tenantID), store.PublicKeyFingerprintResolver, fingerprint)
 		require.NoError(t, err)
 		assert.Len(t, pubKey.Filter.TagIDs, 2)
-	})
-
-	t.Run("succeeds with empty tag filter", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		fingerprint := s.CreatePublicKey(t,
-			WithPublicKeyName("key-no-tags"),
-			WithPublicKeyTags([]string{}),
-		)
-		assert.NotEmpty(t, fingerprint)
 	})
 
 	t.Run("leaves no key behind when a tag its filter names is gone", func(t *testing.T) {

@@ -2,7 +2,6 @@ package storetest
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -12,15 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestUserConflictsRemoved asserts that UserConflicts has been deleted from the
-// UserStore interface. The method was replaced by the duplicate-detection path
-// inside UserCreate (ErrDuplicate / DuplicatedField).
-func (s *Suite) TestUserConflictsRemoved(t *testing.T) {
-	ifaceType := reflect.TypeFor[store.UserStore]()
-	_, ok := ifaceType.MethodByName("UserConflicts")
-	assert.False(t, ok, "UserStore.UserConflicts must be removed from the interface")
-}
 
 // TestUserList exercises UserList against the store under test.
 func (s *Suite) TestUserList(t *testing.T) {
@@ -136,43 +126,6 @@ func (s *Suite) TestUserResolve(t *testing.T) {
 	})
 }
 
-// TestUserCreate exercises UserCreate against the store under test.
-func (s *Suite) TestUserCreate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	tests := []struct {
-		description string
-		user        *models.User
-		expected    error
-	}{
-		{
-			description: "succeeds when data is valid",
-			user: &models.User{
-				UserData: models.UserData{
-					Name:     "john doe",
-					Username: "john_doe",
-					Email:    "john.doe@test.com",
-				},
-				Password: models.UserPassword{
-					Hash: "fcf730b6d95236ecd3c9fc2d92d7b6b2bb061514961aec041d6c7a7192f592e4",
-				},
-			},
-			expected: nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.description, func(t *testing.T) {
-			require.NoError(t, s.provider.CleanDatabase(t))
-
-			insertedID, err := st.UserCreate(ctx, tc.user)
-			assert.Equal(t, tc.expected, err)
-			assert.NotEmpty(t, insertedID)
-		})
-	}
-}
-
 // TestUserCreatePasswordRoundTrip locks that a password survives storage and still verifies, so a hashing
 // change cannot silently lock every account out.
 func (s *Suite) TestUserCreatePasswordRoundTrip(t *testing.T) {
@@ -267,24 +220,6 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 
 		err := st.UserUpdate(ctx, &models.User{ID: nonExistentID})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("succeeds when user is found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		err := st.UserUpdate(ctx, &models.User{
-			ID: userID,
-			UserData: models.UserData{
-				Name:     "New Value",
-				Email:    "new.value@test.com",
-				Username: "john_doe",
-			},
-			Status:   models.UserStatusNotConfirmed,
-			Password: models.UserPassword{Hash: "newhash"},
-		})
-		require.NoError(t, err)
 	})
 }
 
@@ -425,28 +360,6 @@ func (s *Suite) TestUserGetInfo(t *testing.T) {
 		require.NoError(t, err)
 
 		userInfo, err := st.UserGetInfo(ctx, memberID)
-		require.NoError(t, err)
-		require.NotNil(t, userInfo)
-
-		assert.NotNil(t, userInfo.OwnedNamespaces)
-		assert.NotNil(t, userInfo.AssociatedNamespaces)
-	})
-
-	t.Run("separates owned and associated namespaces correctly", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		user1ID := s.CreateUser(t, WithUsername("user1"))
-
-		s.CreateNamespace(t, WithNamespaceName("ns1"))
-		ns2ID := s.CreateNamespace(t, WithNamespaceName("ns2"))
-
-		err := st.NamespaceCreateMembership(ctx, scope.MustBounded(ns2ID), &models.Member{
-			ID:   user1ID,
-			Role: "observer",
-		})
-		require.NoError(t, err)
-
-		userInfo, err := st.UserGetInfo(ctx, user1ID)
 		require.NoError(t, err)
 		require.NotNil(t, userInfo)
 

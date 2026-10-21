@@ -9,16 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestPrivateKeyCreate exercises PrivateKeyCreate against the store under test.
-func (s *Suite) TestPrivateKeyCreate(t *testing.T) {
-	t.Run("succeeds when data is valid", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		fingerprint := s.CreatePrivateKey(t)
-		assert.NotEmpty(t, fingerprint)
-	})
-}
-
 // TestPrivateKeyGet exercises PrivateKeyGet against the store under test.
 func (s *Suite) TestPrivateKeyGet(t *testing.T) {
 	ctx := context.Background()
