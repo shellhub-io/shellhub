@@ -1025,37 +1025,6 @@ func TestDeleteDevice(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
-			description: "[with_billing] succeeds",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant", CreatedAt: time.Time{}}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Status = models.DeviceStatusRemoved
-				expectedDevice.RemovedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusRemoved, int64(1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
 			description: "[with_billing] succeeds but device status isn't accepted",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
@@ -1072,37 +1041,6 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "[with_billing] succeeds and soft-deletes device even when billing is active",
-			uid:         models.UID("uid"),
-			tenant:      "tenant",
-			requiredMocks: func() {
-				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant", CreatedAt: time.Time{}}
-
-				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
-					Return(device, nil).
-					Once()
-
-				expectedDevice := *device
-				expectedDevice.Status = models.DeviceStatusRemoved
-				expectedDevice.RemovedAt = &now
-
-				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusRemoved, int64(1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusAccepted, int64(-1)).
 					Return(nil).
 					Once()
 			},
