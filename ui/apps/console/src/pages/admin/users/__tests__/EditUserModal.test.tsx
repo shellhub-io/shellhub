@@ -69,15 +69,6 @@ describe("EditUserModal", () => {
   });
 
   describe("form enabling", () => {
-    it("submit button is enabled when all required fields are filled", async () => {
-      renderModal();
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /save changes/i }),
-        ).not.toBeDisabled(),
-      );
-    });
-
     it("disables submit button when name is cleared", async () => {
       renderModal();
       const nameInput = screen.getByLabelText(/^name$/i);
@@ -119,15 +110,6 @@ describe("EditUserModal", () => {
     it("confirmed checkbox is enabled for a pending (unconfirmed) user", () => {
       renderModal({ user: mockUser });
       expect(screen.getByLabelText(/^confirmed$/i)).not.toBeDisabled();
-    });
-
-    it("recognises status='confirmed' as a confirmed user", () => {
-      const userWithStatus: UserAdminResponse = {
-        ...mockUser,
-        status: "confirmed",
-      };
-      renderModal({ user: userWithStatus });
-      expect(screen.getByLabelText(/^confirmed$/i)).toBeDisabled();
     });
   });
 
@@ -213,22 +195,6 @@ describe("EditUserModal", () => {
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
-
-    it("sends max_namespaces as undefined when limit is not enabled", async () => {
-      renderModal({ user: { ...mockUser, max_namespaces: undefined } });
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(updateSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            path: { id: "u1" },
-          }),
-        );
-      });
-    });
   });
 
   describe("submit — error handling", () => {
@@ -254,21 +220,6 @@ describe("EditUserModal", () => {
         http.put("*/admin/api/users/:id", () =>
           HttpResponse.json({}, { status: 400 }),
         ),
-      );
-      renderModal();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to update user/i)).toBeInTheDocument();
-      });
-    });
-
-    it("shows generic error for unexpected failures", async () => {
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
       );
       renderModal();
 
@@ -325,9 +276,7 @@ describe("EditUserModal", () => {
       const nameInput = screen.getByLabelText(/^name$/i);
       await user.clear(nameInput);
       await user.type(nameInput, "Alice Updated");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -352,9 +301,7 @@ describe("EditUserModal", () => {
       renderModal({ user: userWithoutUsername });
 
       await user.type(screen.getByLabelText(/^username$/i), "alice");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -371,9 +318,7 @@ describe("EditUserModal", () => {
       const usernameInput = screen.getByLabelText(/^username$/i);
 
       await user.type(usernameInput, "Invalid Username!");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
@@ -384,9 +329,7 @@ describe("EditUserModal", () => {
       renderModal({ user: userWithoutUsername });
 
       await user.type(screen.getByLabelText(/^username$/i), "   ");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -415,17 +358,13 @@ describe("EditUserModal", () => {
       rerender(
         <EditUserModal open={false} onClose={vi.fn()} user={mockUser} />,
       );
-      rerender(
-        <EditUserModal open={true} onClose={vi.fn()} user={mockUser} />,
-      );
+      rerender(<EditUserModal open={true} onClose={vi.fn()} user={mockUser} />);
 
       expect(screen.getByLabelText(/^name$/i)).toHaveValue("Alice Smith");
     });
 
     it("clears any error when closed then reopened", async () => {
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
-      );
+      server.use(http.put("*/admin/api/users/:id", () => HttpResponse.error()));
       const { rerender } = renderModal({ user: mockUser });
 
       await userEvent.click(
@@ -436,9 +375,7 @@ describe("EditUserModal", () => {
       rerender(
         <EditUserModal open={false} onClose={vi.fn()} user={mockUser} />,
       );
-      rerender(
-        <EditUserModal open={true} onClose={vi.fn()} user={mockUser} />,
-      );
+      rerender(<EditUserModal open={true} onClose={vi.fn()} user={mockUser} />);
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });

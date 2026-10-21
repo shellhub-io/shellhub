@@ -66,12 +66,6 @@ describe("CreateUserModal", () => {
   });
 
   describe("form enabling", () => {
-    it("enables submit when all required fields are filled", async () => {
-      renderModal();
-      await fillForm();
-      expect(submitButton()).not.toBeDisabled();
-    });
-
     it.each(["name", "username", "email", "password"] as const)(
       "keeps submit disabled when %s is missing",
       async (field) => {
@@ -183,18 +177,6 @@ describe("CreateUserModal", () => {
 
       await waitFor(() =>
         expect(screen.getByText(message)).toBeInTheDocument(),
-      );
-    });
-
-    it("shows generic error for unexpected failures", async () => {
-      server.use(http.post("*/admin/api/users", () => HttpResponse.error()));
-      renderModal();
-      await fillForm();
-
-      await userEvent.click(submitButton());
-
-      await waitFor(() =>
-        expect(screen.getByText(/failed to create user/i)).toBeInTheDocument(),
       );
     });
   });

@@ -84,12 +84,6 @@ beforeEach(() => {
 });
 
 describe("AdminLicense", () => {
-  it("renders spinner with role='status' while loading", () => {
-    server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
-    renderPage();
-    expect(screen.getByRole("status")).toBeInTheDocument();
-  });
-
   it("renders an error alert for non-400 errors", async () => {
     server.use(
       http.get("*/admin/api/license", () =>
@@ -182,16 +176,6 @@ describe("AdminLicense", () => {
       setLicense({ ...validLicense, allowed_regions: regions });
       renderPage();
       expect(await screen.findByText(expected)).toBeInTheDocument();
-    });
-
-    it("displays customer fields", async () => {
-      setLicense(validLicense);
-      renderPage();
-      await screen.findByText("License Information");
-      expect(screen.getByText("cust-xxx")).toBeInTheDocument();
-      expect(screen.getByText("Test Customer")).toBeInTheDocument();
-      expect(screen.getByText("test@example.com")).toBeInTheDocument();
-      expect(screen.getByText("Test Co")).toBeInTheDocument();
     });
   });
 

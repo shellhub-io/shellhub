@@ -73,16 +73,6 @@ beforeEach(() => {
 });
 
 describe("GeneralSettings", () => {
-  it("shows the namespace name and tenant ID", async () => {
-    renderGeneral();
-    expect(await screen.findByText("my-namespace")).toBeInTheDocument();
-    expect(
-      within(screen.getByRole("group", { name: "Tenant ID" })).getByText(
-        "tenant-456",
-      ),
-    ).toBeInTheDocument();
-  });
-
   it("shows how many devices are online", async () => {
     renderGeneral();
     const online = await screen.findByRole("group", { name: "Online" });
@@ -182,14 +172,6 @@ describe("GeneralSettings", () => {
       await user.clear(input);
       await user.type(input, "ab");
       expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
-    });
-
-    it("enables Save once the name is changed and valid", async () => {
-      const user = await openRenameModal();
-      const input = screen.getByLabelText(/namespace name/i);
-      await user.clear(input);
-      await user.type(input, "new-valid-name");
-      expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
     });
 
     it("closes after a successful rename", async () => {

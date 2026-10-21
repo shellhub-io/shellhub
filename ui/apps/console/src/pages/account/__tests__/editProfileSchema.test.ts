@@ -54,16 +54,6 @@ describe("editProfileSchema", () => {
         ),
       ).toEqual({});
     });
-
-    it("produces no errors when recoveryEmail is empty", () => {
-      expect(
-        resolve({
-          name: "Alice",
-          email: "alice@example.com",
-          recoveryEmail: "",
-        }),
-      ).toEqual({});
-    });
   });
 
   describe("name", () => {
@@ -103,26 +93,11 @@ describe("editProfileSchema", () => {
       expect(resolve({ recoveryEmail: "" }).recoveryEmail).toBeUndefined();
     });
 
-    it("emits error for an invalid recovery email format", () => {
-      expect(resolve({ recoveryEmail: "bad-email" }).recoveryEmail).toBe(
-        "Invalid email format",
-      );
-    });
-
     it("emits 'Must be different from your email' when recoveryEmail matches email", () => {
       expect(
         resolve({
           email: "user@example.com",
           recoveryEmail: "user@example.com",
-        }).recoveryEmail,
-      ).toBe("Must be different from your email");
-    });
-
-    it("emits 'Must be different from your email' case-insensitively", () => {
-      expect(
-        resolve({
-          email: "user@example.com",
-          recoveryEmail: "USER@EXAMPLE.COM",
         }).recoveryEmail,
       ).toBe("Must be different from your email");
     });

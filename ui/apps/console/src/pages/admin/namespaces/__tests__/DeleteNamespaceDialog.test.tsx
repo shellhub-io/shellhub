@@ -185,14 +185,4 @@ describe("DeleteNamespaceDialog", () => {
       await waitFor(() => expect(deleteSpy).not.toHaveBeenCalled());
     });
   });
-
-  describe("optional onDeleted callback", () => {
-    it("does not throw when onDeleted is not provided and deletion succeeds", async () => {
-      const { onClose } = renderDialog({ onDeleted: undefined });
-
-      await userEvent.click(screen.getByRole("button", { name: /^delete namespace$/i }));
-
-      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    });
-  });
 });

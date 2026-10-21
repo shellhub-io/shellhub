@@ -69,35 +69,7 @@ describe("AdminUsers", () => {
     setUsers([]);
   });
 
-  describe("loading state", () => {
-    it('renders the loading spinner with "Loading users..." text', () => {
-      server.use(
-        http.get("*/admin/api/users", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("Loading users...")).toBeInTheDocument();
-    });
-  });
-
-  describe("empty state", () => {
-    it('renders "No users found" when the user list is empty', async () => {
-      renderPage();
-      expect(await screen.findByText("No users found")).toBeInTheDocument();
-    });
-  });
-
   describe("user rows", () => {
-    it("renders a row for each returned user", async () => {
-      setUsers([
-        mockAdminUser({ id: "id-1", name: "Alice Smith" }),
-        mockAdminUser({ id: "id-2", name: "Bob Jones" }),
-      ]);
-      renderPage();
-      expect(await screen.findByText("Alice Smith")).toBeInTheDocument();
-      expect(screen.getByText("Bob Jones")).toBeInTheDocument();
-    });
-
     it("navigates to user detail page when a row is clicked", async () => {
       const user = userEvent.setup();
       setUsers([

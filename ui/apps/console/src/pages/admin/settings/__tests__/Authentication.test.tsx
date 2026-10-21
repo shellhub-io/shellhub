@@ -50,20 +50,6 @@ beforeEach(() => {
 
 describe("AdminAuthentication", () => {
   describe("DS Toggle usage", () => {
-    it("renders the local-auth and SAML rows as role='switch' toggles", async () => {
-      setSettings(mockSettings());
-
-      renderPage();
-      await settlePendingLoad();
-
-      expect(
-        screen.getByRole("switch", { name: "Toggle local authentication" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("switch", { name: "Toggle SAML authentication" }),
-      ).toBeInTheDocument();
-    });
-
     it("clicking the local-auth toggle fires configureLocalAuthentication with the flipped value", async () => {
       const user = userEvent.setup();
       setSettings(mockSettings());

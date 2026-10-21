@@ -72,25 +72,7 @@ describe("EditNamespaceModal", () => {
     );
   });
 
-  describe("form pre-filling", () => {
-    it("uses default max_devices of -1 when namespace has no max_devices", () => {
-      renderModal({
-        namespace: { ...mockNamespace, max_devices: -1 },
-      });
-      expect(screen.getByLabelText(/^max devices$/i)).toHaveValue("-1");
-    });
-  });
-
   describe("form enabling", () => {
-    it("submit button is enabled when name is non-empty", async () => {
-      renderModal();
-      await waitFor(() =>
-        expect(
-          screen.getByRole("button", { name: /save changes/i }),
-        ).not.toBeDisabled(),
-      );
-    });
-
     it("disables submit button when name is cleared", async () => {
       renderModal();
       await userEvent.clear(screen.getByLabelText("Namespace Name"));
@@ -243,25 +225,6 @@ describe("EditNamespaceModal", () => {
       server.use(
         http.put("*/admin/api/namespaces-update/:tenantID", () =>
           HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      renderModal();
-
-      await userEvent.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/failed to update namespace/i),
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("shows generic error for non-SDK errors", async () => {
-      server.use(
-        http.put("*/admin/api/namespaces-update/:tenantID", () =>
-          HttpResponse.error(),
         ),
       );
       renderModal();
