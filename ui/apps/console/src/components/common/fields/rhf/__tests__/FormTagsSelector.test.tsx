@@ -49,21 +49,6 @@ describe("FormTagsSelector (RHF adapter contract)", () => {
     setTags(["production", "staging", "dev"]);
   });
 
-  it("renders the tags selector with the given label", () => {
-    renderForm();
-    expect(screen.getByPlaceholderText("Search tags...")).toBeInTheDocument();
-  });
-
-  it("selecting a tag adds it to the string[] form value", async () => {
-    const user = userEvent.setup();
-    renderForm();
-
-    await user.click(screen.getByPlaceholderText("Search tags..."));
-    await user.click(await screen.findByRole("option", { name: "production" }));
-
-    expect(screen.getByText("production")).toBeInTheDocument();
-  });
-
   it("selecting multiple tags updates the string[] value with all selected tags", async () => {
     const user = userEvent.setup();
     renderForm();

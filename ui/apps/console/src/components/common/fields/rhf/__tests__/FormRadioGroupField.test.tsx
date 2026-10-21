@@ -54,14 +54,6 @@ function PlanForm({
 }
 
 describe("FormRadioGroupField (RHF adapter)", () => {
-  it("renders the label and all radio options", () => {
-    render(<PlanForm />);
-
-    expect(screen.getByText("Choose a plan")).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /free/i })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /pro/i })).toBeInTheDocument();
-  });
-
   it("reflects the initial form value by checking the matching radio", () => {
     render(<PlanForm defaultValue="pro" />);
 

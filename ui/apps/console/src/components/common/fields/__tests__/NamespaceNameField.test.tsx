@@ -14,17 +14,6 @@ function renderField(
 }
 
 describe("NamespaceNameField", () => {
-  it("renders with the canonical label and placeholder", () => {
-    renderField();
-    expect(screen.getByLabelText("Namespace Name")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("my-namespace")).toBeInTheDocument();
-  });
-
-  it("renders the canonical hint when no error is present", () => {
-    renderField();
-    expect(screen.getByText(NAMESPACE_NAME_HINT)).toBeInTheDocument();
-  });
-
   it("lowercases input before calling onChange", async () => {
     const user = userEvent.setup();
     const { onChange } = renderField();

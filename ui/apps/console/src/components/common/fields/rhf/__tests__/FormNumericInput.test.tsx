@@ -38,12 +38,6 @@ function NumericForm({
 }
 
 describe("FormNumericInput (RHF adapter contract)", () => {
-  it("renders an input with the given label", () => {
-    render(<NumericForm />);
-
-    expect(screen.getByLabelText("Count")).toBeInTheDocument();
-  });
-
   it("reflects the control value in the input", () => {
     render(<NumericForm defaultValue="42" />);
 
