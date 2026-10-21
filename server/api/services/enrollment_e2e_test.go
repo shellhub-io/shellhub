@@ -18,6 +18,7 @@ import (
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/storetest/pgprovider"
 	"github.com/stretchr/testify/require"
@@ -66,7 +67,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	require.NoError(t, err)
 
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()))
+		WithEnrollmentWebhookCIDRs(webhook.ParseCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()))
 
 	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }
