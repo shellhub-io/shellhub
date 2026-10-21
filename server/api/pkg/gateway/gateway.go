@@ -25,22 +25,6 @@ func TenantFromContext(ctx context.Context) *models.Tenant {
 	return nil
 }
 
-// UsernameFromContext returns the authenticated username, or nil when the request is
-// anonymous or authenticated by an API key.
-func UsernameFromContext(ctx context.Context) *models.Username {
-	if c, ok := ctx.Value("ctx").(*Context); ok {
-		if username := c.Username(); username != nil {
-			return username
-		}
-	}
-
-	if value, ok := ctx.Value("username").(string); ok && value != "" {
-		return &models.Username{ID: value}
-	}
-
-	return nil
-}
-
 // IDFromContext returns the authenticated user's ID, or nil when the request carries no user
 // — an API key authenticates a namespace, not a person.
 func IDFromContext(ctx context.Context) *models.ID {
