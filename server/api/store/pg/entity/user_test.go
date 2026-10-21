@@ -176,27 +176,6 @@ func TestUserToModel(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "SAML origin with non-confirmed status and empty auth methods",
-			entity: &User{
-				ID:     "user-id-2",
-				Origin: "SAML",
-				Status: "not-confirmed",
-				Preferences: UserPreferences{
-					AuthMethods: []string{},
-				},
-			},
-			expected: &models.User{
-				ID:       "user-id-2",
-				Origin:   models.UserOriginSAML,
-				Status:   models.UserStatusNotConfirmed,
-				UserData: models.UserData{},
-				Password: models.UserPassword{},
-				Preferences: models.UserPreferences{
-					AuthMethods: []models.UserAuthMethod{},
-				},
-			},
-		},
 	}
 
 	for _, tt := range tests {

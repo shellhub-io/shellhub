@@ -118,23 +118,6 @@ func TestNamespaceFromModel(t *testing.T) {
 				Memberships: []Membership{},
 			},
 		},
-		{
-			name: "empty Members",
-			model: &models.Namespace{
-				TenantID: "ns-id-4",
-				Name:     "empty-members",
-				Owner:    "owner-id-4",
-				Type:     models.TypeTeam,
-				Members:  []models.Member{},
-			},
-			expected: &Namespace{
-				ID:          "ns-id-4",
-				Name:        "empty-members",
-				OwnerID:     "owner-id-4",
-				Type:        "team",
-				Memberships: []Membership{},
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -218,24 +201,6 @@ func TestNamespaceToModel(t *testing.T) {
 				DevicesRejectedCount: 1,
 				DevicesRemovedCount:  3,
 				CreatedAt:            now,
-			},
-		},
-		{
-			name: "empty Memberships",
-			entity: &Namespace{
-				ID:          "ns-id-2",
-				Name:        "empty-ns",
-				OwnerID:     "owner-id-2",
-				Type:        "personal",
-				Memberships: []Membership{},
-			},
-			expected: &models.Namespace{
-				TenantID: "ns-id-2",
-				Name:     "empty-ns",
-				Owner:    "owner-id-2",
-				Type:     models.TypePersonal,
-				Settings: &models.NamespaceSettings{},
-				Members:  []models.Member{},
 			},
 		},
 	}

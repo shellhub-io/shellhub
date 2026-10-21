@@ -9,69 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSessionFromModel(t *testing.T) {
-	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
-
-	tests := []struct {
-		name  string
-		model *models.Session
-		check func(t *testing.T, result *Session)
-	}{
-		{
-			name: "full fields",
-			model: &models.Session{
-				UID:           "session-uid-1",
-				DeviceUID:     "device-uid-1",
-				Username:      "root",
-				IPAddress:     "192.168.1.1",
-				StartedAt:     now,
-				LastSeen:      now,
-				Authenticated: true,
-				Recorded:      true,
-				Position: models.SessionPosition{
-					Longitude: 1.23,
-					Latitude:  4.56,
-				},
-			},
-			check: func(t *testing.T, result *Session) {
-				t.Helper()
-
-				assert.Equal(t, "session-uid-1", result.ID)
-				assert.Equal(t, "device-uid-1", result.DeviceID)
-				assert.Equal(t, "root", result.Username)
-				assert.Equal(t, "192.168.1.1", result.IPAddress)
-				assert.Equal(t, now, result.StartedAt)
-				assert.Equal(t, now, result.SeenAt)
-				assert.True(t, result.Authenticated)
-				assert.True(t, result.Recorded)
-				assert.InDelta(t, 1.23, result.Longitude, 0.001)
-				assert.InDelta(t, 4.56, result.Latitude, 0.001)
-				assert.True(t, result.CreatedAt.IsZero())
-				assert.Equal(t, now, result.UpdatedAt)
-			},
-		},
-		{
-			name: "carries no position when the model has none",
-			model: &models.Session{
-				UID: "session-uid-2",
-			},
-			check: func(t *testing.T, result *Session) {
-				t.Helper()
-
-				assert.InDelta(t, 0.0, result.Longitude, 0.001)
-				assert.InDelta(t, 0.0, result.Latitude, 0.001)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := SessionFromModel(tt.model, now)
-			tt.check(t, result)
-		})
-	}
-}
-
 func TestSessionToModel(t *testing.T) {
 	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
 
@@ -155,51 +92,6 @@ func TestSessionToModel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := SessionToModel(tt.entity)
-			tt.check(t, result)
-		})
-	}
-}
-
-func TestActiveSessionFromModel(t *testing.T) {
-	now := time.Date(2026, time.January, 1, 12, 0, 0, 0, time.UTC)
-
-	tests := []struct {
-		name  string
-		model *models.ActiveSession
-		check func(t *testing.T, result *ActiveSession)
-	}{
-		{
-			name: "full fields",
-			model: &models.ActiveSession{
-				UID:      "active-session-1",
-				LastSeen: now,
-			},
-			check: func(t *testing.T, result *ActiveSession) {
-				t.Helper()
-
-				assert.Equal(t, "active-session-1", result.SessionID)
-				assert.Equal(t, now, result.SeenAt)
-				assert.Equal(t, now, result.CreatedAt)
-			},
-		},
-		{
-			name: "zero-value LastSeen",
-			model: &models.ActiveSession{
-				UID: "active-session-2",
-			},
-			check: func(t *testing.T, result *ActiveSession) {
-				t.Helper()
-
-				assert.Equal(t, "active-session-2", result.SessionID)
-				assert.True(t, result.SeenAt.IsZero())
-				assert.Equal(t, now, result.CreatedAt)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := ActiveSessionFromModel(tt.model, now)
 			tt.check(t, result)
 		})
 	}

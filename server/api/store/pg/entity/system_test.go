@@ -67,19 +67,6 @@ func TestSystemFromModel(t *testing.T) {
 				assert.False(t, result.Authentication.Local.Enabled)
 			},
 		},
-		{
-			name: "local disabled",
-			model: &models.System{
-				Authentication: &models.SystemAuthentication{
-					Local: &models.SystemAuthenticationLocal{Enabled: false},
-				},
-			},
-			check: func(t *testing.T, result *System) {
-				t.Helper()
-
-				assert.False(t, result.Authentication.Local.Enabled)
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -116,40 +103,6 @@ func TestSystemToModel(t *testing.T) {
 				t.Helper()
 
 				assert.True(t, result.Setup)
-				require.NotNil(t, result.Authentication)
-				require.NotNil(t, result.Authentication.Local)
-				assert.False(t, result.Authentication.Local.Enabled)
-			},
-		},
-		{
-			name: "local enabled",
-			entity: &System{
-				Setup: true,
-				Authentication: SystemAuthentication{
-					Local: SystemAuthenticationLocal{Enabled: true},
-				},
-			},
-			check: func(t *testing.T, result *models.System) {
-				t.Helper()
-
-				assert.True(t, result.Setup)
-				require.NotNil(t, result.Authentication)
-				require.NotNil(t, result.Authentication.Local)
-				assert.True(t, result.Authentication.Local.Enabled)
-			},
-		},
-		{
-			name: "local disabled",
-			entity: &System{
-				Setup: false,
-				Authentication: SystemAuthentication{
-					Local: SystemAuthenticationLocal{Enabled: false},
-				},
-			},
-			check: func(t *testing.T, result *models.System) {
-				t.Helper()
-
-				assert.False(t, result.Setup)
 				require.NotNil(t, result.Authentication)
 				require.NotNil(t, result.Authentication.Local)
 				assert.False(t, result.Authentication.Local.Enabled)

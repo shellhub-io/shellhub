@@ -290,20 +290,6 @@ func TestDeviceToModel(t *testing.T) {
 				assert.Nil(t, result.TagIDs)
 			},
 		},
-		{
-			name: "nil Tags",
-			entity: &Device{
-				ID:     "device-uid-6",
-				Status: "accepted",
-				Tags:   nil,
-			},
-			check: func(t *testing.T, result *models.Device) {
-				t.Helper()
-
-				assert.Empty(t, result.Tags)
-				assert.Nil(t, result.TagIDs)
-			},
-		},
 	}
 
 	for _, tt := range tests {

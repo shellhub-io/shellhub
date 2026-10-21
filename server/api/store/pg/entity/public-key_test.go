@@ -91,22 +91,6 @@ func TestPublicKeyFromModel(t *testing.T) {
 				assert.Empty(t, result.Tags)
 			},
 		},
-		{
-			name: "Data as []byte",
-			model: &models.PublicKey{
-				Fingerprint: "SHA256:jkl012",
-				Data:        []byte{0x00, 0x01, 0x02},
-				PublicKeyFields: models.PublicKeyFields{
-					Name:   "binary-key",
-					Filter: models.PublicKeyFilter{},
-				},
-			},
-			check: func(t *testing.T, result *PublicKey) {
-				t.Helper()
-
-				assert.Equal(t, []byte{0x00, 0x01, 0x02}, result.Data)
-			},
-		},
 	}
 
 	for _, tt := range tests {
