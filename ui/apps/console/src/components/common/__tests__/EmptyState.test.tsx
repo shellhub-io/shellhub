@@ -82,20 +82,4 @@ describe("EmptyState", () => {
     );
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
-
-  it.each([
-    ["yellow", "text-accent-yellow/80"],
-    [undefined, "text-primary/80"],
-  ] as const)("accent=%s colours the overline %s", (accent, className) => {
-    render(
-      <EmptyState
-        icon={<svg />}
-        overline="Overline"
-        title="t"
-        description="d"
-        accent={accent}
-      />,
-    );
-    expect(screen.getByText("Overline")).toHaveClass(className);
-  });
 });

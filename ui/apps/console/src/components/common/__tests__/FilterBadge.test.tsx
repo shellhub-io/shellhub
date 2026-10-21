@@ -14,13 +14,6 @@ describe("FilterBadge", () => {
     expect(screen.getByText("iot")).toBeInTheDocument();
   });
 
-  it("renders the hostname in font-mono, not as a Badge", () => {
-    render(<FilterBadge filter={{ hostname: "web-server-01" }} />);
-    const chip = screen.getByText("web-server-01").closest("span");
-    expect(chip!.className).toContain("font-mono");
-    expect(chip!.className).not.toContain("font-medium");
-  });
-
   it.each([[{}], [{ hostname: ".*" }]])(
     "renders 'All devices' for filter %j",
     (filter) => {

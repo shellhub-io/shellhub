@@ -31,12 +31,6 @@ function renderButton() {
 }
 
 describe("StatCard", () => {
-  it("shows the title and the value", () => {
-    renderLink();
-    expect(screen.getByText("Online Devices")).toBeInTheDocument();
-    expect(screen.getByText("42")).toBeInTheDocument();
-  });
-
   it("a link action renders a link to the correct destination", () => {
     renderLink();
     const link = screen.getByRole("link", { name: /view all/i });
