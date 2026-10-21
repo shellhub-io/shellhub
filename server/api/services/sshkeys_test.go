@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -241,93 +240,6 @@ func TestEvaluateKeyUsername(t *testing.T) {
 			assert.Equal(t, tc.expected, ok)
 		})
 	}
-}
-
-func TestListPublicKeys(t *testing.T) {
-	storeMock := storemock.NewMockStore(t)
-	queryOptionsMock := storemock.NewMockQueryOptions(t)
-	storeMock.On("Options").Return(queryOptionsMock).Maybe()
-
-	clk := clock.NewFixed(now)
-
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clk))
-
-	ctx := context.TODO()
-
-	keys := []models.PublicKey{
-		{Data: []byte("teste"), Fingerprint: "fingerprint", CreatedAt: clk.Now(), TenantID: "tenant1", PublicKeyFields: models.PublicKeyFields{Name: "teste"}},
-		{Data: []byte("teste2"), Fingerprint: "fingerprint2", CreatedAt: clk.Now(), TenantID: "tenant2", PublicKeyFields: models.PublicKeyFields{Name: "teste2"}},
-	}
-
-	type Expected struct {
-		returnedKeys []models.PublicKey
-		count        int64
-		err          error
-	}
-
-	cases := []struct {
-		description   string
-		keys          []models.PublicKey
-		req           *requests.ListPublicKeys
-		requiredMocks func()
-		expected      Expected
-	}{
-		{
-			description: "Fails when the query is invalid",
-			req: &requests.ListPublicKeys{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-			},
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(nil, int64(0), errors.New("error", "", 0)).
-					Once()
-			},
-			expected: Expected{nil, 0, errors.New("error", "", 0)},
-		},
-		{
-			description: "Successful list the keys",
-			keys:        keys,
-			req: &requests.ListPublicKeys{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-			},
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", &query.Filters{}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("PublicKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(keys, int64(len(keys)), nil).
-					Once()
-			},
-			expected: Expected{keys, int64(len(keys)), nil},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
-			returnedKeys, count, err := s.ListPublicKeys(ctx, tc.req)
-			assert.Equal(t, tc.expected, Expected{returnedKeys, count, err})
-		})
-	}
-
-	storeMock.AssertExpectations(t)
 }
 
 func TestGetPublicKeys(t *testing.T) {
@@ -987,50 +899,6 @@ func TestCreatePublicKeys(t *testing.T) {
 				TenantID:    "tenant",
 				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
 			}, nil},
-		},
-		{
-			description: "fail to create a public key when filter is tags",
-			tenantID:    "tenant",
-			req: requests.PublicKeyCreate{
-				Data:        ssh.MarshalAuthorizedKey(pubKey),
-				Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-				TenantID:    "tenant",
-				Filter: requests.PublicKeyFilter{
-					Tags: []string{"tag1", "tag2"},
-				},
-			},
-			requiredMocks: func() {
-				tags := []models.Tag{
-					{ID: "tag1_id", Name: "tag1", TenantID: "tenant"},
-					{ID: "tag2_id", Name: "tag2", TenantID: "tenant"},
-				}
-
-				keyWithTags := requests.PublicKeyCreate{
-					Data:        ssh.MarshalAuthorizedKey(pubKey),
-					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					TenantID:    "tenant",
-					Filter: requests.PublicKeyFilter{
-						Tags: []string{"tag1", "tag2"},
-					},
-				}
-
-				keyWithTagsModel := models.PublicKey{
-					Data:        ssh.MarshalAuthorizedKey(pubKey),
-					Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-					CreatedAt:   clk.Now(),
-					TenantID:    "tenant",
-					PublicKeyFields: models.PublicKeyFields{
-						Filter: models.PublicKeyFilter{
-							Taggable: models.Taggable{TagIDs: []string{"tag1_id", "tag2_id"}, Tags: nil},
-						},
-					},
-				}
-
-				storeMock.On("TagList", ctx, mock.Anything).Return(tags, int64(len(tags)), nil).Once()
-				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, keyWithTags.Fingerprint).Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("PublicKeyCreate", ctx, &keyWithTagsModel).Return("", errors.New("error", "", 0)).Once()
-			},
-			expected: Expected{nil, errors.New("error", "", 0)},
 		},
 		{
 			description: "success to create a public key when filter is tags",

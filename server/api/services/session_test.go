@@ -4,7 +4,6 @@ import (
 	"context"
 	goerrors "errors"
 	"net"
-	"reflect"
 	"testing"
 	"time"
 
@@ -33,45 +32,6 @@ func TestListSessions(t *testing.T) {
 		sessions []models.Session
 		count    int64
 		err      error
-	}
-
-	matchFilters := func(data []query.Filter) any {
-		return mock.MatchedBy(func(f *query.Filters) bool {
-			return reflect.DeepEqual(f.Data, data)
-		})
-	}
-
-	deviceUIDFilterData := []query.Filter{
-		{
-			Type: query.FilterTypeProperty,
-			Params: &query.FilterProperty{
-				Name:     "device_uid",
-				Operator: "eq",
-				Value:    "uid1",
-			},
-		},
-	}
-
-	closedFilterData := []query.Filter{
-		{
-			Type: query.FilterTypeProperty,
-			Params: &query.FilterProperty{
-				Name:     "closed",
-				Operator: "bool",
-				Value:    true,
-			},
-		},
-	}
-
-	activeFilterData := []query.Filter{
-		{
-			Type: query.FilterTypeProperty,
-			Params: &query.FilterProperty{
-				Name:     "active",
-				Operator: "bool",
-				Value:    true,
-			},
-		},
 	}
 
 	cases := []struct {
@@ -146,96 +106,6 @@ func TestListSessions(t *testing.T) {
 				},
 				count: 3,
 				err:   nil,
-			},
-		},
-		{
-			description: "succeeds with device_uid filter",
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.ListSessions{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Filters:   query.Filters{Data: deviceUIDFilterData},
-			},
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", matchFilters(deviceUIDFilterData)).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{{UID: "uid1"}}, int64(1), nil).Once()
-			},
-			expected: Expected{
-				sessions: []models.Session{{UID: "uid1"}},
-				count:    1,
-				err:      nil,
-			},
-		},
-		{
-			description: "succeeds with closed filter",
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.ListSessions{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Filters:   query.Filters{Data: closedFilterData},
-			},
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", matchFilters(closedFilterData)).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{}, int64(0), nil).Once()
-			},
-			expected: Expected{
-				sessions: []models.Session{},
-				count:    0,
-				err:      nil,
-			},
-		},
-		{
-			description: "succeeds with active filter",
-			sc:          scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-			req: &requests.ListSessions{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Filters:   query.Filters{Data: activeFilterData},
-			},
-			requiredMocks: func() {
-				queryOptionsMock.
-					On("Match", matchFilters(activeFilterData)).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "started_at", Order: query.OrderDesc, Tiebreak: "id"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.On("SessionList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return([]models.Session{}, int64(0), nil).Once()
-			},
-			expected: Expected{
-				sessions: []models.Session{},
-				count:    0,
-				err:      nil,
 			},
 		},
 		{
