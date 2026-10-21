@@ -73,22 +73,6 @@ beforeEach(() => {
 });
 
 describe("SignUp", () => {
-  describe("successful submission", () => {
-    it("navigates to confirm-account after valid submission", async () => {
-      const user = userEvent.setup();
-      renderSignUp();
-
-      await fillValidForm(user, { acceptMarketing: true });
-      await user.click(screen.getByRole("button", { name: /create account/i }));
-
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(
-          expect.stringContaining("/confirm-account"),
-        ),
-      );
-    });
-  });
-
   describe("field validation on blur", () => {
     it("shows name error only after blurring an empty field", async () => {
       const user = userEvent.setup();

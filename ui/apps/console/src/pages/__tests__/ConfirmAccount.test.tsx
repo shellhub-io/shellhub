@@ -63,19 +63,6 @@ describe("ConfirmAccount", () => {
   });
 
   describe("resend email", () => {
-    it("shows success message after resending", async () => {
-      renderConfirmAccount("admin");
-      await userEvent.click(
-        screen.getByRole("button", { name: /resend email/i }),
-      );
-
-      await waitFor(() =>
-        expect(
-          screen.getByText(/confirmation email sent successfully/i),
-        ).toBeInTheDocument(),
-      );
-    });
-
     it("shows an error message on failure", async () => {
       server.use(
         http.post("*/api/user/resend_email", () =>

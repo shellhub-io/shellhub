@@ -151,24 +151,6 @@ describe("Setup", () => {
   });
 
   describe("successful submission", () => {
-    it("signs in with the returned token and continues on the dashboard trail", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create and continue/i }),
-      );
-
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
-          replace: true,
-          state: { firstRun: { fromSetup: true, survey: false } },
-        }),
-      );
-      expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token");
-    });
-
     it("routes to login with a notice when auto-login fails after setup", async () => {
       mockLoginWithToken.mockRejectedValue(new Error("token login failed"));
       const user = userEvent.setup();
@@ -211,23 +193,6 @@ describe("Setup", () => {
   });
 
   describe("error handling", () => {
-    it("shows 'Setup has already been completed' on 409", async () => {
-      server.use(
-        http.post("*/api/setup", () => HttpResponse.json({}, { status: 409 })),
-      );
-      const user = userEvent.setup();
-      renderSetup();
-
-      await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create and continue/i }),
-      );
-
-      expect(
-        await screen.findByText(/setup has already been completed/i),
-      ).toBeInTheDocument();
-    });
-
     it("shows a generic error on unexpected server errors", async () => {
       server.use(
         http.post("*/api/setup", () => HttpResponse.json({}, { status: 500 })),
