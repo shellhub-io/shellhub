@@ -1,5 +1,7 @@
 package responses
 
+import "github.com/shellhub-io/shellhub/pkg/telemetry"
+
 // SystemInfo is what an unauthenticated client learns about the instance: its version, where
 // to reach it, whether it still needs setting up, and how to authenticate.
 type SystemInfo struct {
@@ -20,4 +22,12 @@ type SystemAuthenticationInfo struct {
 type SystemEndpointsInfo struct {
 	API string `json:"api"`
 	SSH string `json:"ssh"`
+}
+
+// TelemetryStatus is what the admin console shows about telemetry: the administrator's setting,
+// whether the environment keeps it off regardless, and the events the next heartbeat sends.
+type TelemetryStatus struct {
+	Enabled               bool                `json:"enabled"`
+	DisabledByEnvironment bool                `json:"disabled_by_environment"`
+	Preview               []telemetry.Preview `json:"preview"`
 }
