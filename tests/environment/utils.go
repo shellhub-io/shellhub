@@ -14,12 +14,15 @@ type Service string
 
 // The services a test may reach through [DockerCompose.Service]. ServiceObjectStorage, the
 // S3-compatible store session recordings are kept in, runs in enterprise and cloud stacks only.
+// ServiceTelemetryCollector runs only in a stack started with
+// [DockerComposeConfigurator.WithTelemetryCollector].
 const (
-	ServiceGateway       Service = "gateway"
-	ServiceServer        Service = "server"
-	ServicePostgres      Service = "postgres"
-	ServiceRedis         Service = "redis"
-	ServiceObjectStorage Service = "minio"
+	ServiceGateway            Service = "gateway"
+	ServiceServer             Service = "server"
+	ServicePostgres           Service = "postgres"
+	ServiceRedis              Service = "redis"
+	ServiceObjectStorage      Service = "minio"
+	ServiceTelemetryCollector Service = "telemetry-collector"
 )
 
 // ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.

@@ -119,6 +119,15 @@ func (dcc *DockerComposeConfigurator) WithCronTrigger() *DockerComposeConfigurat
 	return dcc.WithEnv(redisPortEnv, ReservePort(dcc.t))
 }
 
+// WithTelemetryCollector runs image as the stack's telemetry collector, up before the server, and
+// turns telemetry on against it, see [Config.TelemetryCollectorImage]. Reach it through
+// [ServiceTelemetryCollector].
+func (dcc *DockerComposeConfigurator) WithTelemetryCollector(image string) *DockerComposeConfigurator {
+	dcc.cfg.TelemetryCollectorImage = image
+
+	return dcc
+}
+
 // Up initiates the ShellHub instance, blocking until all services are in the running or
 // healthy state. The first successful Up in a run builds the server, gateway and ui images;
 // every later Up starts from those images and fails if they were removed in between.
