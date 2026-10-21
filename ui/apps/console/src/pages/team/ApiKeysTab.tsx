@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   ChevronRightIcon,
   KeyIcon,
   PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { Button, Callout, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { apiErrorMessage } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useApiKeySshIdentities } from "@/hooks/useSSHIdentityRequests";
@@ -28,8 +29,8 @@ import { formatExpiry, formatDateShort } from "@/utils/date";
 import GenerateKeyModal from "./GenerateKeyModal";
 import KeySshAccessModal from "./KeySshAccessModal";
 import EditKeyModal from "./EditKeyModal";
-import { usePaginatedListState } from "@/hooks/usePaginatedListState";
-import { pageCount, PER_PAGE } from "@/utils/pagination";
+import { usePagedList } from "@/hooks/usePagedList";
+import { PER_PAGE } from "@/utils/pagination";
 import ObjectName from "@/components/common/ObjectName";
 
 type SortField = "name" | "created_at" | "expires_in";
@@ -90,22 +91,21 @@ const API_KEY_LIST_DEFAULTS: ApiKeyListParams = { page: 1 };
  * one paginated list.
  */
 function ApiKeysTab() {
-  const { params, setPage } = usePaginatedListState<ApiKeyListParams>({
-    prefix: "key",
-    defaults: API_KEY_LIST_DEFAULTS,
-  });
-  const page = params.page;
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "created_at",
     onSortChange: () => setPage(1),
   });
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(apiKeyList, apiKeyListQueryKey, {
-      query: { page, per_page: PER_PAGE, sort_by: sortBy, order_by: orderBy },
-    }),
-  );
-  const apiKeys = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  const {
+    params, setPage, rows: apiKeys, totalCount, totalPages, isLoading, error,
+  } = usePagedList({
+    prefix: "key",
+    defaults: API_KEY_LIST_DEFAULTS,
+    query: ({ page }: ApiKeyListParams) =>
+      paginatedQueryOptions(apiKeyList, apiKeyListQueryKey, {
+        query: { page, per_page: PER_PAGE, sort_by: sortBy, order_by: orderBy },
+      }),
+  });
+  const page = params.page;
 
   const invalidateKeys = useInvalidateByIds("apiKeyList");
   const deleteKey = useMutation({
@@ -129,7 +129,6 @@ function ApiKeysTab() {
     setDeleteError(null);
     try {
       await deleteKey.mutateAsync({ path: { key: deleteTarget.name } });
-      if (apiKeys.length === 1 && page > 1) setPage(page - 1);
       closeDelete();
     } catch (err) {
       setDeleteError(
@@ -137,8 +136,6 @@ function ApiKeysTab() {
       );
     }
   };
-
-  const totalPages = pageCount(totalCount);
 
   const columns: Column<ApiKey>[] = [
     {
@@ -248,6 +245,12 @@ function ApiKeysTab() {
           </Button>
         </RestrictedAction>
       </div>
+
+      {error && (
+        <Callout variant="error" className="mb-4">
+          {apiErrorMessage(error)}
+        </Callout>
+      )}
 
       <DataTable
         columns={columns}
