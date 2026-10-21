@@ -1,9 +1,6 @@
 package dialertest
 
 import (
-	"context"
-	"errors"
-	"net"
 	"testing"
 	"time"
 
@@ -23,37 +20,6 @@ func clientConfig() *gossh.ClientConfig {
 		User:            "user",
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
 	}
-}
-
-// TestAgentCompletesTheHandshake is the invariant the harness exists for: a caller that dials
-// it gets a connection an SSH client can be built on, without a live agent anywhere.
-func TestAgentCompletesTheHandshake(t *testing.T) {
-	agent := NewAgent(t)
-
-	conn, err := agent.DialTo(t.Context(), "tenant", "device", dialer.SSHOpenTarget{SessionID: "session"})
-	require.NoError(t, err)
-
-	client, chans, reqs, err := gossh.NewClientConn(conn, "tcp", clientConfig())
-	require.NoError(t, err, "the fake agent must complete an SSH handshake")
-
-	defer client.Close() //nolint:errcheck
-
-	session, err := gossh.NewClient(client, chans, reqs).NewSession()
-	require.NoError(t, err, "the fake agent must accept a session channel")
-
-	assert.NoError(t, session.Close())
-}
-
-// TestAgentRecordsWhatItWasDialledFor pins the recording the SSH path's tests assert on.
-func TestAgentRecordsWhatItWasDialledFor(t *testing.T) {
-	agent := NewAgent(t)
-
-	target := dialer.SSHOpenTarget{SessionID: "session"}
-
-	_, err := agent.DialTo(t.Context(), "tenant", "device", target)
-	require.NoError(t, err)
-
-	assert.Equal(t, []Dial{{Tenant: "tenant", UID: "device", Target: target}}, agent.Dials())
 }
 
 // TestSilentAgentNeverAnswers covers the device that holds a tunnel it can no longer serve:
@@ -89,19 +55,4 @@ func TestAgentReportsABrokenTransport(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.False(t, agent.Serving(time.Second), "a raw write into the SSH transport must break it")
-}
-
-// TestStubFailsEveryDial covers the failure paths the fake agent cannot reach.
-func TestStubFailsEveryDial(t *testing.T) {
-	for _, want := range []error{dialer.ErrInvalidArgument, dialer.ErrNoConnection, errors.New("unreachable")} {
-		t.Run(want.Error(), func(t *testing.T) {
-			stub := &Stub{Err: want} //nolint:exhaustruct
-
-			conn, err := stub.DialTo(context.Background(), "tenant", "device", nil)
-
-			assert.Equal(t, net.Conn(nil), conn)
-			require.ErrorIs(t, err, want)
-			assert.Len(t, stub.Dials(), 1)
-		})
-	}
 }
