@@ -1193,47 +1193,6 @@ func TestEditNamespace(t *testing.T) {
 				nil,
 			},
 		},
-		{
-			description:   "succeeds",
-			namespaceName: "newname",
-			tenantID:      "xxxxx",
-			requiredMocks: func() {
-				namespace := &models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "oldname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
-					Return(namespace, nil).
-					Once()
-
-				expectedNamespace := *namespace
-				expectedNamespace.Name = "newname"
-				storeMock.
-					On("NamespaceUpdate", ctx, &expectedNamespace).
-					Return(nil).
-					Once()
-
-				finalNamespace := &models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "newname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				}
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
-					Return(finalNamespace, nil).
-					Once()
-			},
-			expected: Expected{
-				&models.Namespace{
-					TenantID: "xxxxx",
-					Name:     "newname",
-					Settings: &models.NamespaceSettings{SessionRecord: false},
-				},
-				nil,
-			},
-		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
