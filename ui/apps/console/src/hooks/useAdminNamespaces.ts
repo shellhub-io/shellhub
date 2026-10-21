@@ -7,8 +7,9 @@ import {
   type Namespace,
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
+import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
-import { isSdkError } from "../api/errors";
+import { adminQueryDefaults } from "./useAdminRequests";
 import { toBase64Json } from "@/utils/encoding";
 
 function buildNameFilter(search: string): string {
@@ -21,35 +22,40 @@ function buildNameFilter(search: string): string {
   return toBase64Json(filter);
 }
 
-interface UseAdminNamespacesParams {
+interface AdminNamespacesQueryParams {
   page?: number;
   perPage?: number;
   search?: string;
 }
 
 /**
- * A page of namespaces for the admin list. Admin-only, so it does not run for anyone else.
+ * Query options for a page of namespaces for the admin list. Nothing is requested unless isAdmin,
+ * and a 401 is never retried.
  */
-export function useAdminNamespaces({
-  page = 1,
-  perPage = 10,
-  search = "",
-}: UseAdminNamespacesParams = {}) {
-  const isAdmin = useAuthStore((s) => s.isAdmin);
-
+export function adminNamespacesQueryOptions(
+  { page = 1, perPage = PER_PAGE, search = "" }: AdminNamespacesQueryParams,
+  isAdmin: boolean,
+) {
   const query: GetNamespacesAdminData["query"] = { page, per_page: perPage };
   if (search) query.filter = buildNameFilter(search);
   const options = { query };
 
-  const result = useQuery<PaginatedResult<Namespace>>({
+  return {
     queryKey: getNamespacesAdminQueryKey(options),
     queryFn: paginatedQueryFn(getNamespacesAdminSdk, options),
     enabled: isAdmin,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count, err) =>
-      isSdkError(err) && err.status === 401 ? false : count < 1,
-    refetchOnWindowFocus: false,
-  });
+    ...adminQueryDefaults,
+  };
+}
+
+/**
+ * A page of namespaces for the admin list. Admin-only, so it does not run for anyone else.
+ */
+export function useAdminNamespaces(params: AdminNamespacesQueryParams = {}) {
+  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const result = useQuery<PaginatedResult<Namespace>>(
+    adminNamespacesQueryOptions(params, isAdmin),
+  );
 
   return {
     namespaces: result.data?.data ?? [],
@@ -69,10 +75,7 @@ export function useAdminNamespace(tenantId: string) {
   return useQuery({
     ...getNamespaceAdminOptions({ path: { tenant: tenantId } }),
     enabled: isAdmin && !!tenantId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count, err) =>
-      isSdkError(err) && err.status === 401 ? false : count < 1,
-    refetchOnWindowFocus: false,
+    ...adminQueryDefaults,
   });
 }
 
@@ -88,10 +91,7 @@ export function useAwaitingMemberNamespaces(scanLimit: number) {
     queries: namespaces.map((namespace) => ({
       ...getNamespaceAdminOptions({ path: { tenant: namespace.tenant_id } }),
       enabled: isAdmin,
-      staleTime: 5 * 60 * 1000,
-      retry: (count: number, err: unknown) =>
-        isSdkError(err) && err.status === 401 ? false : count < 1,
-      refetchOnWindowFocus: false,
+      ...adminQueryDefaults,
     })),
     combine: (results) => {
       const joiningByUser = new Map<string, string[]>();

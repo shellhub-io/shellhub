@@ -5,6 +5,17 @@ import { isSdkError } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
+ * What every admin query shares: five minutes before it counts as stale, one retry except after a
+ * 401, and no refetch when the window regains focus.
+ */
+export const adminQueryDefaults = {
+  staleTime: 5 * 60 * 1000,
+  retry: (count: number, err: unknown) =>
+    isSdkError(err) && err.status === 401 ? false : count < 1,
+  refetchOnWindowFocus: false,
+};
+
+/**
  * Instance-wide counts for the admin dashboard and the device limit banner. Idle unless the
  * signed-in user is an instance admin: the banner renders in the app layout for every enterprise
  * user, and only an admin may read the stats.
@@ -14,10 +25,8 @@ export function useAdminStats() {
 
   const result = useQuery({
     ...getStatsOptions(),
+    ...adminQueryDefaults,
     enabled: isAdmin,
-    staleTime: 5 * 60 * 1000,
-    retry: (count, err) => isSdkError(err) && err.status === 401 ? false : count < 1,
-    refetchOnWindowFocus: false,
   });
 
   return {
