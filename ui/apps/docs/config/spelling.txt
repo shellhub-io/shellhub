@@ -15,6 +15,7 @@ extractably
 FileZilla
 FreeBSD
 frontmatter
+geoip
 GOARCH
 GOARM
 GOOS
