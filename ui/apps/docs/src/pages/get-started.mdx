@@ -32,7 +32,7 @@ Nothing is installed on your side, and nothing on the device listens for inbound
 3. Sign in. The console asks for a namespace and holds you there until it has one — signing up
    created the account, not the namespace.
 
-<Shot id="create-namespace" route="/devices" account="no-namespace" of={{ testId: "create-namespace" }} frame="band" alt="The screen that asks a new account to name its first namespace" />
+<Shot id="create-namespace" route="/devices" account="no-namespace" edition="enterprise" alt="The screen that asks a new account to name its first namespace" />
 
 A namespace is what devices join and what your team shares. Its name is part of every address you
 use to reach a device, so keep it short and lowercase.
@@ -99,7 +99,7 @@ Waiting for acceptance... (code expires in 10 minutes)
 2. Check the hostname, operating system and MAC address against the machine you are expecting.
 3. Choose the namespace it joins, and accept.
 
-<Shot id="accept-device" route="/accept-device?code=:paircode" of={{ testId: "auth-card" }} frame="band" alt="The accept page for a paired device, showing what it reported about itself and the namespace it will join" />
+<Shot id="accept-device" route="/accept-device?code=:paircode" of={{ testId: "auth-card" }} frame="band" viewport={{ width: 1440, height: 1200 }} alt="The accept page for a paired device, showing what it reported about itself and the namespace it will join" />
 
 The agent is still waiting on the device. Accepting ends that wait: it joins the namespace,
 connects, and there is no second command to run.

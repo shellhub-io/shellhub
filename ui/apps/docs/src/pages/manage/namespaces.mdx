@@ -37,7 +37,7 @@ configuration is unaffected.
 
 ## Creating one
 
-<Shot id="namespace-create" route="/devices" of={{ role: "dialog" }} edition="enterprise" before={[{ click: { testId: "namespace-selector" } }, { click: { text: "Create namespace" } }]} alt="The Create a Namespace dialog, asking for a name" />
+<Shot id="namespace-create" route="/devices" of={{ role: "dialog" }} edition="enterprise" before={[{ click: { role: "button", name: "Open a device, session or namespace" } }, { click: { text: "Create namespace" } }]} alt="The Create a Namespace dialog, asking for a name" />
 
 <EditionBanner>
 Creating a namespace is on **Cloud** and **Enterprise**. Community is single-namespace: the one
@@ -53,7 +53,11 @@ overhead of a second workspace.
 
 ## Switching
 
-<Shot id="namespace-switch" route="/devices" before={[{ click: { testId: "namespace-selector" } }]} alt="The namespace selector open, listing the namespaces this account belongs to" />
+Each namespace you open is a tab at the top of the console. To open another, click **+** next to
+the tabs, or press <kbd>Ctrl</kbd>+<kbd>K</kbd>, and pick it from the list. On macOS the shortcut
+is <kbd>⌘</kbd>+<kbd>K</kbd>.
+
+<Shot id="namespace-switch" route="/devices" edition="enterprise" before={[{ click: { role: "button", name: "Open a device, session or namespace" } }]} alt="The command palette open, listing the namespaces this account belongs to" />
 
 Membership is per namespace, and so is your role — you can be an administrator in one and an
 observer in another.
