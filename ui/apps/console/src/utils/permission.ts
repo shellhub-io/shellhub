@@ -96,6 +96,12 @@ const permissions = {
   "provisioningKey:disable": RoleLevel.ADMINISTRATOR,
   "provisioningKey:revoke": RoleLevel.ADMINISTRATOR,
 
+  "webhook:list": RoleLevel.ADMINISTRATOR,
+  "webhook:create": RoleLevel.ADMINISTRATOR,
+  "webhook:edit": RoleLevel.ADMINISTRATOR,
+  "webhook:delete": RoleLevel.ADMINISTRATOR,
+  "webhook:reveal": RoleLevel.ADMINISTRATOR,
+
   "namespace:editBanner": RoleLevel.ADMINISTRATOR,
 } as const;
 
