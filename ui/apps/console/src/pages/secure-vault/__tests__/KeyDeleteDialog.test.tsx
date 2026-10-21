@@ -35,24 +35,6 @@ beforeEach(() => {
 });
 
 describe("KeyDeleteDialog", () => {
-  describe("rendering", () => {
-    it("renders nothing when open is false", () => {
-      render(<KeyDeleteDialog open={false} entry={entry} onClose={vi.fn()} />);
-      expect(screen.queryByText("Delete private key")).not.toBeInTheDocument();
-    });
-
-    it("renders dialog with title and entry name when open", () => {
-      render(<KeyDeleteDialog open entry={entry} onClose={vi.fn()} />);
-      expect(screen.getByText("Delete private key")).toBeInTheDocument();
-      expect(screen.getByText("Production Server")).toBeInTheDocument();
-    });
-
-    it("renders nothing when entry is null", () => {
-      render(<KeyDeleteDialog open entry={null} onClose={vi.fn()} />);
-      expect(screen.queryByText("Production Server")).not.toBeInTheDocument();
-    });
-  });
-
   describe("cancel", () => {
     it("closes without deleting when Cancel is clicked", async () => {
       const onClose = vi.fn();

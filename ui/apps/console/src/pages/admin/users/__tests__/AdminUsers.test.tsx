@@ -72,9 +72,7 @@ describe("AdminUsers", () => {
   describe("user rows", () => {
     it("navigates to user detail page when a row is clicked", async () => {
       const user = userEvent.setup();
-      setUsers([
-        mockAdminUser({ id: "uid-abc", name: "Clickable User" }),
-      ]);
+      setUsers([mockAdminUser({ id: "uid-abc", name: "Clickable User" })]);
       renderPage();
       await user.click(await screen.findByText("Clickable User"));
       expect(mockNavigate).toHaveBeenCalledWith("/admin/users/uid-abc");

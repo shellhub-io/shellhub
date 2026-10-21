@@ -224,7 +224,9 @@ describe("AdminLicense", () => {
       const { fileInput } = renderPage();
       await screen.findByText("You do not have an installed license");
       await userEvent.upload(fileInput(), datFile());
-      await userEvent.click(screen.getByRole("button", { name: /remove file/i }));
+      await userEvent.click(
+        screen.getByRole("button", { name: /remove file/i }),
+      );
       expect(
         screen.getByRole("button", { name: /upload license/i }),
       ).toBeDisabled();

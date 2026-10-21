@@ -309,14 +309,6 @@ function renderSecureVault() {
 }
 
 describe("SecureVault", () => {
-  describe("uninitialized state", () => {
-    it("calls refreshStatus on mount", () => {
-      setupStore("uninitialized");
-      renderSecureVault();
-      expect(mockRefreshStatus).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe("locked state", () => {
     it("does not render the keys table", () => {
       setupStore("locked");

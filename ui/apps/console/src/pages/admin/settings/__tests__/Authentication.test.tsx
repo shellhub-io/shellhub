@@ -17,9 +17,7 @@ function mockSettings({ localEnabled = true, samlEnabled = false } = {}) {
 
 function setSettings(settings: ReturnType<typeof mockSettings>) {
   server.use(
-    http.get("*/admin/api/authentication", () =>
-      HttpResponse.json(settings),
-    ),
+    http.get("*/admin/api/authentication", () => HttpResponse.json(settings)),
   );
 }
 
@@ -93,10 +91,12 @@ describe("AdminAuthentication", () => {
       setSettings(mockSettings());
       let resolveLocal: (() => void) | undefined;
       server.use(
-        http.put("*/admin/api/authentication/local", () =>
-          new Promise<Response>((resolve) => {
-            resolveLocal = () => resolve(HttpResponse.json({}));
-          }),
+        http.put(
+          "*/admin/api/authentication/local",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveLocal = () => resolve(HttpResponse.json({}));
+            }),
         ),
       );
 
@@ -122,10 +122,12 @@ describe("AdminAuthentication", () => {
       setSettings(mockSettings({ samlEnabled: true }));
       let resolveSaml: (() => void) | undefined;
       server.use(
-        http.put("*/admin/api/authentication/saml", () =>
-          new Promise<Response>((resolve) => {
-            resolveSaml = () => resolve(HttpResponse.json({}));
-          }),
+        http.put(
+          "*/admin/api/authentication/saml",
+          () =>
+            new Promise<Response>((resolve) => {
+              resolveSaml = () => resolve(HttpResponse.json({}));
+            }),
         ),
       );
 
