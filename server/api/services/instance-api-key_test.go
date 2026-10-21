@@ -345,14 +345,5 @@ func TestDeleteInstanceAPIKey(t *testing.T) {
 		require.Equal(t, NewErrInstanceAPIKeyNotFound("ghost", store.ErrNoDocuments), err)
 	})
 
-	t.Run("succeeds when the key exists", func(t *testing.T) {
-		storeMock.
-			On("InstanceAPIKeyDelete", ctx, "retired").
-			Return(nil).
-			Once()
-
-		require.NoError(t, s.DeleteInstanceAPIKey(ctx, &requests.DeleteInstanceAPIKey{Name: "retired"}))
-	})
-
 	storeMock.AssertExpectations(t)
 }

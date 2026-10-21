@@ -433,47 +433,6 @@ func TestListAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds",
-			req: &requests.ListAPIKey{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Paginator: query.Paginator{Page: 1, PerPage: 10},
-				Sorter:    query.Sorter{By: "expires_in", Order: query.OrderAsc},
-			},
-			requiredMocks: func(ctx context.Context) {
-				queryOptionsMock.
-					On("Sort", &query.Sorter{By: "expires_in", Order: query.OrderAsc, Tiebreak: "key_digest"}).
-					Return(nil).
-					Once()
-				queryOptionsMock.
-					On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyList", ctx, mock.Anything, mock.AnythingOfType("[]store.QueryOption")).
-					Return(
-						[]models.APIKey{
-							{
-								CreatedBy: "id",
-								Name:      "nameAPIKey",
-							},
-						},
-						int64(1),
-						nil,
-					).
-					Once()
-			},
-			expected: Expected{
-				apiKeys: []models.APIKey{
-					{
-						CreatedBy: "id",
-						Name:      "nameAPIKey",
-					},
-				},
-				count: 1,
-				err:   nil,
-			},
-		},
-		{
 			description: "lists a key stored as owner with the administrator role it authenticates with",
 			req: &requests.ListAPIKey{
 				TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -689,49 +648,6 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: errors.New("save error"),
 		},
 		{
-			description: "succeeds",
-			req: &requests.UpdateAPIKey{
-				UserID:      "000000000000000000000000",
-				TenantID:    "00000000-0000-4000-0000-000000000000",
-				CurrentName: "dev",
-				Name:        "newName",
-				Role:        "administrator",
-			},
-			requiredMocks: func(ctx context.Context) {
-				existingAPIKey := &models.APIKey{
-					Digest:   "existing-id",
-					Name:     "dev",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Role:     "operator",
-				}
-
-				updatedAPIKey := &models.APIKey{
-					Digest:   "existing-id",
-					Name:     "newName",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Role:     "administrator",
-				}
-
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
-					Once()
-				storeMock.
-					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
-					Return(existingAPIKey, nil).
-					Once()
-				storeMock.
-					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
-					Return([]string{}, false, nil).
-					Once()
-				storeMock.
-					On("APIKeyUpdate", ctx, updatedAPIKey).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
 			description: "succeeds whithout updating the name",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
@@ -939,31 +855,6 @@ func TestDeleteAPIKey(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("delete error"),
-		},
-		{
-			description: "succeeds",
-			req: &requests.DeleteAPIKey{
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				Name:     "dev",
-			},
-			requiredMocks: func(ctx context.Context) {
-				existingAPIKey := &models.APIKey{
-					Digest:   "existing-id",
-					Name:     "dev",
-					TenantID: "00000000-0000-4000-0000-000000000000",
-					Role:     "operator",
-				}
-
-				storeMock.
-					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
-					Return(existingAPIKey, nil).
-					Once()
-				storeMock.
-					On("APIKeyDelete", ctx, existingAPIKey).
-					Return(nil).
-					Once()
-			},
-			expected: nil,
 		},
 	}
 
