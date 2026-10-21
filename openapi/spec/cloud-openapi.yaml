@@ -191,6 +191,8 @@ paths:
     $ref: paths/admin@api@users@{id}@approve.yaml
   /admin/api/stats:
     $ref: paths/admin@api@stats.yaml
+  /admin/api/telemetry:
+    $ref: paths/admin@api@telemetry.yaml
   /admin/api/license:
     $ref: paths/admin@api@license.yaml
   /admin/api/instance-api-keys:
