@@ -41,17 +41,11 @@ function parsePositiveInt(raw: string | null): number | null {
  *   provided; falls back to default when the value is not in the allowlist.
  * - array: all values for the key collected via `getAll()`; filtered against
  *   `constraints[key]` when provided.
- *
- * `prev` is an optional previous result. When provided, array dimensions that
- * are content-equal to the previous value reuse the same array reference so
- * that memoized React dependencies (useCallback, useMemo) remain stable across
- * renders that don't actually change the array's contents.
  */
 export function parseListParams<T extends Record<string, unknown>>(
   searchParams: URLSearchParams,
   defaults: ListParamDefaults<T>,
   constraints: ListParamConstraints<T>,
-  prev?: T,
 ): T {
   const result: Record<string, unknown> = {};
 
@@ -64,14 +58,6 @@ export function parseListParams<T extends Record<string, unknown>>(
       const values = [
         ...new Set(allowlist ? all.filter((v) => allowlist.includes(v)) : all),
       ];
-      const prevArr = prev ? (prev[key] as unknown[]) : undefined;
-      if (prevArr && prevArr.length === values.length) {
-        const prevSet = new Set(prevArr);
-        if (values.every((v) => prevSet.has(v))) {
-          result[key] = prevArr;
-          continue;
-        }
-      }
       result[key] = values;
       continue;
     }

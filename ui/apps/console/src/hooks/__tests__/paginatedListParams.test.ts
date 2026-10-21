@@ -188,30 +188,6 @@ describe("parseListParams", () => {
       );
       expect(result.tags).toEqual([]);
     });
-
-    it("returns the same array reference when content is unchanged", () => {
-      const sp = params({ tags: ["web", "prod"] });
-      const first = parseListParams<TestParams>(sp, DEFAULTS, {}, undefined);
-      const second = parseListParams<TestParams>(sp, DEFAULTS, {}, first);
-      expect(second.tags).toBe(first.tags);
-    });
-
-    it("returns the same array reference when tags are the same but in different order", () => {
-      const sp1 = params({ tags: ["web", "prod"] });
-      const sp2 = params({ tags: ["prod", "web"] });
-      const first = parseListParams<TestParams>(sp1, DEFAULTS, {}, undefined);
-      const second = parseListParams<TestParams>(sp2, DEFAULTS, {}, first);
-      expect(second.tags).toBe(first.tags);
-    });
-
-    it("returns a new array reference when content changes", () => {
-      const sp1 = params({ tags: ["web", "prod"] });
-      const sp2 = params({ tags: ["web", "staging"] });
-      const first = parseListParams<TestParams>(sp1, DEFAULTS, {}, undefined);
-      const second = parseListParams<TestParams>(sp2, DEFAULTS, {}, first);
-      expect(second.tags).not.toBe(first.tags);
-      expect(second.tags).toEqual(["web", "staging"]);
-    });
   });
 });
 
