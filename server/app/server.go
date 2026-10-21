@@ -22,6 +22,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -303,7 +304,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		services.WithEdition(s.env.Edition),
 		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
 		services.WithDevelopmentMode(s.env.Development()),
-		services.WithEnrollmentWebhookCIDRs(services.ParseEnrollmentWebhookCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
+		services.WithEnrollmentWebhookCIDRs(webhook.ParseCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
 		services.WithNamespaceRequireVerifiedDeviceKey(s.env.NamespaceRequireVerifiedDeviceKey),
 	)
 
