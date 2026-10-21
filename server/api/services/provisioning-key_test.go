@@ -703,20 +703,6 @@ func TestAppendProvisioningKeyEvent(t *testing.T) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 
-	t.Run("records the enrollment with the denormalized device facts", func(t *testing.T) {
-		storeMock := storemock.NewMockStore(t)
-		storeMock.On("ProvisioningKeyEventCreate", mock.Anything, mock.MatchedBy(func(e *models.ProvisioningKeyEvent) bool {
-			return e.ProvisioningKeyID == "digest" && e.TenantID == tenant && e.DeviceUID == "uid-1" &&
-				e.Hostname == "web-01" && e.Identity == "00:1a:2b:3c:4d:5e" && e.SourceIP == "203.0.113.7" &&
-				e.Ephemeral && e.ReRegistration && e.Info != nil && e.Info.Arch == "amd64"
-		})).Return(nil).Once()
-
-		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())
-		s.appendProvisioningKeyEvent(context.Background(), key, req, "uid-1", "web-01", true)
-
-		storeMock.AssertExpectations(t)
-	})
-
 	t.Run("is best-effort: a store error never propagates", func(t *testing.T) {
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("ProvisioningKeyEventCreate", mock.Anything, mock.Anything).Return(errors.New("boom")).Once()

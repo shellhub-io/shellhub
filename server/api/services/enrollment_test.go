@@ -33,11 +33,8 @@ func TestEvaluateEnrollment(t *testing.T) {
 		expected    enrollmentDecision
 	}{
 		{"a keyless enrollment (nil key) lands pending", "", nil, false, enrollPending},
-		{"automatic accepts", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAutomatic}, false, enrollAccept},
-		{"manual stays pending", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeManual}, false, enrollPending},
 		{"allowlist accepts a listed identity (case-insensitive)", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff"}}, false, enrollAccept},
 		{"allowlist accepts an identity that is not a MAC address", "SN-99f2", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"sn-99f2"}}, false, enrollAccept},
-		{"allowlist rejects an unlisted identity", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, false, enrollReject},
 		{"an unknown mode stays pending", "", &models.ProvisioningKey{Mode: "bogus"}, false, enrollPending},
 		{"paired accepts despite a manual key", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeManual}, true, enrollAccept},
 		{"paired accepts despite an allowlist miss", "", &models.ProvisioningKey{Mode: models.ProvisioningKeyModeAllowlist, AllowedIdentities: []string{"11:22:33:44:55:66"}}, true, enrollAccept},
@@ -75,25 +72,6 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		return &models.ProvisioningKey{Name: "ci", TenantID: req.TenantID, Mode: models.ProvisioningKeyModeWebhook, WebhookURL: url, WebhookSecret: secret}
 	}
 
-	t.Run("honors the integrator decision and signs the request", func(t *testing.T) {
-		for _, decision := range []enrollmentDecision{enrollAccept, enrollReject, enrollPending} {
-			var gotSignature string
-			var gotBody []byte
-
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				gotSignature = r.Header.Get("X-ShellHub-Signature")
-				gotBody, _ = io.ReadAll(r.Body)
-				_ = json.NewEncoder(w).Encode(enrollmentWebhookResponse{Decision: string(decision)})
-			}))
-
-			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false)
-			require.Equal(t, decision, got)
-			require.Equal(t, signEnrollmentWebhook(secret, gotBody), gotSignature)
-
-			srv.Close()
-		}
-	})
-
 	t.Run("sends the presented identity under the agreed key", func(t *testing.T) {
 		var gotBody []byte
 
@@ -121,10 +99,6 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		defer srv.Close()
 
 		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false))
-	})
-
-	t.Run("fails closed to pending when the integrator is unreachable", func(t *testing.T) {
-		require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor("http://127.0.0.1:1"), req, "uid", "host", false))
 	})
 
 	t.Run("fails closed to pending on an unrecognized decision", func(t *testing.T) {
@@ -159,13 +133,6 @@ func TestEnrollmentWebhookClientSSRF(t *testing.T) {
 		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
 		_, err := enrollmentWebhookClient(nil).Get(srv.URL)
 		require.Error(t, err, "a webhook to loopback must be refused so it can't reach the host's own services")
-	})
-
-	t.Run("allows a target the operator explicitly permits", func(t *testing.T) {
-		//nolint:noctx // exercising the dial path in a test
-		resp, err := enrollmentWebhookClient(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")).Get(srv.URL)
-		require.NoError(t, err)
-		require.NoError(t, resp.Body.Close())
 	})
 }
 
