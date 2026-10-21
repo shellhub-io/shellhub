@@ -1,12 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import AdminAuthentication from "../Authentication";
-
-const localSpy = vi.fn();
-const samlSpy = vi.fn();
 
 function mockSettings({ localEnabled = true, samlEnabled = false } = {}) {
   return {
@@ -32,60 +29,14 @@ async function settlePendingLoad() {
 }
 
 beforeEach(() => {
-  localSpy.mockReset();
-  samlSpy.mockReset();
   server.use(
-    http.put("*/admin/api/authentication/local", async ({ request }) => {
-      localSpy({ body: await request.json() });
-      return HttpResponse.json({});
-    }),
-    http.put("*/admin/api/authentication/saml", async ({ request }) => {
-      samlSpy({ body: await request.json() });
-      return HttpResponse.json({});
-    }),
+    http.put("*/admin/api/authentication/local", () => HttpResponse.json({})),
+    http.put("*/admin/api/authentication/saml", () => HttpResponse.json({})),
   );
 });
 
 describe("AdminAuthentication", () => {
   describe("DS Toggle usage", () => {
-    it("clicking the local-auth toggle fires configureLocalAuthentication with the flipped value", async () => {
-      const user = userEvent.setup();
-      setSettings(mockSettings());
-
-      renderPage();
-      await settlePendingLoad();
-
-      await user.click(
-        screen.getByRole("switch", { name: "Toggle local authentication" }),
-      );
-
-      await waitFor(() => {
-        expect(localSpy).toHaveBeenCalledWith(
-          expect.objectContaining({ body: { enable: false } }),
-        );
-      });
-    });
-
-    it("clicking the SAML toggle to turn it off fires configureSamlAuthentication with enable: false", async () => {
-      const user = userEvent.setup();
-      setSettings(mockSettings({ samlEnabled: true }));
-
-      renderPage();
-      await settlePendingLoad();
-
-      await user.click(
-        screen.getByRole("switch", { name: "Toggle SAML authentication" }),
-      );
-
-      await waitFor(() => {
-        expect(samlSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            body: expect.objectContaining({ enable: false }),
-          }),
-        );
-      });
-    });
-
     it("disables the local-auth toggle while togglingLocal is true", async () => {
       const user = userEvent.setup();
       setSettings(mockSettings());

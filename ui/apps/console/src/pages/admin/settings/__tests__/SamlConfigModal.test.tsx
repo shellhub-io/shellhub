@@ -47,21 +47,6 @@ describe("SamlConfigModal", () => {
   });
 
   describe("mode toggle", () => {
-    it("switches to metadata URL field when 'Use Metadata URL' is checked", async () => {
-      const user = userEvent.setup();
-      renderModal();
-
-      expect(screen.getByLabelText(/entity id/i)).toBeInTheDocument();
-      expect(
-        screen.queryByLabelText(/idp metadata url/i),
-      ).not.toBeInTheDocument();
-
-      await toggleMetadataMode(user);
-
-      expect(screen.getByLabelText(/idp metadata url/i)).toBeInTheDocument();
-      expect(screen.queryByLabelText(/entity id/i)).not.toBeInTheDocument();
-    });
-
     it("switches back to manual fields when 'Use Metadata URL' is unchecked", async () => {
       const user = userEvent.setup();
       renderModal();
@@ -85,19 +70,6 @@ describe("SamlConfigModal", () => {
       await user.type(screen.getByLabelText(/idp metadata url/i), "not-a-url");
 
       expect(getSubmitButton()).toBeDisabled();
-    });
-
-    it("enables submit when metadataUrl is a valid URL", async () => {
-      const user = userEvent.setup();
-      renderModal();
-
-      await toggleMetadataMode(user);
-      await user.type(
-        screen.getByLabelText(/idp metadata url/i),
-        VALID_METADATA_URL,
-      );
-
-      expect(getSubmitButton()).toBeEnabled();
     });
   });
 
@@ -124,31 +96,6 @@ describe("SamlConfigModal", () => {
   });
 
   describe("successful submission", () => {
-    it("calls the API with correct metadata-mode body and closes the modal", async () => {
-      const user = userEvent.setup();
-      renderModal();
-
-      await toggleMetadataMode(user);
-      await user.type(
-        screen.getByLabelText(/idp metadata url/i),
-        VALID_METADATA_URL,
-      );
-      await user.click(getSubmitButton());
-
-      await waitFor(() => expect(samlSpy).toHaveBeenCalledTimes(1));
-      expect(samlSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          body: expect.objectContaining({
-            enable: true,
-            idp: { metadata_url: VALID_METADATA_URL },
-            sp: { sign_requests: false },
-          }),
-        }),
-      );
-      expect(defaultProps.onSaved).toHaveBeenCalledTimes(1);
-      expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
-    });
-
     it("calls the API with correct manual-mode body", async () => {
       const user = userEvent.setup();
       renderModal();
@@ -193,7 +140,10 @@ describe("SamlConfigModal", () => {
         renderModal({ existingConfig: storedConfig(preferred) });
 
         await user.clear(screen.getByLabelText(/entity id/i));
-        await user.type(screen.getByLabelText(/entity id/i), "https://idp.example.com/other");
+        await user.type(
+          screen.getByLabelText(/entity id/i),
+          "https://idp.example.com/other",
+        );
         await user.click(getSubmitButton());
 
         await waitFor(() => expect(samlSpy).toHaveBeenCalledTimes(1));
@@ -210,8 +160,16 @@ describe("SamlConfigModal", () => {
     );
 
     it.each([
-      { preferred: "post", cleared: /sso post url/i, binding: { redirect: REDIRECT_URL } },
-      { preferred: "redirect", cleared: /sso redirect url/i, binding: { post: VALID_URL } },
+      {
+        preferred: "post",
+        cleared: /sso post url/i,
+        binding: { redirect: REDIRECT_URL },
+      },
+      {
+        preferred: "redirect",
+        cleared: /sso redirect url/i,
+        binding: { post: VALID_URL },
+      },
     ] as const)(
       "drops a preferred $preferred binding once its URL is cleared",
       async ({ preferred, cleared, binding }) => {

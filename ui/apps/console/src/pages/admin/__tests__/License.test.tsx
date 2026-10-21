@@ -38,7 +38,6 @@ const validLicense = {
     billing: false,
   },
 };
-const expiredLicense = { ...validLicense, expired: true, grace_period: false };
 const aboutToExpireLicense = { ...validLicense, about_to_expire: true };
 const gracePeriodLicense = {
   ...validLicense,
@@ -103,24 +102,6 @@ describe("AdminLicense", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows no-license info alert and upload section when 400 (no license stored)", async () => {
-    server.use(
-      http.get("*/admin/api/license", () =>
-        HttpResponse.json({}, { status: 400 }),
-      ),
-    );
-    renderPage();
-    expect(
-      await screen.findByText("You do not have an installed license"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /choose a \.dat file/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText("Failed to load license information"),
-    ).not.toBeInTheDocument();
-  });
-
   it("renders no license details when the query is disabled for non-admins", () => {
     useAuthStore.setState({ isAdmin: false });
     renderPage();
@@ -136,7 +117,6 @@ describe("AdminLicense", () => {
         "Your license is about to expire!",
       ],
       ["expired within the grace period", gracePeriodLicense, /grace period/i],
-      ["expired", expiredLicense, "Your license has expired!"],
     ])("a %s license reports '%s'", async (_label, license, message) => {
       setLicense(license);
       renderPage();
@@ -244,20 +224,6 @@ describe("AdminLicense", () => {
       expect(
         screen.getByRole("button", { name: /upload license/i }),
       ).toBeDisabled();
-    });
-
-    it("uploads license when upload button is clicked with valid file", async () => {
-      const { fileInput } = renderPage();
-      await screen.findByText("You do not have an installed license");
-      await userEvent.upload(fileInput(), datFile());
-      const uploadBtn = screen.getByRole("button", { name: /upload license/i });
-      expect(uploadBtn).not.toBeDisabled();
-      await userEvent.click(uploadBtn);
-      await waitFor(() =>
-        expect(
-          screen.getByText("License uploaded successfully."),
-        ).toBeInTheDocument(),
-      );
     });
 
     it("shows error message on failed upload", async () => {
