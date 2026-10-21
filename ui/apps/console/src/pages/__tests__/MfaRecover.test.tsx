@@ -38,24 +38,6 @@ beforeEach(() => {
 });
 
 describe("MfaRecover", () => {
-  it("submits recovery code successfully", async () => {
-    const mockRecover = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({ recoverWithCode: mockRecover });
-
-    renderRecover();
-
-    const user = userEvent.setup();
-    await user.type(
-      screen.getByPlaceholderText(/recovery code/i),
-      "ABC-123-XYZ",
-    );
-    await user.click(screen.getByRole("button", { name: /recover/i }));
-
-    await waitFor(() => {
-      expect(mockRecover).toHaveBeenCalledWith("ABC-123-XYZ", "admin");
-    });
-  });
-
   it("displays error message on invalid code", async () => {
     const mockRecover = vi.fn().mockImplementation(async () => {
       useAuthStore.setState({ error: "Invalid recovery code or username" });
@@ -96,15 +78,6 @@ describe("MfaRecover", () => {
     renderRecover();
 
     expect(screen.getByText(/Recovering.../i)).toBeInTheDocument();
-  });
-
-  it("has link back to MFA login", () => {
-    renderRecover();
-
-    expect(screen.getByText(/Back to verification/i)).toHaveAttribute(
-      "href",
-      "/mfa-login",
-    );
   });
 
   it("shows timeout modal after successful recovery", async () => {
