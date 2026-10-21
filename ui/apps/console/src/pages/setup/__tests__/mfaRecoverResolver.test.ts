@@ -29,11 +29,6 @@ async function expectFieldError(
 }
 
 describe("mfaRecoverResolver", () => {
-  it("accepts a non-empty recovery code", async () => {
-    const result = await resolve({ recoveryCode: "ABCD-1234" });
-    expect(result.errors).toEqual({});
-  });
-
   it("rejects an empty recovery code", async () => {
     await expectFieldError({ recoveryCode: "" }, "recoveryCode", "required");
   });

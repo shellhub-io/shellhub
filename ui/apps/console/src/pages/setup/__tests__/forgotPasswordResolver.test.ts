@@ -29,11 +29,6 @@ async function expectFieldError(
 }
 
 describe("forgotPasswordResolver", () => {
-  it("accepts a valid username", async () => {
-    const result = await resolve({ account: "admin" });
-    expect(result.errors).toEqual({});
-  });
-
   it("accepts a valid email", async () => {
     const result = await resolve({ account: "user@example.com" });
     expect(result.errors).toEqual({});

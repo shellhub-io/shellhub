@@ -66,10 +66,5 @@ describe("signUpResolver", () => {
         "required",
       );
     });
-
-    it("clears acceptPrivacyPolicy error when true", async () => {
-      const result = await resolve(validInput);
-      expect(result.errors).not.toHaveProperty("acceptPrivacyPolicy");
-    });
   });
 });

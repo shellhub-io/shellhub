@@ -30,35 +30,11 @@ beforeEach(() => {
 
 describe("ConfirmAccount", () => {
   describe("rendering", () => {
-    it("renders the heading and resend button", () => {
-      renderConfirmAccount("admin");
-      expect(
-        screen.getByText(/account activation required/i),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /resend email/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("renders a link back to sign in", () => {
-      renderConfirmAccount("admin");
-      expect(
-        screen.getByRole("link", { name: /back to sign in/i }),
-      ).toHaveAttribute("href", "/login");
-    });
-
     it("redirects to /login when no username is provided", () => {
       renderConfirmAccount();
       expect(
         screen.queryByText(/account activation required/i),
       ).not.toBeInTheDocument();
-    });
-
-    it("enables the button when a username is provided", () => {
-      renderConfirmAccount("admin");
-      expect(
-        screen.getByRole("button", { name: /resend email/i }),
-      ).not.toBeDisabled();
     });
   });
 

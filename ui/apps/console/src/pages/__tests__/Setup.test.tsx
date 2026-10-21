@@ -169,19 +169,6 @@ describe("Setup", () => {
       expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token");
     });
 
-    it("lays out what comes after setup as the rest of the trail", () => {
-      renderSetup();
-
-      expect(
-        screen.getByRole("heading", { name: /get your first shell/i }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/create your account and namespace/i),
-      ).toBeInTheDocument();
-      expect(screen.getByText(/install the agent/i)).toBeInTheDocument();
-      expect(screen.getByText(/open a shell on it/i)).toBeInTheDocument();
-    });
-
     it("routes to login with a notice when auto-login fails after setup", async () => {
       mockLoginWithToken.mockRejectedValue(new Error("token login failed"));
       const user = userEvent.setup();

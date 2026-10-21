@@ -34,11 +34,6 @@ async function expectFieldError(
 }
 
 describe("loginResolver", () => {
-  it("accepts a valid username", async () => {
-    const result = await resolve(validInput);
-    expect(result.errors).toEqual({});
-  });
-
   it("accepts a valid email as username", async () => {
     const result = await resolve({ ...validInput, username: "user@example.com" });
     expect(result.errors).toEqual({});

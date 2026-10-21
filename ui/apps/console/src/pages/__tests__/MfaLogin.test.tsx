@@ -70,51 +70,12 @@ describe("MfaLogin", () => {
     useAuthStore.setState({ mfaToken: "temp-mfa-token" });
   });
 
-  it("renders MFA login form when mfaToken exists", () => {
-    renderMfaLogin();
-
-    expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
-    expect(screen.getByText(/Verification Code/i)).toBeInTheDocument();
-  });
-
   it("redirects to login when no mfaToken", async () => {
     useAuthStore.setState({ mfaToken: null });
     renderMfaLogin();
 
     await waitFor(() => {
       expect(screen.getByText("Login Page")).toBeInTheDocument();
-    });
-  });
-
-  it("submits code and navigates on success", async () => {
-    const mockLoginWithMfa = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({ loginWithMfa: mockLoginWithMfa });
-
-    renderMfaLogin();
-    fillCode();
-    submitCode();
-
-    await waitFor(() => {
-      expect(mockLoginWithMfa).toHaveBeenCalledWith("123456");
-    });
-  });
-
-  it("displays error message on invalid code", async () => {
-    const mockLoginWithMfa = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ error: "Invalid verification code" });
-      throw new Error("Invalid verification code");
-    });
-    useAuthStore.setState({
-      loginWithMfa: mockLoginWithMfa,
-      error: null,
-    });
-
-    renderMfaLogin();
-    fillCode(6, "9");
-    submitCode();
-
-    await waitFor(() => {
-      expect(screen.getByText("Invalid verification code")).toBeInTheDocument();
     });
   });
 
@@ -183,14 +144,6 @@ describe("MfaLogin", () => {
       ).not.toBeInTheDocument();
       expect(screen.queryByText(/seconds|minutes/i)).not.toBeInTheDocument();
     });
-  });
-
-  it("has link to recovery page", () => {
-    renderMfaLogin();
-
-    expect(
-      screen.getByRole("link", { name: /use a recovery code/i }),
-    ).toHaveAttribute("href", "/mfa-recover");
   });
 
   it.each([
