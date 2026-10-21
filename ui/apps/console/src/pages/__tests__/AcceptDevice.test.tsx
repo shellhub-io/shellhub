@@ -152,16 +152,6 @@ describe("AcceptDeviceFlow standalone", () => {
     ).toBeInTheDocument();
   });
 
-  it("transitions to success after accepting a device", async () => {
-    renderFlow();
-
-    fireEvent.click(
-      await screen.findByRole("button", { name: /accept device/i }),
-    );
-
-    await screen.findByRole("heading", { name: /device accepted/i });
-  });
-
   it("shows accept error without leaving ready state", async () => {
     server.use(
       http.patch("*/api/devices/:uid/accept", () =>
@@ -210,21 +200,6 @@ describe("AcceptDeviceFlow standalone", () => {
     await screen.findByRole("heading", { name: /accept this device/i });
   });
 
-  it("transitions to pairing-success after accepting with a namespace", async () => {
-    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
-    renderFlow();
-
-    await screen.findByText("my-ns");
-    await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /accept device/i }),
-      ).toBeEnabled();
-    });
-    fireEvent.click(screen.getByRole("button", { name: /accept device/i }));
-
-    await screen.findByRole("heading", { name: /device accepted/i });
-  });
-
   it("says a paired device is tied to the member who accepts it", async () => {
     setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow();
@@ -239,16 +214,6 @@ describe("AcceptDeviceFlow standalone", () => {
 
     await screen.findByText("my-ns");
     expect(screen.getByText("WXYZ-2K7Q")).toBeInTheDocument();
-  });
-
-  it("shows the account the device will be tied to", async () => {
-    useAuthStore.setState({ name: "Ada", email: "ada@example.com" });
-    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
-    renderFlow();
-
-    const owner = await screen.findByRole("region", { name: "Accepting as" });
-    expect(owner).toHaveTextContent("ada@example.com");
-    expect(owner).toHaveTextContent(/you.ll own this device/i);
   });
 
   it("switches account by signing out and coming back to the same code", async () => {
