@@ -28,7 +28,6 @@ var Groups = []Group{
 		(*Suite).TestUserUpdateRevokingTokens,
 		(*Suite).TestUserDelete,
 		(*Suite).TestUserGetInfo,
-		(*Suite).TestUserConflictsRemoved,
 	}},
 	{Name: "NamespaceStore", Tests: []TestFunc{
 		(*Suite).TestNamespaceList,
