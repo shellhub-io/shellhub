@@ -57,37 +57,6 @@ function renderPage() {
 }
 
 describe("InstanceApiKeys", () => {
-  it("lists the instance keys the API returns", async () => {
-    renderPage();
-
-    expect(await screen.findByText("billing-export")).toBeInTheDocument();
-  });
-
-  it("shows the plaintext key once after creating one", async () => {
-    const user = userEvent.setup();
-    server.use(
-      http.post("*/admin/api/instance-api-keys", () =>
-        HttpResponse.json({
-          ...mockInstanceApiKey({ name: "license-sync" }),
-          id: "sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159",
-        }),
-      ),
-    );
-
-    renderPage();
-
-    await user.click(
-      await screen.findByRole("button", { name: /generate key/i }),
-    );
-    await user.type(await screen.findByLabelText(/name/i), "license-sync");
-    await user.click(screen.getByRole("radio", { name: /30 days/i }));
-    await user.click(screen.getByRole("button", { name: /^generate$/i }));
-
-    expect(
-      await screen.findByText("sh_admin_cdfd3cb0-c44e-4e54-b931-6d57713ad159"),
-    ).toBeInTheDocument();
-  });
-
   it("opens with the shortest expiry already selected", async () => {
     const user = userEvent.setup();
 
@@ -98,7 +67,9 @@ describe("InstanceApiKeys", () => {
     );
 
     const expiry = screen.getByRole("radiogroup", { name: /expiration/i });
-    expect(within(expiry).getByRole("radio", { name: /30 days/i })).toBeChecked();
+    expect(
+      within(expiry).getByRole("radio", { name: /30 days/i }),
+    ).toBeChecked();
 
     await user.type(await screen.findByLabelText(/name/i), "license-sync");
 

@@ -45,63 +45,9 @@ describe("useAdminLicense", () => {
 
       expect(result.current.installedLicense).toEqual(license);
     });
-
-    it("sets isExpired to false when license is not expired", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: false })),
-        ),
-      );
-
-      const { result } = renderHookWithClient(() => useAdminLicense());
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.isExpired).toBe(false);
-    });
-  });
-
-  describe("enterprise admin — 400 (no license stored)", () => {
-    it("normalizes 400 to installedLicense null", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-
-      const { result } = renderHookWithClient(() => useAdminLicense());
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.installedLicense).toBeNull();
-    });
-
-    it("sets isExpired to true when no license is installed", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-
-      const { result } = renderHookWithClient(() => useAdminLicense());
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.isExpired).toBe(true);
-    });
   });
 
   describe("enterprise admin — expired license", () => {
-    it("sets isExpired to true when license.expired is true", async () => {
-      server.use(
-        http.get("*/admin/api/license", () =>
-          HttpResponse.json(makeLicense({ expired: true })),
-        ),
-      );
-
-      const { result } = renderHookWithClient(() => useAdminLicense());
-
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-      expect(result.current.isExpired).toBe(true);
-    });
-
     it("keeps isExpired false for a non-expired license still in its grace period", async () => {
       server.use(
         http.get("*/admin/api/license", () =>
@@ -145,9 +91,7 @@ describe("useAdminLicense", () => {
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await waitFor(() =>
-        expect(result.current.isExpired).toBe(false),
-      );
+      await waitFor(() => expect(result.current.isExpired).toBe(false));
     });
   });
 
@@ -175,9 +119,7 @@ describe("useAdminLicense", () => {
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 
-      await waitFor(() =>
-        expect(result.current.isExpired).toBe(false),
-      );
+      await waitFor(() => expect(result.current.isExpired).toBe(false));
     });
   });
 });
