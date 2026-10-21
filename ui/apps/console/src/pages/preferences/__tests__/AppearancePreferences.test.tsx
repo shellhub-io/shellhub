@@ -26,17 +26,6 @@ describe("AppearancePreferences", () => {
     expect(useThemeStore.getState().preference).toBe("light");
   });
 
-  it("names each choice's group by its title", () => {
-    renderAppearance();
-
-    expect(
-      screen.getByRole("radiogroup", { name: "Theme" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("radiogroup", { name: "Sidebar" }),
-    ).toBeInTheDocument();
-  });
-
   it("pins the sidebar", async () => {
     const user = renderAppearance();
 

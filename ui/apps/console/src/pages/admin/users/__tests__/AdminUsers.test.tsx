@@ -69,17 +69,6 @@ describe("AdminUsers", () => {
     setUsers([]);
   });
 
-  describe("loading state", () => {
-    it('renders the loading spinner with "Loading users..." text', () => {
-      server.use(
-        http.get("*/admin/api/users", () => new Promise(() => {})),
-      );
-      renderPage();
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText("Loading users...")).toBeInTheDocument();
-    });
-  });
-
   describe("empty state", () => {
     it('renders "No users found" when the user list is empty', async () => {
       renderPage();

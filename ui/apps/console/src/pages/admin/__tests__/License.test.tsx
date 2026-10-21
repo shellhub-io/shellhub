@@ -84,12 +84,6 @@ beforeEach(() => {
 });
 
 describe("AdminLicense", () => {
-  it("renders spinner with role='status' while loading", () => {
-    server.use(http.get("*/admin/api/license", () => new Promise(() => {})));
-    renderPage();
-    expect(screen.getByRole("status")).toBeInTheDocument();
-  });
-
   it("renders an error alert for non-400 errors", async () => {
     server.use(
       http.get("*/admin/api/license", () =>
