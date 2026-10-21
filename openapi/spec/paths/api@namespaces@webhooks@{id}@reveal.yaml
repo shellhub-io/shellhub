@@ -1,0 +1,31 @@
+get:
+  operationId: webhookRevealSecret
+  summary: Reveal a webhook's secret
+  description: |
+    Returns the secret the webhook's deliveries are signed with. Restricted to
+    administrators and owners, and cannot be authenticated with an API key.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/webhookIDPath.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/webhookSecret.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

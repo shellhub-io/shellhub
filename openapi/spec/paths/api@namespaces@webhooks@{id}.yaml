@@ -1,0 +1,92 @@
+get:
+  operationId: webhookGet
+  summary: Get a webhook
+  description: Returns one of the namespace's webhooks, without its secret.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/webhookIDPath.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/webhook.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+patch:
+  operationId: webhookUpdate
+  summary: Update a webhook
+  description: |
+    Changes a webhook's URL, event types or enabled flag. An omitted field is left unchanged.
+    Cannot be authenticated with an API key.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+  parameters:
+    - $ref: ../components/parameters/path/webhookIDPath.yaml
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/webhookUpdate.yaml
+  responses:
+    '200':
+      description: Success.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/webhook.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+delete:
+  operationId: webhookDelete
+  summary: Delete a webhook
+  description: Deletes a webhook and its deliveries. Pending deliveries are not sent.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/webhookIDPath.yaml
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
