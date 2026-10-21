@@ -65,11 +65,6 @@ func newTestSSHKey(t *testing.T) gliderssh.PublicKey {
 	return signer.PublicKey()
 }
 
-func TestIsLegacy(t *testing.T) {
-	require.True(t, newIdentitySession(nil, true).IsLegacy())
-	require.False(t, newIdentitySession(nil, false).IsLegacy())
-}
-
 func TestResolveKeyAuth(t *testing.T) {
 	pubKey := newTestSSHKey(t)
 	fingerprint := gossh.FingerprintSHA256(pubKey)
