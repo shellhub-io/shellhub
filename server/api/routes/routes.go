@@ -166,6 +166,14 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	publicAPI.GET(RevealProvisioningKeyURL, gateway.Handler(handler.RevealProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyReveal))
 	publicAPI.GET(HistoryProvisioningKeyURL, gateway.Handler(handler.HistoryProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
 
+	publicAPI.POST(CreateWebhookURL, gateway.Handler(handler.CreateWebhook), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.WebhookCreate))
+	publicAPI.GET(ListWebhooksURL, gateway.Handler(handler.ListWebhooks), routesmiddleware.RequiresPermission(authorizer.WebhookList))
+	publicAPI.GET(GetWebhookURL, gateway.Handler(handler.GetWebhook), routesmiddleware.RequiresPermission(authorizer.WebhookList))
+	publicAPI.PATCH(UpdateWebhookURL, gateway.Handler(handler.UpdateWebhook), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.WebhookUpdate))
+	publicAPI.DELETE(DeleteWebhookURL, gateway.Handler(handler.DeleteWebhook), routesmiddleware.RequiresPermission(authorizer.WebhookDelete))
+	publicAPI.GET(RevealWebhookSecretURL, gateway.Handler(handler.RevealWebhookSecret), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.WebhookReveal))
+	publicAPI.GET(ListWebhookDeliveriesURL, gateway.Handler(handler.ListWebhookDeliveries), routesmiddleware.RequiresPermission(authorizer.WebhookList))
+
 	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
 	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
 	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
