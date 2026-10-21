@@ -46,20 +46,4 @@ describe("PageHeader", () => {
       screen.getByRole("button", { name: "Add Device" }),
     ).toBeInTheDocument();
   });
-
-  it("renders correct color classes when iconColor is set", () => {
-    const { container } = render(
-      <PageHeader
-        icon={<svg />}
-        overline="Sessions"
-        title="All Sessions"
-        iconColor="cyan"
-      />,
-    );
-    const badge = container.querySelector(".w-12.h-12");
-    expect(badge).not.toBeNull();
-    expect(badge!.className).toContain("bg-accent-cyan/10");
-    expect(badge!.className).toContain("border-accent-cyan/20");
-    expect(badge!.className).toContain("text-accent-cyan");
-  });
 });

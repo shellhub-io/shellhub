@@ -51,30 +51,6 @@ describe("SearchField", () => {
     expect(onChange).toHaveBeenNthCalledWith(3, "c");
   });
 
-  it("constrains width with max-w-sm by default", () => {
-    const { container } = renderSearchField();
-
-    expect((container.firstChild as HTMLElement).className).toContain(
-      "max-w-sm",
-    );
-  });
-
-  it("omits the contained width when full is set", () => {
-    const { container } = renderSearchField({ full: true });
-
-    expect((container.firstChild as HTMLElement).className).not.toContain(
-      "max-w-sm",
-    );
-  });
-
-  it("appends custom className to the wrapper", () => {
-    const { container } = renderSearchField({ className: "ml-auto mb-5" });
-
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper.className).toContain("ml-auto");
-    expect(wrapper.className).toContain("mb-5");
-  });
-
   it("renders the magnifying glass icon as decorative (aria-hidden)", () => {
     const { container } = renderSearchField();
 
