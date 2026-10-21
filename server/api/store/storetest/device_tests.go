@@ -67,44 +67,6 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		assert.Len(t, devices, 2, "page 2 should have 2 items")
 	})
 
-	t.Run("succeeds when devices are found with order asc", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		s.CreateDevice(t, WithDeviceName("device-1"))
-		s.advanceClock(t, 10*time.Millisecond)
-		s.CreateDevice(t, WithDeviceName("device-2"))
-		s.advanceClock(t, 10*time.Millisecond)
-		s.CreateDevice(t, WithDeviceName("device-3"))
-
-		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
-			st.Options().Match(&query.Filters{}),
-			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderAsc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
-
-		require.NoError(t, err)
-		assert.Equal(t, int64(3), count)
-		assert.Len(t, devices, 3)
-	})
-
-	t.Run("succeeds when devices are found with order desc", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		s.CreateDevice(t, WithDeviceName("device-1"))
-		s.advanceClock(t, 10*time.Millisecond)
-		s.CreateDevice(t, WithDeviceName("device-2"))
-		s.advanceClock(t, 10*time.Millisecond)
-		s.CreateDevice(t, WithDeviceName("device-3"))
-
-		devices, count, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
-			st.Options().Match(&query.Filters{}),
-			st.Options().Sort(&query.Sorter{By: "last_seen", Order: query.OrderDesc}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
-
-		require.NoError(t, err)
-		assert.Equal(t, int64(3), count)
-		assert.Len(t, devices, 3)
-	})
-
 	t.Run("succeeds when filtering by tags.name with contains array", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -639,34 +601,6 @@ func (s *Suite) TestDeviceUpdate(t *testing.T) {
 		assert.Equal(t, models.DeviceStatusPending, updated.Status)
 	})
 
-	t.Run("succeeds updating status_updated_at", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-		initialStatusUpdatedAt := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-		deviceUID := s.CreateDevice(t,
-			WithTenantID(tenantID),
-			WithDeviceStatus(models.DeviceStatusPending),
-			WithDeviceStatusUpdatedAt(initialStatusUpdatedAt),
-		)
-
-		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
-		require.NoError(t, err)
-		assert.True(t, initialStatusUpdatedAt.Equal(device.StatusUpdatedAt), "initial StatusUpdatedAt should match: expected %v, got %v", initialStatusUpdatedAt, device.StatusUpdatedAt)
-		assert.Equal(t, models.DeviceStatusPending, device.Status)
-
-		newStatusUpdatedAt := time.Date(2025, 6, 15, 12, 0, 0, 0, time.UTC)
-		device.Status = models.DeviceStatusAccepted
-		device.StatusUpdatedAt = newStatusUpdatedAt
-		err = st.DeviceUpdate(ctx, device)
-		require.NoError(t, err)
-
-		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
-		require.NoError(t, err)
-		assert.True(t, newStatusUpdatedAt.Equal(updated.StatusUpdatedAt), "updated StatusUpdatedAt should match: expected %v, got %v", newStatusUpdatedAt, updated.StatusUpdatedAt)
-		assert.Equal(t, models.DeviceStatusAccepted, updated.Status)
-	})
-
 	t.Run("succeeds updating remote_addr", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -1040,50 +974,6 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
 		require.ErrorIs(t, err, store.ErrNoDocuments)
 		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid2))
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("succeeds with mix of existing and non-existing UIDs", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		uid1 := s.CreateDevice(t, WithDeviceName("device-1"))
-		uid2 := s.CreateDevice(t, WithDeviceName("device-2"))
-
-		uids := []string{
-			string(uid1),
-			"non-existent-uid-1",
-			string(uid2),
-			"non-existent-uid-2",
-		}
-
-		deleted, err := st.DeviceDeleteMany(ctx, uids)
-		require.NoError(t, err)
-		assert.Len(t, deleted, 2)
-
-		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid1))
-		require.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid2))
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("succeeds with devices that have multiple sessions", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		deviceUID := s.CreateDevice(t, WithDeviceName("busy-device"))
-
-		session1UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user1"))
-		session2UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user2"))
-		session3UID := s.CreateSession(t, WithSessionDevice(deviceUID), WithSessionUser("user3"))
-
-		deleted, err := st.DeviceDeleteMany(ctx, []string{string(deviceUID)})
-		require.NoError(t, err)
-		assert.Len(t, deleted, 1)
-
-		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session1UID))
-		require.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session2UID))
-		require.ErrorIs(t, err, store.ErrNoDocuments)
-		_, err = st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(session3UID))
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

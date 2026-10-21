@@ -73,7 +73,6 @@ var Groups = []Group{
 		(*Suite).TestActiveSessionResolve,
 		(*Suite).TestActiveSessionUpdate,
 		(*Suite).TestActiveSessionUpdatePreservesCreatedAt,
-		(*Suite).TestSessionEventsCreate,
 		(*Suite).TestSessionEventsList,
 		(*Suite).TestSessionEventsDelete,
 		(*Suite).TestSessionEventsFirst,

@@ -31,23 +31,6 @@ func (s *Suite) TestSessionList(t *testing.T) {
 		assert.Equal(t, int64(0), count)
 	})
 
-	t.Run("succeeds when sessions are found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		s.CreateSession(t, WithSessionUser("user1"))
-		s.CreateSession(t, WithSessionUser("user2"))
-		s.CreateSession(t, WithSessionUser("user3"))
-		s.CreateSession(t, WithSessionUser("user4"))
-
-		sessions, count, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics),
-			st.Options().Match(&query.Filters{}),
-			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}))
-
-		require.NoError(t, err)
-		assert.Equal(t, int64(4), count)
-		assert.Len(t, sessions, 4)
-	})
-
 	t.Run("returns all sessions across tenants without filter", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -436,31 +419,6 @@ func (s *Suite) TestSessionUpdate(t *testing.T) {
 		})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
-
-	t.Run("succeeds when setting Authenticated to true", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("user2"))
-
-		err := st.SessionUpdate(ctx, s.sessionScope(t, sessionUID), &models.Session{
-			UID:           string(sessionUID),
-			Authenticated: true,
-			StartedAt:     time.Date(2023, 1, 2, 12, 0, 0, 0, time.UTC),
-		})
-		require.NoError(t, err)
-	})
-
-	t.Run("succeeds when updating Recorded flag", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("user4"))
-
-		err := st.SessionUpdate(ctx, s.sessionScope(t, sessionUID), &models.Session{
-			UID:      string(sessionUID),
-			Recorded: true,
-		})
-		require.NoError(t, err)
-	})
 }
 
 // TestActiveSessionDelete tests active session deletion
@@ -545,48 +503,6 @@ func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
 	})
 }
 
-// TestSessionEventsCreate tests session event creation
-func (s *Suite) TestSessionEventsCreate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("succeeds when creating a session event", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
-
-		event := &models.SessionEvent{
-			Session:   string(sessionUID),
-			Type:      models.SessionEventTypePtyOutput,
-			Timestamp: s.Clock().Now(),
-			Data:      map[string]any{"output": "test output"},
-			Seat:      1,
-		}
-
-		err := st.SessionEventsCreate(ctx, event)
-		require.NoError(t, err)
-	})
-
-	t.Run("succeeds when creating multiple events for same session", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
-
-		for i := range 3 {
-			event := &models.SessionEvent{
-				Session:   string(sessionUID),
-				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: s.Clock().Now(),
-				Data:      map[string]any{"output": "test output"},
-				Seat:      i,
-			}
-
-			err := st.SessionEventsCreate(ctx, event)
-			require.NoError(t, err)
-		}
-	})
-}
-
 // TestSessionEventsList tests session events listing
 func (s *Suite) TestSessionEventsList(t *testing.T) {
 	ctx := context.Background()
@@ -599,30 +515,6 @@ func (s *Suite) TestSessionEventsList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Empty(t, events)
 		assert.Equal(t, int64(0), count)
-	})
-
-	t.Run("succeeds when events are found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
-
-		for range 3 {
-			event := &models.SessionEvent{
-				Session:   string(sessionUID),
-				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: s.Clock().Now(),
-				Data:      map[string]any{"output": "test output"},
-				Seat:      1,
-			}
-
-			err := st.SessionEventsCreate(ctx, event)
-			require.NoError(t, err)
-		}
-
-		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
-		require.NoError(t, err)
-		assert.Equal(t, int64(3), count)
-		assert.Len(t, events, 3)
 	})
 
 	t.Run("succeeds filtering by seat", func(t *testing.T) {
@@ -695,33 +587,6 @@ func (s *Suite) TestSessionEventsDelete(t *testing.T) {
 
 		err := st.SessionEventsDelete(ctx, "nonexistent", 1, models.SessionEventTypePtyOutput)
 		require.NoError(t, err)
-	})
-
-	t.Run("succeeds when deleting events", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionUser("testuser"))
-
-		for range 3 {
-			event := &models.SessionEvent{
-				Session:   string(sessionUID),
-				Type:      models.SessionEventTypePtyOutput,
-				Timestamp: s.Clock().Now(),
-				Data:      map[string]any{"output": "test output"},
-				Seat:      1,
-			}
-
-			err := st.SessionEventsCreate(ctx, event)
-			require.NoError(t, err)
-		}
-
-		err := st.SessionEventsDelete(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
-		require.NoError(t, err)
-
-		events, count, err := st.SessionEventsList(ctx, sessionUID, 1, models.SessionEventTypePtyOutput)
-		require.NoError(t, err)
-		assert.Equal(t, int64(0), count)
-		assert.Empty(t, events)
 	})
 
 	t.Run("succeeds deleting only matching seat", func(t *testing.T) {

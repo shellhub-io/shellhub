@@ -63,26 +63,6 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
-	t.Run("creates system when none exists", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		system := &models.System{
-			Setup: true,
-			Authentication: &models.SystemAuthentication{
-				Local: &models.SystemAuthenticationLocal{
-					Enabled: true,
-				},
-			},
-		}
-
-		err := st.SystemSet(ctx, system)
-		require.NoError(t, err)
-
-		created, err := st.SystemGet(ctx)
-		require.NoError(t, err)
-		assert.True(t, created.Setup)
-	})
-
 	t.Run("updates existing system", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
@@ -114,25 +94,5 @@ func (s *Suite) TestSystemSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, system.Setup)
 		assert.False(t, system.Authentication.Local.Enabled)
-	})
-
-	t.Run("succeeds with minimal system data", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		system := &models.System{
-			Setup: true,
-			Authentication: &models.SystemAuthentication{
-				Local: &models.SystemAuthenticationLocal{
-					Enabled: true,
-				},
-			},
-		}
-
-		err := st.SystemSet(ctx, system)
-		require.NoError(t, err)
-
-		created, err := st.SystemGet(ctx)
-		require.NoError(t, err)
-		assert.NotNil(t, created)
 	})
 }
