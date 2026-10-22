@@ -1,13 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import FirstRunLayout from "./FirstRunLayout";
-import {
-  DEVICE_STEP_TITLES,
-  SETUP_STEP_TITLES,
-  Trail,
-  TrailStep,
-  type TrailStepState,
-} from "./Trail";
+import { Trail, TrailStep, type TrailStepState } from "./Trail";
+import { DEVICE_STEP_TITLES, SETUP_STEP_TITLES } from "./stepTitles";
 import InstallStep from "./InstallStep";
 import PairingCodeField from "./PairingCodeField";
 import PairStep from "./PairStep";
