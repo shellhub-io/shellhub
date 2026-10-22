@@ -79,6 +79,8 @@ const (
 	SessionEventTypeSubsystem SessionEventType = "subsystem"
 
 	SessionEventTypeDirectTCPIP SessionEventType = "direct-tcpip"
+
+	SessionEventTypeAuthAgentRequest SessionEventType = "auth-agent-req@openssh.com"
 )
 
 // SessionEvent represents a session event.
