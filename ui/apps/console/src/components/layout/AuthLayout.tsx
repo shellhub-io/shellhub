@@ -24,7 +24,10 @@ export default function AuthLayout({ width = "md" }: AuthLayoutProps) {
         )}
       >
         <ShellHubLogo className="h-10 mb-10" />
-        <div className="bg-surface border border-border rounded-2xl p-8">
+        <div
+          data-testid="auth-card"
+          className="bg-surface border border-border rounded-2xl p-8"
+        >
           <Outlet />
         </div>
         {isCommunity() && <AuthFooterLinks />}
