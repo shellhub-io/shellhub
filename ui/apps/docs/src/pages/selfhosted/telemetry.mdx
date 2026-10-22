@@ -36,6 +36,67 @@ device or a host.
 | `devices_pending` | Devices waiting for acceptance |
 | `devices_rejected` | Rejected devices |
 | `sessions` | Sessions started in the last 24 hours |
+| `sessions_interactive` | Of those, sessions that opened a shell with a terminal |
+| `sessions_shell_without_pty` | Sessions that opened a shell without a terminal, as a heredoc does |
+| `sessions_exec` | Sessions that ran a command other than `scp` |
+| `sessions_scp` | Sessions that ran `scp` as a command. An `scp` that speaks SFTP counts as SFTP |
+| `sessions_sftp` | Sessions that opened the SFTP subsystem |
+| `sessions_port_forwarding` | Sessions that forwarded a port to the device |
+| `sessions_agent_forwarding` | Sessions that forwarded the SSH agent |
+| `sessions_web` | Sessions opened from the console's web terminal |
+| `sessions_recorded` | Sessions that were recorded |
+| `sessions_api_key` | Sessions opened with an API key |
+| `sessions_unauthenticated` | Sessions that never got past authentication |
+| `sessions_active` | Sessions open now, whenever they started |
+| `sessions_devices` | Distinct devices the authenticated sessions reached |
+| `sessions_events` | Events the sessions recorded, such as a shell, a command or a port forward |
+| `sessions_duration_seconds` | Total time the authenticated sessions lasted, in seconds |
+| `sessions_duration_median_seconds` | Median time an authenticated session lasted, in seconds |
+| `sessions_duration_p95_seconds` | Time 95% of the authenticated sessions lasted at most, in seconds |
+| `namespaces_legacy` | Namespaces still on public keys and firewall rules rather than SSH identities and access policies |
+| `namespaces_personal` | Personal namespaces |
+| `namespaces_team` | Team namespaces |
+| `namespaces_recording` | Namespaces that record sessions |
+| `namespaces_require_verified_device_key` | Namespaces that require a verified device key |
+| `devices_online` | Accepted devices online now |
+| `devices_ephemeral` | Accepted ephemeral devices |
+| `devices_owned` | Accepted devices with an owner |
+| `devices_custom_fields` | Accepted devices with custom fields |
+| `devices_tagged` | Accepted devices with at least one tag |
+| `devices_key_verified` | Accepted devices whose key is verified |
+| `devices_platforms` | Accepted devices by agent platform: `docker`, `bundle`, `native` or `connector`, such as `{"docker": 7, "native": 3}` |
+| `devices_versions` | Accepted devices by agent release, cut to major and minor, such as `v0.27` |
+| `devices_architectures` | Accepted devices by CPU architecture, as Go names it, such as `amd64` |
+| `devices_oses` | Accepted devices by operating system ID, such as `ubuntu`, from a fixed list of distributions |
+| `devices_enrolled_with` | Accepted devices by the kind of key they enrolled with: `user`, `legacy` or `pairing` |
+| `access_policies` | Access policies |
+| `public_keys` | Public keys |
+| `api_keys` | Namespace API keys |
+| `instance_api_keys` | Instance API keys |
+| `tags` | Tags |
+| `ssh_identities` | SSH identities by source: `manual`, `browser` or `approval` |
+| `provisioning_keys` | User provisioning keys not revoked, by mode |
+| `enrollments` | Enrollment attempts with a provisioning key in the last 24 hours |
+| `pending_invitations` | Namespace invitations not yet answered |
+| `authentication_local` | Whether login with a password is on |
+| `authentication_saml` | Whether SAML login is on |
+| `users_active` | Users who logged in during the last 24 hours |
+| `users_by_origin` | Users by where their account comes from: `local` or `saml` |
+
+A session that did several things counts under each of them, and one still open counts its time up to
+the last moment the server saw it. In the counts by value, a device that reported no value counts as
+`unknown`, and one that reported a value outside the known set counts as `other`, so a custom
+operating system ID or build version never leaves the instance.
+
+Enterprise and ShellHub Cloud add:
+
+| Property | Meaning |
+|---|---|
+| `firewall_rules` | Firewall rules |
+| `users_mfa` | Users with multi-factor authentication on |
+| `web_endpoints` | Web endpoints |
+| `web_endpoints_created` | Web endpoints created or renewed in the last 24 hours |
+| `web_endpoints_tls` | Web endpoints that reach the device over TLS |
 
 **`namespace heartbeat`**, ShellHub Cloud only, one per namespace with each instance heartbeat:
 
