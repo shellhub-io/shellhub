@@ -10,12 +10,8 @@ import {
   NamespaceCreateForm,
 } from "@/components/common/CreateNamespace";
 import FirstRunLayout from "./FirstRunLayout";
-import {
-  SETUP_STEP_TITLES,
-  Trail,
-  TrailStep,
-  UpcomingDeviceSteps,
-} from "./Trail";
+import { Trail, TrailStep, UpcomingDeviceSteps } from "./Trail";
+import { SETUP_STEP_TITLES } from "./stepTitles";
 import AskAdministrator from "./AskAdministrator";
 import OnboardingStep from "./survey/OnboardingStep";
 

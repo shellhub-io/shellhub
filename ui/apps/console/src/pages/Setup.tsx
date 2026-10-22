@@ -13,12 +13,8 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import FirstRunLayout from "@/components/firstRun/FirstRunLayout";
-import {
-  SETUP_STEP_TITLES,
-  Trail,
-  TrailStep,
-  UpcomingDeviceSteps,
-} from "@/components/firstRun/Trail";
+import { Trail, TrailStep, UpcomingDeviceSteps } from "@/components/firstRun/Trail";
+import { SETUP_STEP_TITLES } from "@/components/firstRun/stepTitles";
 import { firstRunEntryState } from "@/components/firstRun/entry";
 import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";

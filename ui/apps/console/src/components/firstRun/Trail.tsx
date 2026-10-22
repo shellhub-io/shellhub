@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
+import { DEVICE_STEP_TITLES } from "./stepTitles";
 
 /**
  * Where a step stands: behind the user, in front of them now, or still ahead.
@@ -13,24 +14,6 @@ export type TrailStepState = "done" | "active" | "upcoming";
 export function Trail({ children }: { children: ReactNode }) {
   return <ol className="relative">{children}</ol>;
 }
-
-/**
- * The titles of the setup steps, the same on the setup page and on the dashboard it hands over
- * to.
- */
-export const SETUP_STEP_TITLES = {
-  survey: "Tell us about you",
-  account: "Create your account and namespace",
-} as const;
-
-/**
- * The titles of the device steps, the same on every screen that lists them.
- */
-export const DEVICE_STEP_TITLES = {
-  install: "Install the agent",
-  pair: "Check it's your device, then pair",
-  shell: "Open a shell on it",
-} as const;
 
 /**
  * The device steps still ahead of a user who has not reached them, numbered from `start`.
