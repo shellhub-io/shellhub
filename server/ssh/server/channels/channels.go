@@ -39,6 +39,7 @@ type Session interface {
 	Event(t string, data any, seat int)
 
 	NewSeat() (int, error)
+	FirstForwardTo(dest string) bool
 	Seat(seat int) (session.Seat, bool)
 	SetSeatPty(seat int, status bool)
 	SetSeatType(seat int, kind string)

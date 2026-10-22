@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -202,6 +204,41 @@ func TestSessionDetailSaysWhatTheSessionDid(t *testing.T) {
 				t.Helper()
 
 				assert.Equal(t, models.SessionEventTypeSubsystem, session.Events.First)
+			},
+		},
+		{
+			name: "a port forward records the destination it reached",
+			open: func(t *testing.T, conn *ssh.Client) {
+				t.Helper()
+
+				forward := struct {
+					DestAddr   string
+					DestPort   uint32
+					OriginAddr string
+					OriginPort uint32
+				}{DestAddr: "127.0.0.1", DestPort: 80, OriginAddr: "127.0.0.1", OriginPort: 40000}
+
+				ch, requests, err := conn.OpenChannel("direct-tcpip", ssh.Marshal(forward))
+				require.NoError(t, err)
+				go ssh.DiscardRequests(requests)
+
+				_, err = ch.Write([]byte("GET / HTTP/1.0\r\n\r\n"))
+				require.NoError(t, err)
+
+				status, err := bufio.NewReader(ch).ReadString('\n')
+				require.NoError(t, err)
+				require.True(t, strings.HasPrefix(status, "HTTP/1."), status)
+
+				_ = ch.Close()
+			},
+			expect: func(t *testing.T, session models.Session) {
+				t.Helper()
+
+				forward := itemOfType(session.Events.Items, models.SessionEventTypeDirectTCPIP)
+				assert.Equal(t, "127.0.0.1", payload[string](t, forward, "dest_addr"))
+				assert.InDelta(t, 80, payload[float64](t, forward, "dest_port"), 0)
+				assert.Contains(t, session.Events.Types, string(models.SessionEventTypeDirectTCPIP))
+				assert.Empty(t, session.Events.First, "a forward opens no session channel")
 			},
 		},
 		{
