@@ -230,6 +230,7 @@ export function buildWorkspaceItems(deps: {
   namespaces: { tenant_id: string; name: string }[];
   currentTenant: string | null;
   showAdmin: boolean;
+  canCreateNamespace: boolean;
   openNamespace: (tenant: string, name: string) => void;
   openAdmin: () => void;
   createNamespace: () => void;
@@ -239,6 +240,7 @@ export function buildWorkspaceItems(deps: {
     namespaces,
     currentTenant,
     showAdmin,
+    canCreateNamespace,
     openNamespace,
     openAdmin,
     createNamespace,
@@ -255,16 +257,18 @@ export function buildWorkspaceItems(deps: {
       openNamespace(ns.tenant_id, ns.name);
     },
   }));
-  list.push({
-    id: "ws-create-namespace",
-    label: "Create namespace",
-    section: "Namespaces",
-    icon: icons.add,
-    onSelect: () => {
-      close();
-      createNamespace();
-    },
-  });
+  if (canCreateNamespace) {
+    list.push({
+      id: "ws-create-namespace",
+      label: "Create namespace",
+      section: "Namespaces",
+      icon: icons.add,
+      onSelect: () => {
+        close();
+        createNamespace();
+      },
+    });
+  }
   if (showAdmin) {
     list.push({
       id: "ws-admin",

@@ -1,14 +1,16 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Device } from "@/client";
+import { getUserInfoOptions, type Device } from "@/client";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
-import { createTestWrapper } from "@/tests/wrapper";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
   mockNamespace,
+  mockUserAuth,
 } from "@/tests/factories";
+import { setEdition } from "@/tests/edition";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
 import type { TerminalSession } from "@/stores/terminalStore";
@@ -64,19 +66,20 @@ function setDevices(devices: Device[]) {
   server.use(http.get("*/api/devices", () => jsonWithTotal(devices)));
 }
 
-function renderPalette() {
+function renderPalette(queryClient = createTestQueryClient()) {
   return render(
     <>
       <CommandPalette />
       <LocationProbe />
     </>,
-    { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+    { wrapper: createTestWrapper({ initialEntries: ["/"], queryClient }) },
   );
 }
 
 describe("CommandPalette", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setEdition("community");
     seedAuthStore();
     useAuthStore.setState({ logout: logoutSpy });
     server.use(
@@ -110,6 +113,35 @@ describe("CommandPalette", () => {
 
     expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(licenceRequested).not.toHaveBeenCalled();
+  });
+
+  it("offers Create namespace on cloud to an account with an allowance", async () => {
+    setEdition("cloud");
+    server.use(
+      http.get("*/api/auth/user", () => HttpResponse.json(mockUserAuth())),
+    );
+    renderPalette();
+
+    expect(await screen.findByText("Create namespace")).toBeInTheDocument();
+  });
+
+  it("hides Create namespace on cloud from an account with no allowance", async () => {
+    setEdition("cloud");
+    server.use(
+      http.get("*/api/auth/user", () =>
+        HttpResponse.json(mockUserAuth({ max_namespaces: 0 })),
+      ),
+    );
+    const queryClient = createTestQueryClient();
+    renderPalette(queryClient);
+
+    expect(await screen.findByText("dev")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState(getUserInfoOptions().queryKey)?.status,
+      ).toBe("success"),
+    );
+    expect(screen.queryByText("Create namespace")).not.toBeInTheDocument();
   });
 
   it("shows devices and hides navigation by default", async () => {
@@ -457,7 +489,7 @@ describe("CommandPalette", () => {
     await user.type(input, "{ArrowUp}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-ws-create-namespace",
+      "cmdk-opt-ns-tenant-456",
     );
     await user.type(input, "{ArrowDown}");
     expect(input).toHaveAttribute(
@@ -481,7 +513,7 @@ describe("CommandPalette", () => {
     await user.type(input, "{End}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-ws-create-namespace",
+      "cmdk-opt-ns-tenant-456",
     );
     await user.type(input, "{Home}");
     expect(input).toHaveAttribute(

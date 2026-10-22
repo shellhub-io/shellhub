@@ -15,7 +15,9 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
+import { useUserInfo } from "@/hooks/useUserRequests";
 import { isEnterpriseOrCloud } from "@/env";
+import { canCreateNamespace } from "@/utils/namespaceCreation";
 import { useCopy } from "@/hooks/useCopy";
 import { isAdminPath } from "@/utils/adminRoute";
 import {
@@ -92,6 +94,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const legacy = useNamespaceLegacy();
   const { namespaces } = useNamespaces();
   const isAdmin = useAuthStore((s) => s.isAdmin);
+  const { data: userInfo } = useUserInfo();
   const workspace = useWorkspaceTabs();
   const adminNav = useAdminNav({ active: adminContext });
   const nsName = namespace?.name ?? "";
@@ -230,6 +233,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
       namespaces,
       currentTenant: tenant,
       showAdmin: isEnterpriseOrCloud() && isAdmin,
+      canCreateNamespace: canCreateNamespace(userInfo),
       openNamespace: (namespaceTenant, name) =>
         void workspace.openNamespace(namespaceTenant, name),
       openAdmin: () => void workspace.openAdmin(),
