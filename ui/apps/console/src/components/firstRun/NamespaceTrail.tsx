@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@shellhub/design-system/primitives";
 import { isCloud, isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
-import { getUserInfoOptions } from "@/client";
+import { useUserInfo } from "@/hooks/useUserRequests";
+import { canCreateNamespace } from "@/utils/namespaceCreation";
 import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import {
   CommunityInstructions,
@@ -91,10 +91,7 @@ function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
 export default function NamespaceTrail() {
   const name = useAuthStore((s) => s.name);
   const email = useAuthStore((s) => s.email);
-  const { data: user, error, refetch } = useQuery({
-    ...getUserInfoOptions(),
-    enabled: !isCommunity(),
-  });
+  const { data: user, error, refetch } = useUserInfo();
   const eyebrow = `Welcome, ${name || email || "back"}`;
 
   if (!isCommunity() && error) {
@@ -113,7 +110,7 @@ export default function NamespaceTrail() {
 
   if (!isCommunity() && !user) return null;
 
-  if (isCommunity() || user?.max_namespaces === 0) {
+  if (!canCreateNamespace(user)) {
     return (
       <FirstRunLayout
         eyebrow={eyebrow}
