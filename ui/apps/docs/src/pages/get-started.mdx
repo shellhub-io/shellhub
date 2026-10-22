@@ -1,86 +1,67 @@
 ---
 layout: ../layouts/DocsLayout.astro
 title: Quickstart
-description: Create an account, reach your first device from anywhere, and let a colleague reach it too.
+description: Create an account, connect your first device and open a shell on it from the browser or your own SSH client.
 ---
 
 import Callout from "../components/Callout.astro";
 import Shot from '../components/Shot.astro';
-import Tabs from "../components/Tabs.astro";
 
 # Quickstart
 
 <Callout variant="info">
 This covers **ShellHub Cloud**, the hosted version. To run it on your own infrastructure, stand a
-server up with the [Self-Hosting Quickstart](/selfhosted/quickstart) first and then come back —
-from the account onwards everything here is the same, at your own address.
+server up with the [Self-Hosting Quickstart](/selfhosted/quickstart) first and then come back.
+From the account onwards everything here is the same, at your own address.
 </Callout>
 
-By the end of this page you will have a device you can open a terminal on from anywhere, and a
-colleague who can open one too — on the devices you chose, as the logins you chose.
-
-Nothing is installed on your side, and nothing on the device listens for inbound connections.
+By the end of this page you will have a device you can open a shell on from anywhere, in the
+browser or in your own SSH client. Nothing on the device listens for inbound connections.
 
 ## Create your account
 
-<Tabs items={["Signing up", "Invited"]}>
-<Fragment slot="signing-up">
+1. [Sign up](https://cloud.shellhub.io/sign-up) with a name, a username, an email and a password,
+   and accept the privacy policy.
+2. Click the link in the confirmation email. Until you do, signing in returns you to the
+   confirmation screen, which can send the email again.
+3. Sign in.
 
-1. [Sign up](https://cloud.shellhub.io/sign-up) with a name, a username, an email and a password.
-2. Click the link that arrives by email. Until you do, signing in returns you to the confirmation
-   screen.
-3. Sign in. The console asks for a namespace and holds you there until it has one — signing up
-   created the account, not the namespace.
+The console opens on **Get your first shell**, a page that takes you through the rest of this
+guide one step at a time: your namespace, the agent, the pairing and the first shell. On Cloud it
+first asks a few questions about you. Leave it before pairing and it picks up where you stopped.
 
-<Shot id="create-namespace" route="/devices" account="no-namespace" edition="enterprise" alt="The screen that asks a new account to name its first namespace" />
+A namespace is what devices join. Its name is part of every address you use to reach a device, so
+keep it short: 3 to 30 characters, lowercase letters, numbers and hyphens.
 
-A namespace is what devices join and what your team shares. Its name is part of every address you
-use to reach a device, so keep it short and lowercase.
+## Connect your device
 
-</Fragment>
-<Fragment slot="invited">
-
-1. Open the invitation link.
-2. Set a password.
-
-The invitation is the account, and you are in a namespace somebody else owns, with the role they
-gave you. Nothing to create — go straight to the next section, or skip to
-[Open a terminal](#open-a-terminal) if devices are already there.
-
-What you may do with them comes from that role and from the namespace's access policies. See
-[User Roles](/manage/team/user-roles).
-
-</Fragment>
-</Tabs>
-
-## Connect your first device
-
-A device is any machine running the agent. It opens one outbound connection to the server and
-keeps it, which is what lets you reach it through a NAT you do not control.
+A device is any machine running the agent. The agent opens one outbound connection to the server
+and keeps it, which is what lets you reach the device through a NAT you do not control.
 
 ### Install the agent
 
-1. Go to **Devices** → **Add Device**.
-2. Choose **One device**, and leave the method on **Auto Detect**.
-3. Copy the command it builds.
-
-<Shot id="add-device" route="/devices/add" of={{ role: "main" }} alt="The Add Device screen, with the audience and install method chosen and the command it built" />
-
-Run it on the machine you want to reach:
+The **Install the agent** step shows the command. Run it on the machine you want to reach:
 
 ```bash
 $ curl -sSf https://cloud.shellhub.io/install.sh | sh
 ```
 
-The script is served by the server it registers with, which renders the address into it on the
-way out — there is nothing to point at anything, and nothing to change if you self-host.
+The installer picks a method on its own: Docker, then Podman, then Snap, then WSL, then a native
+binary under systemd. To choose yourself, see [Choosing a Method](/get-started/install).
 
-Left on **Auto Detect** the installer picks: Docker, then Podman, then Snap, then WSL, then a
-native binary under systemd. To choose yourself, see [Choosing a Method](/get-started/install).
+<Callout variant="warning">
+Snap does not pair yet. On a host where it picks Snap, the command stops with `TENANT_ID is
+required` before any code appears. Choose another method there:
 
-### Accept it
+```bash
+$ curl -sSf https://cloud.shellhub.io/install.sh | INSTALL_METHOD=standalone sh
+```
+</Callout>
 
-Given no credentials the agent pairs: it asks the server for a code, prints it, and waits.
+### Pair it
+
+Given no credentials, the installer runs `shellhub-agent login`, which asks the server for a code,
+prints it, and waits:
 
 ```
 To accept this device, open the ShellHub console and enter this code:
@@ -94,122 +75,94 @@ Enter it at https://cloud.shellhub.io/accept-device, or open the link:
 Waiting for acceptance... (code expires in 10 minutes)
 ```
 
-1. Open the link, or type the code into the console. On a machine with a desktop the browser opens
-   by itself.
-2. Check the hostname, operating system and MAC address against the machine you are expecting.
-3. Choose the namespace it joins, and accept.
+Where `xdg-open` is available, it also opens the link in the browser for you.
+
+1. Type the code into the **Pairing code** field, or paste the whole link, and continue.
+2. Check the device it found against the machine you are expecting: hostname, operating system,
+   MAC address, agent version and the code itself.
+3. Click **Pair into** your namespace. If it is not your machine, click **Not this one**.
+
+Opening the link instead shows a page of its own with the code, hostname, operating system and MAC
+address. Pick the namespace there and click **Accept device**:
 
 <Shot id="accept-device" route="/accept-device?code=:paircode" of={{ testId: "auth-card" }} frame="band" viewport={{ width: 1440, height: 1200 }} alt="The accept page for a paired device, showing what it reported about itself and the namespace it will join" />
 
-The agent is still waiting on the device. Accepting ends that wait: it joins the namespace,
-connects, and there is no second command to run.
+The agent stops waiting, joins the namespace and connects. There is no second command to run.
 
 <Callout variant="info">
-The code lives ten minutes, and a device has one at a time. If it expires, run
-`shellhub-agent login` on the device — with `sudo` on a native install — for a new one.
+The code lives ten minutes. If it expires, run `shellhub-agent login` on the device, with `sudo`
+on a native install, for a new one.
 </Callout>
 
-### Open a terminal
+## Open a shell in the browser
 
-1. Open the device in the console.
-2. Click the terminal button.
+1. Click **Open terminal** in the last step of the page. If you have left the page since, open
+   the device from **Devices** and click **Connect**.
+2. Check the login. It starts as `root`, and you can type any other.
+3. Click **Open in browser**.
 
-<Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the ways to open a session on it" />
+<Shot id="device-connect" route="/devices" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Connect" } }]} alt="The Connect panel for a device, with the login, the identity it connects as, the link to an external terminal and the button that opens the shell in the browser" />
 
-Nothing to install, no key to arrange, nothing opened on the device. Two things made that work
-without asking you for anything, and they are worth knowing before the next step:
+The first time, the console asks to register the browser. It generates an SSH key that never
+leaves the browser and adds it to your **SSH Identities** under the name you give it. After that,
+the browser connects without asking, and you can revoke the key there whenever you like.
 
-- Your namespace was born with one **access policy**, *Owner access*, granting you every login on
-  every device. It is the only one there — everybody else starts with nothing.
-- The browser generated an SSH key of its own and enrolled it as an **identity** on the spot. It
-  could, because you are signed in to the console: the session already says who you are. The key
-  is held so it cannot be exported, works only in that browser, and dies with its site data.
+Nothing else had to be set up. Your namespace starts with one **access policy**, *Owner access*,
+which lets you in as any login on every device.
 
-### Connect from your own machine
+## Open it in your own terminal
 
-1. Copy the device's **SSHID** from the device list — the column carries a copy button, and the
-   device's own page has the same thing.
-2. Use it as the host with any SSH client:
+The same panel has **Open in external terminal**. It is an `ssh://` link, so your system hands it
+to the SSH client it has registered for that kind of link. The command behind it is the device's
+SSHID, which you can also run by hand:
 
 ```bash
-$ ssh <username>@<namespace>.<device>@cloud.shellhub.io
+$ ssh <login>@<namespace>.<device>@cloud.shellhub.io
 ```
 
-The SSHID is what makes one address enough: the namespace and the device sit in the hostname, so
-an ordinary client reaches the right machine through the one server that is listening.
+The namespace and the device are part of the hostname, so an ordinary client reaches the right
+machine through the one server that is listening.
 
-This first connection stops rather than opening. A client offers a key and nothing else, so the
-server has no session telling it whose key that is — the browser's shortcut is not available out
-here. It parks the login and asks a member to approve it in the console.
+The first connection with a key stops rather than opening. The server has never seen the key and
+has no signed-in session to tell it whose key it is, so it prints a link and waits:
 
-3. Approve it. The key becomes an identity bound to your account, and every later connection with
-   it goes straight through — stock OpenSSH, no wrapper, no approval each time.
+```
+  ShellHub doesn't know this SSH key yet.
 
-<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the security code, the fingerprint offered, the device and the account the key would become" />
+  Open the link to add it to your identities:
 
-So there are two questions being answered, every time anyone connects: **who you are**, which is
-the identity behind the key, and **what you may reach**, which is the policy. The web terminal
-answers the first for you; a policy has to answer the second, and that is the next section.
+    https://cloud.shellhub.io/ssh-identities/new/2HP6S9DZ
 
-<Callout variant="info">
-For anything unattended, enrol the key before its first run rather than after. Nobody is
-watching a console to approve a pipeline at 3am — see
-[SSH Identities](/manage/access-control/ssh-identities).
-</Callout>
+  Security code:  2HP6 S9DZ
+  Key:            SHA256:vXV24Lb0Uiy6jRbJ2ns7uFAgrfzS6qT1KPvu6MwKqCQ
 
-## Give your team access
+  The console gives you a confirmation code once you add it.
 
-You had *Owner access* waiting for you. Nobody else gets one: being a member of a namespace
-grants no access to any device, and a new member matches no policy at all. They can sign in, see
-the namespace, and connect to nothing.
+Confirmation code:
+```
 
-That is on purpose. Access is something you grant, not something that arrives with the
-invitation.
+1. Open the link in the browser you are signed in to, open **Login details**, check that its code
+   matches the security code in your terminal, and click **Add key**.
+2. Type the confirmation code the console shows at the `Confirmation code:` prompt.
 
-### Invite a member
+<Shot id="login-approval" route="/ssh-identities/new/:approval" of={{ role: "dialog" }} alt="The approval screen for a key the namespace has not seen, showing the key, the account it would be added to and the namespace" />
 
-1. Go to **Team** → **Add Member**.
-2. Enter their email and pick a role. The role decides what they can do *in the console* — see
-   [User Roles](/manage/team/user-roles).
-3. Send it.
-
-<Shot id="add-member" route="/team" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Member" } }]} alt="The Add Member panel, asking for an email address and a role" />
+The shell opens, and the key is now one of your SSH identities. Every later connection with it
+goes straight through with stock OpenSSH. The link lasts 90 seconds. If it runs out, connect again
+for a new one.
 
 <Callout variant="info">
-On Community no mail is sent, because the instance has no mailer. The invitation is still
-created and the console hands you its link to pass along however you like.
+For anything unattended, add the key before its first run rather than after. Nobody is watching a
+console to approve a pipeline at 3am. See [SSH Identities](/manage/access-control/ssh-identities).
 </Callout>
-
-### Grant them something
-
-1. Go to **Access Policies** → **Add Policy**.
-2. Name it for what it does. The name appears verbatim in the refusal when a deny blocks somebody,
-   which is what makes a refusal diagnosable.
-3. Set the subject to the **role** rather than the person. Then adding somebody as an operator
-   grants them the fleet, and removing them takes it away, with no policy edited either time.
-4. Choose the devices — all of them, or the ones carrying a [tag](/manage/devices/tags) — and the
-   unix logins allowed on them. This is the difference between reaching a device and reaching it
-   as root.
-
-<Shot id="add-policy" route="/access-policies" of={{ role: "dialog" }} before={[{ click: { role: "button", name: "Add Policy" } }]} alt="The panel that creates an access policy, with its subject, devices and logins" />
-
-### Check it
-
-1. Have them sign in and open the device.
-2. Confirm they reach the logins you granted, and not the ones you did not.
-
-A member who reaches nothing is matching no policy. A member who reaches more than you meant is
-matching a broader one — see [Access Policies](/manage/access-control/access-policies).
 
 ## Where to go next
 
-Now that a device works and somebody else can use it, in the order the questions usually arrive:
-
-- **More devices, without accepting each one** — [Provisioning Keys](/manage/devices/provisioning-keys)
-- **Keeping them sorted as they arrive** — [Tags](/manage/devices/tags)
-- **More than a shell** — [File Transfer](/connect/file-transfer) and
+- **More devices**: open **Devices** → **Add Device** for the install command, and use
+  [Provisioning Keys](/manage/devices/provisioning-keys) to enroll many without pairing each one.
+- **Your team**: [invite members](/manage/team) and grant them devices with
+  [Access Policies](/manage/access-control/access-policies). A new member reaches nothing until a
+  policy says so.
+- **More than a shell**: [File Transfer](/connect/file-transfer) and
   [Port Forwarding](/connect/port-forwarding)
-- **A record of what was done** — [Sessions](/manage/sessions) and
-  [recording](/manage/sessions#recording)
-- **Automation** — [API keys](/api#creating-a-key) and
-  [their SSH access](/api/ssh-access)
+- **Automation**: [API keys](/api#creating-a-key) and [their SSH access](/api/ssh-access)
