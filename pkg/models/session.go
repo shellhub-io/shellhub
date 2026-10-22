@@ -56,13 +56,15 @@ type SessionUpdate struct {
 	Authenticated *bool `json:"authenticated"`
 }
 
-// SessionEventType names the SSH request an event came from. The values are the wire names from
-// the SSH protocol, not names of our own, so they can be matched against a packet capture.
+// SessionEventType names the SSH request or channel an event came from. The values are the wire
+// names from the SSH protocol, not names of our own, so they can be matched against a packet
+// capture.
 type SessionEventType string
 
-// The event types a session can record. All but pty-output are SSH request names as they appear on
-// the wire; pty-output is ours, carrying the bytes the terminal produced, which SSH itself sends as
-// channel data rather than as a request.
+// The event types a session can record. All but pty-output are SSH request or channel names as they
+// appear on the wire; pty-output is ours, carrying the bytes the terminal produced, which SSH itself
+// sends as channel data rather than as a request. direct-tcpip is a port forward the gateway opened
+// to the device. It takes no seat: it goes on seat 0, once per destination of a connection.
 const (
 	SessionEventTypePtyOutput SessionEventType = "pty-output"
 
@@ -75,6 +77,8 @@ const (
 	SessionEventTypeShell     SessionEventType = "shell"
 	SessionEventTypeExec      SessionEventType = "exec"
 	SessionEventTypeSubsystem SessionEventType = "subsystem"
+
+	SessionEventTypeDirectTCPIP SessionEventType = "direct-tcpip"
 )
 
 // SessionEvent represents a session event.

@@ -13,6 +13,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
+const forwardEventSeat = 0
+
 type forwardData struct {
 	DestAddr   string `json:"dest_addr"`
 	DestPort   uint32 `json:"dest_port"`
@@ -90,6 +92,10 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	defer client.Close() //nolint:errcheck
 
 	go gossh.DiscardRequests(reqs)
+
+	if sess.FirstForwardTo(dest) {
+		sess.Event(DirectTCPIPChannel, data, forwardEventSeat)
+	}
 
 	logger.Info("piping data between client and agent")
 

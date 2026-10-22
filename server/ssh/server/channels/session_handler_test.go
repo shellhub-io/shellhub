@@ -25,13 +25,18 @@ import (
 type fakeSession struct {
 	mu sync.Mutex
 
+	newSeat       int
 	newSeatErr    error
 	agentChanErr  error
 	clientChanErr error
 	recordedErr   error
 
-	calls   []string
-	dropped []int
+	calls     []string
+	dropped   []int
+	events    []recordedEvent
+	forwarded []string
+
+	agentConn net.Conn
 
 	agentChannel gossh.Channel
 
@@ -65,7 +70,20 @@ func (f *fakeSession) LogFields() log.Fields { return log.Fields{"uid": "fake"} 
 func (f *fakeSession) NewSeat() (int, error) {
 	f.record("NewSeat")
 
-	return 0, f.newSeatErr
+	return f.newSeat, f.newSeatErr
+}
+
+func (f *fakeSession) FirstForwardTo(dest string) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if slices.Contains(f.forwarded, dest) {
+		return false
+	}
+
+	f.forwarded = append(f.forwarded, dest)
+
+	return true
 }
 
 func (f *fakeSession) NewAgentChannel(_ string, _ int) (*session.AgentChannel, error) {
@@ -112,6 +130,10 @@ func (f *fakeSession) ForwardAgent(gossh.Conn, func(device, client gossh.Channel
 func (f *fakeSession) DialAgent(context.Context, string, string) (net.Conn, error) {
 	f.record("DialAgent")
 
+	if f.agentConn != nil {
+		return f.agentConn, nil
+	}
+
 	return nil, errors.New("no agent")
 }
 
@@ -131,9 +153,23 @@ func (f *fakeSession) CloseAgentWrite(int) error {
 	return f.agentChannel.CloseWrite()
 }
 
-func (f *fakeSession) Recorded(int) error            { return f.recordedErr }
-func (f *fakeSession) Announce(gossh.Channel) error  { return nil }
-func (f *fakeSession) Event(string, any, int)        { f.record("Event") }
+func (f *fakeSession) Recorded(int) error           { return f.recordedErr }
+func (f *fakeSession) Announce(gossh.Channel) error { return nil }
+
+type recordedEvent struct {
+	Type models.SessionEventType
+	Seat int
+}
+
+func (f *fakeSession) Event(t string, _ any, seat int) {
+	f.record("Event")
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.events = append(f.events, recordedEvent{Type: models.SessionEventType(t), Seat: seat})
+}
+
 func (f *fakeSession) Seat(int) (session.Seat, bool) { return session.Seat{}, true }
 func (f *fakeSession) SetSeatPty(int, bool)          { f.record("SetSeatPty") }
 func (f *fakeSession) SetSeatType(int, string)       { f.record("SetSeatType") }
@@ -282,6 +318,7 @@ func TestDirectTCPIPChannelRejectsAnUnparsablePayload(t *testing.T) {
 	assert.True(t, newChan.rejected, "the channel must be rejected")
 	assert.Equal(t, gossh.ConnectionFailed, newChan.reason)
 	assert.False(t, sess.called("DialAgent"), "a payload that does not parse must not reach the agent")
+	assert.Empty(t, sess.events, "a rejected forward records nothing")
 }
 
 func TestDirectTCPIPChannelRejectsWhenForwardingIsDisabled(t *testing.T) {
@@ -301,6 +338,7 @@ func TestDirectTCPIPChannelRejectsWhenForwardingIsDisabled(t *testing.T) {
 			assert.Equal(t, gossh.Prohibited, newChan.reason)
 			assert.False(t, newChan.accepted, "the client channel must not be accepted")
 			assert.False(t, sess.called("DialAgent"), "a refused forward must not reach the agent")
+			assert.Empty(t, sess.events, "a rejected forward records nothing")
 		})
 	}
 }
@@ -318,6 +356,46 @@ func TestDirectTCPIPChannelRejectsWhenTheAgentCannotDial(t *testing.T) {
 	assert.True(t, newChan.rejected, "the channel must be rejected")
 	assert.Equal(t, gossh.ConnectionFailed, newChan.reason)
 	assert.False(t, newChan.accepted, "the client channel must not be accepted")
+	assert.Empty(t, sess.events, "a forward the agent could not open is not a port forward")
+}
+
+func openForward(t *testing.T, sess *fakeSession, payload []byte) *rejectingNewChannel {
+	t.Helper()
+
+	agent, device := net.Pipe()
+	require.NoError(t, device.Close())
+
+	sess.agentConn = agent
+	newChan := &rejectingNewChannel{extraData: payload}
+
+	allow := func(gliderssh.Context, string, uint32) bool { return true }
+	directTCPIPChannel(newStubContext(), sess, newChan, allow)
+
+	return newChan
+}
+
+func TestDirectTCPIPChannelRecordsAnOpenedForwardOnSeatZeroWithoutTakingASeat(t *testing.T) {
+	sess := &fakeSession{newSeat: 7}
+
+	newChan := openForward(t, sess, forwardPayload(t))
+
+	assert.True(t, newChan.accepted, "the client channel must be accepted")
+	assert.Equal(t, []recordedEvent{{Type: models.SessionEventTypeDirectTCPIP, Seat: 0}}, sess.events)
+	assert.False(t, sess.called("NewSeat"), "a forward must leave the seats to the shell and exec channels")
+}
+
+func TestDirectTCPIPChannelRecordsOnlyTheFirstForwardToEachDestination(t *testing.T) {
+	sess := new(fakeSession)
+
+	openForward(t, sess, forwardPayload(t))
+	openForward(t, sess, forwardPayload(t))
+	openForward(t, sess, gossh.Marshal(&forwardData{DestAddr: "10.0.0.2", DestPort: 8080, OriginAddr: "127.0.0.1", OriginPort: 1235}))
+
+	assert.Equal(t, []recordedEvent{
+		{Type: models.SessionEventTypeDirectTCPIP, Seat: 0},
+		{Type: models.SessionEventTypeDirectTCPIP, Seat: 0},
+	}, sess.events)
+	assert.Equal(t, []string{"10.0.0.1:8080", "10.0.0.2:8080"}, sess.forwarded)
 }
 
 func TestSessionChannelEndsWhenItsChannelsEndBeforeAShellOrExecStarts(t *testing.T) {

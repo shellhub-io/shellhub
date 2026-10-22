@@ -351,3 +351,11 @@ func TestEvaluate(t *testing.T) {
 		})
 	}
 }
+
+func TestFirstForwardToAnswersTrueOncePerDestination(t *testing.T) {
+	sess := new(Session)
+
+	assert.True(t, sess.FirstForwardTo("10.0.0.1:80"))
+	assert.False(t, sess.FirstForwardTo("10.0.0.1:80"))
+	assert.True(t, sess.FirstForwardTo("10.0.0.1:443"))
+}

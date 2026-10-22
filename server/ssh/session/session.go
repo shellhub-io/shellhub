@@ -218,6 +218,8 @@ type Session struct {
 
 	seats seats
 
+	forwarded sync.Map
+
 	challenge *challenge
 
 	registered bool
@@ -1130,6 +1132,15 @@ func (s *Session) join(ctx gliderssh.Context, auth Auth) error {
 // NewSeat allocates a seat for a new shell or exec within this session, returning its id.
 func (s *Session) NewSeat() (int, error) {
 	return s.seats.NewSeat()
+}
+
+// FirstForwardTo reports whether dest, a host:port, is a destination this connection has not
+// port-forwarded to before, and remembers it, so every later forward to dest answers false. It is
+// safe for concurrent use.
+func (s *Session) FirstForwardTo(dest string) bool {
+	_, forwarded := s.forwarded.LoadOrStore(dest, struct{}{})
+
+	return !forwarded
 }
 
 // Seat returns a copy of the seat with the given id.
