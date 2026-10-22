@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"regexp"
 	"runtime"
+	"slices"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
@@ -33,7 +35,7 @@ type TelemetryService interface {
 	// TelemetryStatus returns the administrator's setting, whether the environment keeps
 	// telemetry off (SHELLHUB_TELEMETRY is false, or the server has no client to send with), and
 	// the events the next heartbeat would send, built whether or not it is on. It returns the store's error when the system row or the counts cannot be read, and the
-	// error of an [OnTelemetryHeartbeat] hook that fails.
+	// error of an [OnTelemetryHeartbeat] or [OnTelemetryInstanceProperties] hook that fails.
 	TelemetryStatus(ctx context.Context) (*responses.TelemetryStatus, error)
 
 	// TelemetryInstanceStarted sends the instance started event when telemetry is on, and logs
@@ -41,8 +43,9 @@ type TelemetryService interface {
 	// sender's when the event cannot be queued.
 	TelemetryInstanceStarted(ctx context.Context) error
 
-	// TelemetryHeartbeat sends the instance heartbeat, and the events the
-	// [OnTelemetryHeartbeat] hooks add, when telemetry is on. Server replicas sharing a cache send
+	// TelemetryHeartbeat sends the instance heartbeat, with the properties the
+	// [OnTelemetryInstanceProperties] hooks add, and the events the [OnTelemetryHeartbeat] hooks
+	// add, when telemetry is on. Server replicas sharing a cache send
 	// it once per UTC day: the first to claim the day sends, the others return nil. Its handler
 	// returns the store's error, the cache's error when the day cannot be claimed, a failing
 	// hook's error, or the sender's error when the events cannot be queued; it sends nothing in
@@ -180,6 +183,18 @@ func (s *service) telemetryHeartbeatEvents(ctx context.Context, system *models.S
 	properties["devices_pending"] = usage.Devices.Pending
 	properties["devices_rejected"] = usage.Devices.Rejected
 	properties["sessions"] = usage.Sessions
+	addUsageBreakdown(properties, usage)
+
+	extra, err := fireTelemetryInstanceProperties(ctx, since)
+	if err != nil {
+		return nil, err
+	}
+
+	for name, value := range extra {
+		if _, taken := properties[name]; !taken {
+			properties[name] = value
+		}
+	}
 
 	hooked, err := fireTelemetryHeartbeat(ctx, since)
 	if err != nil {
@@ -195,4 +210,120 @@ func (s *service) telemetryHeartbeatEvents(ctx context.Context, system *models.S
 	}
 
 	return events, nil
+}
+
+func addUsageBreakdown(properties map[string]any, usage *models.InstanceUsage) {
+	sessions := usage.SessionKinds
+	properties["sessions_interactive"] = sessions.Interactive
+	properties["sessions_shell_without_pty"] = sessions.ShellWithoutPty
+	properties["sessions_exec"] = sessions.Exec
+	properties["sessions_scp"] = sessions.SCP
+	properties["sessions_sftp"] = sessions.SFTP
+	properties["sessions_port_forwarding"] = sessions.PortForwarding
+	properties["sessions_agent_forwarding"] = sessions.AgentForwarding
+	properties["sessions_web"] = sessions.Web
+	properties["sessions_recorded"] = sessions.Recorded
+	properties["sessions_api_key"] = sessions.APIKey
+
+	activity := usage.SessionActivity
+	properties["sessions_unauthenticated"] = activity.Unauthenticated
+	properties["sessions_active"] = activity.Active
+	properties["sessions_devices"] = activity.Devices
+	properties["sessions_events"] = activity.Events
+	properties["sessions_duration_seconds"] = activity.DurationSeconds
+	properties["sessions_duration_median_seconds"] = activity.DurationMedianSeconds
+	properties["sessions_duration_p95_seconds"] = activity.DurationP95Seconds
+
+	namespaces := usage.NamespaceKinds
+	properties["namespaces_legacy"] = namespaces.Legacy
+	properties["namespaces_personal"] = namespaces.Personal
+	properties["namespaces_team"] = namespaces.Team
+	properties["namespaces_recording"] = namespaces.Recording
+	properties["namespaces_require_verified_device_key"] = namespaces.RequireVerifiedDeviceKey
+
+	devices := usage.DeviceKinds
+	properties["devices_online"] = devices.Online
+	properties["devices_ephemeral"] = devices.Ephemeral
+	properties["devices_owned"] = devices.Owned
+	properties["devices_custom_fields"] = devices.CustomFields
+	properties["devices_tagged"] = devices.Tagged
+	properties["devices_key_verified"] = devices.KeyVerified
+	properties["devices_platforms"] = bucketCounts(devices.Platforms, knownLabel(telemetryAgentPlatforms))
+	properties["devices_versions"] = bucketCounts(devices.Versions, agentMinorVersion)
+	properties["devices_architectures"] = bucketCounts(devices.Architectures, knownLabel(telemetryAgentArchitectures))
+	properties["devices_oses"] = bucketCounts(devices.OSes, knownLabel(telemetryAgentOSes))
+	properties["devices_enrolled_with"] = nonNilCounts(devices.EnrolledWith)
+
+	access := usage.Access
+	properties["access_policies"] = access.AccessPolicies
+	properties["public_keys"] = access.PublicKeys
+	properties["api_keys"] = access.APIKeys
+	properties["instance_api_keys"] = access.InstanceAPIKeys
+	properties["tags"] = access.Tags
+	properties["ssh_identities"] = nonNilCounts(access.SSHIdentities)
+	properties["provisioning_keys"] = nonNilCounts(access.ProvisioningKeys)
+	properties["enrollments"] = access.Enrollments
+	properties["pending_invitations"] = access.PendingInvitations
+
+	auth := usage.Authentication
+	properties["authentication_local"] = auth.LocalEnabled
+	properties["authentication_saml"] = auth.SAMLEnabled
+	properties["users_active"] = auth.ActiveUsers
+	properties["users_by_origin"] = nonNilCounts(auth.UsersByOrigin)
+}
+
+const telemetryOtherLabel = "other"
+
+var (
+	telemetryAgentPlatforms     = []string{"docker", "bundle", "native", "connector"}
+	telemetryAgentArchitectures = []string{
+		"386", "amd64", "arm", "arm64", "loong64", "mips", "mips64", "mips64le", "mipsle",
+		"ppc64", "ppc64le", "riscv64", "s390x",
+	}
+	telemetryAgentOSes = []string{
+		"alpine", "arch", "centos", "coreos", "debian", "devuan", "elementary", "fedora", "freebsd",
+		"gentoo", "linuxmint", "mageia", "manjaro", "mandriva", "nixos", "opensuse", "rhel",
+		"sabayon", "slackware", "ubuntu", "ubuntu-core", "ubuntucore", "raspbian", "void", "docker",
+	}
+	agentReleaseVersion = regexp.MustCompile(`^v?(\d{1,4})\.(\d{1,4})\.\d{1,4}`)
+)
+
+func knownLabel(known []string) func(string) string {
+	return func(value string) string {
+		if value == models.UsageUnknownValue || slices.Contains(known, value) {
+			return value
+		}
+
+		return telemetryOtherLabel
+	}
+}
+
+func agentMinorVersion(version string) string {
+	if version == models.UsageUnknownValue {
+		return version
+	}
+
+	match := agentReleaseVersion.FindStringSubmatch(version)
+	if match == nil {
+		return telemetryOtherLabel
+	}
+
+	return "v" + match[1] + "." + match[2]
+}
+
+func bucketCounts(counts map[string]int64, label func(string) string) map[string]int64 {
+	bucketed := make(map[string]int64, len(counts))
+	for value, count := range counts {
+		bucketed[label(value)] += count
+	}
+
+	return bucketed
+}
+
+func nonNilCounts(counts map[string]int64) map[string]int64 {
+	if counts == nil {
+		return map[string]int64{}
+	}
+
+	return counts
 }

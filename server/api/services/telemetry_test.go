@@ -83,6 +83,58 @@ func expectedInstanceHeartbeat() telemetry.Event {
 			"devices_pending":  int64(2),
 			"devices_rejected": int64(1),
 			"sessions":         int64(25),
+
+			"sessions_interactive":       int64(11),
+			"sessions_shell_without_pty": int64(12),
+			"sessions_exec":              int64(13),
+			"sessions_scp":               int64(14),
+			"sessions_sftp":              int64(15),
+			"sessions_port_forwarding":   int64(16),
+			"sessions_agent_forwarding":  int64(17),
+			"sessions_web":               int64(18),
+			"sessions_recorded":          int64(19),
+			"sessions_api_key":           int64(20),
+
+			"sessions_unauthenticated":         int64(51),
+			"sessions_active":                  int64(52),
+			"sessions_devices":                 int64(53),
+			"sessions_events":                  int64(54),
+			"sessions_duration_seconds":        int64(55),
+			"sessions_duration_median_seconds": int64(56),
+			"sessions_duration_p95_seconds":    int64(57),
+
+			"namespaces_legacy":                      int64(21),
+			"namespaces_personal":                    int64(22),
+			"namespaces_team":                        int64(23),
+			"namespaces_recording":                   int64(24),
+			"namespaces_require_verified_device_key": int64(25),
+
+			"devices_online":        int64(31),
+			"devices_ephemeral":     int64(32),
+			"devices_owned":         int64(33),
+			"devices_custom_fields": int64(34),
+			"devices_tagged":        int64(35),
+			"devices_key_verified":  int64(36),
+			"devices_platforms":     map[string]int64{"docker": 7, "connector": 2, "other": 1},
+			"devices_versions":      map[string]int64{"v0.27": 7, "other": 2, "unknown": 1},
+			"devices_architectures": map[string]int64{"amd64": 9, "other": 1},
+			"devices_oses":          map[string]int64{"ubuntu": 7, "unknown": 1, "other": 2},
+			"devices_enrolled_with": map[string]int64{},
+
+			"access_policies":     int64(41),
+			"public_keys":         int64(42),
+			"api_keys":            int64(43),
+			"instance_api_keys":   int64(44),
+			"tags":                int64(45),
+			"ssh_identities":      map[string]int64{"browser": 46},
+			"provisioning_keys":   map[string]int64{"webhook": 47},
+			"enrollments":         int64(48),
+			"pending_invitations": int64(49),
+
+			"authentication_local": true,
+			"authentication_saml":  false,
+			"users_active":         int64(2),
+			"users_by_origin":      map[string]int64{"local": 4},
 		},
 	}
 }
@@ -93,11 +145,39 @@ func instanceUsage() *models.InstanceUsage {
 		Users:      4,
 		Devices:    models.DeviceUsage{Accepted: 10, Pending: 2, Rejected: 1},
 		Sessions:   25,
+		SessionKinds: models.SessionKindUsage{
+			Interactive: 11, ShellWithoutPty: 12, Exec: 13, SCP: 14, SFTP: 15,
+			PortForwarding: 16, AgentForwarding: 17, Web: 18, Recorded: 19, APIKey: 20,
+		},
+		SessionActivity: models.SessionActivityUsage{
+			Unauthenticated: 51, Active: 52, Devices: 53, Events: 54,
+			DurationSeconds: 55, DurationMedianSeconds: 56, DurationP95Seconds: 57,
+		},
+		NamespaceKinds: models.NamespaceKindUsage{
+			Legacy: 21, Personal: 22, Team: 23, Recording: 24, RequireVerifiedDeviceKey: 25,
+		},
+		DeviceKinds: models.DeviceKindUsage{
+			Online: 31, Ephemeral: 32, Owned: 33, CustomFields: 34, Tagged: 35, KeyVerified: 36,
+			Platforms:     map[string]int64{"docker": 7, "connector": 2, "acme-appliance": 1},
+			Versions:      map[string]int64{"v0.27.0": 5, "0.27.1-rc.1": 2, "acme-build-7": 2, "unknown": 1},
+			Architectures: map[string]int64{"amd64": 9, "acme-cpu": 1},
+			OSes:          map[string]int64{"ubuntu": 7, "unknown": 1, "acmecorp-prod": 1, "Ubuntu": 1},
+		},
+		Access: models.AccessUsage{
+			AccessPolicies: 41, PublicKeys: 42, APIKeys: 43, InstanceAPIKeys: 44, Tags: 45,
+			SSHIdentities:    map[string]int64{"browser": 46},
+			ProvisioningKeys: map[string]int64{"webhook": 47},
+			Enrollments:      48, PendingInvitations: 49,
+		},
+		Authentication: models.AuthenticationUsage{
+			LocalEnabled: true, ActiveUsers: 2, UsersByOrigin: map[string]int64{"local": 4},
+		},
 	}
 }
 
 func TestService_TelemetryHeartbeat(t *testing.T) {
 	override(t, &telemetryHeartbeatHooks, nil)
+	override(t, &telemetryInstancePropertiesHooks, nil)
 
 	ctx := context.Background()
 	since := telemetryNow.Add(-24 * time.Hour)
@@ -164,6 +244,44 @@ func TestService_TelemetryHeartbeat(t *testing.T) {
 			expectedInstanceHeartbeat(),
 			{Name: "namespace heartbeat", DistinctID: telemetryInstanceID, Groups: map[string]string{"namespace": "hashed"}},
 		}, sender.sent)
+	})
+
+	t.Run("adds the properties a hook adds, never replacing the core ones", func(t *testing.T) {
+		override(t, &telemetryInstancePropertiesHooks, nil)
+
+		OnTelemetryInstanceProperties(func(_ context.Context, gotSince time.Time) (map[string]any, error) {
+			assert.Equal(t, since, gotSince)
+
+			return map[string]any{"firewall_rules": int64(5), "users": int64(999)}, nil
+		})
+
+		storeMock := storemock.NewMockStore(t)
+		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil).Once()
+		storeMock.On("InstanceUsage", ctx, since).Return(instanceUsage(), nil).Once()
+
+		sender := new(recordingSender)
+		require.NoError(t, newTelemetryService(t, storeMock, sender, false).TelemetryHeartbeat()(ctx))
+
+		expected := expectedInstanceHeartbeat()
+		expected.Properties["firewall_rules"] = int64(5)
+		assert.Equal(t, []telemetry.Event{expected}, sender.sent)
+	})
+
+	t.Run("a failing properties hook sends nothing", func(t *testing.T) {
+		override(t, &telemetryInstancePropertiesHooks, nil)
+
+		hookErr := errors.New("cloud store down")
+		OnTelemetryInstanceProperties(func(context.Context, time.Time) (map[string]any, error) {
+			return nil, hookErr
+		})
+
+		storeMock := storemock.NewMockStore(t)
+		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil).Once()
+		storeMock.On("InstanceUsage", ctx, since).Return(instanceUsage(), nil).Once()
+
+		sender := new(recordingSender)
+		require.ErrorIs(t, newTelemetryService(t, storeMock, sender, false).TelemetryHeartbeat()(ctx), hookErr)
+		assert.Empty(t, sender.sent)
 	})
 
 	t.Run("a failing hook sends nothing and releases the day for the retry", func(t *testing.T) {
@@ -320,4 +438,11 @@ func TestService_TelemetryStatus(t *testing.T) {
 			}, status)
 		})
 	}
+}
+
+func TestOnTelemetryInstanceProperties(t *testing.T) {
+	override(t, &telemetryInstancePropertiesHooks, nil)
+
+	assert.Panics(t, func() { OnTelemetryInstanceProperties(nil) })
+	assert.Empty(t, telemetryInstancePropertiesHooks, "a nil hook is not registered")
 }

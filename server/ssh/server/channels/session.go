@@ -86,7 +86,7 @@ const (
 // [SubsystemRequestType] has been executed.
 //
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.1
-const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
+const AuthRequestOpenSSHRequest = string(models.SessionEventTypeAuthAgentRequest)
 
 // AuthRequestOpenSSHChannel is the channel the server opens to reach a forwarded agent.
 //
