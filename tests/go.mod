@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/tests
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
