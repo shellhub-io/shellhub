@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useCallback, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -73,12 +73,12 @@ export default function TerminalInstance({
 
   const { theme, fontFamilyWithFallback, fontSize } = useTerminalThemeStore();
 
-  const fitWhenSettled = () => {
+  const fitWhenSettled = useEffectEvent(() => {
     clearTimeout(fitTimerRef.current);
     fitTimerRef.current = setTimeout(() => {
       if (visibleRef.current) fitRef.current?.fit();
     }, FIT_SETTLE_MS);
-  };
+  });
 
   const activeTenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(session.tenant ?? activeTenant ?? "");
@@ -410,7 +410,7 @@ export default function TerminalInstance({
       requestAnimationFrame(() => termRef.current?.focus());
     }
     prevVisibleRef.current = visible;
-  }, [visible, error, fitWhenSettled]);
+  }, [visible, error]);
 
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden">
