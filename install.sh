@@ -145,6 +145,8 @@ observe_enrollment() {
         else
           echo "   A member rejected it in the console. Accept it there to enroll it."
         fi
+
+        return 1
         ;;
       *)
         echo "✅ The agent connected to the server and is listening for connections."
@@ -160,7 +162,7 @@ observe_enrollment() {
       echo "❌ The server refused this device:"
       echo "   $(refusal_reason "$_REFUSAL")"
 
-      return 0
+      return 1
       ;;
     *"Failed to load the configuration"*)
       _INVALID=$(echo "$_OBSERVED" | sed -n -e 's/.*msg="\(SHELLHUB_[^"]*\)".*/\1/p' -e 's/.*msg="\(\/[^"]*\)".*/\1/p' | sed 's/^\/host\//\//' | awk '!seen[$0]++')
@@ -175,7 +177,7 @@ observe_enrollment() {
         echo "   $(refusal_reason "$_REFUSAL")"
       fi
 
-      return 0
+      return 1
       ;;
     esac
 
@@ -189,10 +191,14 @@ observe_enrollment() {
 
     echo "⚠️ The server is still refusing this device, and the agent is still retrying:"
     echo "   $(refusal_reason "$_REFUSAL")"
+
+    return 1
     ;;
   *)
     echo "⚠️ The agent has not enrolled yet. Inspect it with:"
     echo "   $_LOG_CMD"
+
+    return 0
     ;;
   esac
 }
@@ -212,7 +218,7 @@ enroll_agent_interactively() {
 
     observe_enrollment "$_AGENT_LOG"
 
-    return 0
+    return "$?"
   fi
 
   _i=0
@@ -222,7 +228,15 @@ enroll_agent_interactively() {
   done
 
   echo ""
-  $_AGENT_CMD login || true
+  trap ':' INT
+  $_AGENT_CMD login
+  _LOGIN_STATUS=$?
+  trap - INT
+
+  case "$_LOGIN_STATUS" in
+  0 | 130) return 0 ;;
+  *) return 1 ;;
+  esac
 }
 
 check_podman_boot_restart() {
@@ -330,12 +344,15 @@ podman_install() {
     $ARGS \
     $LABEL_ARGS \
     "$AGENT_IMAGE" \
-    $MODE
+    $MODE || {
+    echo "❌ Failed to start the ShellHub container."
+    exit 1
+  }
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "podman"
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
+    enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -415,12 +432,15 @@ docker_install() {
     $ARGS \
     $LABEL_ARGS \
     "$AGENT_IMAGE" \
-    $MODE
+    $MODE || {
+    echo "❌ Failed to start the ShellHub container."
+    exit 1
+  }
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "docker"
     _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
-    enroll_agent_interactively "$WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
+    enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
 
@@ -484,8 +504,8 @@ standalone_install() {
 
   if [ -n "${AGENT_BINARY}" ]; then
     echo "📂 Using local binary: $AGENT_BINARY"
-    $SUDO cp "$AGENT_BINARY" "$INSTALL_BIN"
-    $SUDO chmod 755 "$INSTALL_BIN"
+    { $SUDO cp "$AGENT_BINARY" "$INSTALL_BIN.new" && $SUDO chmod 755 "$INSTALL_BIN.new"; } ||
+      abort_staged_install "❌ Could not copy $AGENT_BINARY into $INSTALL_DIR."
   else
     require_release_version
 
@@ -515,10 +535,14 @@ standalone_install() {
 
     echo "📂 Extracting binary..."
 
-    gzip -d "$TMP_DIR/shellhub-agent.gz"
-    chmod 755 "$TMP_DIR/shellhub-agent"
-    $SUDO mv "$TMP_DIR/shellhub-agent" "$INSTALL_BIN"
+    {
+      gzip -d "$TMP_DIR/shellhub-agent.gz" &&
+        chmod 755 "$TMP_DIR/shellhub-agent" &&
+        $SUDO mv "$TMP_DIR/shellhub-agent" "$INSTALL_BIN.new"
+    } || abort_staged_install "❌ Failed to extract the agent binary."
   fi
+
+  promote_staged_agent_binary
 
   echo "🚀 Installing ShellHub system service..."
 
@@ -529,13 +553,7 @@ standalone_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
   [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"
 
-  _SERVICE_STARTED=$(date +%s)
-
-  $SUDO "$INSTALL_BIN" install $INSTALL_ARGS || {
-    echo "❌ Failed to install ShellHub agent service."
-    $SUDO rm -f "$INSTALL_BIN"
-    exit 1
-  }
+  replace_agent_service
 
   echo "✅ ShellHub agent installed and started."
 
@@ -543,8 +561,48 @@ standalone_install() {
   command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50 --since @$_SERVICE_STARTED"
 
   enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
+  _ENROLLMENT_STATUS=$?
 
   rm -rf "$TMP_DIR"
+
+  return "$_ENROLLMENT_STATUS"
+}
+
+promote_staged_agent_binary() {
+  $SUDO "$INSTALL_BIN.new" install --help >/dev/null 2>&1 ||
+    abort_staged_install "❌ The agent binary cannot run its installer on this system. Check BINARY_ARCH, or that AGENT_BINARY was built with the installer tag."
+
+  $SUDO mv -f "$INSTALL_BIN.new" "$INSTALL_BIN" ||
+    abort_staged_install "❌ Could not replace $INSTALL_BIN."
+}
+
+abort_staged_install() {
+  echo "$1"
+  $SUDO rm -f "$INSTALL_BIN.new"
+  rm -rf "$TMP_DIR"
+  exit 1
+}
+
+replace_agent_service() {
+  _AGENT_WAS_RUNNING=""
+  $SUDO systemctl is-active --quiet shellhub-agent >/dev/null 2>&1 && _AGENT_WAS_RUNNING=1
+
+  $SUDO systemctl stop shellhub-agent >/dev/null 2>&1
+  sleep 1
+  _SERVICE_STARTED=$(date +%s)
+
+  $SUDO "$INSTALL_BIN" install $INSTALL_ARGS || {
+    echo "❌ Failed to install ShellHub agent service."
+
+    if [ -n "$_AGENT_WAS_RUNNING" ]; then
+      $SUDO systemctl enable --now shellhub-agent >/dev/null 2>&1
+    else
+      $SUDO rm -f "$INSTALL_BIN"
+    fi
+
+    rm -rf "$TMP_DIR"
+    exit 1
+  }
 }
 
 report_files_left_behind() {

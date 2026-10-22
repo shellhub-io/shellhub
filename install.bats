@@ -35,6 +35,18 @@ stub_agent_log() {
     stub_bin agent-log "cat '$BATS_TEST_TMPDIR/agent.log'"
 }
 
+stub_runtime() {
+    stub_bin "$1" "echo \"$1 \$*\" >> \"\$CALLS\"; ${2:+$2; }[ \"\$1\" = ps ] && echo shellhub; exit 0"
+}
+
+stub_container_logs() {
+    stub_runtime "$1" "[ \"\$1\" = logs ] && cat '$BATS_TEST_TMPDIR/agent.log'"
+}
+
+stub_journal() {
+    stub_bin journalctl "cat '$BATS_TEST_TMPDIR/agent.log'"
+}
+
 with_tenant() {
     export TENANT_ID="00000000-0000-4000-a000-000000000000"
 }
@@ -54,13 +66,13 @@ use_podman() {
 }
 
 container_install() {
-    [ -x "$STUB_DIR/$RUNTIME" ] || stub_bin "$RUNTIME"
+    [ -x "$STUB_DIR/$RUNTIME" ] || stub_runtime "$RUNTIME"
     call_install "${RUNTIME}_install" "$@"
 }
 
 fake_agent_binary() {
     export AGENT_BINARY="$BATS_TEST_TMPDIR/fake-agent"
-    printf '#!/bin/sh\necho "agent $*" >> "$CALLS"\nexit %s\n' "${1:-0}" > "$AGENT_BINARY"
+    printf '#!/bin/sh\n[ "$*" = "install --help" ] && exit 0\necho "agent $*" >> "$CALLS"\nexit %s\n' "${1:-0}" > "$AGENT_BINARY"
     chmod +x "$AGENT_BINARY"
 }
 
@@ -87,7 +99,7 @@ done
 cp '$RELEASE_DIR'/\"\${url##*/}\" \"\$out\" 2>/dev/null || exit 1"
 
     stub_bin id 'echo 1000'
-    stub_bin sudo "echo \"sudo \$*\" >> \"\$CALLS\"; [ \"\$1\" = '$INSTALL_DIR/shellhub-agent' ] && exit 0; exec \"\$@\""
+    stub_bin sudo "echo \"sudo \$*\" >> \"\$CALLS\"; [ \"\${1%.new}\" = '$INSTALL_DIR/shellhub-agent' ] && exit 0; exec \"\$@\""
 }
 
 assert_installed_release_binary() {
@@ -249,11 +261,20 @@ discover_version() {
 }
 
 @test "enroll_agent_interactively survives a login the user abandons" {
-    stub_bin shellhub-agent 'echo "shellhub-agent $*" >> "$CALLS"; exit 130'
+    stub_bin shellhub-agent 'echo "shellhub-agent $*" >> "$CALLS"; kill -INT "$PPID" "$$"'
 
     call_install enroll_agent_interactively shellhub-agent "$AGENT_KEY"
 
     [ "$status" -eq 0 ]
+}
+
+@test "enroll_agent_interactively lets Ctrl-C stop the installer again after the login" {
+    stub_bin shellhub-agent 'echo "shellhub-agent $*" >> "$CALLS"; kill -INT "$PPID" "$$"'
+
+    call_install eval "enroll_agent_interactively shellhub-agent '$AGENT_KEY'; kill -INT \$\$; echo survived"
+
+    [ "$status" -eq 130 ]
+    refute_output_contains "survived"
 }
 
 @test "enroll_agent_interactively skips the login flow for a provisioning key" {
@@ -323,7 +344,7 @@ discover_version() {
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "the device is rejected"
     assert_output_contains "A member rejected it in the console. Accept it there to enroll it."
     refute_output_contains "provisioning key"
@@ -336,7 +357,7 @@ discover_version() {
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "provisioning key's allowlist or webhook refused it"
 }
 
@@ -392,6 +413,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
+    [ "$status" -eq 1 ]
     assert_output_contains "The server refused this device"
     assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
 }
@@ -416,7 +438,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "refused its own configuration"
     assert_output_contains "SHELLHUB_TENANT_ID must be a UUID"
     refute_output_contains "has not enrolled yet"
@@ -430,7 +452,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "   /etc/shellhub.key.tenant must be a UUID"
     refute_output_contains "invalid structure"
 }
@@ -445,7 +467,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     [ "$(echo "$output" | grep -c 'SHELLHUB_TENANT_ID must be a UUID')" -eq 1 ]
 }
 
@@ -456,7 +478,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "missing required value: SERVER_ADDRESS"
     refute_output_contains "has not enrolled yet"
 }
@@ -468,7 +490,7 @@ LOG
 
     call_install observe_enrollment agent-log
 
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     assert_output_contains "The server is still refusing this device"
     assert_output_contains 'the server answered 404 Not Found: {"message":"namespace not found"}'
     refute_output_contains "level=warning"
@@ -973,6 +995,73 @@ LOG
     [ "$status" -eq 1 ]
     assert_output_contains "Failed to install ShellHub agent service"
     [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+    [ ! -e "$TMP_DIR" ]
+}
+
+@test "standalone_install starts the agent it stopped again when the service install fails" {
+    with_tenant
+    fake_agent_binary 1
+    local stopped="$BATS_TEST_TMPDIR/old-agent-stopped"
+    stub_bin systemctl "echo \"systemctl \$*\" >> \"\$CALLS\"
+case \"\$1\" in
+stop) : > '$stopped' ;;
+is-active) [ ! -e '$stopped' ] ;;
+esac"
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_called "systemctl enable --now shellhub-agent"
+    [ -x "$INSTALL_DIR/shellhub-agent" ]
+}
+
+@test "standalone_install leaves the running agent alone when the new binary cannot run its installer" {
+    with_tenant
+    export AGENT_BINARY="$BATS_TEST_TMPDIR/foreign-agent"
+    printf '#!/bin/sh\n[ "$1" = --help ] && exit 0\nexit 1\n' > "$AGENT_BINARY"
+    chmod +x "$AGENT_BINARY"
+    mkdir -p "$INSTALL_DIR"
+    echo "old agent" > "$INSTALL_DIR/shellhub-agent"
+    stub_bin systemctl 'echo "systemctl $*" >> "$CALLS"; exit 0'
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "cannot run its installer"
+    refute_called "systemctl stop"
+    [ "$(cat "$INSTALL_DIR/shellhub-agent")" = "old agent" ]
+    [ ! -e "$INSTALL_DIR/shellhub-agent.new" ]
+}
+
+@test "standalone_install reports a local binary it cannot copy" {
+    with_tenant
+    fake_agent_binary
+    mkdir -p "$INSTALL_DIR"
+    cp "$AGENT_BINARY" "$INSTALL_DIR/shellhub-agent.new"
+    export AGENT_BINARY="$BATS_TEST_TMPDIR/missing-agent"
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Could not copy $AGENT_BINARY"
+    [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+    [ ! -e "$INSTALL_DIR/shellhub-agent.new" ]
+    [ ! -e "$TMP_DIR" ]
+}
+
+@test "standalone_install reports a release binary it cannot extract" {
+    with_tenant
+    serve_release
+    echo "not gzip" > "$RELEASE_DIR/shellhub-agent-linux-amd64.gz"
+    (cd "$RELEASE_DIR" && sha256sum shellhub-agent-linux-amd64.gz > checksums.txt)
+
+    call_install standalone_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to extract the agent binary"
+    refute_output_contains "Could not replace"
+    [ ! -e "$INSTALL_DIR/shellhub-agent" ]
+    [ ! -e "$TMP_DIR" ]
 }
 
 @test "standalone_install installs the agent binary that matches the release checksum" {
@@ -1286,8 +1375,8 @@ LOG
 }
 
 @test "detection prefers docker when it is accessible" {
-    stub_bin docker
-    stub_bin podman
+    stub_runtime docker
+    stub_runtime podman
 
     run_install
 
@@ -1298,7 +1387,7 @@ LOG
 }
 
 @test "detection falls back to podman when docker is absent" {
-    stub_bin podman
+    stub_runtime podman
     stub_bin systemctl 'exit 0'
 
     run_install
@@ -1310,7 +1399,7 @@ LOG
 
 @test "detection retries docker with sudo when it is only reachable as root" {
     unset AGENT_IMAGE
-    stub_bin docker 'echo "docker $*" >> "$CALLS"; [ "$1" = info ] && [ -z "$RAN_UNDER_SUDO" ] && exit 1; exit 0'
+    stub_runtime docker '[ -z "$RAN_UNDER_SUDO" ] && exit 1'
     stub_sudo
 
     run_install
@@ -1319,11 +1408,12 @@ LOG
     assert_called "sudo docker info"
     assert_called "sudo docker pull -q docker.io/shellhubio/agent:$AGENT_VERSION"
     assert_called "sudo docker run -d"
+    assert_called "sudo $INSTALL_DIR/shellhub-agent login"
 }
 
 @test "detection retries podman with sudo when it is only reachable as root" {
     unset AGENT_IMAGE
-    stub_bin podman 'echo "podman $*" >> "$CALLS"; [ "$1" = info ] && [ -z "$RAN_UNDER_SUDO" ] && exit 1; exit 0'
+    stub_runtime podman '[ -z "$RAN_UNDER_SUDO" ] && exit 1'
     stub_bin systemctl 'exit 0'
     stub_sudo
 
@@ -1333,6 +1423,7 @@ LOG
     assert_called "sudo podman info"
     assert_called "sudo podman pull -q docker.io/shellhubio/agent:$AGENT_VERSION"
     assert_called "sudo podman run -d"
+    assert_called "sudo $INSTALL_DIR/shellhub-agent login"
 }
 
 @test "detection falls back to snap when no container runtime is available" {
@@ -1437,7 +1528,7 @@ LOG
 @test "the installer discovers the agent version from the server" {
     discover_version v0.27.0-rc.17
     unset AGENT_IMAGE
-    stub_bin docker
+    stub_runtime docker
 
     run_install
 
@@ -1505,7 +1596,7 @@ LOG
 @test "the installer accepts latest as the agent version" {
     export AGENT_VERSION=latest
     unset AGENT_IMAGE
-    stub_bin docker
+    stub_runtime docker
 
     run_install
 
@@ -1515,7 +1606,7 @@ LOG
 
 @test "the installer needs no server version when the agent image is given" {
     discover_version ""
-    stub_bin docker
+    stub_runtime docker
 
     run_install
 
@@ -1564,6 +1655,132 @@ LOG
     [ "$status" -eq 0 ]
     assert_output_contains "Enrollment: tenant $TENANT_ID"
     refute_output_contains "remembered at"
+}
+
+@test "the installer fails when the server refuses a device installed with docker" {
+    with_tenant
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found"
+LOG
+    stub_container_logs docker
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "The server refused this device"
+    assert_called "docker run -d"
+}
+
+@test "the installer succeeds when docker leaves the device pending" {
+    with_tenant
+    stub_agent_log <<'LOG'
+time="now" level=info msg="Listening for connections" status=pending tenant_id=t
+LOG
+    stub_container_logs docker
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The device is pending"
+}
+
+@test "the installer fails when the login flow fails" {
+    stub_runtime docker '[ "$1" = exec ] && exit 2'
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_called "docker exec shellhub agent login"
+}
+
+@test "the installer fails when docker cannot start the agent container" {
+    with_tenant
+    stub_runtime docker '[ "$1" = run ] && exit 1'
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to start the ShellHub container"
+}
+
+@test "the installer fails when podman cannot start the agent container" {
+    with_tenant
+    use_podman
+    stub_runtime podman '[ "$1" = run ] && exit 1'
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "Failed to start the ShellHub container"
+}
+
+@test "the installer fails when the server refuses a device installed with podman" {
+    with_tenant
+    use_podman
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found"
+LOG
+    stub_container_logs podman
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "The server refused this device"
+    assert_called "podman run -d"
+}
+
+@test "the installer fails and still cleans up when the server refuses a standalone device" {
+    with_tenant
+    export INSTALL_METHOD=standalone
+    fake_agent_binary
+    stub_agent_log <<'LOG'
+time="now" level=fatal msg="Failed to authorize the device" error="the server answered 404 Not Found"
+LOG
+    stub_journal
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "The server refused this device"
+    [ -x "$INSTALL_DIR/shellhub-agent" ]
+    [ ! -e "$TMP_DIR" ]
+}
+
+@test "the installer ignores what the agent it replaced logged before a standalone reinstall" {
+    with_tenant
+    export INSTALL_METHOD=standalone
+    fake_agent_binary
+    local stopped="$BATS_TEST_TMPDIR/old-agent-stopped" polls="$BATS_TEST_TMPDIR/journal-polls"
+    stub_bin systemctl "[ \"\$1\" = stop ] && : > '$stopped'; exit 0"
+    stub_bin sleep "[ -e '$stopped' ] && : > '$stopped.slept'; exit 0"
+    stub_bin date "[ -e '$stopped.slept' ] && echo 1700000001 || echo 1700000000"
+    stub_bin journalctl "echo >> '$polls'
+case \"\$*\" in
+*'--since @1700000000'*) echo 'level=fatal msg=\"Failed to authorize the device\" error=\"the server answered 404 Not Found\"' ;;
+esac
+[ \$(wc -l < '$polls') -gt 1 ] && echo 'level=info msg=\"Listening for connections\" status=accepted tenant_id=t'
+exit 0"
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The device is accepted"
+    refute_output_contains "The server refused this device"
+}
+
+@test "the installer succeeds when a standalone device is accepted" {
+    with_tenant
+    export INSTALL_METHOD=standalone
+    fake_agent_binary
+    stub_agent_log <<'LOG'
+time="now" level=info msg="Listening for connections" status=accepted tenant_id=t
+LOG
+    stub_journal
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "The device is accepted"
 }
 
 @test "uninstall dispatches to the detected method" {
