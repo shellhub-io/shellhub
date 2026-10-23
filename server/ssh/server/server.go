@@ -50,12 +50,9 @@ type Options struct {
 	// Allows SSH to connect with an agent via a public key when the agent version is less than 0.6.0.
 	// Agents 0.5.x or earlier do not validate the public key request and may panic.
 	AllowPublickeyAccessBelow060 bool
-	// Domain is the instance's base domain, used to build the browser approval
-	// URL shown in the terminal when a namespace requires SSH login approval.
-	Domain string
-	// AutoSSL reports whether the console is served over HTTPS; it selects the
-	// scheme of that approval URL.
-	AutoSSL bool
+	// ConsoleURL is the URL users reach the console at, with no trailing slash, which the browser
+	// approval links shown in the terminal start with.
+	ConsoleURL string
 	// Edition is the edition each session evaluates its licence, firewall and billing checks
 	// against, and whether it records the session. The zero value behaves as Community.
 	Edition envs.Edition
@@ -214,8 +211,7 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, opts *Options) (*Server, error) {
 	session.Configure(session.Config{
 		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
-		Domain:                       opts.Domain,
-		AutoSSL:                      opts.AutoSSL,
+		ConsoleURL:                   opts.ConsoleURL,
 		ConnectTimeout:               opts.ConnectTimeout,
 	})
 
