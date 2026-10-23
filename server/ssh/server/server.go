@@ -58,6 +58,9 @@ type Options struct {
 	Edition envs.Edition
 	// Clock is what the sessions read the time from. Nil means the wall clock.
 	Clock clock.Clock
+	// ProxyTrustedIPs lists the CIDRs, besides loopback, whose PROXY protocol header the
+	// listener reads the client address from. A header from any other peer closes the connection.
+	ProxyTrustedIPs []string
 }
 
 func (o *Options) clock() clock.Clock {
@@ -82,6 +85,7 @@ const handshakeBudget = services.SSHApprovalTTL + 90*time.Second
 type Server struct {
 	sshd   *gliderssh.Server
 	opts   *Options
+	proxy  proxyproto.ConnPolicyFunc
 	dialer dialer.TunnelDialer
 }
 
@@ -207,7 +211,9 @@ func newServerConfigCallback(ctx gliderssh.Context) *gossh.ServerConfig {
 }
 
 // NewServer builds the SSH server, wiring the connection handlers to dialer, the session
-// bookkeeping to service, and the web terminal's credential handoff to handoff.
+// bookkeeping to service, and the web terminal's credential handoff to handoff. It returns an
+// error when opts.ProxyTrustedIPs holds a malformed IP or CIDR range, when opts.HostKeyFile is
+// empty, or when the host key at opts.HostKeyFile cannot be read or loaded.
 func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, opts *Options) (*Server, error) {
 	session.Configure(session.Config{
 		AllowPublickeyAccessBelow060: opts.AllowPublickeyAccessBelow060,
@@ -215,9 +221,15 @@ func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *we
 		ConnectTimeout:               opts.ConnectTimeout,
 	})
 
+	proxyPolicy, err := newProxyPolicy(opts.ProxyTrustedIPs)
+	if err != nil {
+		return nil, errors.Join(errors.New("invalid ssh proxy trusted ips"), err)
+	}
+
 	server := &Server{ //nolint:exhaustruct
 		opts:   opts,
 		dialer: dialer,
+		proxy:  proxyPolicy,
 	}
 
 	server.sshd = &gliderssh.Server{ //nolint:exhaustruct
@@ -284,7 +296,9 @@ func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.Channe
 	}
 }
 
-var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
+func newProxyPolicy(trusted []string) (proxyproto.ConnPolicyFunc, error) {
+	return proxyproto.PolicyFromRanges(append([]string{"127.0.0.0/8", "::1/128"}, trusted...), proxyproto.USE, proxyproto.REJECT)
+}
 
 func newProxyListener(lis net.Listener, policy proxyproto.ConnPolicyFunc) *proxyproto.Listener {
 	return &proxyproto.Listener{ //nolint:exhaustruct
@@ -320,7 +334,7 @@ func (s *Server) ListenAndServe() error {
 		return err
 	}
 
-	proxy := newProxyListener(list, loopbackProxyPolicy)
+	proxy := newProxyListener(list, s.proxy)
 	defer proxy.Close() //nolint:errcheck
 
 	return s.sshd.Serve(proxy)

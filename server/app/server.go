@@ -157,6 +157,7 @@ type sshEnv struct {
 	AllowPublickeyAccessBelow060 bool               `env:"ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0,default=false"`
 	RequireAcceptedTunnel        bool               `env:"SHELLHUB_REQUIRE_ACCEPTED_TUNNEL,default=false"`
 	TunnelPingInterval           tunnelPingInterval `env:"SHELLHUB_TUNNEL_PING_INTERVAL"`
+	ProxyTrustedIPs              string             `env:"SHELLHUB_SSH_PROXY_TRUSTED_IPS"`
 }
 
 type tunnelPingInterval time.Duration
@@ -440,6 +441,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		ConsoleURL:                   s.publicURL,
 		Edition:                      s.env.Edition,
 		Clock:                        s.clock,
+		ProxyTrustedIPs:              strings.Fields(env.ProxyTrustedIPs),
 	})
 
 	return err
