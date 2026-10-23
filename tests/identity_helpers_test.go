@@ -61,13 +61,17 @@ func startLogin(t *testing.T, compose *environment.DockerCompose, sshid string, 
 		done:    make(chan error, 1),
 	}
 
+	exited := make(chan struct{})
+
 	go func() {
+		defer close(exited)
+
 		l.done <- dialInteractive(ctx, compose.SSHAddress(), sshid, signer, l.prompts, l.answers)
 	}()
 
 	t.Cleanup(func() {
 		cancel()
-		<-l.done
+		<-exited
 	})
 
 	return l

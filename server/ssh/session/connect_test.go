@@ -68,8 +68,8 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	}()
 
 	select {
-	case <-done:
-		t.Fatal("it returned without a deadline; the timeout is not what bounds this")
+	case err := <-done:
+		t.Fatalf("it returned %v without a deadline; the timeout is not what bounds this", err)
 	case <-time.After(3 * time.Second):
 	}
 }

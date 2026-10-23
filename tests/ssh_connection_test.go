@@ -142,9 +142,13 @@ func TestSSHConnectionBehaviour(t *testing.T) {
 
 		go func() { ended <- sess.Wait() }()
 
-		disconnected := make(chan error, 1)
+		disconnected := make(chan struct{})
 
-		go func() { disconnected <- conn.Wait() }()
+		go func() {
+			defer close(disconnected)
+
+			_ = conn.Wait()
+		}()
 
 		resp, err := compose.R(ctx).
 			SetBody(map[string]string{"device": device.UID}).
