@@ -71,13 +71,17 @@ type Env struct {
 	// Metrics enables the /metrics endpoint.
 	Metrics bool `env:"METRICS,default=false"`
 
-	// Domain is the instance's base domain, from which the public URL is built. A scheme it
-	// carries is kept.
+	// Domain is the instance's base domain, from which the public URL is built when PublicURL is
+	// empty. A scheme it carries is kept.
 	Domain string `env:"SHELLHUB_DOMAIN,default=localhost"`
 
 	// AutoSSL reports whether the bundled gateway serves the console over HTTPS; it selects the
-	// public URL's scheme when Domain carries none.
+	// public URL's scheme when PublicURL is empty and Domain carries none.
 	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
+
+	// PublicURL is the URL users reach the console at, set when TLS ends before the gateway so
+	// AutoSSL cannot tell the scheme. Empty derives it from Domain and AutoSSL.
+	PublicURL string `env:"SHELLHUB_PUBLIC_URL"`
 
 	// SessionRetentionDays is how long a session and its events are kept after the session
 	// started; 0, the default, keeps them indefinitely.
@@ -214,7 +218,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	s.clock = clock.New()
 
-	publicURL, err := publicurl.Resolve(s.env.Domain, s.env.AutoSSL)
+	publicURL, err := publicurl.Resolve(s.env.Domain, s.env.AutoSSL, s.env.PublicURL)
 	if err != nil {
 		return err
 	}

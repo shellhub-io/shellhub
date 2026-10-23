@@ -52,6 +52,12 @@ The self-hosted deployment needs one variable set:
 |---|---|
 | `SHELLHUB_SAML_SECRET` | Encrypts the service provider's X.509 private key |
 
+ShellHub sends the IdP an assertion URL and entity ID that use `http://` unless
+`SHELLHUB_AUTO_SSL=true`. When TLS ends at a load balancer or ingress in front of ShellHub, set
+`SHELLHUB_PUBLIC_URL=https://shellhub.example.com` so both use `https://`. Register
+`https://shellhub.example.com` as the entity ID in your IdP, with no trailing slash. Keycloak
+calls this field the client ID.
+
 The Enterprise Admin Console itself is reached with
 `SHELLHUB_ENTERPRISE_ADMIN_USERNAME` and `SHELLHUB_ENTERPRISE_ADMIN_PASSWORD`.
 

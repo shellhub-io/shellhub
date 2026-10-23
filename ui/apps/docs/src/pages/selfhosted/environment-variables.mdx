@@ -56,7 +56,13 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 |---|---|---|
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
 | `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
+| `SHELLHUB_PUBLIC_URL` | built from `SHELLHUB_DOMAIN` and `SHELLHUB_AUTO_SSL` | URL users reach ShellHub at, such as `https://shellhub.example.com`. An `http` or `https` origin with no path |
 | `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
+
+ShellHub builds the links it hands out, such as the SSH approval links in the terminal and the SAML
+URLs it sends an identity provider, from `SHELLHUB_DOMAIN`, with `https://` only when
+`SHELLHUB_AUTO_SSL=true`. When TLS ends at an ingress or load balancer in front of the gateway, set
+`SHELLHUB_PUBLIC_URL` so those links use `https://` without the gateway requesting certificates.
 
 `SHELLHUB_PROXY_TRUSTED_IPS` is what password lockout and access policy source IPs are keyed on. The
 default trusts everyone, which is fine only if nothing but your balancer can reach the port.
