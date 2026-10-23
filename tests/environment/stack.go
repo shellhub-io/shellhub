@@ -61,29 +61,39 @@ import (
 // Stripe test account to the stack's webhook, asynchronously and in no fixed order. Without it the
 // stack receives none of Stripe's own events.
 //
+// TelemetryCollectorImage, when set, runs that image as the stack's telemetry collector and points
+// the server at it with telemetry on. The collector listens on TelemetryCollectorPort and is healthy
+// before the server starts, so it receives the instance started event too. A test's own
+// SHELLHUB_TELEMETRY in Envs still wins.
+//
 // FailureLog, when set, is the file Up writes the logs of every container the stack started to when
 // the stack fails to come up, before it takes the stack down. The first write a run makes to a path
 // replaces the file, and its later writes to that path append.
 type Config struct {
-	Edition             Edition
-	Name                string
-	HTTPPort            string
-	HTTPSPort           string
-	SSHPort             string
-	Network             string
-	CloudDir            string
-	Envs                map[string]string
-	Run                 *Run
-	License             *License
-	Unlicensed          bool
-	Located             *Location
-	SuppliedCertificate *Certificate
-	ACME                bool
-	ACMEDNS             bool
-	AutoSSL             bool
-	StripeEvents        bool
-	FailureLog          string
+	Edition                 Edition
+	Name                    string
+	HTTPPort                string
+	HTTPSPort               string
+	SSHPort                 string
+	Network                 string
+	CloudDir                string
+	Envs                    map[string]string
+	Run                     *Run
+	License                 *License
+	Unlicensed              bool
+	Located                 *Location
+	SuppliedCertificate     *Certificate
+	ACME                    bool
+	ACMEDNS                 bool
+	AutoSSL                 bool
+	StripeEvents            bool
+	TelemetryCollectorImage string
+	FailureLog              string
 }
+
+// TelemetryCollectorPort is the port the collector of a stack started with
+// [Config.TelemetryCollectorImage] listens on.
+const TelemetryCollectorPort = "9877"
 
 const (
 	defaultCloudDir           = "../../cloud"
@@ -251,7 +261,18 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 
 	files = append(files, https.composeFiles...)
 
-	merged, err := mergeEnvs(build.envFiles, build.envs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, map[string]string{
+	var telemetryVars map[string]string
+	if cfg.TelemetryCollectorImage != "" {
+		files = append(files, "../docker-compose.telemetry.test.yml")
+		telemetryVars = map[string]string{
+			"SHELLHUB_TELEMETRY":                      "true",
+			"SHELLHUB_TELEMETRY_ENDPOINT":             "http://" + string(ServiceTelemetryCollector) + ":" + TelemetryCollectorPort,
+			"SHELLHUB_TEST_TELEMETRY_COLLECTOR_IMAGE": cfg.TelemetryCollectorImage,
+			"SHELLHUB_TEST_TELEMETRY_COLLECTOR_PORT":  TelemetryCollectorPort,
+		}
+	}
+
+	merged, err := mergeEnvs(build.envFiles, build.envs, licenseVars, geoIPVars, https.envs, billingEnvs, stripeEventsEnvs, telemetryVars, map[string]string{
 		"SHELLHUB_HTTP_PORT":         cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":          cfg.SSHPort,
 		"SHELLHUB_TEST_MAILPIT_PORT": mailpitPort,
@@ -333,6 +354,10 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	services := []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis}
 	if cfg.Edition != EditionCommunity {
 		services = append(services, ServiceObjectStorage)
+	}
+
+	if cfg.TelemetryCollectorImage != "" {
+		services = append(services, ServiceTelemetryCollector)
 	}
 
 	for _, svc := range services {

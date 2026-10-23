@@ -25,6 +25,7 @@ import LicenseGuard from "./components/common/LicenseGuard";
 import FeatureGate from "./components/common/FeatureGate";
 import {
   ADMIN_AUTHENTICATION_PATH,
+  ADMIN_TELEMETRY_PATH,
   ADMIN_INSTANCE_PATH,
   ADMIN_UNAUTHORIZED_PATH,
 } from "./utils/adminRoute";
@@ -109,6 +110,8 @@ const AdminAuthentication = lazy(
   () => import("./pages/admin/settings/Authentication"),
 );
 
+const AdminTelemetry = lazy(() => import("./pages/admin/settings/Telemetry"));
+
 /**
  * Every route of the console. The nesting is the order of the checks, read outside in: connectivity,
  * then setup, then authentication, then a namespace, then the layout. A page added inside a
@@ -170,6 +173,10 @@ export default function App() {
                           element={<AdminLicense />}
                         />
                       </Route>
+                      <Route
+                        path={ADMIN_TELEMETRY_PATH}
+                        element={<AdminTelemetry />}
+                      />
                       <Route element={<LicenseGuard />}>
                         <Route
                           path="/admin"

@@ -32,7 +32,7 @@ const systemCacheTTL = time.Minute
 func (s *service) systemGet(ctx context.Context) (*models.System, error) {
 	cached := new(models.System)
 	if err := s.cache.Get(ctx, cache.SystemKey, cached); err == nil &&
-		cached.Setup && cached.Authentication != nil && cached.Authentication.Local != nil {
+		cached.Setup && cached.InstanceID != "" && cached.Authentication != nil && cached.Authentication.Local != nil {
 
 		return cached, nil
 	}

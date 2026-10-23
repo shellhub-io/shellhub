@@ -14,6 +14,14 @@ type System struct {
 	Setup            bool                 `bun:"setup"`
 	InstanceTenantID string               `bun:"instance_tenant_id,nullzero,type:uuid"`
 	Authentication   SystemAuthentication `bun:"embed:authentication_"`
+	InstanceID       string               `bun:"instance_id,nullzero,type:uuid"`
+	Telemetry        SystemTelemetry      `bun:"embed:telemetry_"`
+}
+
+// SystemTelemetry is embedded into the systems row. Enabled is nullzero so an INSERT of a row
+// built without it writes the column default, on, rather than false.
+type SystemTelemetry struct {
+	Enabled bool `bun:"enabled,nullzero"`
 }
 
 // SystemAuthentication is embedded into the systems row, so the login methods are read with the
@@ -61,5 +69,7 @@ func SystemToModel(entity *System) *models.System {
 				Enabled: entity.Authentication.Local.Enabled,
 			},
 		},
+		InstanceID: entity.InstanceID,
+		Telemetry:  &models.SystemTelemetry{Enabled: entity.Telemetry.Enabled},
 	}
 }

@@ -142,6 +142,8 @@ var Groups = []Group{
 	{Name: "StatsStore", Tests: []TestFunc{
 		(*Suite).TestGetStats,
 		(*Suite).TestGetStatsOnlineBoundary,
+		(*Suite).TestInstanceUsage,
+		(*Suite).TestNamespaceUsages,
 		(*Suite).TestCountRegisteredDevices,
 	}},
 	{Name: "PrivateKeyStore", Tests: []TestFunc{

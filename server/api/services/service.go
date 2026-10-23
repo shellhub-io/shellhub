@@ -46,6 +46,9 @@ type service struct {
 	sshPort      string
 	development  bool
 	webhookCIDRs []netip.Prefix
+
+	telemetry                      TelemetrySender
+	telemetryDisabledByEnvironment bool
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -75,6 +78,7 @@ type Service interface {
 	FirewallService
 	LicenseService
 	BillingService
+	TelemetryService
 }
 
 // Option configures the service at construction. Most supply a capability the community build
@@ -178,6 +182,21 @@ func WithDevelopmentMode(development bool) Option {
 func WithEnrollmentWebhookCIDRs(prefixes []netip.Prefix) Option {
 	return func(service *APIService) {
 		service.webhookCIDRs = prefixes
+	}
+}
+
+// WithTelemetry sends the telemetry events through sender. Without it the service sends nothing.
+func WithTelemetry(sender TelemetrySender) Option {
+	return func(service *APIService) {
+		service.telemetry = sender
+	}
+}
+
+// WithTelemetryDisabledByEnvironment records that SHELLHUB_TELEMETRY turned telemetry off, which
+// overrides the administrator's setting: the service sends nothing even with a sender.
+func WithTelemetryDisabledByEnvironment() Option {
+	return func(service *APIService) {
+		service.telemetryDisabledByEnvironment = true
 	}
 }
 
