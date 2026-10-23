@@ -63,8 +63,9 @@ top. See
 [Upgrading a Legacy Namespace](/manage/access-control/migrating-from-legacy).
 
 <Callout variant="warning">
-Source addresses are resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
-balancer without that set correctly, every connection appears to come from the balancer and both
+Source addresses are resolved through `SHELLHUB_SSH_PROXY_TRUSTED_IPS` for SSH clients and
+`SHELLHUB_PROXY_TRUSTED_IPS` for the web terminal. Behind a load balancer without those set
+correctly, every connection appears to come from the balancer and both
 firewall rules and policy source IPs are matching on the wrong thing. See
 [Ports and Connectivity](/about/ports-and-connectivity).
 </Callout>

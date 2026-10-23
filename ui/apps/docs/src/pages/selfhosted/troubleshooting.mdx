@@ -68,12 +68,23 @@ SSH is not HTTP and will not survive an HTTP proxy — it needs its own path thr
 
 ## Every client appears to come from the same address
 
-You are behind a proxy or load balancer and `SHELLHUB_PROXY` is not set, or
-`SHELLHUB_PROXY_TRUSTED_IPS` does not include it.
+You are behind a proxy or load balancer and ShellHub is not reading the client address from its
+PROXY protocol header. For web traffic, `SHELLHUB_PROXY` is not set on the gateway, or
+`SHELLHUB_PROXY_TRUSTED_IPS` does not include the balancer. For SSH, the header does not reach the
+server: the balancer sends none, or decodes it itself. Enable PROXY protocol on the SSH path, pass
+the header through unread, and list the balancer in `SHELLHUB_SSH_PROXY_TRUSTED_IPS`.
 
-This is worth fixing even if it looks cosmetic: the client address is what password lockout and
-access policy source IPs are keyed on. Left wrong, a lockout on an account applies to everyone
-signing in to it.
+This is worth fixing even if it looks cosmetic: access policy source IPs, firewall rules and the
+session audit trail read the client address of SSH and web terminal sessions, and password lockout
+reads it at web sign-in. Left wrong, a lockout on an account applies to everyone signing in to it.
+
+## SSH closes before the server banner behind a load balancer
+
+The client prints `kex_exchange_identification: Connection closed by remote host`, and the server
+logs `closed an ssh connection whose PROXY protocol header came from an untrusted peer`. The
+balancer sends a PROXY protocol header from an address the SSH port does not trust. Add the IP
+from the `peer` field of that log line, without its port, or a range that contains it, to
+`SHELLHUB_SSH_PROXY_TRUSTED_IPS`.
 
 ## Configuration changes have no effect
 
