@@ -118,7 +118,7 @@ export default function SignUp() {
       <ScreenIntro
         eyebrow="Account"
         title="Create your account"
-        lead="A namespace is created with it, and your first device goes in there."
+        lead="Next you name a namespace and connect your first device to it."
       />
 
       <div className="flex flex-col gap-3 mb-6 empty:hidden">

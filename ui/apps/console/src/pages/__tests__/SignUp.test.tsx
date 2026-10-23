@@ -73,6 +73,19 @@ beforeEach(() => {
 });
 
 describe("SignUp", () => {
+  it("tells the user the namespace and first device come after the account", () => {
+    renderSignUp();
+
+    expect(
+      screen.getByText(
+        /next you name a namespace and connect your first device/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/namespace is created with it/i),
+    ).not.toBeInTheDocument();
+  });
+
   describe("successful submission", () => {
     it("navigates to confirm-account after valid submission", async () => {
       const user = userEvent.setup();
