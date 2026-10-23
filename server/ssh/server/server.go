@@ -230,10 +230,11 @@ func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *we
 
 			return wrapped
 		},
-		ServerConfigCallback: newServerConfigCallback,
-		BannerHandler:        newBannerHandler(dialer, service, handoff, sessions, opts.Edition, opts.clock()),
-		PasswordHandler:      auth.PasswordHandler,
-		PublicKeyHandler:     auth.PublicKeyOffer,
+		ConnectionFailedCallback: logRejectedProxyHeader,
+		ServerConfigCallback:     newServerConfigCallback,
+		BannerHandler:            newBannerHandler(dialer, service, handoff, sessions, opts.Edition, opts.clock()),
+		PasswordHandler:          auth.PasswordHandler,
+		PublicKeyHandler:         auth.PublicKeyOffer,
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
 			channels.SessionChannel:     recoverChannel(channels.SessionChannel, channels.DefaultSessionHandler()),
 			channels.DirectTCPIPChannel: recoverChannel(channels.DirectTCPIPChannel, channels.DefaultDirectTCPIPHandler),
@@ -289,6 +290,13 @@ func newProxyListener(lis net.Listener, policy proxyproto.ConnPolicyFunc) *proxy
 	return &proxyproto.Listener{ //nolint:exhaustruct
 		Listener:   lis,
 		ConnPolicy: policy,
+	}
+}
+
+func logRejectedProxyHeader(conn net.Conn, err error) {
+	if errors.Is(err, proxyproto.ErrSuperfluousProxyHeader) {
+		log.WithField("peer", conn.RemoteAddr().String()).
+			Warn("closed an ssh connection whose PROXY protocol header came from an untrusted peer")
 	}
 }
 
