@@ -71,9 +71,10 @@ grants on its own, and it is not a substitute for a subject.
 An unparsable CIDR or client address causes a **deny** to fail closed.
 
 <Callout variant="warning">
-The client address is resolved through `SHELLHUB_PROXY_TRUSTED_IPS`. Behind a load
-balancer without that configured correctly, every connection appears to come from the balancer
-and source IP restrictions are meaningless. See
+The client address is resolved through `SHELLHUB_SSH_PROXY_TRUSTED_IPS` for SSH and
+`SHELLHUB_PROXY_TRUSTED_IPS` for the web. Behind a load balancer without those configured
+correctly, every connection appears to come from the balancer and source IP restrictions are
+meaningless. See
 [Ports and Connectivity](/about/ports-and-connectivity).
 </Callout>
 

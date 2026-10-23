@@ -22,7 +22,7 @@ whether or not the *contents* were recorded.
 | Which device | The device they reached |
 | Which unix login | The user they connected as |
 | When | Start, and end for a closed session |
-| From where | The client address, resolved through `SHELLHUB_PROXY_TRUSTED_IPS` |
+| From where | The client address, resolved through `SHELLHUB_SSH_PROXY_TRUSTED_IPS` for SSH clients and `SHELLHUB_PROXY_TRUSTED_IPS` for the web terminal |
 
 That "who" is the payoff of the identity model. In a legacy namespace the record could only name the
 key that was used; here it names the principal the key belongs to. See

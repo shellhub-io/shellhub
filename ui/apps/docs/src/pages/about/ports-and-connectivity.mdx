@@ -54,19 +54,26 @@ ShellHub, the SSH port needs its own path — it is not HTTP and it will not sur
 
 ## Behind a load balancer
 
-If a Layer 4 load balancer sits in front of the server, set `SHELLHUB_PROXY=true` so ShellHub
-reads the client address from the PROXY protocol header rather than seeing the balancer's.
+A Layer 4 load balancer can pass the client address in a PROXY protocol header. The gateway and
+the SSH port read that header under separate settings.
 
-`SHELLHUB_PROXY_TRUSTED_IPS` decides which peers are allowed to declare a client address. It
-defaults to `0.0.0.0/0 ::/0`, which trusts everyone — fine when nothing but your balancer can
-reach the port, and wrong if that is not true.
+For web traffic, set `SHELLHUB_PROXY=true` on the gateway. `SHELLHUB_PROXY_TRUSTED_IPS` decides
+which peers are allowed to declare a client address. It defaults to `0.0.0.0/0 ::/0`, which
+trusts everyone. That is fine when nothing but your balancer can reach the port, and wrong if
+that is not true.
 
-This matters beyond cosmetics: the client address is what password lockout and any source-IP
-restriction in an access policy are keyed on. Get it wrong and both are operating on the
-balancer's address.
+For SSH, set `SHELLHUB_SSH_PROXY_TRUSTED_IPS` to the space-separated ranges the header arrives
+from, such as your balancer's or your ingress pods'. The SSH port always trusts loopback and
+nothing else by default. It closes a connection whose header comes from any other peer, and logs
+a warning with that peer's address. Under Docker Compose, do not list the Docker bridge range:
+every external client appears to come from it.
+
+This matters beyond cosmetics: access policy source IPs, firewall rules and the session audit trail
+read the client address of SSH and web terminal sessions, and password lockout reads it at web
+sign-in. Get it wrong and all of them operate on the balancer's address.
 
 If you terminate TLS at a reverse proxy that speaks HTTP — nginx, Caddy, Traefik — you do not
-need this flag.
+need `SHELLHUB_PROXY`.
 
 ## TLS
 

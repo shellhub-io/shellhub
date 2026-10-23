@@ -81,9 +81,9 @@ removes the ambiguity. See [SSH Client Configuration](/connect/ssh-clients).
 A policy with a source IP list only matches connections from those ranges. Connecting from
 somewhere new — home instead of the office, a different VPN — silently stops matching.
 
-On a self-hosted server behind a load balancer, check `SHELLHUB_PROXY` and
-`SHELLHUB_PROXY_TRUSTED_IPS`. Set wrong, every connection appears to come from the balancer and
-source IP matching is operating on the wrong address entirely. See
+On a self-hosted server behind a load balancer, check `SHELLHUB_SSH_PROXY_TRUSTED_IPS` for SSH
+clients and `SHELLHUB_PROXY_TRUSTED_IPS` for the web terminal. Set wrong, every connection appears
+to come from the balancer and source IP matching is operating on the wrong address entirely. See
 [Ports and Connectivity](/about/ports-and-connectivity).
 
 ## The namespace has no policies at all
