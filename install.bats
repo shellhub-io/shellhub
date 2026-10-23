@@ -77,9 +77,7 @@ fake_agent_binary() {
 }
 
 enter_wsl() {
-    echo "Linux version 5.15.0-microsoft-standard-WSL2 Microsoft" > "$PROC_VERSION"
-    stub_bin find 'echo "$STUB_DIR/wsl.exe"'
-    stub_bin wsl.exe "echo \"WSL version: ${1:-2.0.0.0}\""
+    echo "Linux version ${1:-5.15.167.4-microsoft-standard-WSL2} (Microsoft@Microsoft.com) #1 SMP" > "$PROC_VERSION"
 }
 
 serve_release() {
@@ -1483,13 +1481,25 @@ esac"
     assert_called "agent install --server-address=$SERVER_ADDRESS"
 }
 
-@test "detection aborts when WSL is older than version 2" {
-    enter_wsl 1.2.5.0
+@test "detection aborts on WSL 1" {
+    enter_wsl 4.4.0-19041-Microsoft
 
     run_install
 
     [ "$status" -eq 1 ]
     assert_output_contains "WSL version 2 is required"
+}
+
+@test "detection treats a WSL 2 custom kernel as WSL 2" {
+    enter_wsl 6.1.0-custom-WSL2
+    stub_bin systemctl 'exit 0'
+    stub_bin wslinfo 'echo mirrored'
+    fake_agent_binary
+
+    run_install
+
+    [ "$status" -eq 0 ]
+    assert_output_contains "Installing ShellHub using WSL method"
 }
 
 @test "detection aborts on WSL with a distro other than Ubuntu" {

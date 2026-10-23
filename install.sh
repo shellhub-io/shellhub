@@ -812,13 +812,12 @@ detect_install_method() {
   if grep -qi Microsoft "${PROC_VERSION:-/proc/version}"; then
     echo "🔍 Detected WSL environment..."
 
-    WSL_EXE=$(find /mnt/*/Windows/System32/wsl.exe 2>/dev/null | head -n 1)
-    WSL_VERSION=$($WSL_EXE -v | tr -d '\0' | grep "WSL version" | awk -F'[ .:]+' '{print $3}')
-
-    if [ -z "$WSL_VERSION" ] || [ "$WSL_VERSION" -lt 2 ]; then
+    case "$(awk '{ print $3 }' "${PROC_VERSION:-/proc/version}")" in
+    4.4.0-*-Microsoft|3.4.0-Microsoft)
       echo "❌ ERROR: WSL version 2 is required to run ShellHub."
       exit 1
-    fi
+      ;;
+    esac
 
     if grep -qi 'NAME="Ubuntu"' "${OS_RELEASE:-/etc/os-release}"; then
       INSTALL_METHOD="wsl"
