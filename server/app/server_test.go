@@ -92,33 +92,6 @@ func (s *stubLicenseEvaluator) CanConnectDevice(_ context.Context) (bool, error)
 	return true, nil
 }
 
-func TestInstanceIssuer(t *testing.T) {
-	cases := []struct {
-		description string
-		env         *Env
-		expected    string
-	}{
-		{
-			description: "derives http from the domain when the gateway serves plain HTTP",
-			env:         &Env{Domain: "localhost"},
-			expected:    "http://localhost",
-		},
-		{
-			description: "derives https from the domain when the gateway terminates TLS",
-			env:         &Env{Domain: "shellhub.example.com", AutoSSL: true},
-			expected:    "https://shellhub.example.com",
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			s := &Server{env: tc.env}
-
-			assert.Equal(t, tc.expected, s.instanceIssuer())
-		})
-	}
-}
-
 func TestTunnelPingInterval(t *testing.T) {
 	parse := func(values map[string]string) (*sshEnv, error) {
 		return envs.ParseWithPrefix[sshEnv](envs.Map(values), "SSH_")

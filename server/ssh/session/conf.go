@@ -8,13 +8,9 @@ type Config struct {
 	// less than 0.6.0. Agents 0.5.x or earlier do not validate the public key request and may panic.
 	AllowPublickeyAccessBelow060 bool
 
-	// Domain is the instance's base domain, used to build the browser approval URL
-	// shown in the terminal when a namespace requires SSH login approval.
-	Domain string
-
-	// AutoSSL reports whether the instance serves the console over HTTPS; it
-	// selects the scheme of the approval URL.
-	AutoSSL bool
+	// ConsoleURL is the URL users reach the console at, with no trailing slash, which the browser
+	// approval links shown in the terminal start with.
+	ConsoleURL string
 
 	// ConnectTimeout bounds the SSH handshake against the agent. Zero leaves it
 	// unbounded.
@@ -23,8 +19,7 @@ type Config struct {
 
 var sshconf = &Config{
 	AllowPublickeyAccessBelow060: false,
-	Domain:                       "localhost",
-	AutoSSL:                      false,
+	ConsoleURL:                   "http://localhost",
 	ConnectTimeout:               0,
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/publicurl"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
@@ -70,12 +71,12 @@ type Env struct {
 	// Metrics enables the /metrics endpoint.
 	Metrics bool `env:"METRICS,default=false"`
 
-	// Domain is the instance's base domain, used to build the browser approval
-	// URL shown in the terminal when a namespace requires SSH login approval.
+	// Domain is the instance's base domain, from which the public URL is built. A scheme it
+	// carries is kept.
 	Domain string `env:"SHELLHUB_DOMAIN,default=localhost"`
 
-	// AutoSSL reports whether the console is served over HTTPS; it selects the
-	// scheme of that approval URL.
+	// AutoSSL reports whether the bundled gateway serves the console over HTTPS; it selects the
+	// public URL's scheme when Domain carries none.
 	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
 
 	// SessionRetentionDays is how long a session and its events are kept after the session
@@ -191,6 +192,7 @@ type Server struct {
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
 	clock       clock.Clock
+	publicURL   string
 }
 
 const (
@@ -211,6 +213,13 @@ func (s *Server) Setup(ctx context.Context) error {
 	log.Info("Setting up server components")
 
 	s.clock = clock.New()
+
+	publicURL, err := publicurl.Resolve(s.env.Domain, s.env.AutoSSL)
+	if err != nil {
+		return err
+	}
+
+	s.publicURL = publicURL.String()
 
 	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize, s.env.Cache, s.clock)
 	if err != nil {
@@ -299,7 +308,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	servicesOptions = append(servicesOptions,
-		services.WithIssuer(s.instanceIssuer()),
+		services.WithIssuer(s.publicURL),
 		services.WithEdition(s.env.Edition),
 		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
 		services.WithDevelopmentMode(s.env.Development()),
@@ -408,7 +417,7 @@ func (s *Server) setupSSH(service services.Service) error {
 
 	handoff := webhandoff.NewStore()
 
-	config := &web.Config{HostKeyFile: env.HostKeyFile, Issuer: s.instanceIssuer()}
+	config := &web.Config{HostKeyFile: env.HostKeyFile, Issuer: s.publicURL}
 	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, config); err != nil {
 		return err
 	}
@@ -424,8 +433,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		ConnectTimeout:               env.ConnectTimeout,
 		AllowPublickeyAccessBelow060: env.AllowPublickeyAccessBelow060,
 		HostKeyFile:                  env.HostKeyFile,
-		Domain:                       s.env.Domain,
-		AutoSSL:                      s.env.AutoSSL,
+		ConsoleURL:                   s.publicURL,
 		Edition:                      s.env.Edition,
 		Clock:                        s.clock,
 	})
@@ -643,8 +651,4 @@ func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
 	}
 
 	return opts, nil
-}
-
-func (s *Server) instanceIssuer() string {
-	return session.ConsoleURL(s.env.Domain, s.env.AutoSSL, "")
 }
