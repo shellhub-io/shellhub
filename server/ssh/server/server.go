@@ -285,10 +285,10 @@ func recoverChannel(name string, next gliderssh.ChannelHandler) gliderssh.Channe
 
 var loopbackProxyPolicy = proxyproto.MustPolicyFromRanges([]string{"127.0.0.0/8", "::1/128"}, proxyproto.USE, proxyproto.REJECT)
 
-func newProxyListener(lis net.Listener) *proxyproto.Listener {
+func newProxyListener(lis net.Listener, policy proxyproto.ConnPolicyFunc) *proxyproto.Listener {
 	return &proxyproto.Listener{ //nolint:exhaustruct
 		Listener:   lis,
-		ConnPolicy: loopbackProxyPolicy,
+		ConnPolicy: policy,
 	}
 }
 
@@ -312,7 +312,7 @@ func (s *Server) ListenAndServe() error {
 		return err
 	}
 
-	proxy := newProxyListener(list)
+	proxy := newProxyListener(list, loopbackProxyPolicy)
 	defer proxy.Close() //nolint:errcheck
 
 	return s.sshd.Serve(proxy)
