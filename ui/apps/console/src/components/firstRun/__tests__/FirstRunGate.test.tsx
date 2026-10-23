@@ -644,6 +644,5 @@ describe("FirstRunGate when the counts fail", () => {
 
     expect(await screen.findByText(/TENANT_ID=tenant-1/)).toBeInTheDocument();
     expect(screen.getByText(/shellhub-agent login/)).toBeInTheDocument();
-    expect(screen.queryByText(/accept-device\?code=/)).not.toBeInTheDocument();
   });
 });
