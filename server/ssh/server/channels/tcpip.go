@@ -91,6 +91,12 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 	go gossh.DiscardRequests(reqs)
 
+	if seat, err := sess.NewSeat(); err != nil {
+		logger.WithError(err).Warn("failed to take a seat to record the port forward")
+	} else {
+		sess.Event(DirectTCPIPChannel, data, seat)
+	}
+
 	logger.Info("piping data between client and agent")
 
 	wg := new(sync.WaitGroup)
