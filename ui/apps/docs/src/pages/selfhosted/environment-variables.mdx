@@ -56,6 +56,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 |---|---|---|
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
 | `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
+| `SHELLHUB_SSH_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs allowed to send a PROXY protocol header to the SSH port, besides loopback |
 | `SHELLHUB_PUBLIC_URL` | built from `SHELLHUB_DOMAIN` and `SHELLHUB_AUTO_SSL` | URL users reach ShellHub at, such as `https://shellhub.example.com`. An `http` or `https` origin with no path |
 | `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
 
@@ -64,8 +65,17 @@ URLs it sends an identity provider, from `SHELLHUB_DOMAIN`, with `https://` only
 `SHELLHUB_AUTO_SSL=true`. When TLS ends at an ingress or load balancer in front of the gateway, set
 `SHELLHUB_PUBLIC_URL` so those links use `https://` without the gateway requesting certificates.
 
-`SHELLHUB_PROXY_TRUSTED_IPS` is what password lockout and access policy source IPs are keyed on. The
-default trusts everyone, which is fine only if nothing but your balancer can reach the port.
+`SHELLHUB_PROXY` and `SHELLHUB_PROXY_TRUSTED_IPS` apply to the gateway, which serves HTTP and
+HTTPS. `SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in and of web terminal
+sessions, so their lockout, firewall rules and access policy source IPs depend on it. The default
+trusts everyone, which is fine only if nothing but your balancer can reach the port.
+
+The SSH port reads only `SHELLHUB_SSH_PROXY_TRUSTED_IPS`, which decides the client address of SSH
+clients that connect to it. It closes a connection whose PROXY header comes from a peer outside
+those ranges and loopback, and logs a warning with that peer's
+address. List your balancer's range. Under Docker Compose, do not list the Docker bridge range:
+the userland proxy makes every external client appear to come from it, so any client could forge
+its address.
 
 A NAT, load balancer or proxy that drops idle connections in under 30 seconds closes device tunnels
 between two pings. Set `SHELLHUB_TUNNEL_PING_INTERVAL` below its idle timeout. Each answered ping

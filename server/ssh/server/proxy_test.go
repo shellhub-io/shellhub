@@ -40,7 +40,7 @@ func nonLoopbackIPv4(t *testing.T) net.IP {
 	return nil
 }
 
-func newTestServer(t *testing.T) *Server {
+func newTestServer(t *testing.T, trusted []string) *Server {
 	t.Helper()
 
 	_, key, err := ed25519.GenerateKey(rand.Reader)
@@ -52,7 +52,7 @@ func newTestServer(t *testing.T) *Server {
 	path := filepath.Join(t.TempDir(), "ssh.key")
 	require.NoError(t, os.WriteFile(path, pem.EncodeToMemory(block), 0o600))
 
-	srv, err := NewServer(nil, nil, nil, session.NewRegistry(), &Options{HostKeyFile: path}) //nolint:exhaustruct // the listener needs only a host key
+	srv, err := NewServer(nil, nil, nil, session.NewRegistry(), &Options{HostKeyFile: path, ProxyTrustedIPs: trusted}) //nolint:exhaustruct // the listener needs only a host key and its trusted ranges
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = srv.Close() })
 
@@ -96,9 +96,9 @@ func TestProxyHeaderFromUntrustedPeerIsRefusedAndLogged(t *testing.T) {
 	hook := test.NewGlobal()
 	t.Cleanup(hook.Reset)
 
-	srv := newTestServer(t)
+	srv := newTestServer(t, nil)
 	lis := listenOn(t, ip)
-	go func() { _ = srv.sshd.Serve(newProxyListener(lis, loopbackProxyPolicy)) }()
+	go func() { _ = srv.sshd.Serve(newProxyListener(lis, srv.proxy)) }()
 
 	conn := dialWithForgedHeader(t, lis.Addr().String(), ip)
 
@@ -117,4 +117,28 @@ func TestProxyHeaderFromUntrustedPeerIsRefusedAndLogged(t *testing.T) {
 
 		assert.True(tt, warned, "no warning names the peer %s", ip)
 	}, 5*time.Second, 50*time.Millisecond)
+}
+
+func TestProxyHeaderFromTrustedPeerSetsClientAddress(t *testing.T) {
+	ip := nonLoopbackIPv4(t)
+
+	srv := newTestServer(t, []string{ip.String() + "/32"})
+	lis := newProxyListener(listenOn(t, ip), srv.proxy)
+
+	client := make(chan string, 1)
+	go func() {
+		conn, err := lis.Accept()
+		if err != nil {
+			client <- err.Error()
+
+			return
+		}
+		defer conn.Close() //nolint:errcheck // the test reads only the address
+
+		client <- conn.RemoteAddr().String()
+	}()
+
+	dialWithForgedHeader(t, lis.Addr().String(), ip)
+
+	assert.Equal(t, forgedClient, <-client)
 }

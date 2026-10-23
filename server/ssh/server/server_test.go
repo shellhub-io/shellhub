@@ -169,32 +169,53 @@ func TestBannerHandlerRecoversFromPanic(t *testing.T) {
 		"BannerHandler must recover from a panic and fail only the connection")
 }
 
-func TestLoopbackProxyPolicy(t *testing.T) {
+func TestProxyPolicy(t *testing.T) {
+	loopback := &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4444, Zone: ""}
+	loopback6 := &net.TCPAddr{IP: net.IPv6loopback, Port: 4444, Zone: ""}
+	balancer := &net.TCPAddr{IP: net.IPv4(10, 2, 3, 4), Port: 4444, Zone: ""}
+	public := &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}
+	bridge := &net.TCPAddr{IP: net.IPv4(172, 18, 0, 1), Port: 4444, Zone: ""}
+
 	cases := []struct {
 		name     string
+		trusted  []string
 		upstream net.Addr
 		want     proxyproto.Policy
 	}{
-		{"ipv4 loopback", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 4444, Zone: ""}, proxyproto.USE},
-		{"ipv6 loopback", &net.TCPAddr{IP: net.IPv6loopback, Port: 4444, Zone: ""}, proxyproto.USE},
-		{"public peer", &net.TCPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 4444, Zone: ""}, proxyproto.REJECT},
-		{"docker bridge peer", &net.TCPAddr{IP: net.IPv4(172, 18, 0, 1), Port: 4444, Zone: ""}, proxyproto.REJECT},
+		{"ipv4 loopback by default", nil, loopback, proxyproto.USE},
+		{"ipv6 loopback by default", nil, loopback6, proxyproto.USE},
+		{"public peer by default", nil, public, proxyproto.REJECT},
+		{"docker bridge peer by default", nil, bridge, proxyproto.REJECT},
+		{"peer inside a trusted range", []string{"10.0.0.0/8"}, balancer, proxyproto.USE},
+		{"peer outside every trusted range", []string{"10.0.0.0/8"}, public, proxyproto.REJECT},
+		{"loopback alongside a trusted range", []string{"10.0.0.0/8"}, loopback, proxyproto.USE},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := loopbackProxyPolicy(proxyproto.ConnPolicyOptions{Upstream: tc.upstream}) //nolint:exhaustruct
+			policy, err := newProxyPolicy(tc.trusted)
+			require.NoError(t, err)
+
+			got, err := policy(proxyproto.ConnPolicyOptions{Upstream: tc.upstream}) //nolint:exhaustruct
 			require.NoError(t, err)
 			assert.Equal(t, tc.want, got)
 		})
 	}
 }
 
+func TestNewServerRejectsMalformedProxyTrustedRange(t *testing.T) {
+	_, err := NewServer(nil, nil, nil, session.NewRegistry(), &Options{ProxyTrustedIPs: []string{"10.0.0.0/33"}}) //nolint:exhaustruct // the range is checked before any other option is read
+	assert.ErrorContains(t, err, "invalid ssh proxy trusted ips")
+}
+
 func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	raw, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	proxy := newProxyListener(raw, loopbackProxyPolicy)
+	policy, err := newProxyPolicy(nil)
+	require.NoError(t, err)
+
+	proxy := newProxyListener(raw, policy)
 	defer proxy.Close() //nolint:errcheck
 
 	deadline := time.Now().Add(5 * time.Second) //nolint:forbidigo // a deadline
