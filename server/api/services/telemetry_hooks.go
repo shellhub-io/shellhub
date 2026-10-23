@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/telemetry"
@@ -39,4 +40,37 @@ func fireTelemetryHeartbeat(ctx context.Context, since time.Time) ([]telemetry.E
 	}
 
 	return events, nil
+}
+
+// TelemetryInstancePropertiesHookFn returns extra properties for the instance heartbeat, counting
+// from since. A name the core heartbeat already sends is ignored, so a hook cannot change one. An
+// error fails the whole heartbeat, so nothing is sent.
+type TelemetryInstancePropertiesHookFn func(ctx context.Context, since time.Time) (map[string]any, error)
+
+var telemetryInstancePropertiesHooks []TelemetryInstancePropertiesHookFn
+
+// OnTelemetryInstanceProperties registers a hook that adds properties to the instance heartbeat
+// and to its preview. It must be called during package init, before the server starts, and
+// panics when fn is nil. Enterprise and Cloud use it to count the features only they store.
+func OnTelemetryInstanceProperties(fn TelemetryInstancePropertiesHookFn) {
+	if fn == nil {
+		panic("services: OnTelemetryInstanceProperties called with nil hook")
+	}
+
+	telemetryInstancePropertiesHooks = append(telemetryInstancePropertiesHooks, fn)
+}
+
+func fireTelemetryInstanceProperties(ctx context.Context, since time.Time) (map[string]any, error) {
+	properties := map[string]any{}
+
+	for _, fn := range telemetryInstancePropertiesHooks {
+		hooked, err := fn(ctx, since)
+		if err != nil {
+			return nil, fmt.Errorf("telemetry instance properties hook failed: %w", err)
+		}
+
+		maps.Copy(properties, hooked)
+	}
+
+	return properties, nil
 }

@@ -22,9 +22,12 @@ type StatsStore interface {
 	// pays for all five.
 	CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int64, error)
 
-	// InstanceUsage counts the namespaces, users and devices of the whole instance, and the
-	// sessions started at or after since. It returns ctx's error when it is cancelled or its
-	// deadline passes, and [ErrInternal] for any other failure.
+	// InstanceUsage counts the namespaces, users and devices of the whole instance, and breaks
+	// them down into session kinds and activity, namespace and device kinds, access grants and
+	// authentication. The sessions with their kinds and activity, the enrollment attempts and the
+	// active users are counted at or after since; the open sessions and every other count describe
+	// the instance as it is now. It returns ctx's error
+	// when it is cancelled or its deadline passes, and [ErrInternal] for any other failure.
 	InstanceUsage(ctx context.Context, since time.Time) (*models.InstanceUsage, error)
 
 	// NamespaceUsages counts, for every namespace, its members and devices and the sessions
