@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,7 +87,8 @@ func setupOwnershipE2E(t *testing.T) *ownershipE2E {
 	t.Helper()
 
 	e := setupEnrollmentE2E(t)
-	e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
+	e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache(), WithClock(e.clock),
+		WithEnrollmentWebhookCIDRs(webhook.ParseCIDRs("127.0.0.0/8,::1/128")))
 	e.provisioningKey(t, digest(teamKey), "team", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
 	ns, err := e.st.NamespaceResolve(context.Background(), store.NamespaceTenantIDResolver, e.tenantID)

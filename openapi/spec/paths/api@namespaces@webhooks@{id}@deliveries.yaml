@@ -1,0 +1,39 @@
+get:
+  operationId: webhookDeliveryList
+  summary: List a webhook's deliveries
+  description: |
+    Lists the webhook's deliveries, newest first, with the outcome of each one's last
+    attempt. Delivered and failed deliveries are kept for 7 days.
+  tags:
+    - webhooks
+    - community
+    - namespaces
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/path/webhookIDPath.yaml
+    - $ref: ../components/parameters/query/pageQuery.yaml
+    - $ref: ../components/parameters/query/perPageQuery.yaml
+  responses:
+    '200':
+      description: Success.
+      headers:
+        X-Total-Count:
+          $ref: ../components/headers/XTotalCount.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/webhookDelivery.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

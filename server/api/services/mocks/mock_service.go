@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -2248,6 +2249,74 @@ func (_c *MockService_CreateUserToken_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// CreateWebhook provides a mock function for the type MockService
+func (_mock *MockService) CreateWebhook(ctx context.Context, req *requests.CreateWebhook) (*responses.CreateWebhook, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateWebhook")
+	}
+
+	var r0 *responses.CreateWebhook
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateWebhook) (*responses.CreateWebhook, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateWebhook) *responses.CreateWebhook); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*responses.CreateWebhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateWebhook) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_CreateWebhook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWebhook'
+type MockService_CreateWebhook_Call struct {
+	*mock.Call
+}
+
+// CreateWebhook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.CreateWebhook
+func (_e *MockService_Expecter) CreateWebhook(ctx any, req any) *MockService_CreateWebhook_Call {
+	return &MockService_CreateWebhook_Call{Call: _e.mock.On("CreateWebhook", ctx, req)}
+}
+
+func (_c *MockService_CreateWebhook_Call) Run(run func(ctx context.Context, req *requests.CreateWebhook)) *MockService_CreateWebhook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.CreateWebhook
+		if args[1] != nil {
+			arg1 = args[1].(*requests.CreateWebhook)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CreateWebhook_Call) Return(createWebhook *responses.CreateWebhook, err error) *MockService_CreateWebhook_Call {
+	_c.Call.Return(createWebhook, err)
+	return _c
+}
+
+func (_c *MockService_CreateWebhook_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateWebhook) (*responses.CreateWebhook, error)) *MockService_CreateWebhook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeactivateSession provides a mock function for the type MockService
 func (_mock *MockService) DeactivateSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
 	ret := _mock.Called(ctx, sc, uid)
@@ -2832,6 +2901,109 @@ func (_c *MockService_DeleteTag_Call) Return(err error) *MockService_DeleteTag_C
 }
 
 func (_c *MockService_DeleteTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.DeleteTag) error) *MockService_DeleteTag_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteWebhook provides a mock function for the type MockService
+func (_mock *MockService) DeleteWebhook(ctx context.Context, req *requests.WebhookID) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteWebhook")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebhookID) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteWebhook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteWebhook'
+type MockService_DeleteWebhook_Call struct {
+	*mock.Call
+}
+
+// DeleteWebhook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.WebhookID
+func (_e *MockService_Expecter) DeleteWebhook(ctx any, req any) *MockService_DeleteWebhook_Call {
+	return &MockService_DeleteWebhook_Call{Call: _e.mock.On("DeleteWebhook", ctx, req)}
+}
+
+func (_c *MockService_DeleteWebhook_Call) Run(run func(ctx context.Context, req *requests.WebhookID)) *MockService_DeleteWebhook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.WebhookID
+		if args[1] != nil {
+			arg1 = args[1].(*requests.WebhookID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteWebhook_Call) Return(err error) *MockService_DeleteWebhook_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteWebhook_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebhookID) error) *MockService_DeleteWebhook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeliverWebhooks provides a mock function for the type MockService
+func (_mock *MockService) DeliverWebhooks() worker.TaskHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeliverWebhooks")
+	}
+
+	var r0 worker.TaskHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.TaskHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.TaskHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_DeliverWebhooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeliverWebhooks'
+type MockService_DeliverWebhooks_Call struct {
+	*mock.Call
+}
+
+// DeliverWebhooks is a helper method to define mock.On call
+func (_e *MockService_Expecter) DeliverWebhooks() *MockService_DeliverWebhooks_Call {
+	return &MockService_DeliverWebhooks_Call{Call: _e.mock.On("DeliverWebhooks")}
+}
+
+func (_c *MockService_DeliverWebhooks_Call) Run(run func()) *MockService_DeliverWebhooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_DeliverWebhooks_Call) Return(taskHandler worker.TaskHandler) *MockService_DeliverWebhooks_Call {
+	_c.Call.Return(taskHandler)
+	return _c
+}
+
+func (_c *MockService_DeliverWebhooks_Call) RunAndReturn(run func() worker.TaskHandler) *MockService_DeliverWebhooks_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4255,6 +4427,74 @@ func (_c *MockService_GetUserAdmin_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// GetWebhook provides a mock function for the type MockService
+func (_mock *MockService) GetWebhook(ctx context.Context, req *requests.WebhookID) (*models.Webhook, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWebhook")
+	}
+
+	var r0 *models.Webhook
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebhookID) (*models.Webhook, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebhookID) *models.Webhook); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Webhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.WebhookID) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_GetWebhook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWebhook'
+type MockService_GetWebhook_Call struct {
+	*mock.Call
+}
+
+// GetWebhook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.WebhookID
+func (_e *MockService_Expecter) GetWebhook(ctx any, req any) *MockService_GetWebhook_Call {
+	return &MockService_GetWebhook_Call{Call: _e.mock.On("GetWebhook", ctx, req)}
+}
+
+func (_c *MockService_GetWebhook_Call) Run(run func(ctx context.Context, req *requests.WebhookID)) *MockService_GetWebhook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.WebhookID
+		if args[1] != nil {
+			arg1 = args[1].(*requests.WebhookID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetWebhook_Call) Return(webhook *models.Webhook, err error) *MockService_GetWebhook_Call {
+	_c.Call.Return(webhook, err)
+	return _c
+}
+
+func (_c *MockService_GetWebhook_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebhookID) (*models.Webhook, error)) *MockService_GetWebhook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // KeepAliveSession provides a mock function for the type MockService
 func (_mock *MockService) KeepAliveSession(ctx context.Context, sc scope.Scope, uid models.UID) error {
 	ret := _mock.Called(ctx, sc, uid)
@@ -5412,6 +5652,154 @@ func (_c *MockService_ListTenantRegistrations_Call) Return(events []models.Provi
 }
 
 func (_c *MockService_ListTenantRegistrations_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error)) *MockService_ListTenantRegistrations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListWebhookDeliveries provides a mock function for the type MockService
+func (_mock *MockService) ListWebhookDeliveries(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListWebhookDeliveries")
+	}
+
+	var r0 []models.WebhookDelivery
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhookDeliveries) []models.WebhookDelivery); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.WebhookDelivery)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListWebhookDeliveries) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListWebhookDeliveries) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListWebhookDeliveries_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListWebhookDeliveries'
+type MockService_ListWebhookDeliveries_Call struct {
+	*mock.Call
+}
+
+// ListWebhookDeliveries is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListWebhookDeliveries
+func (_e *MockService_Expecter) ListWebhookDeliveries(ctx any, req any) *MockService_ListWebhookDeliveries_Call {
+	return &MockService_ListWebhookDeliveries_Call{Call: _e.mock.On("ListWebhookDeliveries", ctx, req)}
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) Run(run func(ctx context.Context, req *requests.ListWebhookDeliveries)) *MockService_ListWebhookDeliveries_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListWebhookDeliveries
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListWebhookDeliveries)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) Return(webhookDeliverys []models.WebhookDelivery, n int64, err error) *MockService_ListWebhookDeliveries_Call {
+	_c.Call.Return(webhookDeliverys, n, err)
+	return _c
+}
+
+func (_c *MockService_ListWebhookDeliveries_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListWebhookDeliveries) ([]models.WebhookDelivery, int64, error)) *MockService_ListWebhookDeliveries_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListWebhooks provides a mock function for the type MockService
+func (_mock *MockService) ListWebhooks(ctx context.Context, req *requests.ListWebhooks) ([]models.Webhook, int64, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListWebhooks")
+	}
+
+	var r0 []models.Webhook
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhooks) ([]models.Webhook, int64, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.ListWebhooks) []models.Webhook); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Webhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.ListWebhooks) int64); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.ListWebhooks) error); ok {
+		r2 = returnFunc(ctx, req)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListWebhooks_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListWebhooks'
+type MockService_ListWebhooks_Call struct {
+	*mock.Call
+}
+
+// ListWebhooks is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.ListWebhooks
+func (_e *MockService_Expecter) ListWebhooks(ctx any, req any) *MockService_ListWebhooks_Call {
+	return &MockService_ListWebhooks_Call{Call: _e.mock.On("ListWebhooks", ctx, req)}
+}
+
+func (_c *MockService_ListWebhooks_Call) Run(run func(ctx context.Context, req *requests.ListWebhooks)) *MockService_ListWebhooks_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.ListWebhooks
+		if args[1] != nil {
+			arg1 = args[1].(*requests.ListWebhooks)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListWebhooks_Call) Return(webhooks []models.Webhook, n int64, err error) *MockService_ListWebhooks_Call {
+	_c.Call.Return(webhooks, n, err)
+	return _c
+}
+
+func (_c *MockService_ListWebhooks_Call) RunAndReturn(run func(ctx context.Context, req *requests.ListWebhooks) ([]models.Webhook, int64, error)) *MockService_ListWebhooks_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6826,6 +7214,72 @@ func (_c *MockService_RevealProvisioningKey_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// RevealWebhookSecret provides a mock function for the type MockService
+func (_mock *MockService) RevealWebhookSecret(ctx context.Context, req *requests.WebhookID) (string, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RevealWebhookSecret")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebhookID) (string, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.WebhookID) string); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.WebhookID) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_RevealWebhookSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RevealWebhookSecret'
+type MockService_RevealWebhookSecret_Call struct {
+	*mock.Call
+}
+
+// RevealWebhookSecret is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.WebhookID
+func (_e *MockService_Expecter) RevealWebhookSecret(ctx any, req any) *MockService_RevealWebhookSecret_Call {
+	return &MockService_RevealWebhookSecret_Call{Call: _e.mock.On("RevealWebhookSecret", ctx, req)}
+}
+
+func (_c *MockService_RevealWebhookSecret_Call) Run(run func(ctx context.Context, req *requests.WebhookID)) *MockService_RevealWebhookSecret_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.WebhookID
+		if args[1] != nil {
+			arg1 = args[1].(*requests.WebhookID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RevealWebhookSecret_Call) Return(s string, err error) *MockService_RevealWebhookSecret_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockService_RevealWebhookSecret_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebhookID) (string, error)) *MockService_RevealWebhookSecret_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RevokeUserTokens provides a mock function for the type MockService
 func (_mock *MockService) RevokeUserTokens(ctx context.Context, userID string) error {
 	ret := _mock.Called(ctx, userID)
@@ -7816,6 +8270,74 @@ func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context
 	return _c
 }
 
+// UpdateWebhook provides a mock function for the type MockService
+func (_mock *MockService) UpdateWebhook(ctx context.Context, req *requests.UpdateWebhook) (*models.Webhook, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateWebhook")
+	}
+
+	var r0 *models.Webhook
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateWebhook) (*models.Webhook, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateWebhook) *models.Webhook); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Webhook)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.UpdateWebhook) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_UpdateWebhook_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateWebhook'
+type MockService_UpdateWebhook_Call struct {
+	*mock.Call
+}
+
+// UpdateWebhook is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.UpdateWebhook
+func (_e *MockService_Expecter) UpdateWebhook(ctx any, req any) *MockService_UpdateWebhook_Call {
+	return &MockService_UpdateWebhook_Call{Call: _e.mock.On("UpdateWebhook", ctx, req)}
+}
+
+func (_c *MockService_UpdateWebhook_Call) Run(run func(ctx context.Context, req *requests.UpdateWebhook)) *MockService_UpdateWebhook_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.UpdateWebhook
+		if args[1] != nil {
+			arg1 = args[1].(*requests.UpdateWebhook)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_UpdateWebhook_Call) Return(webhook *models.Webhook, err error) *MockService_UpdateWebhook_Call {
+	_c.Call.Return(webhook, err)
+	return _c
+}
+
+func (_c *MockService_UpdateWebhook_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateWebhook) (*models.Webhook, error)) *MockService_UpdateWebhook_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpgradeNamespace provides a mock function for the type MockService
 func (_mock *MockService) UpgradeNamespace(ctx context.Context, tenantID string) error {
 	ret := _mock.Called(ctx, tenantID)
@@ -8009,6 +8531,98 @@ func (_c *MockService_WebReauthVerify_Call) Return(s string, err error) *MockSer
 }
 
 func (_c *MockService_WebReauthVerify_Call) RunAndReturn(run func(ctx context.Context, req *requests.WebReauthVerify) (string, error)) *MockService_WebReauthVerify_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookDeliveryCleanup provides a mock function for the type MockService
+func (_mock *MockService) WebhookDeliveryCleanup() worker.CronHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDeliveryCleanup")
+	}
+
+	var r0 worker.CronHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.CronHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.CronHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_WebhookDeliveryCleanup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDeliveryCleanup'
+type MockService_WebhookDeliveryCleanup_Call struct {
+	*mock.Call
+}
+
+// WebhookDeliveryCleanup is a helper method to define mock.On call
+func (_e *MockService_Expecter) WebhookDeliveryCleanup() *MockService_WebhookDeliveryCleanup_Call {
+	return &MockService_WebhookDeliveryCleanup_Call{Call: _e.mock.On("WebhookDeliveryCleanup")}
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) Run(run func()) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) Return(cronHandler worker.CronHandler) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Return(cronHandler)
+	return _c
+}
+
+func (_c *MockService_WebhookDeliveryCleanup_Call) RunAndReturn(run func() worker.CronHandler) *MockService_WebhookDeliveryCleanup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WebhookDeliverySweep provides a mock function for the type MockService
+func (_mock *MockService) WebhookDeliverySweep() worker.CronHandler {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for WebhookDeliverySweep")
+	}
+
+	var r0 worker.CronHandler
+	if returnFunc, ok := ret.Get(0).(func() worker.CronHandler); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(worker.CronHandler)
+		}
+	}
+	return r0
+}
+
+// MockService_WebhookDeliverySweep_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WebhookDeliverySweep'
+type MockService_WebhookDeliverySweep_Call struct {
+	*mock.Call
+}
+
+// WebhookDeliverySweep is a helper method to define mock.On call
+func (_e *MockService_Expecter) WebhookDeliverySweep() *MockService_WebhookDeliverySweep_Call {
+	return &MockService_WebhookDeliverySweep_Call{Call: _e.mock.On("WebhookDeliverySweep")}
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) Run(run func()) *MockService_WebhookDeliverySweep_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) Return(cronHandler worker.CronHandler) *MockService_WebhookDeliverySweep_Call {
+	_c.Call.Return(cronHandler)
+	return _c
+}
+
+func (_c *MockService_WebhookDeliverySweep_Call) RunAndReturn(run func() worker.CronHandler) *MockService_WebhookDeliverySweep_Call {
 	_c.Call.Return(run)
 	return _c
 }

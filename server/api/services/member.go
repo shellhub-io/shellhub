@@ -57,7 +57,12 @@ type MemberService interface {
 	// their API keys are revoked and, unless departure keeps it, their membership is deleted. It
 	// commits that as one unit and then settles it (see SettleMemberDeparture). A caller that must
 	// fold the departure into a transaction of its own calls the store's NamespaceDepartMember and
-	// SettleMemberDeparture instead.
+	// RecordDepartureRemovals inside it, and SettleMemberDeparture after it commits, or the devices
+	// that left send no device.removed. It returns ErrForbidden when tenantID names no tenant,
+	// ErrDeviceNotOwned when departure keeps a device the member does not own, ErrNamespaceNotFound
+	// when the membership to delete does not exist, ctx's error when it is cancelled or its deadline
+	// passes, and the store's error when the transaction or the departure fails, a removed device
+	// cannot be resolved or its device.removed event cannot be recorded.
 	DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)
 
 	// SettleMemberDeparture does what a committed departure leaves to the process: it closes the
@@ -294,6 +299,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		return err
 	}
 
+	s.nudgeWebhookDelivery(ctx)
 	s.SettleMemberDeparture(ctx, departed)
 
 	return nil
@@ -382,24 +388,36 @@ func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID 
 		return nil, err
 	}
 
-	departed, err := s.departMember(ctx, tenantID, memberID, departure)
-	if err != nil {
+	var departed *models.MemberDeparted
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		departed, err = s.departMember(ctx, tenantID, memberID, departure)
+
+		return err
+	}); err != nil {
 		return nil, err
 	}
 
+	s.nudgeWebhookDelivery(ctx)
 	s.SettleMemberDeparture(ctx, departed)
 
 	return departed, nil
 }
 
 func (s *service) departMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {
-	departed, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(tenantID), memberID, departure)
+	sc := scope.MustBounded(tenantID)
+
+	departed, err := s.store.NamespaceDepartMember(ctx, sc, memberID, departure)
 	switch {
 	case errors.Is(err, store.ErrDeviceNotOwned):
 		return nil, NewErrDeviceNotOwned(err)
 	case errors.Is(err, store.ErrNoDocuments):
 		return nil, NewErrNamespaceNotFound(tenantID, err)
 	case err != nil:
+		return nil, err
+	}
+
+	if err := RecordDepartureRemovals(ctx, s.store, s.clock, departed); err != nil {
 		return nil, err
 	}
 

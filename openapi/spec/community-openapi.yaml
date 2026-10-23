@@ -60,6 +60,14 @@ tags:
     description: Requests executed by the ShellHub user.
   - name: system
     description: Routes related to running instance.
+  - name: webhooks
+    description: |
+      A webhook is a URL a namespace subscribes to its device events. ShellHub POSTs each
+      event as JSON, signed with the webhook's secret, and retries a failed delivery with
+      backoff for about six hours. Each request carries `X-ShellHub-Event-ID`,
+      `X-ShellHub-Event-Type`, `X-ShellHub-Timestamp` and `X-ShellHub-Signature`, which is
+      `v1=` and the hex HMAC-SHA256 of the timestamp, a dot and the body. An event can
+      arrive more than once and out of order; drop repeats by its ID.
   - name: provisioning-keys
     description: |
       A provisioning key is a reusable, revocable, namespace-scoped credential that
@@ -178,6 +186,14 @@ paths:
     $ref: paths/api@namespaces@provisioning-key@{key}@reveal.yaml
   /api/namespaces/provisioning-key/{id}/history:
     $ref: paths/api@namespaces@provisioning-key@{id}@history.yaml
+  /api/namespaces/webhooks:
+    $ref: paths/api@namespaces@webhooks.yaml
+  /api/namespaces/webhooks/{id}:
+    $ref: paths/api@namespaces@webhooks@{id}.yaml
+  /api/namespaces/webhooks/{id}/reveal:
+    $ref: paths/api@namespaces@webhooks@{id}@reveal.yaml
+  /api/namespaces/webhooks/{id}/deliveries:
+    $ref: paths/api@namespaces@webhooks@{id}@deliveries.yaml
   /api/devices/tenant-registrations:
     $ref: paths/api@devices@tenant-registrations.yaml
   /api/devices/enroll/callback/{token}:

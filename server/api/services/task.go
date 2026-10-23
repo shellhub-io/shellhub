@@ -47,7 +47,13 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 // removed-device cleanup.
 func (s *service) EphemeralCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+		if err := s.store.WithTransaction(ctx, s.ephemeralCleanup()); err != nil {
+			return err
+		}
+
+		s.nudgeWebhookDelivery(ctx)
+
+		return nil
 	}
 }
 
@@ -331,6 +337,21 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			log.WithError(err).Error("Failed to delete offline ephemeral devices")
 
 			return err
+		}
+
+		listed := make(map[string]models.Device, len(devices))
+		for _, device := range devices {
+			listed[device.UID] = device
+		}
+
+		for _, deletedDevice := range deleted {
+			if deletedDevice.Status == models.DeviceStatusRemoved {
+				continue
+			}
+
+			if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, s.removedDevice(listed[deletedDevice.UID])); err != nil {
+				return err
+			}
 		}
 
 		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)

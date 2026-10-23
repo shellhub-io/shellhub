@@ -65,7 +65,8 @@ type AuthService interface {
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new
 	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
-	// or legacy key, or its counters cannot be read or written.
+	// or legacy key, or its counters cannot be read or written, or when the device.pending event of a
+	// new or re-registered device cannot be recorded.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. It returns
 	// [ErrAuthUnathorized] for claims without a valid tenant, for a token of a device the store no
@@ -161,6 +162,19 @@ func (s *service) applyProvisioningKeyTags(ctx context.Context, deviceUID string
 			log.WithError(err).WithField("tag_id", tagID).Warn("failed to apply provisioning key tag to device")
 		}
 	}
+}
+
+func (s *service) recordRegistration(ctx context.Context, sc scope.Scope, uid string, provisioningKey *models.ProvisioningKey) error {
+	if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
+		s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
+	}
+
+	registered, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
+	if err != nil {
+		return err
+	}
+
+	return s.recordDeviceEvent(ctx, models.WebhookEventDevicePending, registered)
 }
 
 func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
@@ -577,17 +591,21 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			}
 		}
 
-		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
-			return nil, NewErrDeviceCreate(models.Device{}, err)
-		}
+		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+			if _, err := s.store.DeviceCreate(ctx, device); err != nil {
+				return NewErrDeviceCreate(models.Device{}, err)
+			}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
+			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
+				return err
+			}
+
+			return s.recordRegistration(ctx, sc, uid, provisioningKey)
+		}); err != nil {
 			return nil, err
 		}
 
-		if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
-			s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
-		}
+		s.nudgeWebhookDelivery(ctx)
 
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
 	} else {
@@ -626,16 +644,25 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = s.clock.Now()
 			device.EnrollWith(provisioningKey)
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
-				return nil, err
-			}
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
+			if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+				if err := s.store.DeviceUpdate(ctx, device); err != nil {
+					return err
+				}
+
+				if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
+					return err
+				}
+
+				if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
+					return err
+				}
+
+				return s.recordRegistration(ctx, sc, uid, provisioningKey)
+			}); err != nil {
 				return nil, err
 			}
 
-			if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
-				s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
-			}
+			s.nudgeWebhookDelivery(ctx)
 
 			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
 
