@@ -194,7 +194,7 @@ func TestProxyListenerAcceptsWithoutProxyHeader(t *testing.T) {
 	raw, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 
-	proxy := newProxyListener(raw)
+	proxy := newProxyListener(raw, loopbackProxyPolicy)
 	defer proxy.Close() //nolint:errcheck
 
 	deadline := time.Now().Add(5 * time.Second) //nolint:forbidigo // a deadline
