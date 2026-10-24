@@ -82,3 +82,16 @@ func (pg *Pg) inTransaction(ctx context.Context, fn store.TransactionCb) error {
 
 	return pg.WithTransaction(ctx, fn)
 }
+
+func (pg *Pg) transactionLock(ctx context.Context, key string) error {
+	tx, ok := pg.GetConnection(ctx).(bun.Tx)
+	if !ok {
+		return store.ErrLockOutsideTransaction
+	}
+
+	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", key); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
