@@ -151,7 +151,6 @@ var (
 	ErrProvisioningKeyExhausted        = errors.New("provisioning key usage limit reached", ErrLayer, ErrCodeLimit)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
-	ErrUserDelete                      = errors.New("user couldn't be deleted", ErrLayer, ErrCodeInvalid)
 	ErrSetupCompleted                  = errors.New("setup has already been completed", ErrLayer, ErrCodeConflict)
 	ErrAuthMethodNotAllowed            = errors.New("auth method not allowed", ErrLayer, ErrCodeNotImplemented)
 	ErrAuthDeviceNoIdentityAndHostname = errors.New("device doesn't have identity neither hostname defined", ErrLayer, ErrCodeInvalid)
@@ -596,11 +595,6 @@ func NewErrAuthForbidden() error {
 // NewErrRoleForbidden reports that the caller's namespace role is too low for the action.
 func NewErrRoleForbidden() error {
 	return NewErrForbidden(ErrRoleForbidden, nil)
-}
-
-// NewErrUserDelete reports that a user could not be removed.
-func NewErrUserDelete(err error) error {
-	return NewErrInvalid(ErrUserDelete, nil, err)
 }
 
 // NewErrSetupCompleted reports that the instance is already set up, so setup cannot run again.

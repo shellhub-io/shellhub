@@ -28,25 +28,55 @@ const (
 // instance is set up, so it cannot be used to add a second administrator.
 type SetupService interface {
 	// Setup creates the first user, as the instance's administrator, with their namespace, binds
-	// the instance to that namespace and signs the user in. It returns ErrSetupCompleted once the
-	// instance is set up; ErrUserInvalid or ErrUserPasswordInvalid for a request that fails
-	// validation; ErrUserDuplicated or ErrUserUnhandledDuplicate when the user conflicts with an
-	// existing one; ErrNamespaceDuplicated or ErrNamespaceCreateStore when the namespace cannot be
-	// created, after removing the user again, or ErrUserDelete when that removal fails; and the
-	// store's error when the system row cannot be read or written or the user cannot be stored.
-	// A failed write of the system row leaves the user and namespace in place. When no token can
-	// be issued for the new user, it returns an empty response and no error.
+	// the instance to that namespace and signs the user in. Concurrent calls are serialized, so
+	// only the first one sets the instance up. It returns ErrSetupCompleted once the instance is
+	// set up; ErrUserInvalid or ErrUserPasswordInvalid for a request that fails validation;
+	// ErrUserDuplicated or ErrUserUnhandledDuplicate when the user conflicts with an existing
+	// one; ErrNamespaceDuplicated or ErrNamespaceCreateStore when the namespace cannot be
+	// created; and the store's error when the transaction cannot begin or commit, the lock
+	// cannot be taken, the system row cannot be read or written or the user cannot be stored.
+	// Any failure leaves nothing written. When no token can be issued for the new user, it
+	// returns an empty response and no error.
 	Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error) {
-	system, err := s.store.SystemGet(ctx)
-	if err != nil {
+	var userID, tenantID string
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		userID, tenantID, err = s.setupInTransaction(ctx, req)
+
+		return err
+	}); err != nil {
 		return nil, err
 	}
 
+	if err := s.cache.Delete(ctx, cache.SystemKey); err != nil {
+		log.WithError(err).Warn("failed to evict the cached system row after setup")
+	}
+
+	res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: userID, TenantID: tenantID})
+	if err != nil {
+		log.WithError(err).Warn("setup completed but failed to issue an auto-login token")
+
+		return &models.UserAuthResponse{}, nil
+	}
+
+	return res, nil
+}
+
+func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (userID, tenantID string, err error) {
+	if err := s.store.SystemLock(ctx); err != nil {
+		return "", "", err
+	}
+
+	system, err := s.store.SystemGet(ctx)
+	if err != nil {
+		return "", "", err
+	}
+
 	if system.Setup {
-		return nil, NewErrSetupCompleted()
+		return "", "", NewErrSetupCompleted()
 	}
 
 	data := models.UserData{
@@ -57,16 +87,16 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	}
 
 	if ok, err := s.validator.Struct(data); !ok || err != nil {
-		return nil, NewErrUserInvalid(nil, err)
+		return "", "", NewErrUserInvalid(nil, err)
 	}
 
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
-		return nil, NewErrUserPasswordInvalid(err)
+		return "", "", NewErrUserPasswordInvalid(err)
 	}
 
 	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return nil, NewErrUserPasswordInvalid(err)
+		return "", "", NewErrUserPasswordInvalid(err)
 	}
 
 	user := &models.User{
@@ -86,18 +116,18 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	if err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(err); ok {
-				return nil, NewErrUserDuplicated([]string{field}, err)
+				return "", "", NewErrUserDuplicated([]string{field}, err)
 			}
 
-			return nil, NewErrUserUnhandledDuplicate()
+			return "", "", NewErrUserUnhandledDuplicate()
 		}
 
-		return nil, err
+		return "", "", err
 	}
 
 	namespaceName := strings.ToLower(req.Namespace)
 
-	tenantID := uuid.Generate()
+	tenantID = uuid.Generate()
 	if s.development && namespaceName == devNamespace {
 		tenantID = devTenantID
 	}
@@ -124,34 +154,18 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	}
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
-		user.ID = insertedID
-		if err := s.store.UserDelete(ctx, user); err != nil {
-			return nil, NewErrUserDelete(err)
-		}
-
 		if errors.Is(err, store.ErrDuplicate) {
-			return nil, NewErrNamespaceDuplicated(err)
+			return "", "", NewErrNamespaceDuplicated(err)
 		}
 
-		return nil, NewErrNamespaceCreateStore(err)
+		return "", "", NewErrNamespaceCreateStore(err)
 	}
 
 	system.Setup = true
 	system.InstanceTenantID = namespace.TenantID
 	if err := s.store.SystemSet(ctx, system); err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	if err := s.cache.Delete(ctx, cache.SystemKey); err != nil {
-		log.WithError(err).Warn("failed to evict the cached system row after setup")
-	}
-
-	res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: insertedID, TenantID: namespace.TenantID})
-	if err != nil {
-		log.WithError(err).Warn("setup completed but failed to issue an auto-login token")
-
-		return &models.UserAuthResponse{}, nil
-	}
-
-	return res, nil
+	return insertedID, namespace.TenantID, nil
 }
