@@ -307,7 +307,7 @@ export async function signInThroughApi(user: SamlUser) {
     `a redirect from the assertion consumer, got ${response.status}`,
   );
   return required(
-    new URL(location).searchParams.get("token"),
+    new URL(location, action).searchParams.get("token"),
     `a session token in ${location}`,
   );
 }
