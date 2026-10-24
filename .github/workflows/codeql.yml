@@ -37,7 +37,7 @@ jobs:
           - module: tests
             build_tags: ""
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Check out code
@@ -85,7 +85,7 @@ jobs:
     name: security-gate
     needs: [analyze]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Check CodeQL results

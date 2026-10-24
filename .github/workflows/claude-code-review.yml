@@ -31,7 +31,7 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/review') && github.event.comment.user.type != 'Bot') ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '/review') && github.event.review.user.type != 'Bot')
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 40
     permissions:
       contents: read
@@ -245,7 +245,7 @@ jobs:
     name: Finalize tracking comment
     needs: review
     if: always() && needs.review.result != 'skipped'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 5
     permissions:
       issues: write

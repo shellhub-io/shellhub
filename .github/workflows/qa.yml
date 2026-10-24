@@ -17,7 +17,7 @@ jobs:
     name: go
     if: ${{ github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     env:
       TESTCONTAINERS_RYUK_DISABLED: true
@@ -215,7 +215,7 @@ jobs:
     name: integration
     if: ${{ github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Check out code
@@ -335,7 +335,7 @@ jobs:
     needs: [go, integration]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Fail when a QA job failed or was cancelled

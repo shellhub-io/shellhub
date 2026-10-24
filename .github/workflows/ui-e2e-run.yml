@@ -21,7 +21,7 @@ on:
 jobs:
   e2e:
     name: e2e
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 90
 
     steps:
@@ -113,7 +113,7 @@ jobs:
 
       - name: Install Playwright browser
         working-directory: shellhub/ui
-        run: npm run e2e:browsers -w @shellhub/console
+        run: npm exec -w @shellhub/console -- playwright install chromium
 
       - name: Save node modules
         if: steps.node-modules.outputs.cache-hit != 'true'
