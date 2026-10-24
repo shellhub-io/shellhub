@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
 
     steps:
       - name: checkout code
@@ -137,7 +137,7 @@ jobs:
   sbom:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
@@ -196,7 +196,7 @@ jobs:
   build-binaries:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     strategy:
       matrix:
         include:
@@ -249,7 +249,7 @@ jobs:
   vendored-tarball:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     steps:
       - name: checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -284,7 +284,7 @@ jobs:
   draft:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: [build-binaries, vendored-tarball, sbom]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
       id-token: write
