@@ -47,7 +47,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		}
 	}
 
-	if err := pg.WithTransaction(ctx, func(ctx context.Context) error {
+	if err := pg.inTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
 		nsEntity := entity.NamespaceFromModel(namespace)
