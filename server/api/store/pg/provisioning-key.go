@@ -256,8 +256,8 @@ func (pg *Pg) ProvisioningKeyEventCreate(ctx context.Context, event *models.Prov
 	}
 
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
-		if _, err := pg.GetConnection(ctx).ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", "provisioning-key-refusal:"+e.NamespaceID+":"+e.DeviceUID); err != nil {
-			return fromSQLError(err)
+		if err := pg.transactionLock(ctx, "provisioning-key-refusal:"+e.NamespaceID+":"+e.DeviceUID); err != nil {
+			return err
 		}
 
 		refreshed, err := pg.refreshRefusal(ctx, e)

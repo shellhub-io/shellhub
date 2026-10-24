@@ -334,16 +334,7 @@ func (pg *Pg) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) err
 		return err
 	}
 
-	tx, ok := pg.GetConnection(ctx).(bun.Tx)
-	if !ok {
-		return store.ErrLockOutsideTransaction
-	}
-
-	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", "device-mac:"+tenantID+":"+mac); err != nil {
-		return fromSQLError(err)
-	}
-
-	return nil
+	return pg.transactionLock(ctx, "device-mac:"+tenantID+":"+mac)
 }
 
 // DeviceDelete implements [store.DeviceStore].
