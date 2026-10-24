@@ -57,3 +57,8 @@ func (pg *Pg) SystemSet(ctx context.Context, system *models.System) error {
 
 	return err
 }
+
+// SystemLock implements [store.SystemStore].
+func (pg *Pg) SystemLock(ctx context.Context) error {
+	return pg.transactionLock(ctx, "system")
+}

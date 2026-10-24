@@ -7613,6 +7613,57 @@ func (_c *MockStore_SystemGet_Call) RunAndReturn(run func(ctx context.Context) (
 	return _c
 }
 
+// SystemLock provides a mock function for the type MockStore
+func (_mock *MockStore) SystemLock(ctx context.Context) error {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SystemLock")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_SystemLock_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SystemLock'
+type MockStore_SystemLock_Call struct {
+	*mock.Call
+}
+
+// SystemLock is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockStore_Expecter) SystemLock(ctx any) *MockStore_SystemLock_Call {
+	return &MockStore_SystemLock_Call{Call: _e.mock.On("SystemLock", ctx)}
+}
+
+func (_c *MockStore_SystemLock_Call) Run(run func(ctx context.Context)) *MockStore_SystemLock_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SystemLock_Call) Return(err error) *MockStore_SystemLock_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_SystemLock_Call) RunAndReturn(run func(ctx context.Context) error) *MockStore_SystemLock_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SystemSet provides a mock function for the type MockStore
 func (_mock *MockStore) SystemSet(ctx context.Context, system *models.System) error {
 	ret := _mock.Called(ctx, system)
