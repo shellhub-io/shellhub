@@ -11,7 +11,7 @@ permissions:
 jobs:
   check:
     name: Check external links
-    runs-on: ubuntu-latest
+    runs-on: octocat-microvm
 
     steps:
       - name: Check out code

@@ -22,7 +22,7 @@ jobs:
     name: changes
     if: ${{ github.event_name != 'workflow_dispatch' && github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: octocat-microvm
 
     outputs:
       e2e: ${{ steps.filter.outputs.e2e }}
