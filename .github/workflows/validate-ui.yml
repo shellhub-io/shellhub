@@ -17,7 +17,7 @@ jobs:
     name: validate
     if: ${{ github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: octocat-microvm
 
     steps:
       - name: Check out code
@@ -162,7 +162,7 @@ jobs:
     needs: [validate]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
-    runs-on: ubuntu-latest
+    runs-on: octocat-microvm
 
     steps:
       - name: Fail when a UI job failed or was cancelled
