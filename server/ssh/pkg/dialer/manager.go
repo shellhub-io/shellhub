@@ -158,6 +158,8 @@ func closeConnections(key string, conns []any) {
 
 const defaultPingInterval = 35 * time.Second
 
+const connectionWriteTimeout = 15 * time.Second
+
 func (m *Manager) pingInterval() time.Duration {
 	if m.PingInterval <= 0 {
 		return defaultPingInterval
@@ -166,8 +168,9 @@ func (m *Manager) pingInterval() time.Duration {
 	return m.PingInterval
 }
 
-// Bind binds a WebSocket connection to a yamux session and stores it in the connection manager.
-// All new agents should use this handler to register their reverse connection.
+// Bind stores conn as a reverse tunnel for the device and returns. It closes the tunnel when a
+// ping fails and reports the device offline when no other tunnel is left. It returns an error
+// when the yamux session cannot be created.
 func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) error {
 	key := NewKey(tenant, uid)
 	interval := m.pingInterval()
@@ -176,7 +179,7 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 		AcceptBacklog:          256,
 		EnableKeepAlive:        false,
 		KeepAliveInterval:      interval,
-		ConnectionWriteTimeout: 15 * time.Second,
+		ConnectionWriteTimeout: connectionWriteTimeout,
 		MaxStreamWindowSize:    256 * 1024,
 		StreamCloseTimeout:     5 * time.Minute,
 		StreamOpenTimeout:      75 * time.Second,
@@ -203,6 +206,8 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 					if m.Connections.Delete(key, session) == 0 {
 						m.DialerDoneCallback(key)
 					}
+
+					closeConnections(key, []any{session})
 
 					return
 				}
