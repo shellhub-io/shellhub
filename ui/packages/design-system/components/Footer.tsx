@@ -46,7 +46,8 @@ export function Footer({
 }: FooterProps) {
   const origin = app === "docs" ? docsUrl : websiteUrl;
   const columns = columnsFor(websiteUrl, docsUrl);
-  const linkCls = "text-text-secondary hover:text-text-primary transition-colors";
+  const linkCls =
+    "text-text-secondary hover:text-text-primary transition-colors";
 
   return (
     <footer className="border-t border-border pt-14 pb-8">
@@ -57,7 +58,8 @@ export function Footer({
               <ShellHubLogo className="h-8" />
             </Link>
             <p className="text-xs text-text-secondary max-w-[220px] leading-relaxed">
-              The open source SSH gateway for remote access to Linux devices.
+              The open source SSH gateway for remote access to Linux and FreeBSD
+              devices.
             </p>
           </div>
           {columns.map((col) => (

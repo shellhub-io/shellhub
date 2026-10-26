@@ -3,11 +3,12 @@ import { ConnectionGrid, GlowOrbs } from "@shellhub/design-system/components";
 import { ActionButton } from "@/components";
 
 /**
- * Landing hero — full viewport height, so the first screen is the pitch and nothing else.
+ * Landing hero: most of the first screen, short enough that the next section's heading shows
+ * below the fold line and tells the reader the page goes on.
  */
 export function Hero() {
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-28 pb-20 relative overflow-hidden grid-bg">
+    <section className="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 pt-28 pb-20 relative overflow-hidden grid-bg">
       <ConnectionGrid />
       <GlowOrbs preset="hero" />
 
@@ -48,7 +49,18 @@ export function Hero() {
           <ActionButton
             action={{ label: "Get Started", to: "/getting-started" }}
           />
+          <ActionButton
+            variant="outline"
+            action={{ label: "Self-host it", href: "#self-host" }}
+          />
         </div>
+
+        <p
+          className="mt-6 text-xs font-mono text-text-muted animate-fade-in"
+          style={{ animationDelay: "400ms" }}
+        >
+          Apache 2.0 · Works with any SSH client · x86 and ARM
+        </p>
       </div>
     </section>
   );

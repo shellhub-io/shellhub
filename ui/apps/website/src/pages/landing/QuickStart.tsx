@@ -1,39 +1,54 @@
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { CommandBlock, Section, SectionHeader } from "@/components";
 import { Reveal } from "@shellhub/design-system/components";
-import { docsUrl } from "@/links";
+import { docsUrl, signupUrl } from "@/links";
 
-const SETUP_CMD =
-  "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
+const SETUP_CMD = [
+  "git clone https://github.com/shellhub-io/shellhub.git",
+  "cd shellhub",
+  "make start",
+].join("\n");
+
+const linkClass =
+  "inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:gap-2.5 transition-all group";
 
 /**
- * Landing section with the one-line install command.
+ * Landing section with the self-hosting commands, anchored as #self-host for the hero's link,
+ * and the Cloud alternative for a reader who would rather not run the server.
  */
 export function QuickStart() {
   return (
-    <Section bordered={false}>
+    <Section id="self-host" bordered={false} className="scroll-mt-20">
       <SectionHeader
         className="mb-10"
-        eyebrow="Quick Start"
-        title="Try ShellHub in seconds."
-        subtitle="Get up and running in minutes."
-        subtitleClassName="mt-3 max-w-md"
+        eyebrow="Self-host"
+        title="Run your own server."
+        subtitle="Docker, Docker Compose and openssl are all it takes. make start generates the keys and brings the stack up."
+        subtitleClassName="mt-3 max-w-lg"
       />
 
       <Reveal>
         <CommandBlock command={SETUP_CMD} className="max-w-xl mx-auto" />
       </Reveal>
 
-      <Reveal className="text-center mt-5">
+      <Reveal className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-6">
         <a
-          href={docsUrl}
+          href={`${docsUrl}/selfhosted/quickstart`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:gap-2.5 transition-all group"
+          className={linkClass}
         >
-          Full installation guide
+          Self-hosting guide
           <ArrowRightIcon
-            className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
+            className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"
+            aria-hidden="true"
+            strokeWidth={2.5}
+          />
+        </a>
+        <a href={signupUrl} className={linkClass}>
+          Rather not run it? Use Cloud
+          <ArrowRightIcon
+            className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"
             aria-hidden="true"
             strokeWidth={2.5}
           />

@@ -62,15 +62,19 @@ export function SupportedPlatforms() {
                   Docker
                 </h3>
                 <p className="text-sm text-text-secondary leading-relaxed mb-5">
-                  Run the agent as a container. The recommended way to get
-                  started.
+                  The agent runs as a container. The installer picks Docker
+                  whenever the host has it.
                 </p>
-                <div className="bg-surface border border-border rounded-lg px-4 py-3">
-                  <code className="font-mono text-xs text-text-secondary">
+                <div className="bg-surface border border-border rounded-lg px-4 py-3 overflow-x-auto">
+                  <code className="font-mono text-xs text-text-secondary whitespace-nowrap">
                     <span className="text-primary">$</span> curl -sSf
-                    &lt;server&gt;/install.sh | sh
+                    https://cloud.shellhub.io/install.sh | sh
                   </code>
                 </div>
+                <p className="text-xs text-text-muted mt-3">
+                  Self-hosting? Use your own server&apos;s address: it serves
+                  its own /install.sh.
+                </p>
               </div>
             </div>
           </Reveal>
