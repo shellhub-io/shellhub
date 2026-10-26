@@ -219,7 +219,7 @@ func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
 			edition: environment.EditionCloud,
 			own: []route{
 				{http.MethodPost, "/api/user/resend_email"},
-				{http.MethodGet, "/api/user/validation_account"},
+				{http.MethodPost, "/api/user/confirm_account"},
 				{http.MethodPost, "/api/user/recover_password"},
 				{http.MethodPost, "/api/user/any/update_password"},
 			},

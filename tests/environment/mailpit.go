@@ -81,24 +81,48 @@ type mailpitMessage struct {
 func (dc *DockerCompose) AwaitEmail(t *testing.T, to, path string) Email {
 	t.Helper()
 
+	return dc.AwaitEmails(t, to, path, 1)[0]
+}
+
+// AwaitEmails waits until Mailpit holds at least count emails to the address to whose HTML carries
+// a link to path, and returns every such email, newest first. It fails t as [DockerCompose.AwaitEmail]
+// does, when fewer than count can be read within 30 seconds.
+func (dc *DockerCompose) AwaitEmails(t *testing.T, to, path string, count int) []Email {
+	t.Helper()
+
 	base := dc.stack.MailpitURL()
 	require.NotEmpty(t, base, "only a cloud stack catches email")
 
 	client := resty.New().SetBaseURL(base)
 
-	var found Email
+	var found []Email
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		email, ok, err := latestEmail(t.Context(), client, to, path)
-		if assert.NoError(tt, err) && assert.True(tt, ok, "no email to %s links to %s", to, path) {
-			found = email
+		emails, err := matchingEmails(t.Context(), client, to, path)
+		if assert.NoError(tt, err) && assert.GreaterOrEqual(tt, len(emails), count, "too few emails to %s link to %s", to, path) {
+			found = emails
 		}
 	}, 30*time.Second, 250*time.Millisecond)
 
 	return found
 }
 
-func latestEmail(ctx context.Context, client *resty.Client, to, path string) (Email, bool, error) {
+// Emails returns every email Mailpit holds to the address to whose HTML carries a link to path,
+// newest first, without waiting for one to arrive. It fails t when the stack runs no Mailpit, or
+// when Mailpit answers with an error or HTML that does not parse.
+func (dc *DockerCompose) Emails(t *testing.T, to, path string) []Email {
+	t.Helper()
+
+	base := dc.stack.MailpitURL()
+	require.NotEmpty(t, base, "only a cloud stack catches email")
+
+	emails, err := matchingEmails(t.Context(), resty.New().SetBaseURL(base), to, path)
+	require.NoError(t, err)
+
+	return emails
+}
+
+func matchingEmails(ctx context.Context, client *resty.Client, to, path string) ([]Email, error) {
 	search := new(mailpitSearch)
 
 	resp, err := client.R().SetContext(ctx).
@@ -106,12 +130,14 @@ func latestEmail(ctx context.Context, client *resty.Client, to, path string) (Em
 		SetResult(search).
 		Get("/api/v1/search")
 	if err != nil {
-		return Email{}, false, err
+		return nil, err
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return Email{}, false, fmt.Errorf("searching Mailpit: %s", resp.Status())
+		return nil, fmt.Errorf("searching Mailpit: %s", resp.Status())
 	}
+
+	var emails []Email
 
 	for _, summary := range search.Messages {
 		if !summary.sentTo(to) {
@@ -124,24 +150,24 @@ func latestEmail(ctx context.Context, client *resty.Client, to, path string) (Em
 			SetResult(message).
 			Get("/api/v1/message/" + url.PathEscape(summary.ID))
 		if err != nil {
-			return Email{}, false, err
+			return nil, err
 		}
 
 		if resp.StatusCode() != http.StatusOK {
-			return Email{}, false, fmt.Errorf("reading Mailpit message %s: %s", summary.ID, resp.Status())
+			return nil, fmt.Errorf("reading Mailpit message %s: %s", summary.ID, resp.Status())
 		}
 
 		doc, err := html.Parse(strings.NewReader(message.HTML))
 		if err != nil {
-			return Email{}, false, fmt.Errorf("parsing the HTML of Mailpit message %s: %w", summary.ID, err)
+			return nil, fmt.Errorf("parsing the HTML of Mailpit message %s: %w", summary.ID, err)
 		}
 
 		if linksTo(doc, path) {
-			return Email{html: doc}, true, nil
+			emails = append(emails, Email{html: doc})
 		}
 	}
 
-	return Email{}, false, nil
+	return emails, nil
 }
 
 func (s mailpitSummary) sentTo(address string) bool {

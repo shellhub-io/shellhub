@@ -270,8 +270,8 @@ paths:
     $ref: paths/api@user@resend_email.yaml
   /api/user/{uid}/update_password:
     $ref: paths/api@user@{uid}@update_password.yaml
-  /api/user/validation_account:
-    $ref: paths/api@user@validation_account.yaml
+  /api/user/confirm_account:
+    $ref: paths/api@user@confirm_account.yaml
   /api/user/recover_password:
     $ref: paths/api@user@recover_password.yaml
   /api/billing/customer:
