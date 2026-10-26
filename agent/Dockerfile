@@ -47,7 +47,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v}
 
 FROM alpine:${ALPINE_VERSION} AS runtime-utils
 
-RUN apk add --no-cache util-linux setpriv ca-certificates
+RUN apk add --no-cache util-linux setpriv ca-certificates libgcc
 
 FROM toolchain AS tools
 
@@ -87,6 +87,7 @@ COPY --from=runtime-utils /bin/setpriv /bin/
 
 COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
 COPY --from=runtime-utils /usr/lib/libeconf.so.* /usr/lib/
+COPY --from=runtime-utils /usr/lib/libgcc_s.so.1 /usr/lib/
 
 COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
 
