@@ -4,7 +4,7 @@ import {
   DocumentArrowUpIcon,
   GlobeAltIcon,
   MapPinIcon,
-  PencilSquareIcon,
+  ClockIcon,
   ShieldCheckIcon,
   SignalSlashIcon,
   TagIcon,
@@ -670,10 +670,10 @@ export default function EdgeComputing() {
           </InfoCard>
 
           <InfoCard
-            icon={PencilSquareIcon}
+            icon={ClockIcon}
             color={C.green}
             title="Audit Trail"
-            description="Full session recording and command logging across all edge locations for compliance and forensics."
+            description="Session recording and a record of every connection across all edge locations, for compliance and forensics."
             delay={0.15}
           >
             <div className="mt-3 space-y-1.5">

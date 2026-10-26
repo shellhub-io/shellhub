@@ -4,7 +4,7 @@ import {
   CommandLineIcon,
   DocumentTextIcon,
   FolderIcon,
-  PencilIcon,
+  ClockIcon,
   ShieldCheckIcon,
   TagIcon,
 } from "@heroicons/react/24/outline";
@@ -74,10 +74,10 @@ const features = [
     desc: "Push build artifacts, configuration files, and firmware updates to remote devices as part of your deployment pipeline.",
   },
   {
-    icon: PencilIcon,
+    icon: ClockIcon,
     color: C.green,
-    title: "Audit Logging",
-    desc: "Every automated session is recorded -- see exactly which pipeline ran what command on which device and when.",
+    title: "Session History",
+    desc: "Automation connects on its own API key, so every session names the pipeline that opened it, the device and the time.",
   },
   {
     icon: TagIcon,
@@ -88,8 +88,8 @@ const features = [
   {
     icon: ShieldCheckIcon,
     color: C.primary,
-    title: "Firewall Rules",
-    desc: "Restrict CI runner access to only the devices they need with IP-based and identity-based firewall policies.",
+    title: "Access Policies",
+    desc: "Grant the CI runner's API key only the devices it deploys to, and only as the login it needs.",
   },
   {
     icon: FolderIcon,
@@ -347,7 +347,7 @@ export default function DevopsCiCd() {
               className="mb-8"
               eyebrow="Terraform Integration"
               title="Infrastructure as code for device provisioning"
-              subtitle="Define your device fleet declaratively with Terraform. Provision namespaces, assign tags, configure firewall rules, and manage access policies -- all versioned in Git and applied through your standard IaC workflow."
+              subtitle="Define your device fleet declaratively with Terraform. Provision namespaces, assign tags, and manage access policies -- all versioned in Git and applied through your standard IaC workflow."
             />
 
             <div className="space-y-3">
