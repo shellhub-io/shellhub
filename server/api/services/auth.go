@@ -90,7 +90,8 @@ type AuthService interface {
 	// It returns the store's error as is when the system settings cannot be read, and [ErrAuthMethodNotAllowed] when
 	// local authentication is off. It returns [ErrAuthUnathorized] for an unknown identifier, a user without local
 	// authentication, a lockout or a wrong password, [ErrUserNotConfirmed] for an unconfirmed user and
-	// [ErrUserAwaitingApproval] for a user an admin has not approved yet. It returns [ErrTokenSigned] when the token
+	// [ErrUserAwaitingApproval] for a user an admin has not approved yet, both only once the password
+	// matched. It returns [ErrTokenSigned] when the token
 	// cannot be signed, and [ErrUserUpdate] when the user's last login or preferred namespace cannot be saved.
 	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// CreateUserToken is similar to [AuthService.AuthUser] but bypasses credential verification and never blocks.
@@ -750,17 +751,6 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		return nil, 0, "", NewErrAuthUnathorized(nil)
 	}
 
-	switch user.Status {
-	case models.UserStatusNotConfirmed:
-		return nil, 0, "", NewErrUserNotConfirmed(nil)
-	default:
-		break
-	}
-
-	if user.AwaitingApproval {
-		return nil, 0, "", NewErrUserAwaitingApproval(nil)
-	}
-
 	if lockout, attempt, _ := s.cache.HasAccountLockout(ctx, sourceIP, user.ID); lockout > 0 {
 		log.
 			WithFields(log.Fields{
@@ -791,6 +781,14 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 			WithField("source_ip", sourceIP).
 			WithField("user_id", user.ID).
 			Warn("unable to reset authentication attempts")
+	}
+
+	if user.Status == models.UserStatusNotConfirmed {
+		return nil, 0, "", NewErrUserNotConfirmed(nil)
+	}
+
+	if user.AwaitingApproval {
+		return nil, 0, "", NewErrUserAwaitingApproval(nil)
 	}
 
 	if user.MFA.Enabled {
