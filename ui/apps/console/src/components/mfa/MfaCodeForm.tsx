@@ -1,14 +1,12 @@
-import { useState, type FormEvent } from "react";
-import { Button, Callout } from "@shellhub/design-system/primitives";
+import type { FormEvent } from "react";
+import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import {
-  lockoutEndFrom,
-  useLockoutCountdown,
-} from "@/hooks/useLockoutCountdown";
+import { useLockout } from "@/hooks/useLockout";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import OtpCells from "@/components/mfa/OtpCells";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
+import LockoutCallouts from "@/components/auth/LockoutCallouts";
 
 interface MfaCodeFormProps {
   onVerified: () => void;
@@ -30,21 +28,20 @@ export default function MfaCodeForm({
 }: MfaCodeFormProps) {
   const otp = useOtpInput(6);
   const { loginWithMfa, loading, error } = useAuthStore();
-  const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
-  const { display: countdownDisplay, expired: lockoutExpired } =
-    useLockoutCountdown(lockoutEndEpoch);
+  const { lockFrom, clearLockout, countdownDisplay, lockoutExpired } =
+    useLockout();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!otp.isComplete) return;
 
-    setLockoutEndEpoch(null);
+    clearLockout();
     try {
       await loginWithMfa(otp.getValue());
       onVerified();
     } catch (err) {
       if (isSdkError(err) && err.status === 429) {
-        setLockoutEndEpoch(lockoutEndFrom(err.headers));
+        lockFrom(err.headers);
       }
       otp.reset();
     }
@@ -52,21 +49,12 @@ export default function MfaCodeForm({
 
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
-      {lockoutExpired && (
-        <Callout variant="success">
-          Your timeout has finished. Please enter a new code.
-        </Callout>
-      )}
-      {error && !lockoutExpired && (
-        <Callout variant="error">
-          <span>
-            <span>{error}</span>
-            {countdownDisplay ? (
-              <span className="font-semibold"> ({countdownDisplay})</span>
-            ) : null}
-          </span>
-        </Callout>
-      )}
+      <LockoutCallouts
+        error={error}
+        countdownDisplay={countdownDisplay}
+        lockoutExpired={lockoutExpired}
+        expiredMessage="Your timeout has finished. Please enter a new code."
+      />
 
       <OtpCells otp={otp} label="Verification Code" size="lg" numeric />
 

@@ -12,7 +12,6 @@ beforeEach(() => {
     signUpServerFields: [],
     resendLoading: false,
     resendError: null,
-    validationStatus: "idle",
   });
 });
 
@@ -205,7 +204,7 @@ describe("signUpStore", () => {
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
-      expect(result).toBe(true);
+      expect(result).toBe("sent");
       expect(useSignUpStore.getState().resendLoading).toBe(false);
       expect(useSignUpStore.getState().resendError).toBeNull();
     });
@@ -219,10 +218,25 @@ describe("signUpStore", () => {
 
       const result = await useSignUpStore.getState().resendEmail("testuser");
 
-      expect(result).toBe(false);
+      expect(result).toBe("failed");
       expect(useSignUpStore.getState().resendLoading).toBe(false);
       expect(useSignUpStore.getState().resendError).toBe(
         "Failed to resend email. Please try again.",
+      );
+    });
+
+    it("asks to wait when the server throttles the resend", async () => {
+      server.use(
+        http.post("*/api/user/resend_email", () =>
+          HttpResponse.json({}, { status: 429 }),
+        ),
+      );
+
+      const result = await useSignUpStore.getState().resendEmail("testuser");
+
+      expect(result).toBe("throttled");
+      expect(useSignUpStore.getState().resendError).toBe(
+        "Wait a minute before asking for another email.",
       );
     });
 
@@ -249,140 +263,6 @@ describe("signUpStore", () => {
       await promise;
 
       expect(useSignUpStore.getState().resendLoading).toBe(false);
-    });
-  });
-
-  describe("validateAccount", () => {
-    it("transitions to success on 200", async () => {
-      server.use(
-        http.get(
-          "*/api/user/validation_account",
-          () => new HttpResponse(null, { status: 200 }),
-        ),
-      );
-
-      await useSignUpStore.getState().validateAccount("t@t.com", "valid-token");
-
-      expect(useSignUpStore.getState().validationStatus).toBe("success");
-    });
-
-    it("transitions to failed-token on 400 (expired token)", async () => {
-      server.use(
-        http.get("*/api/user/validation_account", () =>
-          HttpResponse.json({}, { status: 400 }),
-        ),
-      );
-
-      await useSignUpStore
-        .getState()
-        .validateAccount("t@t.com", "expired-token");
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed-token");
-    });
-
-    it("transitions to failed-token on 401 (wrong token) without leaving the page", async () => {
-      vi.stubGlobal("location", {
-        href: "",
-        search: "?email=t@t.com&token=wrong-token",
-      });
-      server.use(
-        http.get("*/api/user/validation_account", () =>
-          HttpResponse.json({}, { status: 401 }),
-        ),
-      );
-
-      await useSignUpStore.getState().validateAccount("t@t.com", "wrong-token");
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed-token");
-      expect(window.location.href).toBe("");
-    });
-
-    it("transitions to failed on 404 (user not found)", async () => {
-      server.use(
-        http.get("*/api/user/validation_account", () =>
-          HttpResponse.json({}, { status: 404 }),
-        ),
-      );
-
-      await useSignUpStore
-        .getState()
-        .validateAccount("t@t.com", "unknown-user");
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed");
-    });
-
-    it("transitions to failed on other errors", async () => {
-      server.use(
-        http.get("*/api/user/validation_account", () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-
-      await useSignUpStore.getState().validateAccount("t@t.com", "bad-token");
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed");
-    });
-
-    it("does not update state when the request is aborted", async () => {
-      server.use(
-        http.get("*/api/user/validation_account", () =>
-          HttpResponse.json({}, { status: 200 }),
-        ),
-      );
-
-      const controller = new AbortController();
-      controller.abort();
-
-      await useSignUpStore
-        .getState()
-        .validateAccount("t@t.com", "tok", controller.signal);
-
-      expect(useSignUpStore.getState().validationStatus).toBe("processing");
-    });
-
-    it("sets processing during request", async () => {
-      let resolveHandler!: (r: Response) => void;
-      const handlerReady = new Promise<void>((ready) => {
-        server.use(
-          http.get(
-            "*/api/user/validation_account",
-            () =>
-              new Promise<Response>((resolve) => {
-                resolveHandler = resolve;
-                ready();
-              }),
-          ),
-        );
-      });
-
-      const promise = useSignUpStore
-        .getState()
-        .validateAccount("t@t.com", "tok");
-      await handlerReady;
-      expect(useSignUpStore.getState().validationStatus).toBe("processing");
-
-      resolveHandler(new HttpResponse(null, { status: 200 }));
-      await promise;
-    });
-  });
-
-  describe("resetValidation", () => {
-    it("resets validationStatus to idle", () => {
-      useSignUpStore.setState({ validationStatus: "success" });
-
-      useSignUpStore.getState().resetValidation();
-
-      expect(useSignUpStore.getState().validationStatus).toBe("idle");
-    });
-  });
-
-  describe("setValidationFailed", () => {
-    it("sets validationStatus to failed", () => {
-      useSignUpStore.setState({ validationStatus: "processing" });
-
-      useSignUpStore.getState().setValidationFailed();
-
-      expect(useSignUpStore.getState().validationStatus).toBe("failed");
     });
   });
 

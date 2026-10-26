@@ -9,6 +9,7 @@ import {
   deleteOwnAccount,
   emailDeliveryReason,
   fillLoginForm,
+  readConfirmationCode,
   signInAndOpen,
   signUpUser,
 } from "./helpers";
@@ -21,6 +22,7 @@ import {
   loginAs,
 } from "./api";
 import { readEmailLink } from "./mail";
+import { fillDigits } from "./mfa";
 
 const openSignUpReason = "only the cloud has open sign-up";
 
@@ -42,9 +44,9 @@ async function signUp(
   await privacy.press("Space");
   await expect(privacy).toBeChecked();
   await page.getByRole("button", { name: "Create Account" }).click();
-  await expect(page).toHaveURL(/\/confirm-account\?username=/);
+  await expect(page).toHaveURL(/\/confirm-account\?identifier=/);
   await expect(
-    page.getByRole("heading", { name: "Account Activation Required" }),
+    page.getByRole("heading", { name: "Confirm your email" }),
   ).toBeVisible();
 }
 
@@ -82,41 +84,46 @@ test.describe("registration", () => {
 test.describe("email confirmation", () => {
   test.skip(!isCloud, emailDeliveryReason);
 
-  test("the emailed link activates the account", async ({ page }) => {
+  test("the emailed code confirms the account and signs it in", async ({
+    page,
+  }) => {
     const account = await signUpUser("signup", { confirm: false });
-    const link = await readEmailLink(account.email, "/validation-account");
+    const { code } = await readConfirmationCode(account.email);
 
-    await page.goto(link);
+    await page.goto(
+      `/confirm-account?identifier=${encodeURIComponent(account.username)}`,
+    );
+    await fillDigits(page, code, "Confirmation code");
+    await page.getByRole("button", { name: "Confirm", exact: true }).click();
 
-    await expect(
-      page.getByText("Your account has been activated successfully"),
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expectLoginStatus(account.username, password, 200);
   });
 
-  test("a resent email replaces the first link", async ({ page }) => {
+  test("the email's button confirms the account and signs it in", async ({
+    page,
+  }) => {
     const account = await signUpUser("signup", { confirm: false });
-    const firstLink = await readEmailLink(account.email, "/validation-account");
-    const readNewestLink = () =>
-      readEmailLink(account.email, "/validation-account");
+    const { link } = await readConfirmationCode(account.email);
+
+    await page.goto(link);
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expectLoginStatus(account.username, password, 200);
+  });
+
+  test("a resent email keeps the first one working", async ({ page }) => {
+    const account = await signUpUser("signup", { confirm: false });
+    const first = await readConfirmationCode(account.email);
 
     await page.goto(
-      `/confirm-account?username=${encodeURIComponent(account.username)}`,
+      `/confirm-account?identifier=${encodeURIComponent(account.username)}`,
     );
     await page.getByRole("button", { name: "Resend Email" }).click();
-    await expect(
-      page.getByText("Confirmation email sent successfully."),
-    ).toBeVisible();
-    await expect.poll(readNewestLink).not.toBe(firstLink);
+    await expect(page.getByText("We sent the code again.")).toBeVisible();
 
-    await page.goto(firstLink);
-    await expect(
-      page.getByText("Your account activation token has expired"),
-    ).toBeVisible();
-    await page.goto(await readNewestLink());
-    await expect(
-      page.getByText("Your account has been activated successfully"),
-    ).toBeVisible();
+    await page.goto(first.link);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expectLoginStatus(account.username, password, 200);
   });
 });

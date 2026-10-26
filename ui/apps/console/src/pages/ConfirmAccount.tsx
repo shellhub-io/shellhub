@@ -1,69 +1,186 @@
-import { useEffect } from "react";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  Navigate,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { useSignUpStore } from "../stores/signUpStore";
-import { useResendEmail } from "../hooks/useResendEmail";
+import { isSdkError } from "@/api/errors";
+import { useAuthStore } from "@/stores/authStore";
+import { useSignUpStore } from "@/stores/signUpStore";
+import { useResendEmail } from "@/hooks/useResendEmail";
+import { useLockout } from "@/hooks/useLockout";
+import { useOtpInput } from "@/hooks/useOtpInput";
+import OtpCells from "@/components/mfa/OtpCells";
 import AuthActions from "@/components/auth/AuthActions";
+import LockoutCallouts from "@/components/auth/LockoutCallouts";
 import ScreenIntro from "@/components/layout/ScreenIntro";
+import { landingAfterSignIn } from "@/utils/navigation";
+import type { LoginState } from "@/components/auth/loginState";
+
+const wrongCodeMessage =
+  "This code is wrong or expired. Check the latest email or resend it.";
 
 /**
- * The page telling a new account to check its mail, with the resend.
+ * The page a new account confirms its email on: the six cells for the emailed code, exchanged for
+ * a session, and the resend. A code in the URL, from the email's button, is submitted on arrival.
+ * Arriving with sendCode in the route state, from a sign-in that found the account pending, sends
+ * a code on arrival, since nothing else on that path has. A wrong code clears the cells; too many
+ * lock the form out with a countdown.
  */
 export default function ConfirmAccount() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const resetErrors = useSignUpStore((s) => s.resetResendError);
+  const identifier = searchParams.get("identifier") ?? "";
+  const linkedCode = searchParams.get("code") ?? "";
+  const location = useLocation();
+  const sendCodeOnArrival =
+    (location.state as { sendCode?: unknown } | null)?.sendCode === true;
 
-  const username = searchParams.get("username") ?? "";
-
-  useEffect(() => {
-    resetErrors();
-  }, [resetErrors]);
+  const confirmAccount = useAuthStore((s) => s.confirmAccount);
+  const resetResendError = useSignUpStore((s) => s.resetResendError);
+  const otp = useOtpInput(6);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { lockFrom, clearLockout, lockedOut, countdownDisplay, lockoutExpired } =
+    useLockout();
+  const linkedCodeSubmitted = useRef(false);
+  const codeSentOnArrival = useRef(false);
 
   const {
     handleResend,
+    clearResendNotice,
     resendLoading,
     resendError,
     resendSuccess,
     resendCooldown,
-  } = useResendEmail(username);
+  } = useResendEmail(identifier);
 
-  if (!username) return <Navigate to="/login" replace />;
+  useEffect(() => {
+    resetResendError();
+  }, [resetResendError]);
+
+  const confirm = async (code: string) => {
+    setConfirming(true);
+    setError(null);
+    clearLockout();
+    clearResendNotice();
+    try {
+      const signedIn = await confirmAccount(identifier, code);
+      if (signedIn) {
+        void navigate(landingAfterSignIn("/dashboard"), { replace: true });
+      } else {
+        const state: LoginState = {
+          notice: "Your email is confirmed. Sign in to continue.",
+          signOut: false,
+        };
+        void navigate("/login", { replace: true, state });
+      }
+    } catch (err) {
+      setConfirming(false);
+      if (isSdkError(err) && err.status === 429) {
+        lockFrom(err.headers);
+        setError("Too many wrong codes. Please wait before trying again.");
+        otp.reset();
+      } else if (isSdkError(err) && err.status === 401) {
+        setError(wrongCodeMessage);
+        otp.reset();
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  const resend = async () => {
+    const outcome = await handleResend();
+    if (outcome === "sent") {
+      setError((current) => (current === wrongCodeMessage ? null : current));
+    }
+  };
+
+  useEffect(() => {
+    if (!identifier || !sendCodeOnArrival || codeSentOnArrival.current) return;
+    codeSentOnArrival.current = true;
+    void navigate({ search: location.search }, { replace: true, state: null });
+    void handleResend({ unprompted: true });
+  });
+
+  useEffect(() => {
+    if (!identifier || !linkedCode || linkedCodeSubmitted.current) return;
+    linkedCodeSubmitted.current = true;
+    void navigate(
+      { search: `?${new URLSearchParams({ identifier }).toString()}` },
+      { replace: true },
+    );
+    void confirm(linkedCode);
+  });
+
+  if (!identifier) return <Navigate to="/login" replace />;
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!otp.isComplete) return;
+    void confirm(otp.getValue());
+  };
+
+  const destination = identifier.includes("@")
+    ? identifier
+    : `the email address of ${identifier}`;
 
   return (
     <>
       <ScreenIntro
         eyebrow="Account"
-        title="Account Activation Required"
-        lead="Thank you for registering an account on ShellHub. An email was sent with a confirmation link. You need to click on the link to activate your account. If you haven't received the email, click on the Resend Email button."
+        title="Confirm your email"
+        lead={`We sent a six-digit code to ${destination}. Enter it below to confirm your email and sign in.`}
       />
 
-      <div className="flex flex-col gap-3 mb-6 empty:hidden">
-        {resendSuccess && (
-          <Callout variant="success">
-            Confirmation email sent successfully.
-          </Callout>
-        )}
-        {resendError && <Callout variant="error">{resendError}</Callout>}
-      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex flex-col gap-3 empty:hidden">
+          <LockoutCallouts
+            error={error}
+            countdownDisplay={countdownDisplay}
+            lockoutExpired={lockoutExpired}
+            expiredMessage="Your timeout has finished. Please enter the code again."
+          />
+          {resendSuccess && (
+            <Callout variant="success">
+              We sent the code again. It may take a minute to arrive.
+            </Callout>
+          )}
+          {resendError && <Callout variant="error">{resendError}</Callout>}
+        </div>
 
-      <AuthActions
-        primary={
-          <Button
-            size="lg"
-            fullWidth
-            loading={resendLoading}
-            disabled={resendLoading || resendCooldown > 0}
-            onClick={() => void handleResend()}
-          >
-            {resendLoading
-              ? "Sending..."
-              : resendCooldown > 0
-                ? `Resend Email (${resendCooldown}s)`
-                : "Resend Email"}
-          </Button>
-        }
-        links={[{ label: "Back to sign in", to: "/login" }]}
-      />
+        <OtpCells otp={otp} label="Confirmation code" size="lg" numeric />
+
+        <AuthActions
+          primary={
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              type="submit"
+              loading={confirming}
+              disabled={confirming || lockedOut || !otp.isComplete}
+            >
+              {confirming ? "Confirming..." : "Confirm"}
+            </Button>
+          }
+          links={[
+            {
+              label: resendLoading
+                ? "Sending..."
+                : resendCooldown > 0
+                  ? `Resend Email (${resendCooldown}s)`
+                  : "Resend Email",
+              onClick: () => void resend(),
+              disabled: resendLoading || resendCooldown > 0,
+            },
+            { label: "Back to sign in", to: "/login" },
+          ]}
+        />
+      </form>
     </>
   );
 }

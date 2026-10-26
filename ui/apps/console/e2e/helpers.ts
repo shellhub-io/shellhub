@@ -1,7 +1,7 @@
 import { type Page, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import {
-  getValidateAccount,
+  confirmAccount as confirmAccountSdk,
   registerUser,
   provisioningKeyCreate,
 } from "@/client";
@@ -40,16 +40,22 @@ export function required(value: string | null | undefined, what: string) {
   return value;
 }
 
+export async function readConfirmationCode(address: string) {
+  const { body, link } = await readLatestEmail(address, "/confirm-account");
+  const shown = body
+    .querySelector('[aria-label="Confirmation code"]')
+    ?.textContent?.trim();
+  return {
+    code: required(shown, "a confirmation code in the email"),
+    link: link.path,
+  };
+}
+
 export async function confirmAccount(address: string) {
-  const { link } = await readLatestEmail(address, "/validation-account");
-  const email = link.params.get("email");
-  const token = link.params.get("token");
-  if (!email || !token) {
-    throw new Error(`expected email and token params in ${link.path}`);
-  }
-  await getValidateAccount({
+  const { code } = await readConfirmationCode(address);
+  await confirmAccountSdk({
     ...buildRequestContext(),
-    query: { email, token },
+    body: { identifier: address, code },
   });
 }
 
