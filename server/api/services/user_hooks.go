@@ -3,15 +3,14 @@ package services
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 // UserRegisteredHookFn is called after a not-confirmed user is created during registration. Cloud
-// uses it to send the email-verification link. It runs outside any transaction and its failure is
+// uses it to send the confirmation code, whose validity it decides. It runs outside any transaction and its failure is
 // non-fatal (registration succeeds; the user can request a resend).
-type UserRegisteredHookFn func(ctx context.Context, user *models.User, forwardedHost, forwardedProto string, validUntil time.Time) error
+type UserRegisteredHookFn func(ctx context.Context, user *models.User, forwardedHost, forwardedProto string) error
 
 var userRegisteredHooks []UserRegisteredHookFn
 
@@ -25,9 +24,9 @@ func OnUserRegistered(fn UserRegisteredHookFn) {
 	userRegisteredHooks = append(userRegisteredHooks, fn)
 }
 
-func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost, forwardedProto string, validUntil time.Time) error {
+func fireUserRegistered(ctx context.Context, user *models.User, forwardedHost, forwardedProto string) error {
 	for _, fn := range userRegisteredHooks {
-		if err := fn(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
+		if err := fn(ctx, user, forwardedHost, forwardedProto); err != nil {
 			return fmt.Errorf("user registered hook failed: %w", err)
 		}
 	}

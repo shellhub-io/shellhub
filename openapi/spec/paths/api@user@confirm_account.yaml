@@ -1,0 +1,70 @@
+post:
+  operationId: confirmAccount
+  summary: Confirm account
+  description: |
+    Confirm a new account's email with the code emailed to it, and sign the user in. An account
+    with MFA enabled, or one awaiting an admin's approval, is confirmed without a session (`204`):
+    it signs in with its password as usual, so the code never stands in for the second factor.
+
+    Every refusal answers `401`: an unknown identifier, an account already confirmed, an expired
+    code, a wrong code, and a code sent while another for the same user is still being checked.
+    Every refused guess counts toward a lockout of the identifier, apart from password logins,
+    whether or not it names a pending account, and toward the account's own when it does, so a
+    username and an email share one budget of guesses. Only the identifier's lockout answers `429`:
+    check the `X-Account-Lockout` header, which is 0 when there is no active lockout.
+  tags:
+    - cloud
+    - users
+  security: []
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            identifier:
+              description: The account's username or email.
+              type: string
+            code:
+              description: The six-digit code emailed to the account.
+              type: string
+              pattern: '^[0-9]{6}$'
+          required:
+            - identifier
+            - code
+          example:
+            identifier: example
+            code: '042917'
+  responses:
+    '200':
+      description: The account is confirmed and signed in.
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 0
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '204':
+      description: The account is confirmed and must sign in with its password.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '429':
+      description: Too Many Requests
+      headers:
+        X-Account-Lockout:
+          schema:
+            type: integer
+            description: Indicates the Unix timestamp in seconds of when the account lockout period ends.
+            example: 1711575401
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

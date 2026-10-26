@@ -67,7 +67,13 @@ post:
           schema:
             $ref: ../components/schemas/apiError.yaml
     '403':
-      $ref: ../components/responses/403.yaml
+      description: |
+        The password matched, but the account has not confirmed its email yet. A wrong password on
+        such an account answers `401`, like any other.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '404':
       $ref: ../components/responses/404.yaml
     '429':

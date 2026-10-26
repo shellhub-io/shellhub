@@ -1,7 +1,12 @@
 post:
   operationId: resendEmail
   summary: Resend confirmation
-  description: Resend confirmation to user.
+  description: |
+    Email the confirmation code again to a new account that has not confirmed its email. The code
+    stays the one sent before while it is valid.
+
+    It answers `200` alike for an unknown, a pending and a confirmed account, and sends only for a
+    pending one. The same identifier can ask once a minute; asking again sooner answers `429`.
   tags:
     - cloud
     - users
@@ -12,19 +17,23 @@ post:
         schema:
           type: object
           properties:
-            username:
-              description: User's username.
+            identifier:
+              description: The account's username or email.
               type: string
-              minLength: 3
-              maxLength: 20
           required:
-            - username
+            - identifier
           example:
-            username: example
+            identifier: example
   responses:
     '200':
-      description: Success to resend confirmation to user.
-    '401':
-      $ref: ../components/responses/401.yaml
+      description: The request was accepted.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '429':
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml

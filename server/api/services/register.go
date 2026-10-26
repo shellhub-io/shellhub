@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -75,9 +74,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		return nil, NewErrUserCreate(err)
 	}
 
-	validUntil := s.clock.Now().Add(24 * time.Hour)
-
-	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
+	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
@@ -177,8 +174,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return res, nil
 	case models.UserStatusNotConfirmed:
-		validUntil := s.clock.Now().Add(24 * time.Hour)
-		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto, validUntil); err != nil {
+		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 
