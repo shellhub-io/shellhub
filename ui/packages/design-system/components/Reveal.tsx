@@ -7,7 +7,12 @@ function useReveal() {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add("landing-visible"); obs.unobserve(el); } },
+      ([e]) => {
+        if (e.isIntersecting) {
+          el.classList.add("landing-visible");
+          obs.unobserve(el);
+        }
+      },
       { threshold: 0.08, rootMargin: "0px 0px -60px 0px" },
     );
     obs.observe(el);
@@ -19,12 +24,25 @@ function useReveal() {
 /**
  * Fades its children in the first time they scroll into view, then stops observing, so the
  * animation plays once per mount rather than on every pass. delay staggers a group of
- * siblings into a sequence.
+ * siblings into a sequence. A reader who prefers reduced motion sees the children in place,
+ * with no fade.
  */
-export function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+export function Reveal({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
   const ref = useReveal();
   return (
-    <div ref={ref} className={cn("landing-reveal", className)} style={delay ? { transitionDelay: `${delay}s` } : undefined}>
+    <div
+      ref={ref}
+      className={cn("landing-reveal", className)}
+      style={delay ? { transitionDelay: `${delay}s` } : undefined}
+    >
       {children}
     </div>
   );

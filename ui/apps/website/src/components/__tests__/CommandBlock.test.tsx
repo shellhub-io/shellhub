@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { CommandBlock } from "@/components";
 
 const COMMAND =
   "git clone https://github.com/shellhub-io/shellhub.git && cd shellhub && make keygen && make start";
+
+const MULTI_LINE = [
+  "git clone https://github.com/shellhub-io/shellhub.git",
+  "cd shellhub",
+  "make start",
+];
 
 const writeText = vi.fn();
 
@@ -37,6 +44,21 @@ describe("CommandBlock", () => {
     render(<CommandBlock command={COMMAND} />);
     fireEvent.click(screen.getByRole("button", { name: "Copy" }));
     expect(writeText).toHaveBeenCalledWith(COMMAND);
+  });
+
+  it("shows each line of a multi-line command on its own", () => {
+    render(<CommandBlock command={MULTI_LINE.join("\n")} />);
+
+    for (const line of MULTI_LINE)
+      expect(screen.getByText(line)).toBeInTheDocument();
+  });
+
+  it("copies every line of a multi-line command", async () => {
+    render(<CommandBlock command={MULTI_LINE.join("\n")} />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Copy" }));
+
+    expect(writeText).toHaveBeenCalledWith(MULTI_LINE.join("\n"));
   });
 
   it("forwards className to the root element", () => {

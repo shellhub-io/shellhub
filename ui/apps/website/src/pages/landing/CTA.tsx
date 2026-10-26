@@ -26,7 +26,7 @@ export function CTA() {
         </Reveal>
         <Reveal>
           <p className="text-sm text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
-            Get started with ShellHub in minutes. Free forever for small teams.
+            Self-host it free, or start on Cloud with three devices free.
           </p>
         </Reveal>
         <Reveal>

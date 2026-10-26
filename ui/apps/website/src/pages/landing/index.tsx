@@ -2,7 +2,6 @@ import { SiteLayout } from "@/components";
 import { Hero } from "./Hero";
 import { QuickStart } from "./QuickStart";
 import { SupportedPlatforms } from "./SupportedPlatforms";
-import { HowItWorks } from "./HowItWorks";
 import { Architecture } from "./Architecture";
 import { FeatureGrid } from "./FeatureGrid";
 import { OpenSource } from "./OpenSource";
@@ -18,7 +17,6 @@ export default function Landing() {
       <Hero />
       <QuickStart />
       <SupportedPlatforms />
-      <HowItWorks />
       <Architecture />
       <FeatureGrid />
       <OpenSource />

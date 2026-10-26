@@ -11,9 +11,9 @@ export function Architecture() {
     <Section background="surface" className="border-b border-border">
       <SectionHeader
         className="mb-4"
-        eyebrow="Architecture"
-        title="Okay, but how does it actually work?"
-        subtitle="Install a lightweight agent on your devices. The agent connects outbound to ShellHub's gateway. SSH in from anywhere."
+        eyebrow="How It Works"
+        title="From anywhere to any device."
+        subtitle="A lightweight agent on each device opens an outbound connection to the ShellHub server. You SSH to the server, and it reaches the device through that connection: no inbound ports, no VPN."
       />
 
       <Reveal className="mt-12 bg-card border border-border rounded-xl p-6 lg:p-8 overflow-x-auto">
@@ -162,7 +162,7 @@ export function Architecture() {
             fontWeight="600"
             letterSpacing=".1em"
           >
-            SHELLHUB CLOUD
+            SHELLHUB SERVER
           </text>
           <rect
             x="400"
@@ -189,44 +189,38 @@ export function Architecture() {
             {
               x: 310,
               y: 145,
-              emoji: "\uD83D\uDD10",
               color: C.primary,
               label: "Authentication",
             },
             {
               x: 310,
               y: 182,
-              emoji: "\uD83D\uDD12",
               color: C.primary,
               label: "Encryption",
             },
             {
               x: 310,
               y: 219,
-              emoji: "\u23FA",
               color: C.cyan,
               label: "Session Rec.",
             },
             {
               x: 460,
               y: 145,
-              emoji: "\uD83D\uDEE1",
               color: C.yellow,
-              label: "Firewall Rules",
+              label: "Access Policies",
             },
             {
               x: 460,
               y: 182,
-              emoji: "\uD83D\uDCCB",
               color: C.green,
-              label: "Audit Logging",
+              label: "Session History",
             },
             {
               x: 460,
               y: 219,
-              emoji: "\uD83D\uDC65",
               color: C.primary,
-              label: "Team RBAC",
+              label: "Team Roles",
             },
           ].map((b, i) => (
             <g key={i}>
@@ -239,14 +233,12 @@ export function Architecture() {
                 fill={C.card}
                 stroke={C.border}
               />
-              <text x={b.x + 12} y={b.y + 17} fontSize="10" fill={b.color}>
-                {b.emoji}
-              </text>
+              <circle cx={b.x + 15} cy={b.y + 14} r="3.5" fill={b.color} />
               <text
-                x={b.x + 30}
+                x={b.x + 27}
                 y={b.y + 18}
                 fontFamily={FONT_SANS}
-                fontSize="9"
+                fontSize="10"
                 fill={C.textSec}
               >
                 {b.label}
@@ -501,9 +493,9 @@ export function Architecture() {
 
       <Reveal className="flex gap-4 mt-8 justify-center flex-wrap">
         {[
-          { n: "1", t: "Install the ShellHub agent on your device" },
-          { n: "2", t: "Agent connects outbound to ShellHub Cloud" },
-          { n: "3", t: "Access your devices securely from anywhere" },
+          { n: "1", t: "Install the agent on your device" },
+          { n: "2", t: "The agent connects outbound to the server" },
+          { n: "3", t: "SSH in from anywhere, as policy allows" },
         ].map((s) => (
           <div
             key={s.n}
