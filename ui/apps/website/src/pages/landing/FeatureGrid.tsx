@@ -1,8 +1,8 @@
 import {
-  CheckBadgeIcon,
   CommandLineIcon,
   CubeIcon,
   DocumentArrowUpIcon,
+  FingerPrintIcon,
   GlobeAltIcon,
   KeyIcon,
   PlayCircleIcon,
@@ -32,10 +32,10 @@ const FEATURES = [
     desc: "Default deny. Grant members, roles or API keys a set of devices, down to the unix login.",
   },
   {
-    icon: CheckBadgeIcon,
+    icon: FingerPrintIcon,
     color: C.green,
-    title: "Login Approvals",
-    desc: "A key the namespace has never seen waits for a member to approve it in the console.",
+    title: "SSH Identities",
+    desc: "Every key belongs to a person or an API key. A key never seen before waits for a member to approve it.",
   },
   {
     icon: PlayCircleIcon,

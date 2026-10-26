@@ -190,7 +190,7 @@ export function Architecture() {
               x: 310,
               y: 145,
               color: C.primary,
-              label: "Authentication",
+              label: "SSH Identities",
             },
             {
               x: 310,
