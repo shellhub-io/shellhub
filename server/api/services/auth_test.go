@@ -1282,7 +1282,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when user is not confirmed",
+			description: "fails when user is not confirmed and the password matches",
 			sourceIP:    "127.0.0.1",
 			req: &requests.AuthLocalUser{
 				Identifier: "john_doe",
@@ -1315,7 +1315,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 						Email:    "john.doe@test.com",
 					},
 					Password: models.UserPassword{
-						Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
@@ -1327,12 +1327,224 @@ func TestService_AuthLocalUser(t *testing.T) {
 					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
 					Return(user, nil).
 					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
 			},
 			expected: Expected{
 				res:      nil,
 				lockout:  0,
 				mfaToken: "",
 				err:      NewErrUserNotConfirmed(nil),
+			},
+		},
+		{
+			description: "fails as unauthorized when user is not confirmed and the password is wrong",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				user := &models.User{
+					ID:        "65fdd16b5f62f93184ec8a39",
+					Origin:    models.UserOriginLocal,
+					Status:    models.UserStatusNotConfirmed,
+					LastLogin: now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "wrong_password", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+				cacheMock.
+					On("StoreLoginAttempt", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 1, nil).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
+			},
+		},
+		{
+			description: "fails when user awaits approval and the password matches",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				user := &models.User{
+					ID:               "65fdd16b5f62f93184ec8a39",
+					Origin:           models.UserOriginLocal,
+					Status:           models.UserStatusConfirmed,
+					AwaitingApproval: true,
+					LastLogin:        now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrUserAwaitingApproval(nil),
+			},
+		},
+		{
+			description: "fails as unauthorized when user awaits approval and the password is wrong",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "wrong_password",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(
+						&models.System{
+							Authentication: &models.SystemAuthentication{
+								Local: &models.SystemAuthenticationLocal{
+									Enabled: true,
+								},
+							},
+						},
+						nil,
+					).
+					Once()
+				user := &models.User{
+					ID:               "65fdd16b5f62f93184ec8a39",
+					Origin:           models.UserOriginLocal,
+					Status:           models.UserStatusConfirmed,
+					AwaitingApproval: true,
+					LastLogin:        now,
+					MFA: models.UserMFA{
+						Enabled: false,
+					},
+					UserData: models.UserData{
+						Username: "john_doe",
+						Email:    "john.doe@test.com",
+					},
+					Password: models.UserPassword{
+						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+					},
+					Preferences: models.UserPreferences{
+						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}
+
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(user, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "wrong_password", "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+				cacheMock.
+					On("StoreLoginAttempt", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 1, nil).
+					Once()
+			},
+			expected: Expected{
+				res:      nil,
+				lockout:  0,
+				mfaToken: "",
+				err:      NewErrAuthUnathorized(nil),
 			},
 		},
 		{
