@@ -3,7 +3,7 @@ import {
   ComputerDesktopIcon,
   DocumentTextIcon,
   ExclamationTriangleIcon,
-  PencilIcon,
+  ClockIcon,
   PlayCircleIcon,
   UsersIcon,
   XMarkIcon,
@@ -82,10 +82,10 @@ const smallFeatures = [
     desc: "Open interactive shell sessions inside running containers over SSH. No docker exec or host access needed.",
   },
   {
-    icon: PencilIcon,
+    icon: ClockIcon,
     color: C.blue,
-    title: "Audit Logging",
-    desc: "Full audit trail of every container session. Who connected, when, from where, and what they executed.",
+    title: "Session History",
+    desc: "Every container session is on record: who connected, to which container, when and from where.",
   },
 ];
 
@@ -727,7 +727,7 @@ export default function ContainerManagement() {
                     {[
                       "Role-based access at the namespace level",
                       "Owner, administrator, operator, and observer roles",
-                      "Firewall rules by hostname or username pattern",
+                      "Access policies down to the unix login",
                       "Deny-by-default access model",
                     ].map((item) => (
                       <FeatureListItem key={item} color="green">

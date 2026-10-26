@@ -128,8 +128,8 @@ export function StepPath({ onSelectSelfHosted }: StepPathProps) {
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold mb-1">Enterprise</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Need SSO, audit logs, or dedicated support? Talk to our team about
-              a plan that fits your organization.
+              Need SSO, server-side recording, or dedicated support? Talk to our
+              team about a plan that fits your organization.
             </p>
           </div>
           <Button

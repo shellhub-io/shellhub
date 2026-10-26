@@ -14,7 +14,7 @@ import {
   LockClosedIcon,
   ShieldCheckIcon,
   UsersIcon,
-  PencilSquareIcon,
+  ClockIcon,
   KeyIcon,
   FolderIcon,
   TagIcon,
@@ -336,7 +336,7 @@ function SessionRecording() {
               },
               {
                 label: "Session history",
-                desc: "Filter sessions by device, status, or date",
+                desc: "Every session kept, newest first, with who connected, to which device and from where",
               },
               {
                 label: "Compliance ready",
@@ -487,31 +487,31 @@ const securityFeatures = [
     icon: LockClosedIcon,
     color: C.yellow,
     title: "Multi-Factor Authentication",
-    desc: "Add TOTP-based MFA to SSH connections. Works with Google Authenticator, Authy, and any standards-compliant app.",
+    desc: "Require TOTP for console logins on Cloud and Enterprise. Works with any standards-compliant authenticator app.",
   },
   {
     icon: ShieldCheckIcon,
     color: C.red,
-    title: "Firewall Rules",
-    desc: "Control access with flexible rules. Allow or deny connections based on IP address, hostname, or user identity.",
+    title: "Access Policies",
+    desc: "Default deny. Allow or deny members, roles or API keys a set of devices, down to the unix login they may use.",
   },
   {
     icon: UsersIcon,
     color: C.primary,
     title: "Role-Based Access Control",
-    desc: "Assign roles and permissions at namespace level. Owner, administrator, operator, and observer roles with granular control.",
+    desc: "Owner, administrator, operator and observer roles per namespace, and policies that grant device access to a role.",
   },
   {
-    icon: PencilSquareIcon,
+    icon: ClockIcon,
     color: C.green,
-    title: "Audit Logging",
-    desc: "Complete audit trail of every connection, command, and configuration change.",
+    title: "Session History",
+    desc: "Every connection is a session on record: who connected, to which device, from where, and whether it was allowed.",
   },
   {
     icon: KeyIcon,
     color: C.cyan,
-    title: "Public Key Authentication",
-    desc: "Use SSH public keys alongside or instead of passwords. Manage authorized keys centrally through the dashboard.",
+    title: "SSH Identities",
+    desc: "Bind each SSH key to the person or API key it belongs to, and revoke it in one place.",
   },
   {
     icon: FolderIcon,
@@ -1107,7 +1107,7 @@ function DeviceOrganization() {
                 <ul className="space-y-2">
                   {[
                     "Filter and group devices by custom tags",
-                    "Apply firewall rules based on tags",
+                    "Grant access to every device with a tag",
                     "Organize devices with custom tags",
                   ].map((item) => (
                     <li
@@ -1200,7 +1200,7 @@ function DeviceOrganization() {
                   {[
                     "Complete isolation between environments",
                     "Separate members, devices, and policies",
-                    "Independent firewall rules per namespace",
+                    "Independent access policies per namespace",
                   ].map((item) => (
                     <li
                       key={item}

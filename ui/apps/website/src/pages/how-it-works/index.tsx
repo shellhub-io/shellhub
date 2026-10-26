@@ -80,7 +80,7 @@ const shellhubAdvantages = [
   { label: "Auto-reconnect on failure", has: true },
   { label: "Zero config on device network", has: true },
   { label: "Session recording built-in", has: true },
-  { label: "Centralized audit logging", has: true },
+  { label: "Default-deny access policies", has: true },
 ];
 
 const vpnLimitations = [
@@ -325,14 +325,14 @@ export default function HowItWorks() {
                   {
                     x: 445,
                     y: 100,
-                    label: "Firewall Rules",
+                    label: "Access Policies",
                     color: C.yellow,
                     icon: "fire",
                   },
                   {
                     x: 445,
                     y: 140,
-                    label: "Audit Logging",
+                    label: "Session History",
                     color: C.green,
                     icon: "log",
                   },
@@ -971,15 +971,15 @@ export default function HowItWorks() {
                 </h3>
                 <p className="text-sm text-text-secondary leading-relaxed mb-4">
                   Use your standard SSH client to connect through ShellHub. The
-                  gateway authenticates the user, applies firewall rules, and
+                  gateway identifies the key, checks the access policies, and
                   routes the connection to the right device.
                 </p>
                 <ul className="space-y-2 md:ml-auto md:mr-0">
                   {[
                     "Standard SSH client, no plugins",
-                    "MFA and public key auth",
-                    "Firewall rules per device/user",
-                    "Session recording and audit trail",
+                    "SSH identities bound to people",
+                    "Access policies per device and login",
+                    "Session recording and history",
                   ].map((d) => (
                     <li
                       key={d}

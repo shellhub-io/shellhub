@@ -1,7 +1,7 @@
 import {
   ArrowRightEndOnRectangleIcon,
   LockClosedIcon,
-  PencilIcon,
+  ClockIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
@@ -22,10 +22,10 @@ const features = [
     desc: "Users can enable TOTP-based multi-factor authentication for web console login.",
   },
   {
-    icon: PencilIcon,
+    icon: ClockIcon,
     color: C.green,
-    title: "Audit Logs",
-    desc: "Complete audit trail of every action. User logins, device connections, configuration changes.",
+    title: "Session History",
+    desc: "Every connection is on record: who connected, to which device, from where, and whether it was allowed.",
   },
   {
     icon: PlayIcon,
@@ -36,14 +36,14 @@ const features = [
   {
     icon: ShieldCheckIcon,
     color: C.blue,
-    title: "Firewall Rules",
-    desc: "Define granular connection policies per hostname or username pattern.",
+    title: "Access Policies",
+    desc: "Default-deny rules that grant members, roles or API keys a set of devices, down to the unix login.",
   },
 ];
 
 /**
- * Enterprise section listing the security and authentication features — SSO, MFA, recording
- * and audit logging.
+ * Enterprise section listing the security and authentication features: SSO, MFA, recording,
+ * session history and access policies.
  */
 export function SecurityFeatures() {
   return (
@@ -51,7 +51,7 @@ export function SecurityFeatures() {
       <SectionHeader
         eyebrow="Security & Authentication"
         title="Enterprise-grade security, built in"
-        subtitle="Meet compliance requirements with SSO, MFA enforcement, session recording, and complete audit logging."
+        subtitle="Meet compliance requirements with SSO, MFA enforcement, session recording and a record of every connection."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

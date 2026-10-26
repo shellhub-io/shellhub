@@ -4,7 +4,7 @@ import {
   CommandLineIcon,
   ComputerDesktopIcon,
   EyeIcon,
-  PencilIcon,
+  ClockIcon,
   PlayCircleIcon,
   ShieldCheckIcon,
   ShieldExclamationIcon,
@@ -66,14 +66,14 @@ const features = [
   {
     icon: ShieldCheckIcon,
     color: C.green,
-    title: "Firewall Rules",
-    desc: "Define who can access which devices with granular per-device, per-user, or per-tag firewall policies. Block unauthorized connections before they reach the agent.",
+    title: "Access Policies",
+    desc: "Default deny. Grant members, roles or API keys the devices with a tag, down to the unix login. A refused connection never reaches the agent.",
   },
   {
     icon: TagIcon,
     color: C.yellow,
     title: "Device Tags",
-    desc: "Organize fleets by location, firmware version, hardware type, or customer. Apply firewall rules and access policies to entire groups at once.",
+    desc: "Organize fleets by location, firmware version, hardware type, or customer. Grant access to an entire group at once with a policy on its tag.",
   },
   {
     icon: PlayCircleIcon,
@@ -82,10 +82,10 @@ const features = [
     desc: "Record every SSH session for compliance, debugging, and knowledge sharing. Replay exactly what happened on a remote device during an incident.",
   },
   {
-    icon: PencilIcon,
+    icon: ClockIcon,
     color: C.primary,
-    title: "Audit Logging",
-    desc: "Full audit trail of every connection, command, and configuration change. Know who accessed what, when, and from where for regulatory compliance.",
+    title: "Session History",
+    desc: "Every connection is on record. Know who accessed what, when, and from where for regulatory compliance.",
   },
 ];
 
@@ -204,7 +204,7 @@ export default function IotEmbedded() {
                 },
                 {
                   label: "Bulk operations",
-                  desc: "Select multiple devices to apply firewall rules, update tags, or revoke access",
+                  desc: "Select multiple devices to update tags or revoke access",
                 },
                 {
                   label: "Search & filter",

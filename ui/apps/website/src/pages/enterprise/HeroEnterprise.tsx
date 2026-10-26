@@ -31,8 +31,8 @@ export function HeroEnterprise() {
         </Reveal>
         <Reveal>
           <p className="text-sm text-text-secondary max-w-lg mx-auto leading-relaxed mb-10">
-            SSO, admin panel, audit logs, and dedicated support. Everything your
-            team needs to manage thousands of devices securely.
+            SSO, admin panel, session recording, and dedicated support.
+            Everything your team needs to manage thousands of devices securely.
           </p>
         </Reveal>
         <Reveal>

@@ -3,7 +3,7 @@ import {
   CheckIcon,
   ComputerDesktopIcon,
   LockClosedIcon,
-  PencilIcon,
+  ClockIcon,
   PlayCircleIcon,
   ShieldCheckIcon,
   UsersIcon,
@@ -64,10 +64,10 @@ const features = [
     desc: "Every support session is recorded and can be replayed for quality assurance, training, and compliance audits.",
   },
   {
-    icon: PencilIcon,
+    icon: ClockIcon,
     color: C.green,
-    title: "Audit Logging",
-    desc: "Complete audit trail with timestamps, user identity, and session details for every connection made to any device.",
+    title: "Session History",
+    desc: "Every connection is on record, with timestamps, user identity, device and origin.",
   },
   {
     icon: UsersIcon,
@@ -84,14 +84,14 @@ const features = [
   {
     icon: LockClosedIcon,
     color: C.yellow,
-    title: "MFA for SSH",
-    desc: "Require multi-factor authentication for support sessions — adding a security layer beyond SSH keys alone.",
+    title: "Login Approvals",
+    desc: "A key the namespace has never seen waits for a member to approve it before the session opens.",
   },
   {
     icon: ShieldCheckIcon,
     color: C.primary,
-    title: "Firewall Rules",
-    desc: "Restrict support access by hostname or username pattern with granular firewall policies.",
+    title: "Access Policies",
+    desc: "Default deny. Grant the support role the customer devices it needs, down to the unix login.",
   },
 ];
 
@@ -150,7 +150,7 @@ const workflowSteps = [
   {
     num: "03",
     title: "Session Recorded & Logged",
-    desc: "Every keystroke is recorded. The audit log captures who connected, when, what was done, and for how long.",
+    desc: "The session is recorded, and the session history keeps who connected, to which device, when and for how long.",
     color: C.green,
   },
 ];
@@ -216,7 +216,7 @@ export default function RemoteSupport() {
                 },
                 {
                   label: "Session archive",
-                  desc: "Filter sessions by device, status, or date",
+                  desc: "Every session kept, newest first, with who connected and from where",
                 },
                 {
                   label: "Session recording download",
@@ -345,7 +345,7 @@ export default function RemoteSupport() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <Reveal delay={0.1} className="order-2 lg:order-1">
             <ShimmerCard>
-              <WindowChrome variant="terminal" title="Audit Log">
+              <WindowChrome variant="terminal" title="Sessions">
                 <div className="grid grid-cols-[60px_1fr_1fr_1fr_70px] gap-2 px-3 py-2 mb-1">
                   <span className="text-2xs font-mono font-semibold text-text-muted uppercase tracking-wider">
                     Time
@@ -423,22 +423,18 @@ export default function RemoteSupport() {
               eyebrowColor="green"
               eyebrow="Audit Trail"
               title="Full accountability for every connection"
-              subtitle="Every session is logged with the user identity, target device, timestamps, and duration. Build compliance reports, investigate incidents, and prove to auditors exactly who did what, when, and for how long."
+              subtitle="Every session is logged with the user identity, target device, timestamps, and duration. Investigate incidents and show auditors exactly who connected to what, when, and for how long."
             />
 
             <div className="space-y-3">
               {[
                 {
-                  label: "Persistent audit trail",
-                  desc: "Every connection and action is logged for review",
+                  label: "Persistent session history",
+                  desc: "Every connection is kept on record for review",
                 },
                 {
-                  label: "Filter and search",
-                  desc: "Find events by user, device, date, or action type instantly",
-                },
-                {
-                  label: "Compliance reporting",
-                  desc: "Generate reports for SOC 2, ISO 27001, and internal audits",
+                  label: "Session detail",
+                  desc: "Open a session to see its flow, the identity, the device and the recording",
                 },
                 {
                   label: "Real-time monitoring",
