@@ -33,7 +33,6 @@ import {
 const SignUp = lazy(() => import("./pages/SignUp"));
 const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
-const ValidationAccount = lazy(() => import("./pages/ValidationAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
 const PendingDevices = lazy(() => import("./pages/devices/PendingDevices"));
@@ -138,7 +137,7 @@ export default function App() {
                 <Route path="/confirm-account" element={<ConfirmAccount />} />
                 <Route
                   path="/validation-account"
-                  element={<ValidationAccount />}
+                  element={<Navigate to="/login" replace />}
                 />
               </Route>
               {isCloud() && (

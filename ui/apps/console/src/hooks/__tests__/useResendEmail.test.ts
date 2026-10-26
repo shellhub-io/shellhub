@@ -20,9 +20,39 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+function throttleWith(error: string) {
+  mockResendEmail.mockImplementation(() => {
+    useSignUpStore.setState({ resendError: error });
+    return Promise.resolve("throttled");
+  });
+}
+
 describe("useResendEmail", () => {
+  it("starts the cooldown and keeps the error when a resend the user asked for is throttled", async () => {
+    throttleWith("Wait a minute before asking for another email.");
+    const { result } = renderHook(() => useResendEmail("testuser"));
+
+    await act(() => result.current.handleResend());
+
+    expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S);
+    expect(result.current.resendSuccess).toBe(false);
+    expect(result.current.resendError).toBe(
+      "Wait a minute before asking for another email.",
+    );
+  });
+
+  it("starts the cooldown and clears the error when an unprompted resend is throttled", async () => {
+    throttleWith("Wait a minute before asking for another email.");
+    const { result } = renderHook(() => useResendEmail("testuser"));
+
+    await act(() => result.current.handleResend({ unprompted: true }));
+
+    expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S);
+    expect(result.current.resendError).toBeNull();
+  });
+
   it("sets resendSuccess and starts cooldown after successful resend", async () => {
-    mockResendEmail.mockResolvedValue(true);
+    mockResendEmail.mockResolvedValue("sent");
     const { result } = renderHook(() => useResendEmail("testuser"));
 
     await act(() => result.current.handleResend());
@@ -32,7 +62,7 @@ describe("useResendEmail", () => {
   });
 
   it("does not start cooldown or set resendSuccess on failed resend", async () => {
-    mockResendEmail.mockResolvedValue(false);
+    mockResendEmail.mockResolvedValue("failed");
     const { result } = renderHook(() => useResendEmail("testuser"));
 
     await act(() => result.current.handleResend());
@@ -42,7 +72,7 @@ describe("useResendEmail", () => {
   });
 
   it("clears resendSuccess before each new resend call", async () => {
-    mockResendEmail.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    mockResendEmail.mockResolvedValueOnce("sent").mockResolvedValueOnce("failed");
     const { result } = renderHook(() => useResendEmail("testuser"));
 
     await act(() => result.current.handleResend());
@@ -54,7 +84,7 @@ describe("useResendEmail", () => {
 
   it("decrements cooldown by 1 each second", async () => {
     vi.useFakeTimers();
-    mockResendEmail.mockResolvedValue(true);
+    mockResendEmail.mockResolvedValue("sent");
     const { result } = renderHook(() => useResendEmail("testuser"));
 
     await act(() => result.current.handleResend());
@@ -67,7 +97,7 @@ describe("useResendEmail", () => {
     expect(result.current.resendCooldown).toBe(RESEND_COOLDOWN_S - 2);
   });
 
-  it("does not call resendEmail when username is empty", async () => {
+  it("does not call resendEmail when the identifier is empty", async () => {
     const { result } = renderHook(() => useResendEmail(""));
 
     await act(() => result.current.handleResend());

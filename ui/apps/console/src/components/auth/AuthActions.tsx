@@ -9,7 +9,7 @@ import { cn } from "@shellhub/design-system/cn";
 export type AuthLink =
   | { label: string; to: string }
   | { label: string; href: string }
-  | { label: string; onClick: () => void };
+  | { label: string; onClick: () => void; disabled?: boolean };
 
 interface AuthActionsProps {
   primary?: ReactNode;
@@ -72,7 +72,15 @@ function AuthLinkItem({ link }: { link: AuthLink }) {
   }
 
   return (
-    <button type="button" onClick={link.onClick} className={linkClass}>
+    <button
+      type="button"
+      onClick={link.onClick}
+      disabled={link.disabled}
+      className={cn(
+        linkClass,
+        "disabled:cursor-not-allowed disabled:opacity-60",
+      )}
+    >
       {link.label}
     </button>
   );

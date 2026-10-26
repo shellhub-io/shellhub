@@ -97,7 +97,7 @@ export default function SignUp() {
 
     if (!token) {
       void navigate(
-        `/confirm-account?username=${encodeURIComponent(values.username)}`,
+        `/confirm-account?identifier=${encodeURIComponent(values.email)}`,
       );
       return;
     }

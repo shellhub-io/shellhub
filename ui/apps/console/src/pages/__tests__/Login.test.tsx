@@ -178,14 +178,15 @@ describe("Login", () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it("redirects to confirm-account with the trimmed username on 403", async () => {
+    it("redirects to confirm-account with the trimmed username on 403, asking for a fresh code", async () => {
       setLoginError(403);
 
       renderLogin();
       await fillAndSubmit("  admin  ", "secret");
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        "/confirm-account?username=admin",
+        "/confirm-account?identifier=admin",
+        { state: { sendCode: true } },
       );
     });
 

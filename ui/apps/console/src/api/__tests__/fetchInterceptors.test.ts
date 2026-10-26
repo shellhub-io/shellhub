@@ -189,6 +189,14 @@ describe("response interceptor", () => {
     expect(window.location.href).toBe("");
   });
 
+  it("stays on the page on 401 from a wrong confirmation code, with no session to end", async () => {
+    respondWith(401);
+
+    await client.post({ url: "/api/user/confirm_account" });
+
+    expect(window.location.href).toBe("");
+  });
+
   it("keeps the session on 401 from the login route", async () => {
     useAuthStore.setState({ token: makeJwt(futureExp()) });
     respondWith(401);

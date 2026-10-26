@@ -1,16 +1,6 @@
 import { create } from "zustand";
 import { apiErrorFields, apiErrorMessage, isSdkError } from "../api/errors";
-import {
-  registerUser,
-  resendEmail as resendEmailSdk,
-  getValidateAccount,
-} from "../client";
-
-/**
- * Where an email verification stands. failed-token is separate from failed because an expired
- * or reused link is offered a resend, and a genuine failure is not.
- */
-export type ValidationStatus = "idle" | "processing" | "success" | "failed" | "failed-token";
+import { registerUser, resendEmail as resendEmailSdk } from "../client";
 
 interface SignUpPayload {
   name: string;
@@ -20,6 +10,12 @@ interface SignUpPayload {
   email_marketing: boolean;
   sig?: string;
 }
+
+/**
+ * How a resend of the confirmation code ended: sent, refused because one went out within the last
+ * minute, or failed for any other reason.
+ */
+export type ResendOutcome = "sent" | "throttled" | "failed";
 
 interface SignUpState {
   signUpToken: string | null;
@@ -31,20 +27,15 @@ interface SignUpState {
   resendLoading: boolean;
   resendError: string | null;
 
-  validationStatus: ValidationStatus;
-
   signUp: (payload: SignUpPayload) => Promise<string | null>;
   clearSignUpServerField: (field: string) => void;
   resetSignUpErrors: () => void;
-  resendEmail: (username: string) => Promise<boolean>;
-  validateAccount: (email: string, token: string, signal?: AbortSignal) => Promise<void>;
-  resetValidation: () => void;
-  setValidationFailed: () => void;
+  resendEmail: (identifier: string) => Promise<ResendOutcome>;
   resetResendError: () => void;
 }
 
 /**
- * The sign-up flow: the account request, the verification mail, and the resend. Field-level
+ * The sign-up flow: the account request and the resend of its confirmation code. Field-level
  * errors from the server are kept apart from the general one, so each lands on its own input.
  */
 export const useSignUpStore = create<SignUpState>()((set) => ({
@@ -57,10 +48,14 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   resendLoading: false,
   resendError: null,
 
-  validationStatus: "idle",
-
   signUp: async (payload) => {
-    set({ signUpLoading: true, signUpError: null, signUpServerFields: [], signUpToken: null, signUpTenant: null });
+    set({
+      signUpLoading: true,
+      signUpError: null,
+      signUpServerFields: [],
+      signUpToken: null,
+      signUpTenant: null,
+    });
     try {
       const { data } = await registerUser({
         body: payload,
@@ -80,7 +75,9 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
         return null;
       }
       if (import.meta.env.DEV && isSdkError(error)) {
-        console.warn("Unhandled sign-up error response:", { status: error.status });
+        console.warn("Unhandled sign-up error response:", {
+          status: error.status,
+        });
       }
       set({ signUpLoading: false, signUpError: apiErrorMessage(error) });
       return null;
@@ -88,36 +85,29 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   },
 
   clearSignUpServerField: (field) =>
-    set((s) => ({ signUpServerFields: s.signUpServerFields.filter((f) => f !== field) })),
+    set((s) => ({
+      signUpServerFields: s.signUpServerFields.filter((f) => f !== field),
+    })),
 
   resetSignUpErrors: () => set({ signUpError: null, signUpServerFields: [] }),
 
-  resendEmail: async (username) => {
+  resendEmail: async (identifier) => {
     set({ resendLoading: true, resendError: null });
     try {
-      await resendEmailSdk({ body: { username }, throwOnError: true });
+      await resendEmailSdk({ body: { identifier }, throwOnError: true });
       set({ resendLoading: false });
-      return true;
-    } catch {
-      set({ resendLoading: false, resendError: "Failed to resend email. Please try again." });
-      return false;
-    }
-  },
-
-  validateAccount: async (email, token, signal) => {
-    set({ validationStatus: "processing" });
-    try {
-      await getValidateAccount({ query: { email, token }, signal, throwOnError: true });
-      set({ validationStatus: "success" });
+      return "sent";
     } catch (error: unknown) {
-      if (signal?.aborted) return;
-      const status = isSdkError(error) ? error.status : undefined;
-      set({ validationStatus: (status === 400 || status === 401) ? "failed-token" : "failed" });
+      const throttled = isSdkError(error) && error.status === 429;
+      set({
+        resendLoading: false,
+        resendError: throttled
+          ? "Wait a minute before asking for another email."
+          : "Failed to resend email. Please try again.",
+      });
+      return throttled ? "throttled" : "failed";
     }
   },
-
-  resetValidation: () => set({ validationStatus: "idle" }),
-  setValidationFailed: () => set({ validationStatus: "failed" }),
 
   resetResendError: () => {
     set({ resendError: null });

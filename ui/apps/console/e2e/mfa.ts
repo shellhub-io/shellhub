@@ -28,10 +28,14 @@ export function totp(secret: string, stepOffset = 0) {
   return code.toString().padStart(6, "0");
 }
 
-export async function fillDigits(page: Page, code: string) {
+export async function fillDigits(
+  page: Page,
+  code: string,
+  group = "Verification Code",
+) {
   for (const [i, digit] of [...code].entries()) {
     await page
-      .getByRole("group", { name: "Verification Code" })
+      .getByRole("group", { name: group })
       .getByRole("textbox")
       .nth(i)
       .fill(digit);

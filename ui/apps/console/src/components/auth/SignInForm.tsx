@@ -1,13 +1,10 @@
 import { useState, FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Button, Callout } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import {
-  lockoutEndFrom,
-  useLockoutCountdown,
-} from "@/hooks/useLockoutCountdown";
+import { useLockout } from "@/hooks/useLockout";
 import { landingAfterSignIn } from "@/utils/navigation";
 import {
   FormInputField,
@@ -16,6 +13,7 @@ import {
 import { loginResolver } from "@/pages/setup/loginResolver";
 import MfaCodeForm from "@/components/mfa/MfaCodeForm";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
+import LockoutCallouts from "@/components/auth/LockoutCallouts";
 import type { LoginFormValues } from "@/pages/setup/loginResolver";
 
 interface SignInFormProps {
@@ -44,9 +42,8 @@ export default function SignInForm({
   const { login, loading } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [secondFactor, setSecondFactor] = useState(false);
-  const [lockoutEndEpoch, setLockoutEndEpoch] = useState<number | null>(null);
-  const { display: countdownDisplay, expired: lockoutExpired } =
-    useLockoutCountdown(lockoutEndEpoch);
+  const { lockFrom, clearLockout, countdownDisplay, lockoutExpired } =
+    useLockout();
 
   const { control, handleSubmit, formState } = useForm<LoginFormValues>({
     resolver: loginResolver,
@@ -56,7 +53,7 @@ export default function SignInForm({
 
   const onSubmit = async (values: LoginFormValues) => {
     setError(null);
-    setLockoutEndEpoch(null);
+    clearLockout();
     try {
       await login(values.username, values.password);
 
@@ -92,7 +89,8 @@ export default function SignInForm({
           break;
         case 403:
           void navigate(
-            `/confirm-account?username=${encodeURIComponent(values.username)}`,
+            `/confirm-account?identifier=${encodeURIComponent(values.username)}`,
+            { state: { sendCode: true } },
           );
           break;
         case 423:
@@ -101,7 +99,7 @@ export default function SignInForm({
           );
           break;
         case 429: {
-          setLockoutEndEpoch(lockoutEndFrom(err.headers));
+          lockFrom(err.headers);
           setError(
             "Too many failed login attempts. Please wait before trying again.",
           );
@@ -138,21 +136,12 @@ export default function SignInForm({
 
   return (
     <form onSubmit={handleFormSubmit} className="space-y-5">
-      {lockoutExpired && (
-        <Callout variant="success">
-          Your timeout has finished. Please try to log back in.
-        </Callout>
-      )}
-      {error && !lockoutExpired && (
-        <Callout variant="error">
-          <span>
-            <span>{error}</span>
-            {countdownDisplay ? (
-              <span className="font-semibold"> ({countdownDisplay})</span>
-            ) : null}
-          </span>
-        </Callout>
-      )}
+      <LockoutCallouts
+        error={error}
+        countdownDisplay={countdownDisplay}
+        lockoutExpired={lockoutExpired}
+        expiredMessage="Your timeout has finished. Please try to log back in."
+      />
 
       <FormInputField<LoginFormValues>
         id="username"

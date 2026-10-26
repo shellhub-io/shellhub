@@ -8,6 +8,7 @@ import {
   deleteUser as deleteUserSdk,
   authMfa,
   mfaRecover,
+  confirmAccount as confirmAccountSdk,
   type UserOrigin,
 } from "../client";
 import { queryClient } from "../api/queryClient";
@@ -63,6 +64,7 @@ interface AuthState {
   ) => Promise<void>;
   deleteUser: () => Promise<void>;
   loginWithMfa: (code: string) => Promise<void>;
+  confirmAccount: (identifier: string, code: string) => Promise<boolean>;
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
@@ -212,6 +214,16 @@ export const useAuthStore = create<AuthState>()(
         await deleteUserSdk({ throwOnError: true });
         get().logout();
         window.location.replace("/login");
+      },
+
+      confirmAccount: async (identifier, code) => {
+        const { data, response } = await confirmAccountSdk({
+          body: { identifier, code },
+          throwOnError: true,
+        });
+        if (response.status === 204 || !data) return false;
+        set(signedInSession(data));
+        return true;
       },
 
       loginWithMfa: async (code: string) => {

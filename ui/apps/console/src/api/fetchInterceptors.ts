@@ -81,7 +81,8 @@ client.interceptors.response.use((response, request) => {
     } else {
       const isSignInStep =
         response.url.includes("/api/login") ||
-        response.url.includes("/api/user/mfa/auth");
+        response.url.includes("/api/user/mfa/auth") ||
+        response.url.includes("/api/user/confirm_account");
       const isTokenLogin = new URLSearchParams(window.location.search).has(
         "token",
       );
