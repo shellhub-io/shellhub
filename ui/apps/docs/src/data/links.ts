@@ -18,6 +18,6 @@ export const docsUrl = import.meta.env.DEV
 
 /**
  * URL of the documentation for the released version. The unreleased build points readers here;
- * it is the address `docs/stable` is published to, which is docsv2 until it takes over docs.
+ * it is the address `docs/stable` is published to.
  */
-export const releasedDocsUrl = "https://docsv2.shellhub.io";
+export const releasedDocsUrl = "https://docs.shellhub.io";
