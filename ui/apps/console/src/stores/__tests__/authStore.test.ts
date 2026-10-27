@@ -178,7 +178,7 @@ describe("authStore", () => {
 
     it("clears a handed-over sign-out, so the next session's 401s end it again", () => {
       useAuthStore.setState({ token: "jwt" });
-      useAuthStore.getState().handOverSignOut();
+      useAuthStore.setState({ signOutHandedOver: true });
 
       useAuthStore.getState().logout();
       useAuthStore.setState({ token: "next-jwt" });

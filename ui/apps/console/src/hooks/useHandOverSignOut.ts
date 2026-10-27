@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { signOutLoginState } from "@/components/auth/loginState";
 import { useAuthStore } from "@/stores/authStore";
 
 /**
@@ -12,7 +11,7 @@ export function useHandOverSignOut() {
   const navigate = useNavigate();
 
   return (notice: string) => {
-    useAuthStore.getState().handOverSignOut();
-    void navigate("/login", { state: signOutLoginState(notice) });
+    useAuthStore.setState({ signOutHandedOver: true });
+    void navigate("/login", { state: { notice, signOut: true } });
   };
 }

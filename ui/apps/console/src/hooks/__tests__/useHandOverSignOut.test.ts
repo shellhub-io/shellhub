@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 import { useLocation } from "react-router-dom";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
-import { readLoginState } from "@/components/auth/loginState";
 import { useAuthStore } from "@/stores/authStore";
 import { renderHookWithRouter } from "@/tests/renderHookWithRouter";
 import { VALID_JWT } from "@/tests/seedAuthStore";
@@ -21,7 +20,7 @@ describe("useHandOverSignOut", () => {
     act(() => result.current.handOver("Password changed."));
 
     expect(result.current.location.pathname).toBe("/login");
-    expect(readLoginState(result.current.location.state)).toEqual({
+    expect(result.current.location.state).toEqual({
       notice: "Password changed.",
       signOut: true,
     });

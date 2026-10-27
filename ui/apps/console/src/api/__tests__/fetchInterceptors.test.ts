@@ -180,7 +180,7 @@ describe("response interceptor", () => {
   it("leaves the session to the sign-in page on 401 once a sign-out is handed over", async () => {
     const token = makeJwt(futureExp());
     useAuthStore.setState({ token });
-    useAuthStore.getState().handOverSignOut();
+    useAuthStore.setState({ signOutHandedOver: true });
     respondWith(401);
 
     await client.get({ url: "/test" });
