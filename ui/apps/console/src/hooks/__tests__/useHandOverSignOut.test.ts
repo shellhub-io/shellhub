@@ -11,13 +11,15 @@ beforeEach(() => {
 });
 
 describe("useHandOverSignOut", () => {
-  it("opens the sign-in page with the notice and a sign-out for it to carry out", () => {
+  it("opens the sign-in page with the notice and a sign-out for it to carry out", async () => {
     const { result } = renderHookWithRouter(
       () => ({ handOver: useHandOverSignOut(), location: useLocation() }),
       { initialEntries: ["/account/security"] },
     );
 
-    act(() => result.current.handOver("Password changed."));
+    await act(() =>
+      result.current.handOver(() => Promise.resolve(), "Password changed."),
+    );
 
     expect(result.current.location.pathname).toBe("/login");
     expect(result.current.location.state).toEqual({
@@ -26,10 +28,10 @@ describe("useHandOverSignOut", () => {
     });
   });
 
-  it("keeps the token for the sign-in page to end, and abandons its session", () => {
+  it("keeps the token for the sign-in page to end, and abandons its session", async () => {
     const { result } = renderHookWithRouter(() => useHandOverSignOut());
 
-    act(() => result.current("Password changed."));
+    await act(() => result.current(() => Promise.resolve(), "Password changed."));
 
     const { token, isFromAbandonedSession } = useAuthStore.getState();
     expect(token).toBe(VALID_JWT);

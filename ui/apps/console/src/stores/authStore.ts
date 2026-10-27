@@ -95,8 +95,8 @@ const initialState = {
  * part that matters and everything else is derived from it.
  *
  * Every request is from an abandoned session from the moment its sign-out is handed over to the
- * sign-in page until logout. Otherwise, only a request that carried a token the store no longer
- * holds is; one that carried none is not.
+ * sign-in page until logout, or until the hand-over is withdrawn. Otherwise, only a request that
+ * carried a token the store no longer holds is; one that carried none is not.
  */
 export const useAuthStore = create<AuthState>()(
   persist(
