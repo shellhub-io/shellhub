@@ -84,14 +84,17 @@ export default function MfaDisableDialog({
         });
       } else if (mode === "email-reset") {
         if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
-        await disableMfa({
-          body: {
-            main_email_code: otpMainEmail.getValue(),
-            recovery_email_code: otpRecoveryEmail.getValue(),
-          },
-          throwOnError: true,
-        });
-        handOverSignOut("MFA disabled. Sign in again.");
+        await handOverSignOut(
+          () =>
+            disableMfa({
+              body: {
+                main_email_code: otpMainEmail.getValue(),
+                recovery_email_code: otpRecoveryEmail.getValue(),
+              },
+              throwOnError: true,
+            }),
+          "MFA disabled. Sign in again.",
+        );
         return;
       }
 

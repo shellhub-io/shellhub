@@ -50,8 +50,10 @@ function ChangePasswordModal({
   const onValid = async (values: ChangePasswordFormValues) => {
     clearErrors("root");
     try {
-      await updatePw(values.current, values.newPw);
-      handOverSignOut("Password changed. Sign in with your new password.");
+      await handOverSignOut(
+        () => updatePw(values.current, values.newPw),
+        "Password changed. Sign in with your new password.",
+      );
     } catch (err) {
       const errorMessage =
         isSdkError(err) && err.status === 403
