@@ -12,7 +12,7 @@ vi.mock("@/components/common/Modal", async () => ({
   default: (await import("@/tests/mocks")).MockModal,
 }));
 
-const Wrapper = createTestWrapper();
+const Wrapper = createTestWrapper({ initialEntries: ["/admin/users"] });
 
 const mockUser: UserAdminResponse = {
   id: "u1",

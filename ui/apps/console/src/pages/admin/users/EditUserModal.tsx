@@ -4,6 +4,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { isSdkError } from "@/api/errors";
 import FormModal from "@/components/common/FormModal";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -24,7 +25,11 @@ interface EditUserModalProps {
 }
 
 /**
- * Edits a user as an admin, including the namespace limits the user cannot change themselves.
+ * Edits a user as an admin, including the namespace limits the user cannot change themselves, and
+ * calls onClose once saved. An admin who sets a new password on their own account revokes the
+ * session's token, so the modal then hands the sign-out over to the sign-in page and leaves for it
+ * instead of calling onClose. When saving fails, own password included, the modal stays open with
+ * the error and the session is left as it was.
  */
 export default function EditUserModal({
   open,
@@ -37,6 +42,7 @@ export default function EditUserModal({
     onSuccess: invalidateUser,
   });
   const currentUserId = useAuthStore((s) => s.userId);
+  const handOverSignOut = useHandOverSignOut();
 
   const usernameRequired = !!user?.username;
   const schema = userSchema("edit", usernameRequired);
@@ -52,12 +58,21 @@ export default function EditUserModal({
   const onValid = async (values: UserFormValues) => {
     if (!user) return;
     clearErrors("root");
-    try {
-      await updateUser.mutateAsync({
+    const update = () =>
+      updateUser.mutateAsync({
         path: { id: user.id },
         body: buildUserPayload("edit", values, user),
       });
-      onClose();
+    try {
+      if (isSelf && values.password !== "") {
+        await handOverSignOut(
+          update,
+          "Password changed. Sign in with your new password.",
+        );
+      } else {
+        await update();
+        onClose();
+      }
     } catch (err) {
       const message =
         isSdkError(err) && err.status === 409
