@@ -37,4 +37,38 @@ describe("useHandOverSignOut", () => {
     expect(token).toBe(VALID_JWT);
     expect(isFromAbandonedSession(VALID_JWT)).toBe(true);
   });
+
+  it("abandons the session before the revoking request resolves", async () => {
+    const { result } = renderHookWithRouter(() => useHandOverSignOut());
+    let abandonedWhileRevoking = false;
+
+    await act(() =>
+      result.current(() => {
+        abandonedWhileRevoking =
+          useAuthStore.getState().isFromAbandonedSession(VALID_JWT);
+        return Promise.resolve();
+      }, "Password changed."),
+    );
+
+    expect(abandonedWhileRevoking).toBe(true);
+  });
+
+  it("withdraws the hand-over and stays on the page when the revoking request fails", async () => {
+    const { result } = renderHookWithRouter(
+      () => ({ handOver: useHandOverSignOut(), location: useLocation() }),
+      { initialEntries: ["/account/security"] },
+    );
+    const failure = new Error("forbidden");
+
+    await act(() =>
+      expect(
+        result.current.handOver(() => Promise.reject(failure), "Password changed."),
+      ).rejects.toBe(failure),
+    );
+
+    expect(result.current.location.pathname).toBe("/account/security");
+    expect(useAuthStore.getState().isFromAbandonedSession(VALID_JWT)).toBe(
+      false,
+    );
+  });
 });
