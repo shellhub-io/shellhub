@@ -14,20 +14,22 @@ import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthActions from "@/components/auth/AuthActions";
 import SignInForm from "@/components/auth/SignInForm";
 import ScreenIntro from "@/components/layout/ScreenIntro";
-import { readLoginState } from "@/components/auth/loginState";
 import { getInfo, getSamlAuthUrl } from "../client";
 
 /**
  * The sign-in page. What it offers depends on the edition (SSO exists only on enterprise, sign-up
  * only on cloud) and on where the user was going, which it returns them to afterwards. Reached with
- * a {@link signOutLoginState} in the location state, it ends the current session itself and keeps
- * the notice beside it.
+ * `signOut: true` in the location state, it ends the current session itself and keeps the notice
+ * beside it.
  */
 export default function Login() {
   const isCloudEdition = isCloud();
   const isEnterpriseEdition = isEnterprise();
   const location = useLocation();
-  const { notice, signOut } = readLoginState(location.state);
+  const { notice, signOut } = (location.state ?? {}) as {
+    notice?: string;
+    signOut?: boolean;
+  };
 
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");

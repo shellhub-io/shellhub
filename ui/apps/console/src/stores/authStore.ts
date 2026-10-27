@@ -66,7 +66,6 @@ interface AuthState {
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
-  handOverSignOut: () => void;
   isFromAbandonedSession: (sentToken: string | null) => boolean;
 }
 
@@ -287,10 +286,6 @@ export const useAuthStore = create<AuthState>()(
 
       setMfaToken: (token: string) => {
         set({ mfaToken: token });
-      },
-
-      handOverSignOut: () => {
-        set({ signOutHandedOver: true });
       },
 
       isFromAbandonedSession: (sentToken: string | null) => {
