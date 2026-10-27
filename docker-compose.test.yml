@@ -45,6 +45,7 @@ services:
       start_period: 10s
       retries: 20
   redis:
+    image: ${DOCKERHUB_MIRROR:-}valkey/valkey:9.1-alpine
     labels: *e2e-labels
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_TEST_REDIS_PORT:-0}:6379

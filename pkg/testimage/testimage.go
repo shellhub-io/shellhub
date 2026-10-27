@@ -14,6 +14,21 @@ import (
 // FileName is the file at the repository root that pins every build-time version.
 const FileName = "versions.env"
 
+// MirrorEnv names the environment variable holding the registry prefix Docker Hub images are
+// pulled through, such as "registry.infra.ossystems.io/cache/". Empty pulls from Docker Hub.
+const MirrorEnv = "DOCKERHUB_MIRROR"
+
+// Mirror returns the registry prefix [MirrorEnv] holds, empty when the variable is unset.
+func Mirror() string {
+	return os.Getenv(MirrorEnv) //nolint:forbidigo // a test helper, configured by the test process's environment like tests/
+}
+
+// DockerHub returns image, a Docker Hub reference such as "alpine:3.24.2", behind the prefix
+// [Mirror] returns, or image itself when [MirrorEnv] is unset.
+func DockerHub(image string) string {
+	return Mirror() + image
+}
+
 // Root returns the repository root: the nearest directory at or above the working directory that
 // holds versions.env. It returns an error when the working directory cannot be resolved or no
 // directory above it holds the file, so a test never reads a version from the wrong checkout.
@@ -35,8 +50,9 @@ func Root() (string, error) {
 }
 
 // BuildArgs reads versions.env from root and returns its KEY=VALUE lines in the form
-// testcontainers takes as build arguments. It returns an error when the file cannot be read or a
-// line is not KEY=VALUE with both sides filled in, so a build never runs with an empty version.
+// testcontainers takes as build arguments, with [MirrorEnv] added from the environment. It
+// returns an error when the file cannot be read or a line is not KEY=VALUE with both sides filled
+// in, so a build never runs with an empty version.
 func BuildArgs(root string) (map[string]*string, error) {
 	path := filepath.Join(root, FileName)
 
@@ -67,6 +83,9 @@ func BuildArgs(root string) (map[string]*string, error) {
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
+
+	mirror := Mirror()
+	args[MirrorEnv] = &mirror
 
 	return args, nil
 }

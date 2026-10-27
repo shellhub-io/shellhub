@@ -45,7 +45,7 @@ func TestUnhealthyServicesNamesEachFailedService(t *testing.T) {
 			t.Cleanup(func() { _ = dc.Down(context.Background(), compose.RemoveOrphans(true), compose.RemoveVolumes(true)) })
 
 			envs := run.composeEnvs()
-			envs["ALPINE_IMAGE"] = "alpine:" + alpine
+			envs["ALPINE_IMAGE"] = testimage.DockerHub("alpine:" + alpine)
 			require.Error(t, dc.WithEnv(envs).Up(ctx, compose.Wait(true)))
 
 			err = run.unhealthyServices(ctx, project)

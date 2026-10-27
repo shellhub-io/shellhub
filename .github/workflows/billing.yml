@@ -45,6 +45,12 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
+      - name: Route Docker Hub pulls through the registry cache
+        uses: ./workflow/.github/actions/dockerhub-mirror
+        with:
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
+
       - name: Determine the shellhub branch paired with the cloud pull request
         id: paired
         if: github.event_name == 'repository_dispatch'

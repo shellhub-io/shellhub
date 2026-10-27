@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+ARG DOCKERHUB_MIRROR=
 ARG GOLANG_VERSION
 ARG ALPINE_VERSION
 ARG AIR_VERSION
@@ -11,12 +12,12 @@ ARG EDITION=community
 
 FROM scratch AS cloud-src
 
-FROM cosmtrek/air:${AIR_VERSION} AS air
-FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
-FROM vektra/mockery:${MOCKERY_VERSION} AS mockery
-FROM docker:${DOCKER_VERSION}-cli AS docker-cli
+FROM ${DOCKERHUB_MIRROR}cosmtrek/air:${AIR_VERSION} AS air
+FROM ${DOCKERHUB_MIRROR}golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
+FROM ${DOCKERHUB_MIRROR}vektra/mockery:${MOCKERY_VERSION} AS mockery
+FROM ${DOCKERHUB_MIRROR}docker:${DOCKER_VERSION}-cli AS docker-cli
 
-FROM golang:${GOLANG_VERSION} AS base
+FROM ${DOCKERHUB_MIRROR}golang:${GOLANG_VERSION} AS base
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub
 COPY ./go.mod ./go.sum ./
@@ -66,7 +67,7 @@ RUN --mount=type=bind,from=cloud-src,target=/go/src/github.com/shellhub-io/cloud
         go build -ldflags "$GO_LDFLAGS" -o /server .; \
     fi
 
-FROM golang:${GOLANG_VERSION} AS tools
+FROM ${DOCKERHUB_MIRROR}golang:${GOLANG_VERSION} AS tools
 
 ARG MJML_VERSION
 
@@ -93,7 +94,7 @@ COPY ./install.sh /templates/install.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM alpine:${ALPINE_VERSION} AS production
+FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION} AS production
 
 RUN apk add --no-cache curl && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix

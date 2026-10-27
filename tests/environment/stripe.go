@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"gopkg.in/yaml.v3"
 )
 
@@ -77,7 +78,7 @@ func stripeCLIImage(composePath string) (string, error) {
 		return "", fmt.Errorf("%s %w", composePath, errNoStripeCLIImage)
 	}
 
-	return image, nil
+	return strings.Replace(image, "${"+testimage.MirrorEnv+":-}", testimage.Mirror(), 1), nil
 }
 
 func stripeWebhookSecret(ctx context.Context, image, secretKey string) (string, error) {

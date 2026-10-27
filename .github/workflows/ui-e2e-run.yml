@@ -17,6 +17,10 @@ on:
         required: false
       STRIPE_TEST_PUBLISHABLE_KEY:
         required: false
+      PORTUS_USERNAME:
+        required: false
+      PORTUS_TOKEN:
+        required: false
 
 jobs:
   e2e:
@@ -29,6 +33,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: shellhub
+
+      - name: Route Docker Hub pulls through the registry cache
+        uses: ./shellhub/.github/actions/dockerhub-mirror
+        with:
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
 
       - name: Decide which editions can run
         id: editions
@@ -143,6 +153,8 @@ jobs:
 
       - name: Set up a BuildKit builder that exports its cache
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: image=${{ env.DOCKERHUB_MIRROR }}moby/buildkit:buildx-stable-1
 
       - name: Restore the image build cache
         uses: ./shellhub/.github/actions/build-cache

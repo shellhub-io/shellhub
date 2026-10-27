@@ -84,7 +84,7 @@ runs:
             echo "could not read ALPINE_VERSION from versions.env"
             exit 1
         fi
-        echo "alpine=alpine:$VERSION" >> "$GITHUB_OUTPUT"
+        echo "alpine=${DOCKERHUB_MIRROR:-}alpine:$VERSION" >> "$GITHUB_OUTPUT"
 
     - name: Inject the build cache into the builder
       if: inputs.prune != 'true'

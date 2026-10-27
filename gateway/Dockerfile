@@ -1,14 +1,15 @@
 # syntax=docker/dockerfile:1
 
+ARG DOCKERHUB_MIRROR=
 ARG GOLANG_VERSION
 ARG ALPINE_VERSION
 ARG AIR_VERSION
 ARG GOLANGCI_LINT_VERSION
 
-FROM cosmtrek/air:${AIR_VERSION} AS air
-FROM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
+FROM ${DOCKERHUB_MIRROR}cosmtrek/air:${AIR_VERSION} AS air
+FROM ${DOCKERHUB_MIRROR}golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
 
-FROM golang:${GOLANG_VERSION} AS base
+FROM ${DOCKERHUB_MIRROR}golang:${GOLANG_VERSION} AS base
 
 WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub
 
@@ -37,7 +38,7 @@ RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
     --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
     go build
 
-FROM golang:${GOLANG_VERSION} AS tools
+FROM ${DOCKERHUB_MIRROR}golang:${GOLANG_VERSION} AS tools
 
 RUN apk add --no-cache git ca-certificates libgcc
 
@@ -60,7 +61,7 @@ RUN go mod download
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM alpine:${ALPINE_VERSION} AS production
+FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION} AS production
 
 RUN apk add --no-cache ca-certificates && \
     apk upgrade --no-cache libssl3 libcrypto3 # CVE-2026-14456: drop upgrade when alpine base includes the fix

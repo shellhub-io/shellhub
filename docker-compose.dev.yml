@@ -6,6 +6,7 @@ services:
       dockerfile: server/Dockerfile
       target: development
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         GOLANG_VERSION: ${GOLANG_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         AIR_VERSION: ${AIR_VERSION}
@@ -37,6 +38,7 @@ services:
       dockerfile: ui/Dockerfile
       target: development
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         NODE_VERSION: ${NODE_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         SWS_VERSION: ${SWS_VERSION}
@@ -55,6 +57,7 @@ services:
       dockerfile: gateway/Dockerfile
       target: development
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         GOLANG_VERSION: ${GOLANG_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         AIR_VERSION: ${AIR_VERSION}
@@ -75,6 +78,7 @@ services:
       dockerfile: openapi/Dockerfile
       target: development
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         GOLANG_VERSION: ${GOLANG_VERSION}
         AIR_VERSION: ${AIR_VERSION}
         GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
@@ -116,6 +120,7 @@ services:
       context: ui
       dockerfile: e2e.Dockerfile
       args:
+        - DOCKERHUB_MIRROR=${DOCKERHUB_MIRROR:-}
         - DOCKER_VERSION=${DOCKER_VERSION}
         - PLAYWRIGHT_VERSION=${E2E_PLAYWRIGHT_VERSION:-}
     profiles:

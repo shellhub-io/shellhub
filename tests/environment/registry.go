@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/moby/moby/client"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -35,7 +36,7 @@ type Registry struct {
 func StartRegistry(ctx context.Context, run *Run) (*Registry, error) {
 	container, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: tc.ContainerRequest{
-			Image:        registryImage,
+			Image:        testimage.DockerHub(registryImage),
 			ExposedPorts: []string{registryPort},
 			Labels:       run.Labels(),
 			WaitingFor:   wait.ForHTTP("/v2/").WithPort(registryPort),
