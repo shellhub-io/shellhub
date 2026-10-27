@@ -17,7 +17,7 @@ require (
 	github.com/labstack/echo/v5 v5.4.1
 	github.com/mark3labs/mcp-go v1.3.0
 	github.com/multiformats/go-multistream v0.6.1
-	github.com/pires/go-proxyproto v0.15.0
+	github.com/pires/go-proxyproto v0.16.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/shellhub-io/shellhub v0.0.0
 	github.com/sirupsen/logrus v1.10.2
