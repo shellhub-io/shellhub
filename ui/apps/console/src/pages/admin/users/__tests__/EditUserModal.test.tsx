@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { Route } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
+import { renderWithSignInPage } from "@/tests/renderWithSignInPage";
+import { mockInfo } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 import type { UserAdminResponse } from "@/client";
 import EditUserModal from "../EditUserModal";
@@ -456,6 +459,81 @@ describe("EditUserModal", () => {
       );
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("changing a password", () => {
+    const notice = "Password changed. Sign in with your new password.";
+
+    function renderAtUsersPage() {
+      const onClose = vi.fn();
+      renderWithSignInPage(
+        <Route
+          path="/admin/users"
+          element={<EditUserModal open onClose={onClose} user={mockUser} />}
+        />,
+        "/admin/users",
+      );
+      return onClose;
+    }
+
+    async function submitPassword() {
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^password$/i), "NewPassword123!");
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
+    }
+
+    beforeEach(() => {
+      server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
+    });
+
+    it("signs an admin who changes their own password out, with a notice to sign in again", async () => {
+      useAuthStore.setState({ userId: "u1" });
+      const onClose = renderAtUsersPage();
+
+      await submitPassword();
+
+      expect(await screen.findByText(notice)).toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("keeps the admin on the page when they change another user's password", async () => {
+      const onClose = renderAtUsersPage();
+
+      await submitPassword();
+
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+    });
+
+    it("keeps an admin who saves their own account without a new password on the page", async () => {
+      const user = userEvent.setup();
+      useAuthStore.setState({ userId: "u1" });
+      const onClose = renderAtUsersPage();
+
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+      await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+    });
+
+    it("keeps the admin signed in with the error when saving their own new password fails", async () => {
+      useAuthStore.setState({ userId: "u1" });
+      server.use(
+        http.put("*/admin/api/users/:id", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
+      const onClose = renderAtUsersPage();
+
+      await submitPassword();
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        /already exists/i,
+      );
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().signOutHandedOver).toBe(false);
     });
   });
 });
