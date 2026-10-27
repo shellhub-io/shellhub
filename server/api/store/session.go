@@ -18,9 +18,7 @@ const (
 )
 
 // ExpiredSession is a session that has outlived the retention window, reduced to what deleting
-// it needs to know. Recorded travels with the UID because it decides whether the session owns a
-// recording at all: without it, an instance that records nothing still pays a storage lookup per
-// session it deletes.
+// it needs to know.
 type ExpiredSession struct {
 	UID      string
 	Recorded bool
