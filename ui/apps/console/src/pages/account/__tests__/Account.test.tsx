@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
-import { createTestWrapper } from "@/tests/wrapper";
+import { renderWithSignInPage } from "@/tests/renderWithSignInPage";
 import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockInfo } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
-import Login from "@/pages/Login";
 
 const viewport = await vi.hoisted(async () =>
   (await import("@/tests/viewport")).installViewport(),
@@ -25,20 +24,15 @@ const mockGetConfig = vi.mocked(getConfig);
 const fetchUser = vi.fn(() => Promise.resolve());
 
 function renderAt(path: string) {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route element={<ProtectedRoute />}>
-          <Route path="/account" element={<AccountLayout />}>
-            <Route path="profile" element={<AccountProfile />} />
-            <Route path="security" element={<AccountSecurity />} />
-            <Route path="danger-zone" element={<AccountDangerZone />} />
-          </Route>
-        </Route>
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    </MemoryRouter>,
-    { wrapper: createTestWrapper() },
+  return renderWithSignInPage(
+    <Route element={<ProtectedRoute />}>
+      <Route path="/account" element={<AccountLayout />}>
+        <Route path="profile" element={<AccountProfile />} />
+        <Route path="security" element={<AccountSecurity />} />
+        <Route path="danger-zone" element={<AccountDangerZone />} />
+      </Route>
+    </Route>,
+    path,
   );
 }
 
