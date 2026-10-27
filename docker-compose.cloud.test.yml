@@ -9,7 +9,7 @@ services:
   stripe-cli:
     labels: *e2e-labels
   mailpit:
-    image: axllent/mailpit:v1.30.7
+    image: ${DOCKERHUB_MIRROR:-}axllent/mailpit:v1.30.7
     labels: *e2e-labels
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_TEST_MAILPIT_PORT:-0}:8025

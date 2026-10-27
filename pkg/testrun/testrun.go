@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/moby/moby/api/pkg/authconfig"
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -213,12 +214,26 @@ func leaseImage() (string, error) {
 		return "", err
 	}
 
-	return "alpine:" + alpine, nil
+	return testimage.DockerHub("alpine:" + alpine), nil
+}
+
+func pullOptions(ctx context.Context, image string) client.ImagePullOptions {
+	_, auth, err := testcontainers.DockerImageAuth(ctx, image)
+	if err != nil {
+		return client.ImagePullOptions{}
+	}
+
+	encoded, err := authconfig.Encode(auth)
+	if err != nil {
+		return client.ImagePullOptions{}
+	}
+
+	return client.ImagePullOptions{RegistryAuth: encoded}
 }
 
 func (r *Run) holdLease(ctx context.Context, image string) error {
 	if _, err := r.client.ImageInspect(ctx, image); err != nil {
-		pull, err := r.client.ImagePull(ctx, image, client.ImagePullOptions{})
+		pull, err := r.client.ImagePull(ctx, image, pullOptions(ctx, image))
 		if err != nil {
 			return fmt.Errorf("pulling %s: %w", image, err)
 		}

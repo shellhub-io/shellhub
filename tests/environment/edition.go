@@ -126,6 +126,7 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 		"SHELLHUB_BIND_ADDRESS":  "127.0.0.1",
 		"SHELLHUB_LOG_LEVEL":     "trace",
 		"SHELLHUB_TELEMETRY":     "false",
+		testimage.MirrorEnv:      testimage.Mirror(),
 	}
 
 	if e != EditionCommunity {

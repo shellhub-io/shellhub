@@ -7,6 +7,7 @@ services:
       dockerfile: agent/Dockerfile
       target: development
       args:
+        - DOCKERHUB_MIRROR=${DOCKERHUB_MIRROR:-}
         - GOLANG_VERSION=${GOLANG_VERSION}
         - ALPINE_VERSION=${ALPINE_VERSION}
         - AIR_VERSION=${AIR_VERSION}

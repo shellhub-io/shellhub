@@ -1,14 +1,15 @@
+ARG DOCKERHUB_MIRROR=
 ARG GOLANG_VERSION
 ARG ALPINE_VERSION
 ARG AIR_VERSION
 ARG GOLANGCI_LINT_VERSION
 ARG MOCKERY_VERSION
 
-FROM --platform=$BUILDPLATFORM cosmtrek/air:${AIR_VERSION} AS air
-FROM --platform=$BUILDPLATFORM golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
-FROM --platform=$BUILDPLATFORM vektra/mockery:${MOCKERY_VERSION} AS mockery
+FROM --platform=$BUILDPLATFORM ${DOCKERHUB_MIRROR}cosmtrek/air:${AIR_VERSION} AS air
+FROM --platform=$BUILDPLATFORM ${DOCKERHUB_MIRROR}golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine AS golangci-lint
+FROM --platform=$BUILDPLATFORM ${DOCKERHUB_MIRROR}vektra/mockery:${MOCKERY_VERSION} AS mockery
 
-FROM --platform=$BUILDPLATFORM golang:${GOLANG_VERSION} AS toolchain
+FROM --platform=$BUILDPLATFORM ${DOCKERHUB_MIRROR}golang:${GOLANG_VERSION} AS toolchain
 
 RUN apk add --no-cache ca-certificates git
 
@@ -45,7 +46,7 @@ WORKDIR $GOPATH/src/github.com/shellhub-io/shellhub/agent
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} go build -tags docker -ldflags "-s -w -X main.AgentVersion=${SHELLHUB_VERSION}" -o agent
 
-FROM alpine:${ALPINE_VERSION} AS runtime-utils
+FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION} AS runtime-utils
 
 RUN apk add --no-cache util-linux setpriv ca-certificates libgcc
 

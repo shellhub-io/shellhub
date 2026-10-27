@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+ARG DOCKERHUB_MIRROR=
 ARG NODE_VERSION
 ARG ALPINE_VERSION
 ARG SWS_VERSION
@@ -7,7 +8,7 @@ ARG REDOCLY_VERSION
 
 FROM ghcr.io/static-web-server/static-web-server:${SWS_VERSION} AS sws
 
-FROM node:${NODE_VERSION} AS base
+FROM ${DOCKERHUB_MIRROR}node:${NODE_VERSION} AS base
 
 WORKDIR /app
 
@@ -35,7 +36,7 @@ COPY ui/scripts /scripts
 
 CMD ["/scripts/entrypoint-dev.sh"]
 
-FROM node:${NODE_VERSION} AS spec-bundler
+FROM ${DOCKERHUB_MIRROR}node:${NODE_VERSION} AS spec-bundler
 ARG REDOCLY_VERSION
 RUN --mount=type=cache,id=shellhub-npm,target=/root/.npm,sharing=shared \
     npm install -g @redocly/cli@${REDOCLY_VERSION:?}
@@ -64,7 +65,7 @@ RUN apk add --no-cache brotli gzip && \
       -exec brotli -q 11 -k {} \; \
       -exec gzip -9 -k {} \;
 
-FROM alpine:${ALPINE_VERSION} AS production
+FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION} AS production
 
 RUN apk upgrade --no-cache libssl3 libcrypto3
 

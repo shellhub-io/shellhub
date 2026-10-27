@@ -1,5 +1,6 @@
+ARG DOCKERHUB_MIRROR=
 ARG ALPINE_VERSION
 
-FROM alpine:${ALPINE_VERSION}
+FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION}
 
 RUN echo agent build fails && exit 3

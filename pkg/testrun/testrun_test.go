@@ -58,7 +58,7 @@ func alpineImage() (string, error) {
 
 	version, err := testimage.Version("../..", "ALPINE_VERSION")
 
-	return "alpine:" + version, err
+	return testimage.DockerHub("alpine:" + version), err
 }
 
 func newID() string {

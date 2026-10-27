@@ -25,15 +25,25 @@ jobs:
       - name: checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      - name: Route Docker Hub pulls through the registry cache
+        uses: ./.github/actions/dockerhub-mirror
+        with:
+          username: ${{ secrets.PORTUS_USERNAME }}
+          password: ${{ secrets.PORTUS_TOKEN }}
+
       - name: login to docker hub
         if: "github.event_name != 'pull_request'"
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
+        with:
+          image: ${{ env.DOCKERHUB_MIRROR }}tonistiigi/binfmt:latest
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+        with:
+          driver-opts: image=${{ env.DOCKERHUB_MIRROR }}moby/buildkit:buildx-stable-1
 
       - name: Set github reference env
         run: echo RELEASE_VERSION=${GITHUB_REF#refs/*/} >> $GITHUB_ENV
@@ -48,6 +58,7 @@ jobs:
       - name: Set image tag
         run: |
           BUILD_ARGS=$(sed -n 's/^\([A-Z_][A-Z0-9_]*=.*\)$/--build-arg \1/p' versions.env | tr '\n' ' ')
+          BUILD_ARGS="$BUILD_ARGS --build-arg DOCKERHUB_MIRROR=${DOCKERHUB_MIRROR:-}"
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
               echo "IMAGE_TAG=${RELEASE_VERSION},latest" >> "$GITHUB_ENV"

@@ -7,9 +7,9 @@ x-e2e-labels: &e2e-labels
 
 services:
   redis:
-    image: valkey/valkey:9.1-alpine
+    image: ${DOCKERHUB_MIRROR:-}valkey/valkey:9.1-alpine
   minio:
-    image: docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    image: ${DOCKERHUB_MIRROR:-}pgsty/silo:RELEASE.2026-09-16T00-00-00Z
     labels: *e2e-labels
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]

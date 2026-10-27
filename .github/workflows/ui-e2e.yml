@@ -68,6 +68,8 @@ jobs:
       STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
       STRIPE_TEST_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
       STRIPE_TEST_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+      PORTUS_USERNAME: ${{ secrets.PORTUS_USERNAME }}
+      PORTUS_TOKEN: ${{ secrets.PORTUS_TOKEN }}
 
   e2e-master:
     name: e2e
@@ -85,3 +87,5 @@ jobs:
       STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
       STRIPE_TEST_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
       STRIPE_TEST_PUBLISHABLE_KEY: ${{ secrets.STRIPE_TEST_PUBLISHABLE_KEY }}
+      PORTUS_USERNAME: ${{ secrets.PORTUS_USERNAME }}
+      PORTUS_TOKEN: ${{ secrets.PORTUS_TOKEN }}

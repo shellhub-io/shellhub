@@ -19,15 +19,17 @@ func writeVersions(t *testing.T, content string) string {
 }
 
 func TestBuildArgs(t *testing.T) {
-	t.Run("every line becomes an argument", func(t *testing.T) {
+	t.Run("every line becomes an argument, beside the Docker Hub mirror", func(t *testing.T) {
+		t.Setenv(MirrorEnv, "registry.example/cache/")
 		root := writeVersions(t, "GOLANG_VERSION=1.26.9-alpine3.24\n\nALPINE_VERSION=3.24.2\n")
 
 		args, err := BuildArgs(root)
 		require.NoError(t, err)
 
-		require.Len(t, args, 2)
+		require.Len(t, args, 3)
 		assert.Equal(t, "1.26.9-alpine3.24", *args["GOLANG_VERSION"])
 		assert.Equal(t, "3.24.2", *args["ALPINE_VERSION"])
+		assert.Equal(t, "registry.example/cache/", *args[MirrorEnv])
 	})
 
 	t.Run("a line without a value is an error", func(t *testing.T) {

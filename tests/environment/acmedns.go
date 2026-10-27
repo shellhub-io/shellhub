@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/moby/moby/api/types/container"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
@@ -22,7 +23,7 @@ const ACMEDNSWebEndpointsDomain = "endpoints." + acmeDNSZone
 
 const (
 	acmeDNSZone    = "example.test"
-	acmeDNSImage   = "docker.io/joohoi/acme-dns:v2.0.2"
+	acmeDNSImage   = "joohoi/acme-dns:v2.0.2"
 	acmeDNSAPIPort = "8053"
 
 	acmeDNSDirEnv   = "SHELLHUB_TEST_ACME_DNS_DIR"
@@ -68,7 +69,7 @@ func (cfg Config) acmeDNSLayer(ctx context.Context, acmeDir string) (httpsLayer,
 
 	envs := map[string]string{
 		acmeDNSDirEnv:                               dir,
-		acmeDNSImageEnv:                             acmeDNSImage,
+		acmeDNSImageEnv:                             testimage.DockerHub(acmeDNSImage),
 		acmeDNSZoneEnv:                              acmeDNSZone,
 		"SHELLHUB_WEB_ENDPOINTS_DOMAIN":             ACMEDNSWebEndpointsDomain,
 		"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER":       "acmedns",
@@ -117,7 +118,7 @@ logformat = "text"
 func registerACMEDNSAccount(ctx context.Context, run *Run, dir string) (acmeDNSAccount, error) {
 	server, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: tc.ContainerRequest{
-			Image:  acmeDNSImage,
+			Image:  testimage.DockerHub(acmeDNSImage),
 			Labels: run.Labels(),
 			HostConfigModifier: func(hc *container.HostConfig) {
 				hc.NetworkMode = "none"

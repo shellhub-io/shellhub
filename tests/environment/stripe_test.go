@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -114,4 +115,16 @@ func TestStripeCLIImage(t *testing.T) {
 			assert.Equal(t, tt.want, image)
 		})
 	}
+}
+
+func TestStripeCLIImageResolvesTheDockerHubMirror(t *testing.T) {
+	t.Setenv(testimage.MirrorEnv, "registry.example/cache/")
+
+	path := filepath.Join(t.TempDir(), "docker-compose.yml")
+	compose := "services:\n  stripe-cli:\n    image: ${" + testimage.MirrorEnv + ":-}stripe/stripe-cli:v9.9.9\n"
+	require.NoError(t, os.WriteFile(path, []byte(compose), 0o600))
+
+	image, err := stripeCLIImage(path)
+	require.NoError(t, err)
+	assert.Equal(t, "registry.example/cache/stripe/stripe-cli:v9.9.9", image)
 }

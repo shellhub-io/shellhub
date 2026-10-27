@@ -9,6 +9,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/stretchr/testify/assert"
@@ -187,7 +188,7 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 func startValkey(t *testing.T) string {
 	t.Helper()
 
-	valkey, err := redis.Run(t.Context(), "docker.io/valkey/valkey:9.1-alpine", testport.Bind("6379/tcp"), testrun.Labelled())
+	valkey, err := redis.Run(t.Context(), testimage.DockerHub("valkey/valkey:9.1-alpine"), testport.Bind("6379/tcp"), testrun.Labelled())
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

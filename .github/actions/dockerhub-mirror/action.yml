@@ -1,0 +1,35 @@
+name: Docker Hub mirror
+description: >-
+  Log in to the Docker Hub cache on registry.infra.ossystems.io and set DOCKERHUB_MIRROR for the
+  rest of the job, so every Docker Hub image the job pulls or builds from comes through the cache.
+  Without credentials, as on a pull request from a fork, or when the cache does not answer, the
+  job pulls from Docker Hub as before.
+
+inputs:
+  username:
+    description: Registry user allowed to pull from the cache project.
+    required: false
+    default: ''
+  password:
+    description: The registry user's token.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Route Docker Hub pulls through the registry cache
+      if: inputs.password != ''
+      shell: bash
+      env:
+        REGISTRY: registry.infra.ossystems.io
+        MIRROR: registry.infra.ossystems.io/cache/
+        USERNAME: ${{ inputs.username }}
+        PASSWORD: ${{ inputs.password }}
+      run: |
+        if echo "$PASSWORD" | docker login "$REGISTRY" --username "$USERNAME" --password-stdin &&
+          docker manifest inspect "${MIRROR}alpine:latest" > /dev/null; then
+          echo "DOCKERHUB_MIRROR=$MIRROR" >> "$GITHUB_ENV"
+        else
+          echo "::warning::the Docker Hub cache at $MIRROR does not answer; pulling from Docker Hub"
+        fi

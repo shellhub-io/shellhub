@@ -9,6 +9,7 @@ services:
       dockerfile: server/Dockerfile
       target: production
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         GOLANG_VERSION: ${GOLANG_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         AIR_VERSION: ${AIR_VERSION}
@@ -28,6 +29,7 @@ services:
       dockerfile: gateway/Dockerfile
       target: production
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         GOLANG_VERSION: ${GOLANG_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         AIR_VERSION: ${AIR_VERSION}
@@ -40,6 +42,7 @@ services:
       dockerfile: ui/Dockerfile
       target: production
       args:
+        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
         NODE_VERSION: ${NODE_VERSION}
         ALPINE_VERSION: ${ALPINE_VERSION}
         SWS_VERSION: ${SWS_VERSION}

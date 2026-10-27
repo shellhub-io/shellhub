@@ -52,7 +52,7 @@ func commitRunImage(ctx context.Context, cli *client.Client, ref, id string) (st
 	}
 
 	source, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{
-		Image:  "alpine:" + alpine,
+		Image:  testimage.DockerHub("alpine:" + alpine),
 		Config: &container.Config{Labels: map[string]string{runLabel: id}},
 	})
 	if err != nil {

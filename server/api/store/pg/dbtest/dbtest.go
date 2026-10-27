@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/testimage"
 	"github.com/shellhub-io/shellhub/pkg/testport"
 	"github.com/shellhub-io/shellhub/pkg/testrun"
 	"github.com/testcontainers/testcontainers-go"
@@ -18,7 +19,7 @@ type Server struct {
 
 // Up starts a new Postgres container. Use [Server.ConnectionString] to access the connection string.
 func (srv *Server) Up(ctx context.Context) error {
-	container, err := postgres.Run(ctx, "postgres:18.0",
+	container, err := postgres.Run(ctx, testimage.DockerHub("postgres:18.0"),
 		postgres.WithDatabase("test"),
 		postgres.WithUsername("postgres"),
 		postgres.WithPassword("postgres"),
