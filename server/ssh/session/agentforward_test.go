@@ -220,3 +220,31 @@ func TestForwardAgentRelaysAnAgentUseAfterRepeatedRequests(t *testing.T) {
 	require.NoError(t, device.Close())
 	require.NoError(t, sess.agent.Close())
 }
+
+func TestForwardAgentRelaysAgentUsesAtTheSameTime(t *testing.T) {
+	verifyNoLeakedGoroutines(t)
+
+	agent := dialertest.NewAgent(t)
+	sess, _ := newConnectedSession(t, agent)
+	client, laptop := laptopOverLoopback(t)
+
+	sess.ForwardAgent(client, copyBothWays)
+
+	firstOpened := openFromDevice(t, agent)
+	firstForwarded := acceptForward(t, laptop)
+	first := firstOpened()
+
+	secondOpened := openFromDevice(t, agent)
+	secondForwarded := acceptForward(t, laptop)
+	second := secondOpened()
+
+	_, err := second.Write([]byte("two"))
+	require.NoError(t, err)
+	assert.Equal(t, "two", readWithin(t, secondForwarded, len("two")))
+
+	_, err = first.Write([]byte("one"))
+	require.NoError(t, err)
+	assert.Equal(t, "one", readWithin(t, firstForwarded, len("one")))
+
+	require.NoError(t, sess.agent.Close())
+}

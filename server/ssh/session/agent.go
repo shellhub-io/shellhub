@@ -26,7 +26,11 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 
 // ForwardAgent relays every agent channel the device opens to client, for a client that asked
 // for agent forwarding. The first call starts relaying and every later call, from any seat, does
-// nothing. Relaying ends when the connection to the device closes.
+// nothing and ignores its arguments. Relaying ends when the connection to the device closes.
+//
+// Each agent use runs relay in a goroutine of its own, so relay must be safe to run
+// concurrently, and both channels are closed once it returns. A use the client refuses is
+// rejected towards the device, and relaying carries on with the next one.
 func (s *Session) ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel)) {
 	s.agentForwarding.Do(func() {
 		forwards := s.agent.client.HandleChannelOpen(AuthRequestOpenSSHChannel)
@@ -39,7 +43,7 @@ func (s *Session) relayAgentForwards(forwards <-chan gossh.NewChannel, client go
 	logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
 
 	for forward := range forwards {
-		relayAgentForward(logger, forward, client, relay)
+		go relayAgentForward(logger, forward, client, relay)
 	}
 
 	logger.Trace("agent forwarding done")
