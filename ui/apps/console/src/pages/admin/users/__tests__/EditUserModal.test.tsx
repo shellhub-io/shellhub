@@ -79,9 +79,10 @@ describe("EditUserModal", () => {
     });
 
     it("disables submit button when name is cleared", async () => {
+      const user = userEvent.setup();
       renderModal();
       const nameInput = screen.getByLabelText(/^name$/i);
-      await userEvent.clear(nameInput);
+      await user.clear(nameInput);
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeDisabled();
@@ -94,16 +95,18 @@ describe("EditUserModal", () => {
     });
 
     it("disables submit button when username is cleared", async () => {
+      const user = userEvent.setup();
       renderModal();
-      await userEvent.clear(screen.getByLabelText(/^username$/i));
+      await user.clear(screen.getByLabelText(/^username$/i));
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeDisabled();
     });
 
     it("disables submit button when email is cleared", async () => {
+      const user = userEvent.setup();
       renderModal();
-      await userEvent.clear(screen.getByLabelText(/^email$/i));
+      await user.clear(screen.getByLabelText(/^email$/i));
       expect(
         screen.getByRole("button", { name: /save changes/i }),
       ).toBeDisabled();
@@ -168,8 +171,9 @@ describe("EditUserModal", () => {
     });
 
     it("hides max namespaces input when disable is checked", async () => {
+      const user = userEvent.setup();
       renderModal({ user: { ...mockUser, max_namespaces: 5 } });
-      await userEvent.click(
+      await user.click(
         screen.getByLabelText(/disable namespace creation/i),
       );
       expect(
@@ -180,13 +184,14 @@ describe("EditUserModal", () => {
 
   describe("submit — success", () => {
     it("calls adminUpdateUser with the correct payload", async () => {
+      const user = userEvent.setup();
       renderModal();
 
       const nameInput = screen.getByLabelText(/^name$/i);
-      await userEvent.clear(nameInput);
-      await userEvent.type(nameInput, "Alice Updated");
+      await user.clear(nameInput);
+      await user.type(nameInput, "Alice Updated");
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -205,9 +210,10 @@ describe("EditUserModal", () => {
     });
 
     it("calls onClose after successful update", async () => {
+      const user = userEvent.setup();
       const { onClose } = renderModal();
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -215,9 +221,10 @@ describe("EditUserModal", () => {
     });
 
     it("sends max_namespaces as undefined when limit is not enabled", async () => {
+      const user = userEvent.setup();
       renderModal({ user: { ...mockUser, max_namespaces: undefined } });
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -233,6 +240,7 @@ describe("EditUserModal", () => {
 
   describe("submit — error handling", () => {
     it("shows conflict error message for 409 responses", async () => {
+      const user = userEvent.setup();
       server.use(
         http.put("*/admin/api/users/:id", () =>
           HttpResponse.json({}, { status: 409 }),
@@ -240,7 +248,7 @@ describe("EditUserModal", () => {
       );
       renderModal();
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -250,6 +258,7 @@ describe("EditUserModal", () => {
     });
 
     it("shows generic error for 400 responses", async () => {
+      const user = userEvent.setup();
       server.use(
         http.put("*/admin/api/users/:id", () =>
           HttpResponse.json({}, { status: 400 }),
@@ -257,7 +266,7 @@ describe("EditUserModal", () => {
       );
       renderModal();
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -267,12 +276,13 @@ describe("EditUserModal", () => {
     });
 
     it("shows generic error for unexpected failures", async () => {
+      const user = userEvent.setup();
       server.use(
         http.put("*/admin/api/users/:id", () => HttpResponse.error()),
       );
       renderModal();
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -284,18 +294,20 @@ describe("EditUserModal", () => {
 
   describe("client-side validation", () => {
     it("allows submit with a blank password (password kept as-is)", async () => {
+      const user = userEvent.setup();
       renderModal();
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
       await waitFor(() => expect(updateSpy).toHaveBeenCalled());
     });
 
     it("rejects a too-short password on edit when the user is changing it", async () => {
+      const user = userEvent.setup();
       renderModal();
       const passwordInput = screen.getByLabelText(/^password$/i);
-      await userEvent.type(passwordInput, "abc");
-      await userEvent.click(
+      await user.type(passwordInput, "abc");
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
 
@@ -304,12 +316,13 @@ describe("EditUserModal", () => {
     });
 
     it("blocks submit when an existing field is edited to an invalid value", async () => {
+      const user = userEvent.setup();
       renderModal();
       const usernameInput = screen.getByLabelText(/^username$/i);
-      await userEvent.clear(usernameInput);
-      await userEvent.type(usernameInput, "Invalid Username!");
+      await user.clear(usernameInput);
+      await user.type(usernameInput, "Invalid Username!");
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
       expect(updateSpy).not.toHaveBeenCalled();
@@ -406,11 +419,12 @@ describe("EditUserModal", () => {
 
   describe("state reset on reopen", () => {
     it("reloads user data when modal is closed then reopened", async () => {
+      const user = userEvent.setup();
       const { rerender } = renderModal({ user: mockUser });
 
       const nameInput = screen.getByLabelText(/^name$/i);
-      await userEvent.clear(nameInput);
-      await userEvent.type(nameInput, "Changed Name");
+      await user.clear(nameInput);
+      await user.type(nameInput, "Changed Name");
 
       rerender(
         <EditUserModal open={false} onClose={vi.fn()} user={mockUser} />,
@@ -423,12 +437,13 @@ describe("EditUserModal", () => {
     });
 
     it("clears any error when closed then reopened", async () => {
+      const user = userEvent.setup();
       server.use(
         http.put("*/admin/api/users/:id", () => HttpResponse.error()),
       );
       const { rerender } = renderModal({ user: mockUser });
 
-      await userEvent.click(
+      await user.click(
         screen.getByRole("button", { name: /save changes/i }),
       );
       await waitFor(() => screen.getByRole("alert"));
