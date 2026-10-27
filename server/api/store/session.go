@@ -20,8 +20,7 @@ const (
 // ExpiredSession is a session that has outlived the retention window, reduced to what deleting
 // it needs to know.
 type ExpiredSession struct {
-	UID      string
-	Recorded bool
+	UID string
 }
 
 // SessionStore persists session records, the events streamed against them, and the retention

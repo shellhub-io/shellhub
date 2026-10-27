@@ -688,33 +688,13 @@ func TestService_SessionCleanup(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "purges the recordings of sessions whose recorded flag is cleared",
-			retention:   retention,
-			withPruner:  true,
-			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
-				storeMock.
-					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
-					Return(expired(3), nil).
-					Once()
-				pruner.
-					On("DeleteRecordings", ctx, uids(expired(3))).
-					Return(uids(expired(3)), nil).
-					Once()
-				storeMock.
-					On("SessionDeleteMany", ctx, uids(expired(3))).
-					Return(int64(3), nil).
-					Once()
-			},
-			expected: nil,
-		},
-		{
-			description: "purges every expired session's recordings before deleting its row",
+			description: "purges the recordings of every session before deleting its row",
 			retention:   retention,
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				batch := []store.ExpiredSession{
-					{UID: "plain"},
-					{UID: "recorded", Recorded: true},
+					{UID: "first"},
+					{UID: "second"},
 				}
 
 				storeMock.
@@ -724,12 +704,12 @@ func TestService_SessionCleanup(t *testing.T) {
 
 				purged := false
 				pruner.
-					On("DeleteRecordings", ctx, []string{"plain", "recorded"}).
+					On("DeleteRecordings", ctx, []string{"first", "second"}).
 					Run(func(_ mock.Arguments) { purged = true }).
-					Return([]string{"plain", "recorded"}, nil).
+					Return([]string{"first", "second"}, nil).
 					Once()
 				storeMock.
-					On("SessionDeleteMany", ctx, []string{"plain", "recorded"}).
+					On("SessionDeleteMany", ctx, []string{"first", "second"}).
 					Run(func(_ mock.Arguments) {
 						assert.True(t, purged, "the row must not be deleted before its recording")
 					}).
@@ -739,12 +719,12 @@ func TestService_SessionCleanup(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "keeps the row of a session whose recording could not be purged, whatever its flag",
+			description: "keeps the row of a session whose recording could not be purged",
 			retention:   retention,
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				batch := []store.ExpiredSession{
-					{UID: "ok", Recorded: true},
+					{UID: "ok"},
 					{UID: "stuck"},
 				}
 
@@ -770,7 +750,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
-					Return([]store.ExpiredSession{{UID: "stuck", Recorded: true}}, nil).
+					Return([]store.ExpiredSession{{UID: "stuck"}}, nil).
 					Once()
 				pruner.
 					On("DeleteRecordings", ctx, []string{"stuck"}).
@@ -786,7 +766,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
-					Return([]store.ExpiredSession{{UID: "a", Recorded: true}}, nil).
+					Return([]store.ExpiredSession{{UID: "a"}}, nil).
 					Once()
 				pruner.
 					On("DeleteRecordings", ctx, []string{"a"}).

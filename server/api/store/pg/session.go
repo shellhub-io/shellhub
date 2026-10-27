@@ -505,22 +505,21 @@ func (pg *Pg) SessionListExpired(ctx context.Context, before time.Time, limit in
 	db := pg.GetConnection(ctx)
 
 	uids := make([]string, 0, limit)
-	recorded := make([]bool, 0, limit)
 
 	if err := db.NewSelect().
 		Model((*entity.Session)(nil)).
-		Column("id", "recorded").
+		Column("id").
 		Where("started_at < ?", before).
 		Where("NOT EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = session.id)").
 		Order("started_at ASC").
 		Limit(limit).
-		Scan(ctx, &uids, &recorded); err != nil {
+		Scan(ctx, &uids); err != nil {
 		return nil, fromSQLError(err)
 	}
 
 	sessions := make([]store.ExpiredSession, len(uids))
 	for i, uid := range uids {
-		sessions[i] = store.ExpiredSession{UID: uid, Recorded: recorded[i]}
+		sessions[i] = store.ExpiredSession{UID: uid}
 	}
 
 	return sessions, nil
