@@ -41,8 +41,10 @@ function MenuItem({
 /**
  * The overflow menu for a session's recording: download it, or delete every copy after
  * confirming, each gated by useRecordingPermissions. loaded says the caller already holds the
- * recording, so downloading it reads nothing and needs no permission. portal is off inside an
- * element that goes fullscreen, where a panel portalled to the body would not show.
+ * recording, so downloading it reads nothing and needs no permission. active hides the delete
+ * while a server copy exists, which the server refuses while the session is still recording.
+ * portal is off inside an element that goes fullscreen, where a panel portalled to the body would
+ * not show.
  */
 export default function RecordingActionsMenu({
   sessionUid,
@@ -51,6 +53,7 @@ export default function RecordingActionsMenu({
   placement = "bottom-end",
   portal = true,
   loaded = false,
+  active = false,
 }: {
   sessionUid: string;
   recorded: boolean;
@@ -58,6 +61,7 @@ export default function RecordingActionsMenu({
   placement?: "bottom-end" | "top-end";
   portal?: boolean;
   loaded?: boolean;
+  active?: boolean;
 }) {
   const permissions = useRecordingPermissions(sessionUid, recorded);
   const [confirming, setConfirming] = useState(false);
@@ -78,13 +82,15 @@ export default function RecordingActionsMenu({
             label="Download recording"
             onSelect={onDownload}
           />
-          <MenuItem
-            action={permissions.remove}
-            icon={<TrashIcon className="w-4 h-4" />}
-            label="Delete recording"
-            danger
-            onSelect={() => setConfirming(true)}
-          />
+          {!(active && recorded) && (
+            <MenuItem
+              action={permissions.remove}
+              icon={<TrashIcon className="w-4 h-4" />}
+              label="Delete recording"
+              danger
+              onSelect={() => setConfirming(true)}
+            />
+          )}
         </Dropdown.Panel>
       </Dropdown>
 

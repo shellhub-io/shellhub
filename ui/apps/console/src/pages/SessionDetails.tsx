@@ -408,19 +408,21 @@ export default function SessionDetails() {
                   <ArrowDownTrayIcon className="w-4 h-4" />
                 </IconButton>
               </RestrictedAction>
-              <RestrictedAction action={permissions.remove}>
-                <IconButton
-                  variant="danger"
-                  size="lg"
-                  type="button"
-                  title="Delete recording"
-                  aria-label="Delete recording"
-                  className="border border-border"
-                  onClick={() => setShowDeleteLogs(true)}
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </IconButton>
-              </RestrictedAction>
+              {!(session.active && session.recorded) && (
+                <RestrictedAction action={permissions.remove}>
+                  <IconButton
+                    variant="danger"
+                    size="lg"
+                    type="button"
+                    title="Delete recording"
+                    aria-label="Delete recording"
+                    className="border border-border"
+                    onClick={() => setShowDeleteLogs(true)}
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </IconButton>
+                </RestrictedAction>
+              )}
             </>
           )}
           {session.active && (

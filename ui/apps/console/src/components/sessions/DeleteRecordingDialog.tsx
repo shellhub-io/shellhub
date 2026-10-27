@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { isSdkError } from "@/api/errors";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import { useRemoveRecording } from "@/hooks/useRemoveRecording";
 
 /**
  * Confirms, then deletes every copy of a session's recording, the server's included when recorded
  * is set. It stays open with the error shown when the delete fails, and closes when it succeeds.
+ * The server refuses with 409 while the session is still active, which the error names.
  */
 export default function DeleteRecordingDialog({
   open,
@@ -26,8 +28,12 @@ export default function DeleteRecordingDialog({
     try {
       await remove(sessionUid, recorded);
       onClose();
-    } catch {
-      setError("Failed to delete recording.");
+    } catch (err: unknown) {
+      setError(
+        isSdkError(err) && err.status === 409
+          ? "Close the session before deleting its recording."
+          : "Failed to delete recording.",
+      );
     }
   };
 
