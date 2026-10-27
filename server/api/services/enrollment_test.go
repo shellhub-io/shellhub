@@ -7,13 +7,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/netip"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/require"
@@ -61,7 +61,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(clk))
+		WithEnrollmentWebhookCIDRs(webhook.ParseCIDRs("127.0.0.0/8,::1/128")), WithClock(clk))
 
 	req := requests.DeviceAuth{
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -88,7 +88,7 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false)
 			require.Equal(t, decision, got)
-			require.Equal(t, signEnrollmentWebhook(secret, gotBody), gotSignature)
+			require.Equal(t, webhook.Sign(secret, gotBody), gotSignature)
 
 			srv.Close()
 		}
@@ -147,54 +147,4 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 		require.Equal(t, enrollPending, svc.evaluateEnrollment(ctx, keyFor(srv.URL), req, "uid", "host", false))
 	})
-}
-
-func TestEnrollmentWebhookClientSSRF(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer srv.Close()
-
-	t.Run("blocks a loopback webhook target by default", func(t *testing.T) {
-		//nolint:noctx,bodyclose // the SSRF guard rejects the dial before any request is sent, so there is no response
-		_, err := enrollmentWebhookClient(nil).Get(srv.URL)
-		require.Error(t, err, "a webhook to loopback must be refused so it can't reach the host's own services")
-	})
-
-	t.Run("allows a target the operator explicitly permits", func(t *testing.T) {
-		//nolint:noctx // exercising the dial path in a test
-		resp, err := enrollmentWebhookClient(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")).Get(srv.URL)
-		require.NoError(t, err)
-		require.NoError(t, resp.Body.Close())
-	})
-}
-
-func TestParseEnrollmentWebhookCIDRs(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		description string
-		raw         string
-		expected    []netip.Prefix
-	}{
-		{description: "empty is no prefix", raw: "", expected: nil},
-		{
-			description: "trims and splits on commas",
-			raw:         " 10.0.0.0/8 , ::1/128 ",
-			expected:    []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("::1/128")},
-		},
-		{
-			description: "skips empty and invalid entries",
-			raw:         "10.0.0.0/8,,not-a-cidr,192.168.0.0/16",
-			expected:    []netip.Prefix{netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("192.168.0.0/16")},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			t.Parallel()
-
-			require.Equal(t, tc.expected, ParseEnrollmentWebhookCIDRs(tc.raw))
-		})
-	}
 }

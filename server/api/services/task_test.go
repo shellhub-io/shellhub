@@ -441,9 +441,10 @@ func TestService_EphemeralCleanup(t *testing.T) {
 	}
 
 	cases := []struct {
-		description   string
-		requiredMocks func(storeMock *storemock.MockStore)
-		expected      error
+		description    string
+		requiredMocks  func(storeMock *storemock.MockStore)
+		expectedEvents int
+		expected       error
 	}{
 		{
 			description: "fails when cannot delete the devices",
@@ -454,10 +455,11 @@ func TestService_EphemeralCleanup(t *testing.T) {
 					Return(nil, errors.New("delete error")).
 					Once()
 			},
-			expected: errors.New("delete error"),
+			expectedEvents: 0,
+			expected:       errors.New("delete error"),
 		},
 		{
-			description: "decrements each namespace's counter for the status of every device it deleted",
+			description: "decrements each namespace's counter and records a removal for every device it deleted",
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
 				storeMock.
@@ -481,10 +483,11 @@ func TestService_EphemeralCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expected: nil,
+			expectedEvents: 3,
+			expected:       nil,
 		},
 		{
-			description: "decrements the counters only by the devices it deleted",
+			description: "decrements the counters and records removals only for the devices it deleted",
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
 				storeMock.
@@ -498,13 +501,33 @@ func TestService_EphemeralCleanup(t *testing.T) {
 					Return(nil).
 					Once()
 			},
-			expected: nil,
+			expectedEvents: 1,
+			expected:       nil,
+		},
+		{
+			description: "records no event for a device that was already removed",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("DeviceListExpiredEphemeral", ctx).Return(expired, nil).Once()
+				storeMock.
+					On("DeviceDeleteMany", ctx, []string{"device-1", "device-2", "device-3"}).
+					Return([]store.DeletedDevice{
+						{UID: "device-1", TenantID: "tenant-1", Status: models.DeviceStatusRemoved},
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant-1"), models.DeviceStatusRemoved, int64(-1)).
+					Return(nil).
+					Once()
+			},
+			expectedEvents: 0,
+			expected:       nil,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
 			storeMock := storemock.NewMockStore(tt)
+			ignoreWebhookEvents(storeMock)
 			storeMock.
 				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
@@ -513,6 +536,7 @@ func TestService_EphemeralCleanup(t *testing.T) {
 
 			s := NewService(storeMock, privateKey, publicKey, cache.NewNullCache())
 			require.Equal(tt, tc.expected, s.EphemeralCleanup()(ctx))
+			storeMock.AssertNumberOfCalls(tt, "WebhookEventRecord", tc.expectedEvents)
 		})
 	}
 }

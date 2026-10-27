@@ -313,6 +313,7 @@ export const sidebar: SidebarSection[] = [
       },
       { label: "SSH Access", href: "/api/ssh-access" },
       { label: "Provisioning Key Webhook", href: "/api/provisioning-key-webhook" },
+      { label: "Device Webhooks", href: "/api/device-webhooks" },
       {
         label: "MCP Server",
         href: "/api/mcp",

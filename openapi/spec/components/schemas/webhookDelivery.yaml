@@ -1,0 +1,72 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+    description: The delivery's ID.
+    example: 0b7e1f9a-0000-4000-8000-000000000002
+  event_id:
+    type: string
+    format: uuid
+    description: The event's ID, the same on every attempt. Sent as `X-ShellHub-Event-ID`.
+    example: 9a1d0c3e-0000-4000-8000-000000000003
+  event_type:
+    $ref: webhookEventType.yaml
+  webhook_id:
+    type: string
+    format: uuid
+    example: 6f1c2b3a-0000-4000-8000-000000000001
+  tenant_id:
+    type: string
+    format: uuid
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  status:
+    type: string
+    enum:
+      - pending
+      - delivered
+      - failed
+    description: |
+      `pending` is still being tried, `delivered` got a 2xx answer, and `failed` ran out of
+      attempts.
+    example: delivered
+  attempts:
+    type: integer
+    description: How many times the event was sent to the webhook.
+    example: 1
+  next_attempt_at:
+    type: string
+    format: date-time
+    description: When a pending delivery is tried next.
+    example: 2026-10-21T12:01:00Z
+  last_status_code:
+    type: integer
+    description: The HTTP status of the last attempt. Absent when the request got no answer.
+    example: 200
+  last_error:
+    type: string
+    description: Why the last attempt failed. Absent once delivered.
+    example: webhook returned status 500
+  delivered_at:
+    type: string
+    format: date-time
+    example: 2026-10-21T12:00:01Z
+  created_at:
+    type: string
+    format: date-time
+    example: 2026-10-21T12:00:00Z
+  updated_at:
+    type: string
+    format: date-time
+    example: 2026-10-21T12:00:01Z
+required:
+  - id
+  - event_id
+  - event_type
+  - webhook_id
+  - tenant_id
+  - status
+  - attempts
+  - next_attempt_at
+  - created_at
+  - updated_at

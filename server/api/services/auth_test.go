@@ -32,6 +32,8 @@ import (
 
 func TestAuthDevice(t *testing.T) {
 	storeMock := mocks.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
@@ -533,6 +535,10 @@ func TestAuthDevice(t *testing.T) {
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
+				storeMock.
+					On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceUIDResolver, uid).
+					Return(device, nil).
+					Once()
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
@@ -543,7 +549,7 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("DeviceUpdate", ctx, device).
 					Return(nil).
-					Once()
+					Twice()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -759,6 +765,10 @@ func TestAuthDevice(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
+					On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, TenantID: "00000000-0000-4000-0000-000000000000", Status: models.DeviceStatusPending}, nil).
+					Once()
+				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
 					Return(&models.Session{UID: "session_1", Active: true}, nil).
 					Once()
@@ -870,6 +880,10 @@ func TestAuthDevice(t *testing.T) {
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
+				storeMock.
+					On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, TenantID: "00000000-0000-4000-0000-000000000000", Status: models.DeviceStatusPending}, nil).
+					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "new-device", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -950,6 +964,10 @@ func TestAuthDevice(t *testing.T) {
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
 					Once()
+				storeMock.
+					On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, TenantID: "00000000-0000-4000-0000-000000000000", Status: models.DeviceStatusPending}, nil).
+					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "aa-bb-cc-dd-ee-ff", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -1017,6 +1035,10 @@ func TestAuthDevice(t *testing.T) {
 				storeMock.
 					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
 					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), store.DeviceUIDResolver, uid).
+					Return(&models.Device{UID: uid, TenantID: "00000000-0000-4000-0000-000000000000", Status: models.DeviceStatusPending}, nil).
 					Once()
 				storeMock.
 					On("SessionResolve", ctx, testifymock.Anything, store.SessionUIDResolver, "session_1").
@@ -3152,6 +3174,8 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 	t.Run("[device creation] stores an empty RemoteAddr when RealIP is not a valid IP", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
+		runTransactionsInline(storeMock)
+		ignoreWebhookEvents(storeMock)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
 		uid := toUID(tenantID, "invalid-ip-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -3196,6 +3220,10 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(1)).
 			Return(nil).
 			Once()
+		storeMock.
+			On("DeviceResolve", ctx, scope.MustBounded(tenantID), store.DeviceUIDResolver, uid).
+			Return(&models.Device{UID: uid, TenantID: tenantID, Status: models.DeviceStatusPending}, nil).
+			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "invalid-ip-device", "namespace_name": "test"}, time.Second*30).
 			Return(nil).
@@ -3227,6 +3255,8 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 	t.Run("[device exists] refreshes RemoteAddr from a valid RealIP on reconnect", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
+		runTransactionsInline(storeMock)
+		ignoreWebhookEvents(storeMock)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
 		uid := toUID(tenantID, "reconnect-device", "", "")
@@ -3276,6 +3306,8 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 	t.Run("[device exists] keeps the previous RemoteAddr when RealIP is invalid on reconnect", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
+		runTransactionsInline(storeMock)
+		ignoreWebhookEvents(storeMock)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
 		uid := toUID(tenantID, "reconnect-device", "", "")

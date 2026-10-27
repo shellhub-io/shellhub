@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,7 +75,12 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 			removals := recordDeviceRemovals(t)
 
 			storeMock := storemock.NewMockStore(t)
-			storeMock.On("DeviceResolve", ctx, sc, store.DeviceUIDResolver, "uid").Return(tc.device, nil).Once()
+			runTransactionsInline(storeMock)
+			ignoreWebhookEvents(storeMock)
+			queryOptionsMock := storemock.NewMockQueryOptions(t)
+			queryOptionsMock.On("ForUpdate").Return(nil).Once()
+			storeMock.On("Options").Return(queryOptionsMock).Once()
+			storeMock.On("DeviceResolve", ctx, sc, store.DeviceUIDResolver, "uid", mock.AnythingOfType("[]store.QueryOption")).Return(tc.device, nil).Once()
 			tc.mocks(storeMock, tc.device)
 
 			cacheMock := cachemock.NewMockCache(t)

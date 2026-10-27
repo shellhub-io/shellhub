@@ -23,6 +23,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -122,8 +123,8 @@ type Env struct {
 	// deployment without that service can point the validator at a file it already carries.
 	OpenAPISchema string `env:"SHELLHUB_OPENAPI_SCHEMA"`
 
-	// EnrollmentWebhookAllowedCIDRs is the comma-separated list of prefixes a provisioning key
-	// webhook may reach although they are private.
+	// EnrollmentWebhookAllowedCIDRs is the comma-separated list of prefixes provisioning key
+	// webhooks and namespace webhooks may reach although they are private.
 	EnrollmentWebhookAllowedCIDRs string `env:"SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"`
 
 	// PrivateKey and PublicKey are the paths of the RSA key pair the API signs its tokens with.
@@ -194,6 +195,7 @@ type Server struct {
 	http        *http.Server
 	authn       *middleware.Authenticator
 	worker      worker.Server
+	tasks       worker.Client
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
 	clock       clock.Clock
@@ -317,7 +319,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		services.WithEdition(s.env.Edition),
 		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
 		services.WithDevelopmentMode(s.env.Development()),
-		services.WithEnrollmentWebhookCIDRs(services.ParseEnrollmentWebhookCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
+		services.WithEnrollmentWebhookCIDRs(webhook.ParseCIDRs(s.env.EnrollmentWebhookAllowedCIDRs)),
 		services.WithNamespaceRequireVerifiedDeviceKey(s.env.NamespaceRequireVerifiedDeviceKey),
 	)
 
@@ -327,6 +329,13 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	servicesOptions = append(servicesOptions, services.WithClock(s.clock))
+
+	s.tasks, err = asynq.NewClient(s.env.RedisURI)
+	if err != nil {
+		return errors.Join(errors.New("failed to create the task client"), err)
+	}
+
+	servicesOptions = append(servicesOptions, services.WithWebhookDispatcher(s.tasks))
 
 	service := services.NewService(store, privKey, pubKey, cache, servicesOptions...)
 
@@ -349,6 +358,9 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronEnrollmentCallbackCleanup, service.EnrollmentCallbackCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronActiveSessionCleanup, service.ActiveSessionCleanup(s.env.SessionKeepAliveTimeout), asynq.Unique())
+	s.worker.HandleCron(services.CronWebhookDeliverySweep, service.WebhookDeliverySweep(), asynq.Unique())
+	s.worker.HandleCron(services.CronWebhookDeliveryCleanup, service.WebhookDeliveryCleanup(), asynq.Unique())
+	s.worker.HandleTask(services.TaskWebhookDelivery, service.DeliverWebhooks())
 
 	if retention := time.Duration(s.env.SessionRetentionDays) * 24 * time.Hour; retention > 0 {
 		s.worker.HandleCron(services.CronSessionCleanup, service.SessionCleanup(retention), asynq.Unique())
@@ -476,6 +488,10 @@ func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
 	s.worker.Shutdown()
+
+	if s.tasks != nil {
+		s.tasks.Close() //nolint:errcheck // the server is exiting, and an unsent nudge is picked up by the next sweep
+	}
 
 	if s.http != nil {
 		s.http.Close() //nolint:errcheck

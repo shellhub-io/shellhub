@@ -149,6 +149,9 @@ var (
 	ErrProvisioningKeyForbidden        = errors.New("the legacy provisioning key cannot be modified", ErrLayer, ErrCodeForbidden)
 	ErrProvisioningKeyInvalidField     = errors.New("provisioning key field is invalid", ErrLayer, ErrCodeInvalid)
 	ErrProvisioningKeyExhausted        = errors.New("provisioning key usage limit reached", ErrLayer, ErrCodeLimit)
+	ErrWebhookNotFound                 = errors.New("webhook not found", ErrLayer, ErrCodeNotFound)
+	ErrWebhookInvalidField             = errors.New("webhook field is invalid", ErrLayer, ErrCodeInvalid)
+	ErrWebhookLimit                    = errors.New("webhook limit reached", ErrLayer, ErrCodeLimit)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
 	ErrRoleForbidden                   = errors.New("role is forbidden", ErrLayer, ErrCodeForbidden)
 	ErrSetupCompleted                  = errors.New("setup has already been completed", ErrLayer, ErrCodeConflict)
@@ -284,6 +287,22 @@ func NewErrInvalidFields(err error, fields map[string]string) error {
 // human-readable reason, retrievable by the route from the error's Data.
 func NewErrAccessPolicyInvalidField(fields map[string]string) error {
 	return NewErrInvalidFields(ErrAccessPolicyInvalidField, fields)
+}
+
+// NewErrWebhookNotFound returns an error when the namespace has no webhook with id.
+func NewErrWebhookNotFound(id string, next error) error {
+	return NewErrNotFound(ErrWebhookNotFound, id, next)
+}
+
+// NewErrWebhookInvalidField returns a bad-request error tagging webhook field(s) with a
+// human-readable reason, retrievable by the route from the error's Data.
+func NewErrWebhookInvalidField(fields map[string]string) error {
+	return NewErrInvalidFields(ErrWebhookInvalidField, fields)
+}
+
+// NewErrWebhookLimit returns an error when the namespace already has limit webhooks.
+func NewErrWebhookLimit(limit int) error {
+	return NewErrLimit(ErrWebhookLimit, limit, nil)
 }
 
 // NewErrProvisioningKeyInvalidField returns a bad-request error tagging provisioning key field(s) with a

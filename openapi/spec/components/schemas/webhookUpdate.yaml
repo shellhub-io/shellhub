@@ -1,0 +1,20 @@
+type: object
+description: A partial update. An omitted field is left unchanged.
+properties:
+  url:
+    type: string
+    format: uri
+    description: Where ShellHub POSTs each event, over `http` or `https`.
+    example: https://hooks.example.com/shellhub
+  events:
+    type: array
+    description: The event types to send. At least one.
+    minItems: 1
+    items:
+      $ref: webhookEventType.yaml
+  enabled:
+    type: boolean
+    description: |
+      Pause or resume the webhook. A paused webhook records no new events,
+      and its waiting deliveries are sent once it is resumed.
+    example: false

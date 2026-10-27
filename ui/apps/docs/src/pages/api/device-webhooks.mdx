@@ -1,0 +1,176 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Device Webhooks
+description: Get a signed HTTP request when a device enters pending, accepted, rejected or removed.
+---
+
+import Callout from "../../components/Callout.astro";
+
+# Device Webhooks
+
+A webhook tells your service when a device in your namespace changes status, so you don't have to
+poll `GET /api/devices`. ShellHub sends a signed `POST` to your URL, usually within a second of
+the change, and retries it if your service is down.
+
+## Events
+
+| Event | Sent when |
+|---|---|
+| `device.pending` | A device registers, or registers again after it was removed |
+| `device.accepted` | A device is accepted, by hand, by a provisioning key, by a webhook decision or by pairing |
+| `device.rejected` | A device is rejected |
+| `device.removed` | A device is deleted, leaves with a departing member, is cleaned up as ephemeral, or is replaced by a merge |
+
+A status update that doesn't change the status sends nothing. Deleting the namespace deletes its
+webhooks and sends nothing.
+
+## Create a webhook
+
+Owners and administrators create webhooks from the console under **Settings > Webhooks**, or
+through the API. Creating or changing a webhook, or revealing its secret, needs a user token. An
+API key can list, read and delete webhooks and their deliveries, and nothing more.
+
+```bash
+$ curl -X POST https://cloud.shellhub.io/api/namespaces/webhooks \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d '{"url": "https://hooks.example.com/shellhub", "events": ["device.pending", "device.accepted"]}'
+```
+
+The response carries the webhook and its `secret`. Store the secret in your service. You can read
+it again later with `GET /api/namespaces/webhooks/{id}/reveal`. A namespace can have up to 10
+webhooks.
+
+## The request
+
+```json
+{
+  "id": "9a1d0c3e-5f2b-4c8e-a1d7-3b6f0e2c9d41",
+  "type": "device.accepted",
+  "tenant_id": "00000000-0000-4000-0000-000000000000",
+  "created_at": "2026-10-21T12:00:00Z",
+  "data": {
+    "device": {
+      "uid": "3c9e2f1a7b4d...",
+      "name": "gateway-01",
+      "status": "accepted",
+      "tenant_id": "00000000-0000-4000-0000-000000000000",
+      "namespace": "dev",
+      "identity": { "mac": "aa:bb:cc:dd:ee:01" },
+      "info": { "id": "debian", "pretty_name": "Debian GNU/Linux 13", "version": "v0.27.0", "arch": "amd64", "platform": "docker" },
+      "tags": [],
+      "created_at": "2026-10-21T11:58:40Z",
+      "status_updated_at": "2026-10-21T12:00:00Z",
+      "removed_at": null
+    }
+  }
+}
+```
+
+`data.device` is the device as it was when the event happened. Its fields have the same names and
+shapes as in `GET /api/devices/{uid}`, which returns the rest of the device when you need it.
+
+| Header | Value |
+|---|---|
+| `Content-Type` | `application/json` |
+| `X-ShellHub-Event-ID` | The event's `id`, the same on every retry |
+| `X-ShellHub-Event-Type` | The event's `type` |
+| `X-ShellHub-Timestamp` | When this attempt was sent, in Unix seconds |
+| `X-ShellHub-Signature` | `v1=` and the hex HMAC-SHA256 of the timestamp, a `.` and the raw body, under the secret |
+
+## Verify the signature
+
+Compute the HMAC over the timestamp header, a dot and the raw body, then compare it in constant
+time. Refuse a timestamp older than a few minutes, so a captured request cannot be replayed later.
+
+```go
+func verify(secret string, r *http.Request, body []byte) bool {
+	timestamp := r.Header.Get("X-ShellHub-Timestamp")
+
+	sent, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil || time.Since(time.Unix(sent, 0)).Abs() > 5*time.Minute {
+		return false
+	}
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(timestamp + "."))
+	mac.Write(body)
+	expected := "v1=" + hex.EncodeToString(mac.Sum(nil))
+
+	return hmac.Equal([]byte(expected), []byte(r.Header.Get("X-ShellHub-Signature")))
+}
+```
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+function verify(secret: string, timestamp: string, signature: string, rawBody: Buffer): boolean {
+  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
+
+  const expected = "v1=" + createHmac("sha256", secret).update(`${timestamp}.`).update(rawBody).digest("hex");
+
+  return expected.length === signature.length && timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
+
+<Callout variant="warning">
+Verify the raw bytes you received. Parsing the JSON and serializing it again changes the bytes, and
+the signature no longer matches.
+</Callout>
+
+## Answer and retries
+
+Answer any `2xx` within 10 seconds and the delivery is done. ShellHub doesn't read the body.
+
+Anything else counts as a failure: a non-2xx status, a redirect, a timeout or a connection error.
+ShellHub tries again 1 minute later, then doubles the wait each time up to 1 hour, adding up to a
+tenth at random so retries from many deliveries don't arrive together. After 12 attempts, about 6
+hours, it gives up and marks the delivery `failed`.
+
+Pausing a webhook stops its deliveries. Changes made while it is paused send nothing, and
+deliveries already waiting are sent once you resume it.
+
+## Duplicates and order
+
+An event can arrive more than once. If your answer is lost on the way back, ShellHub sends the
+event again with the same ID. Store the IDs you have handled and skip repeats, still answering
+`2xx`:
+
+```ts
+app.post("/shellhub", async (req, res) => {
+  if (!verify(secret, req.header("X-ShellHub-Timestamp"), req.header("X-ShellHub-Signature"), req.rawBody)) {
+    return res.sendStatus(401);
+  }
+
+  if (await seen.has(req.body.id)) return res.sendStatus(200);
+
+  await handle(req.body);
+  await seen.add(req.body.id);
+  res.sendStatus(200);
+});
+```
+
+Events can also arrive out of order. Compare `created_at`, or read `data.device.status`, rather
+than assuming the last request you got is the latest state.
+
+## Check deliveries
+
+`GET /api/namespaces/webhooks/{id}/deliveries` lists a webhook's deliveries, newest first, with
+each one's status, attempts, last HTTP status and last error. The console shows the same list.
+
+The last error names the kind of failure, such as `could not resolve the host`, `the connection
+was refused`, `the request timed out`, `the address is not allowed` or `webhook returned status
+500`. It never carries the address or host the server tried.
+
+Delivered and failed deliveries are kept for 7 days.
+
+## Self-hosted instances
+
+ShellHub refuses to send webhooks to loopback, private and link-local addresses, so a namespace
+member cannot make the server call your internal network. To allow an internal receiver, list its
+range in `SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS`, the same allowlist the
+[provisioning key webhook](/api/provisioning-key-webhook) uses:
+
+```bash
+SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS=10.0.0.0/8,192.168.1.0/24
+```

@@ -59,6 +59,12 @@ const (
 	ProvisioningKeyReveal
 	ProvisioningKeyList
 
+	WebhookCreate
+	WebhookList
+	WebhookUpdate
+	WebhookDelete
+	WebhookReveal
+
 	ConnectorDelete
 	ConnectorUpdate
 	ConnectorSet
@@ -142,6 +148,12 @@ var adminPermissions = []Permission{
 	ProvisioningKeyReveal,
 	ProvisioningKeyList,
 
+	WebhookCreate,
+	WebhookList,
+	WebhookUpdate,
+	WebhookDelete,
+	WebhookReveal,
+
 	ConnectorDelete,
 	ConnectorUpdate,
 	ConnectorSet,
@@ -206,6 +218,12 @@ var ownerPermissions = []Permission{
 	ProvisioningKeyUpdate,
 	ProvisioningKeyReveal,
 	ProvisioningKeyList,
+
+	WebhookCreate,
+	WebhookList,
+	WebhookUpdate,
+	WebhookDelete,
+	WebhookReveal,
 
 	ConnectorDelete,
 	ConnectorUpdate,
