@@ -209,6 +209,8 @@ type Session struct {
 
 	closingOnAgent sync.WaitGroup
 
+	agentForwarding sync.Once
+
 	keepaliveMu      sync.Mutex
 	keepaliveStopped bool
 	keepaliveCancel  context.CancelFunc

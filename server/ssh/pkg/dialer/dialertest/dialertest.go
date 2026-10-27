@@ -42,12 +42,15 @@ type Agent struct {
 	signer    gossh.Signer
 	speaks    bool
 
-	broken chan struct{}
-	once   sync.Once
+	broken     chan struct{}
+	brokenOnce sync.Once
 
-	mu     sync.Mutex
-	dials  []Dial
-	served bool
+	ready     chan struct{}
+	readyOnce sync.Once
+
+	mu    sync.Mutex
+	dials []Dial
+	conn  *gossh.ServerConn
 }
 
 // NewAgent returns an [Agent] that completes the SSH handshake and then accepts session
@@ -85,6 +88,7 @@ func newAgent(t *testing.T, speaks bool) *Agent {
 		signer:    signer,
 		speaks:    speaks,
 		broken:    make(chan struct{}),
+		ready:     make(chan struct{}),
 	}
 }
 
@@ -130,8 +134,10 @@ func (a *Agent) serve(device net.Conn) {
 	}
 
 	a.mu.Lock()
-	a.served = true
+	a.conn = conn
 	a.mu.Unlock()
+
+	a.readyOnce.Do(func() { close(a.ready) })
 
 	go gossh.DiscardRequests(reqs)
 	go func() {
@@ -152,7 +158,38 @@ func (a *Agent) serve(device net.Conn) {
 }
 
 func (a *Agent) breakDown() {
-	a.once.Do(func() { close(a.broken) })
+	a.brokenOnce.Do(func() { close(a.broken) })
+}
+
+// OpenChannel opens a channel of type name from the agent towards the server, the way a device
+// opens one to reach a client's forwarded agent. It blocks until the agent serves its first
+// session connection, or until its transport breaks, and opens the channel on the latest connection
+// served. It returns a [*gossh.OpenChannelError] when the server rejects the channel,
+// [io.ErrClosedPipe] when the transport broke before any connection was served, and the
+// connection's error when the latest one is gone.
+func (a *Agent) OpenChannel(name string) (gossh.Channel, error) { //nolint:ireturn // gossh.Channel is the interface x/crypto hands out
+	select {
+	case <-a.ready:
+	case <-a.broken:
+		select {
+		case <-a.ready:
+		default:
+			return nil, io.ErrClosedPipe
+		}
+	}
+
+	a.mu.Lock()
+	conn := a.conn
+	a.mu.Unlock()
+
+	channel, requests, err := conn.OpenChannel(name, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	go gossh.DiscardRequests(requests)
+
+	return channel, nil
 }
 
 // PublicKey returns the agent's host key in the PEM form a device enrols with.
@@ -181,7 +218,7 @@ func (a *Agent) Serving(grace time.Duration) bool {
 		a.mu.Lock()
 		defer a.mu.Unlock()
 
-		return a.served
+		return a.conn != nil
 	}
 }
 

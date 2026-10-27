@@ -46,7 +46,7 @@ type Session interface {
 	NewAgentChannel(name string, seat int) (*session.AgentChannel, error)
 	NewClientChannel(newChannel gossh.NewChannel, seat int) (*session.ClientChannel, error)
 	DropAgentChannel(seat int)
-	OpenAgentForwards(name string) <-chan gossh.NewChannel
+	ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel))
 	DialAgent(ctx context.Context, network, addr string) (net.Conn, error)
 	CloseAgentWrite(seat int) error
 

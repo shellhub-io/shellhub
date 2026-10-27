@@ -88,15 +88,6 @@ const (
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.1
 const AuthRequestOpenSSHRequest = "auth-agent-req@openssh.com"
 
-// AuthRequestOpenSSHChannel is the channel the server opens to reach a forwarded agent.
-//
-// After a client has requested that a session have agent forwarding enabled, the server later may request a connection
-// to the forwarded agent. The server does this by requesting a dedicated channel to communicate with the client's
-// agent.
-//
-// https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.2
-const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
-
 func startsDataPipe(requestType string) bool {
 	switch requestType {
 	case ShellRequestType, PtyRequestType, ExecRequestType, SubsystemRequestType:
@@ -355,47 +346,12 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 					gliderssh.SetAgentRequested(ctx)
 
 					sess.Event(req.Type, req.Payload, seat)
-					go func() {
-						clientConn, ok := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn)
-						if !ok {
-							return
-						}
 
-						agentChannels := sess.OpenAgentForwards(AuthRequestOpenSSHChannel)
-
-						for {
-							newAgentChannel, ok := <-agentChannels
-							if !ok {
-								logger.Trace("channel for agent forwarding done")
-
-								return
-							}
-
-							agentChannel, agentReqs, err := newAgentChannel.Accept()
-							if err != nil {
-								logger.WithError(err).Error("failed to accept the chanel request from agent on auth request")
-
-								return
-							}
-
-							defer agentChannel.Close() //nolint:errcheck
-							go gossh.DiscardRequests(agentReqs)
-
-							clientChannel, clientReqs, err := clientConn.OpenChannel(AuthRequestOpenSSHChannel, nil)
-							if err != nil {
-								logger.WithError(err).Error("failed to open the auth request channel from agent to client")
-
-								return
-							}
-
-							defer clientChannel.Close() //nolint:errcheck
-							go gossh.DiscardRequests(clientReqs)
-
-							hose(logger, agentChannel, clientChannel)
-
-							logger.WithError(err).Trace("auth request channel piping done")
-						}
-					}()
+					if clientConn, ok := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
+						sess.ForwardAgent(clientConn, func(device, client gossh.Channel) {
+							hose(logger, device, client)
+						})
+					}
 				default:
 					sess.Event(req.Type, req.Payload, seat)
 				}
