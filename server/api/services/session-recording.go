@@ -35,7 +35,8 @@ func SessionRecordingPrunerFactory() SessionRecordingPrunerFactoryFunc {
 // follows from that asymmetry.
 type SessionRecordingPruner interface {
 	// DeleteRecordings removes the recordings of the given sessions, whatever seats they had,
-	// and returns the subset it managed to purge.
+	// and returns the subset it managed to purge. A session with nothing stored counts as purged
+	// and is returned.
 	//
 	// Returning a subset rather than failing the batch is what keeps one unreachable object from
 	// halting retention: the caller deletes the rows it names and leaves the rest, so a session
@@ -46,43 +47,13 @@ type SessionRecordingPruner interface {
 
 func (s *service) pruneRecordings(ctx context.Context, sessions []store.ExpiredSession) ([]string, error) {
 	uids := make([]string, 0, len(sessions))
-	recorded := make([]string, 0, len(sessions))
-
 	for _, session := range sessions {
 		uids = append(uids, session.UID)
-
-		if session.Recorded {
-			recorded = append(recorded, session.UID)
-		}
 	}
 
-	if s.recordingPruner == nil || len(recorded) == 0 {
+	if s.recordingPruner == nil || len(uids) == 0 {
 		return uids, nil
 	}
 
-	purged, err := s.recordingPruner.DeleteRecordings(ctx, recorded)
-	if err != nil {
-		return nil, err
-	}
-
-	deletable := make([]string, 0, len(uids))
-	purgedSet := make(map[string]struct{}, len(purged))
-
-	for _, uid := range purged {
-		purgedSet[uid] = struct{}{}
-	}
-
-	for _, session := range sessions {
-		if !session.Recorded {
-			deletable = append(deletable, session.UID)
-
-			continue
-		}
-
-		if _, ok := purgedSet[session.UID]; ok {
-			deletable = append(deletable, session.UID)
-		}
-	}
-
-	return deletable, nil
+	return s.recordingPruner.DeleteRecordings(ctx, uids)
 }

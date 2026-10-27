@@ -307,17 +307,20 @@ func testRecordingRetention(t *testing.T, fixture *recordingFixture) {
 		compose.AgeSession(t, recorded, 48*time.Hour)
 		compose.AgeSession(t, unrecorded, 48*time.Hour)
 
+		mark := compose.ServerLogMark(t)
 		compose.RunCron(t, sessionRetentionCron)
-
-		awaitSessionDeleted(t, t.Context(), compose, unrecorded)
+		compose.AwaitServerLogLine(t, mark, "no expired session in the batch could be deleted")
 
 		assert.True(t, getSession(t, t.Context(), compose, recorded).Recorded,
 			"a session whose recording is still stored is kept")
+		assert.Equal(t, unrecorded, getSession(t, t.Context(), compose, unrecorded).UID,
+			"an unrecorded session is kept while the storage is down")
 
 		compose.StartObjectStorage(t)
 		compose.RunCron(t, sessionRetentionCron)
 
 		awaitSessionDeleted(t, t.Context(), compose, recorded)
+		awaitSessionDeleted(t, t.Context(), compose, unrecorded)
 
 		assert.Empty(t, compose.RecordingObjects(t, recorded), "the recording goes with the session")
 	})

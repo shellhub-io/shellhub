@@ -688,13 +688,17 @@ func TestService_SessionCleanup(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "does not reach for the bucket when nothing in the batch was recorded",
+			description: "purges the recordings of sessions whose recorded flag is cleared",
 			retention:   retention,
 			withPruner:  true,
-			requiredMocks: func(ctx context.Context, _ *mockSessionRecordingPruner) {
+			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				storeMock.
 					On("SessionListExpired", ctx, cutoff, int64(sessionCleanupBatchSize)).
 					Return(expired(3), nil).
+					Once()
+				pruner.
+					On("DeleteRecordings", ctx, uids(expired(3))).
+					Return(uids(expired(3)), nil).
 					Once()
 				storeMock.
 					On("SessionDeleteMany", ctx, uids(expired(3))).
@@ -704,7 +708,7 @@ func TestService_SessionCleanup(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "purges a recorded session's recording before deleting its row",
+			description: "purges every expired session's recordings before deleting its row",
 			retention:   retention,
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
@@ -720,9 +724,9 @@ func TestService_SessionCleanup(t *testing.T) {
 
 				purged := false
 				pruner.
-					On("DeleteRecordings", ctx, []string{"recorded"}).
+					On("DeleteRecordings", ctx, []string{"plain", "recorded"}).
 					Run(func(_ mock.Arguments) { purged = true }).
-					Return([]string{"recorded"}, nil).
+					Return([]string{"plain", "recorded"}, nil).
 					Once()
 				storeMock.
 					On("SessionDeleteMany", ctx, []string{"plain", "recorded"}).
@@ -735,13 +739,13 @@ func TestService_SessionCleanup(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "keeps the row of a session whose recording could not be purged",
+			description: "keeps the row of a session whose recording could not be purged, whatever its flag",
 			retention:   retention,
 			withPruner:  true,
 			requiredMocks: func(ctx context.Context, pruner *mockSessionRecordingPruner) {
 				batch := []store.ExpiredSession{
 					{UID: "ok", Recorded: true},
-					{UID: "stuck", Recorded: true},
+					{UID: "stuck"},
 				}
 
 				storeMock.
