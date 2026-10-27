@@ -280,6 +280,41 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 
 		fixture.requireDeleted(t, uid)
 	})
+
+	t.Run("deleting a recording before it is archived removes its terminal output", func(t *testing.T) {
+		uid := fixture.finish(t, func(t *testing.T, conn *ssh.Client, uid string) {
+			t.Helper()
+
+			openShell(t, conn).prints(t, "unarchived")
+
+			compose.AwaitSessionEventOfType(t, uid, models.SessionEventTypePtyOutput)
+		})
+
+		require.Empty(t, compose.RecordingObjects(t, uid), "the archiver took the session before the delete")
+
+		fixture.requireDeleted(t, uid)
+
+		fixture.archived(t, "control")
+		assert.Empty(t, compose.RecordingObjects(t, uid))
+		fixture.requireNoPlayback(t, uid, 0)
+	})
+
+	t.Run("deleting the recording of an active session is refused", func(t *testing.T) {
+		fixture.finish(t, func(t *testing.T, conn *ssh.Client, uid string) {
+			t.Helper()
+
+			openShell(t, conn).prints(t, "active")
+			compose.AwaitSessionEventOfType(t, uid, models.SessionEventTypePtyOutput)
+
+			resp, err := compose.DeleteSessionRecord(t.Context(), uid, 0)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+
+			assert.True(t, getSession(t, t.Context(), compose, uid).Recorded)
+			assert.Positive(t, compose.SessionEventCountOfType(t, uid, models.SessionEventTypePtyOutput),
+				"the refused delete kept the terminal output")
+		})
+	})
 }
 
 func testRecordingRetention(t *testing.T, fixture *recordingFixture) {
@@ -413,6 +448,8 @@ func (f *recordingFixture) requireDeleted(t *testing.T, uid string) {
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 
 	assert.False(t, getSession(t, t.Context(), f.compose, uid).Recorded)
+	assert.Zero(t, f.compose.SessionEventCountOfType(t, uid, models.SessionEventTypePtyOutput),
+		"no terminal output was kept")
 }
 
 func castOutput(t *testing.T, cast string) string {
