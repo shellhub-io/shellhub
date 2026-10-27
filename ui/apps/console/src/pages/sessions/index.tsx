@@ -127,6 +127,7 @@ function SessionActions({
           <RecordingActionsMenu
             sessionUid={session.uid}
             recorded={session.recorded}
+            active={session.active}
             onDownload={onDownload}
           />
         </div>

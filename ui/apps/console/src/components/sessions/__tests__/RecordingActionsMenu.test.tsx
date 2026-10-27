@@ -14,11 +14,13 @@ async function openMenu({
   recorded,
   onDownload = () => {},
   loaded = false,
+  active = false,
 }: {
   local: boolean;
   recorded: boolean;
   onDownload?: () => void;
   loaded?: boolean;
+  active?: boolean;
 }) {
   useRecordingsStore.setState({
     recordings: local ? [mockRecordingMeta()] : [],
@@ -30,6 +32,7 @@ async function openMenu({
       recorded={recorded}
       onDownload={onDownload}
       loaded={loaded}
+      active={active}
     />,
     { wrapper: createTestWrapper() },
   );
@@ -116,6 +119,35 @@ describe("RecordingActionsMenu", () => {
       await waitFor(() =>
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
       );
+    });
+
+    it("offers no delete while the session is still active", async () => {
+      await openMenu({ local: false, recorded: true, active: true });
+
+      expect(
+        screen.queryByRole("menuitem", { name: "Delete recording" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("still offers deleting the browser's copy while the session is active", async () => {
+      await openMenu({ local: true, recorded: false, active: true });
+
+      expect(
+        screen.getByRole("menuitem", { name: "Delete recording" }),
+      ).toBeInTheDocument();
+    });
+
+    it("tells them to close the session when the server refuses because it is active", async () => {
+      serveDelete(409);
+      const user = await openMenu({ local: false, recorded: true });
+
+      await confirmDelete(user);
+
+      expect(
+        await within(screen.getByRole("dialog")).findByText(
+          "Close the session before deleting its recording.",
+        ),
+      ).toBeInTheDocument();
     });
 
     it("keeps the confirmation open with the error when the delete fails", async () => {
