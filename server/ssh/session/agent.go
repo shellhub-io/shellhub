@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/Masterminds/semver/v3"
+	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -14,11 +15,62 @@ const SeatTypeExec = "exec"
 
 var agentExecCloseFloor = semver.MustParse("v0.9.3")
 
-// OpenAgentForwards returns the channels the agent opens back towards the
-// server for the given channel type, used to relay agent forwarding to the
-// client.
-func (s *Session) OpenAgentForwards(name string) <-chan gossh.NewChannel {
-	return s.agent.client.HandleChannelOpen(name)
+// AuthRequestOpenSSHChannel is the channel the server opens to reach a forwarded agent.
+//
+// After a client has requested that a session have agent forwarding enabled, the server later may request a connection
+// to the forwarded agent. The server does this by requesting a dedicated channel to communicate with the client's
+// agent.
+//
+// https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.2
+const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
+
+// ForwardAgent relays every agent channel the device opens to client, for a client that asked
+// for agent forwarding. The first call starts relaying and every later call, from any seat, does
+// nothing. Relaying ends when the connection to the device closes.
+func (s *Session) ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel)) {
+	s.agentForwarding.Do(func() {
+		forwards := s.agent.client.HandleChannelOpen(AuthRequestOpenSSHChannel)
+
+		go s.relayAgentForwards(forwards, client, relay)
+	})
+}
+
+func (s *Session) relayAgentForwards(forwards <-chan gossh.NewChannel, client gossh.Conn, relay func(device, client gossh.Channel)) {
+	logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
+
+	for forward := range forwards {
+		relayAgentForward(logger, forward, client, relay)
+	}
+
+	logger.Trace("agent forwarding done")
+}
+
+func relayAgentForward(logger *log.Entry, forward gossh.NewChannel, client gossh.Conn, relay func(device, client gossh.Channel)) {
+	clientChannel, clientRequests, err := client.OpenChannel(AuthRequestOpenSSHChannel, nil)
+	if err != nil {
+		logger.WithError(err).Debug("the client did not open its agent for a forwarded use")
+
+		_ = forward.Reject(gossh.ConnectionFailed, "the client did not open its agent")
+
+		return
+	}
+
+	defer clientChannel.Close() //nolint:errcheck // the use is over, and a channel the peer already closed reports an error nobody acts on
+
+	go gossh.DiscardRequests(clientRequests)
+
+	deviceChannel, deviceRequests, err := forward.Accept()
+	if err != nil {
+		logger.WithError(err).Error("failed to accept the agent forwarding channel from the device")
+
+		return
+	}
+
+	defer deviceChannel.Close() //nolint:errcheck // the use is over, and a channel the peer already closed reports an error nobody acts on
+
+	go gossh.DiscardRequests(deviceRequests)
+
+	relay(deviceChannel, clientChannel)
 }
 
 // DialAgent opens a connection from the agent to addr, for a client that asked

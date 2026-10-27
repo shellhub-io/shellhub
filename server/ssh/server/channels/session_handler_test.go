@@ -30,9 +30,8 @@ type fakeSession struct {
 	clientChanErr error
 	recordedErr   error
 
-	calls    []string
-	dropped  []int
-	forwards chan gossh.NewChannel
+	calls   []string
+	dropped []int
 
 	agentChannel gossh.Channel
 
@@ -106,7 +105,9 @@ func (f *fakeSession) DropAgentChannel(seat int) {
 	f.dropped = append(f.dropped, seat)
 }
 
-func (f *fakeSession) OpenAgentForwards(string) <-chan gossh.NewChannel { return f.forwards }
+func (f *fakeSession) ForwardAgent(gossh.Conn, func(device, client gossh.Channel)) {
+	f.record("ForwardAgent")
+}
 
 func (f *fakeSession) DialAgent(context.Context, string, string) (net.Conn, error) {
 	f.record("DialAgent")
@@ -569,4 +570,71 @@ func TestSessionChannelDeliversTheReplyAndOutputOfACommandTheDeviceEndsAtOnce(t 
 	case <-time.After(5 * time.Second):
 		t.Fatal("the session channel did not end after the device ended the command")
 	}
+}
+
+func serveDeviceRefusingRequests(chans <-chan gossh.NewChannel, received chan<- string) {
+	newChannel, ok := <-chans
+	if !ok {
+		return
+	}
+
+	_, requests, err := newChannel.Accept()
+	if err != nil {
+		return
+	}
+
+	for req := range requests {
+		received <- req.Type
+
+		_ = req.Reply(false, nil)
+	}
+}
+
+func TestSessionChannelForwardsEveryAgentRequestToTheDeviceAndStartsForwarding(t *testing.T) {
+	sshClient, gatewayChannels := sshClientOverLoopback(t)
+	agentClient, deviceChannels := sshClientOverLoopback(t)
+
+	received := make(chan string, 2)
+
+	go serveDeviceRefusingRequests(deviceChannels, received)
+
+	type opened struct {
+		session *gossh.Session
+		err     error
+	}
+
+	sessions := make(chan opened, 1)
+
+	go func() {
+		sess, err := sshClient.NewSession()
+		sessions <- opened{session: sess, err: err}
+	}()
+
+	accepted, clientRequests, err := (<-gatewayChannels).Accept()
+	require.NoError(t, err)
+
+	opening := <-sessions
+	require.NoError(t, opening.err)
+
+	agentChannel, agentRequests, err := agentClient.OpenChannel(SessionChannel, nil)
+	require.NoError(t, err)
+
+	sess := &fakeSession{ //nolint:exhaustruct // only the agent and client channels matter here
+		agent:  &session.AgentChannel{Channel: agentChannel, Requests: agentRequests},
+		client: &session.ClientChannel{Channel: accepted, Requests: clientRequests},
+	}
+
+	ctx := newStubContext()
+	ctx.SetValue(gliderssh.ContextKeyConn, agentClient.Conn)
+
+	go sessionChannel(ctx, sess, new(rejectingNewChannel))
+
+	for range 2 {
+		ok, err := opening.session.SendRequest(AuthRequestOpenSSHRequest, true, nil)
+		require.NoError(t, err)
+		assert.False(t, ok, "the client must get the device's answer to its agent request")
+		assert.Equal(t, AuthRequestOpenSSHRequest, <-received, "the device must see every agent request")
+	}
+
+	assert.True(t, sess.called("ForwardAgent"), "an agent request must reach the session")
 }
