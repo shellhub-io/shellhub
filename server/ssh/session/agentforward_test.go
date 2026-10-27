@@ -248,3 +248,77 @@ func TestForwardAgentRelaysAgentUsesAtTheSameTime(t *testing.T) {
 
 	require.NoError(t, sess.agent.Close())
 }
+
+func requireEnded(t *testing.T, channel gossh.Channel, end string) {
+	t.Helper()
+
+	ended := make(chan error, 1)
+
+	go func() {
+		_, err := io.ReadAll(channel)
+		ended <- err
+	}()
+
+	select {
+	case err := <-ended:
+		require.NoError(t, err)
+	case <-time.After(forwardWait):
+		t.Fatalf("the %s end of a finished agent use is still open", end)
+	}
+}
+
+func TestForwardAgentClosesBothEndsWhenAnAgentUseEnds(t *testing.T) {
+	verifyNoLeakedGoroutines(t)
+
+	agent := dialertest.NewAgent(t)
+	sess, _ := newConnectedSession(t, agent)
+	client, laptop := laptopOverLoopback(t)
+
+	sess.ForwardAgent(client, func(gossh.Channel, gossh.Channel) {})
+
+	opened := openFromDevice(t, agent)
+	forwarded := acceptForward(t, laptop)
+	device := opened()
+
+	requireEnded(t, device, "device")
+	requireEnded(t, forwarded, "laptop")
+
+	require.NoError(t, sess.agent.Close())
+}
+
+func TestForwardAgentKeepsRelayingAfterTheClientRefusesAnAgentUse(t *testing.T) {
+	verifyNoLeakedGoroutines(t)
+
+	agent := dialertest.NewAgent(t)
+	sess, _ := newConnectedSession(t, agent)
+	client, laptop := laptopOverLoopback(t)
+
+	sess.ForwardAgent(client, copyBothWays)
+
+	refused := make(chan error, 1)
+
+	go func() {
+		_, err := agent.OpenChannel(AuthRequestOpenSSHChannel)
+		refused <- err
+	}()
+
+	require.NoError(t, nextForward(t, laptop).Reject(gossh.Prohibited, "no agent here"))
+
+	select {
+	case err := <-refused:
+		var rejection *gossh.OpenChannelError
+		require.ErrorAs(t, err, &rejection, "the device must learn its agent use was refused")
+	case <-time.After(forwardWait):
+		t.Fatal("the device's refused agent channel was never answered")
+	}
+
+	opened := openFromDevice(t, agent)
+	forwarded := acceptForward(t, laptop)
+	device := opened()
+
+	_, err := device.Write([]byte("sign"))
+	require.NoError(t, err)
+	assert.Equal(t, "sign", readWithin(t, forwarded, len("sign")))
+
+	require.NoError(t, sess.agent.Close())
+}
