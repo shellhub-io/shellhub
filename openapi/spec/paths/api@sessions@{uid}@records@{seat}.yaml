@@ -110,7 +110,10 @@ get:
 delete:
   operationId: deleteSessionRecord
   summary: Delete session record
-  description: Deletes a session record based on its seat.
+  description: |
+    Deletes a session record based on its seat, from the object storage and from the session's
+    events. The session must be closed: an active session is still recording, so deleting its
+    record is refused with 409.
   security:
     - jwt: []
     - api-key: []
@@ -124,6 +127,8 @@ delete:
       $ref: ../components/responses/400.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
     '503':
