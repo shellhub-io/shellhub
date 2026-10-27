@@ -23,6 +23,5 @@ export default defineConfig({
       mutationOptions: true,
       includeInEntry: true,
     },
-    "zod",
   ],
 });
