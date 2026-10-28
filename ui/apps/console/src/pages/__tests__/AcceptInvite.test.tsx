@@ -26,7 +26,7 @@ const { mockSignUp, signUpState } = vi.hoisted(() => {
     signUp: mockSignUp,
     signUpLoading: false,
     signUpError: null as string | null,
-    signUpServerFields: [] as string[],
+    signUpServerFields: {} as Record<string, string>,
   };
   return { mockSignUp, signUpState };
 });
@@ -80,7 +80,7 @@ beforeEach(() => {
   });
   signUpState.signUpLoading = false;
   signUpState.signUpError = null;
-  signUpState.signUpServerFields = [];
+  signUpState.signUpServerFields = {};
   server.use(
     http.get("*/api/invitations/resolve", () =>
       HttpResponse.json(resolvedData),

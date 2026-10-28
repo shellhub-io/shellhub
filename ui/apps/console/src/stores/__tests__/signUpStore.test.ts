@@ -9,7 +9,7 @@ beforeEach(() => {
     signUpTenant: null,
     signUpLoading: false,
     signUpError: null,
-    signUpServerFields: [],
+    signUpServerFields: {},
     resendLoading: false,
     resendError: null,
   });
@@ -97,10 +97,10 @@ describe("signUpStore", () => {
 
       expect(result).toBeNull();
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([
-        "username",
-        "email",
-      ]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({
+        username: "required",
+        email: "invalid",
+      });
       expect(useSignUpStore.getState().signUpError).toBeNull();
     });
 
@@ -120,9 +120,9 @@ describe("signUpStore", () => {
       const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([
-        "username",
-      ]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({
+        username: "duplicated",
+      });
       expect(useSignUpStore.getState().signUpError).toBeNull();
     });
 
@@ -136,7 +136,7 @@ describe("signUpStore", () => {
       const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({});
       expect(useSignUpStore.getState().signUpError).toBe(
         "Some values are invalid. Review the form and try again.",
       );
@@ -152,7 +152,7 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpError).toBe(
         "Something went wrong. Please try again.",
       );
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({});
     });
 
     it("clears stale token and tenant at the start of a new attempt", async () => {
@@ -171,11 +171,15 @@ describe("signUpStore", () => {
 
   describe("clearSignUpServerField", () => {
     it("removes a specific field from signUpServerFields", () => {
-      useSignUpStore.setState({ signUpServerFields: ["username", "email"] });
+      useSignUpStore.setState({
+        signUpServerFields: { username: "duplicated", email: "disposable" },
+      });
 
       useSignUpStore.getState().clearSignUpServerField("username");
 
-      expect(useSignUpStore.getState().signUpServerFields).toEqual(["email"]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({
+        email: "disposable",
+      });
     });
   });
 
@@ -183,13 +187,13 @@ describe("signUpStore", () => {
     it("clears signUpError and signUpServerFields", () => {
       useSignUpStore.setState({
         signUpError: "some error",
-        signUpServerFields: ["email"],
+        signUpServerFields: { email: "disposable" },
       });
 
       useSignUpStore.getState().resetSignUpErrors();
 
       expect(useSignUpStore.getState().signUpError).toBeNull();
-      expect(useSignUpStore.getState().signUpServerFields).toEqual([]);
+      expect(useSignUpStore.getState().signUpServerFields).toEqual({});
     });
   });
 

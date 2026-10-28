@@ -17,6 +17,7 @@ import {
 } from "@/components/common/fields/rhf";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import ScreenIntro from "@/components/layout/ScreenIntro";
+import { emailRefusalMessage } from "@/utils/emailRefusal";
 
 const SERVER_FIELD_MAP: Record<string, keyof SignUpFormValues> = {
   username: "username",
@@ -46,6 +47,7 @@ export default function SignUp() {
     (s) => s.clearSignUpServerField,
   );
   const resetSignUpErrors = useSignUpStore((s) => s.resetSignUpErrors);
+  const hasServerFieldErrors = Object.keys(signUpServerFields).length > 0;
 
   useEffect(() => {
     resetSignUpErrors();
@@ -69,9 +71,11 @@ export default function SignUp() {
     });
 
   useEffect(() => {
-    for (const field of signUpServerFields) {
+    for (const [field, reason] of Object.entries(signUpServerFields)) {
       const key = SERVER_FIELD_MAP[field];
-      const message = SERVER_FIELD_MESSAGES[field];
+      const message =
+        (field === "email" ? emailRefusalMessage(reason) : undefined)
+        ?? SERVER_FIELD_MESSAGES[field];
 
       if (key && message) {
         setError(key, { type: "server", message });
@@ -80,7 +84,7 @@ export default function SignUp() {
   }, [signUpServerFields, setError]);
 
   const onSubmit = async (values: SignUpFormValues) => {
-    if (signUpServerFields.length > 0) return;
+    if (hasServerFieldErrors) return;
 
     resetSignUpErrors();
 
@@ -97,7 +101,7 @@ export default function SignUp() {
     const { signUpError: err, signUpServerFields: fields } =
       useSignUpStore.getState();
 
-    if (err !== null || fields.length > 0) return;
+    if (err !== null || Object.keys(fields).length > 0) return;
 
     if (!token) {
       void navigate(
@@ -231,7 +235,7 @@ export default function SignUp() {
                 disabled={
                   signUpLoading ||
                   !formState.isValid ||
-                  signUpServerFields.length > 0
+                  hasServerFieldErrors
                 }
               >
                 {signUpLoading ? "Creating account..." : "Create Account"}

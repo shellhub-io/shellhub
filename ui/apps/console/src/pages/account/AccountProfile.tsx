@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
-import { isSdkError } from "@/api/errors";
+import { apiErrorFields, isSdkError } from "@/api/errors";
+import { emailRefusalMessage } from "@/utils/emailRefusal";
 import {
   editProfileSchema,
   type EditProfileFormValues,
@@ -71,6 +72,15 @@ export function EditProfileModal({
       await updateProfile(data);
       onClose();
     } catch (err) {
+      const fields = apiErrorFields(err);
+      const emailRefusal = emailRefusalMessage(fields.email);
+      const recoveryEmailRefusal = emailRefusalMessage(fields.recovery_email);
+      if (emailRefusal) setError("email", { type: "server", message: emailRefusal });
+      if (recoveryEmailRefusal) {
+        setError("recoveryEmail", { type: "server", message: recoveryEmailRefusal });
+      }
+      if (emailRefusal || recoveryEmailRefusal) return;
+
       const status = isSdkError(err) ? err.status : undefined;
       const errorMessages: Record<number, string> = {
         400: "Some fields have invalid values. Review and try again.",
