@@ -110,15 +110,7 @@ func signUp(t *testing.T, compose *environment.DockerCompose, username string) s
 
 	email := username + stripeTestEmailDomain
 
-	resp, err := compose.Anonymous(t.Context()).
-		SetBody(map[string]string{
-			"name":     username,
-			"username": username,
-			"email":    email,
-			"password": ShellHubPassword,
-		}).
-		Post("/api/register")
-	require.NoError(t, err)
+	resp := signUpWithEmail(t, compose, username, email)
 	require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 
 	return email

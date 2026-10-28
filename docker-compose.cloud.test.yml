@@ -6,6 +6,20 @@ x-e2e-labels: &e2e-labels
   io.shellhub.e2e.checkout: ${SHELLHUB_E2E_CHECKOUT:-}
 
 services:
+  server:
+    environment:
+      - SHELLHUB_DISPOSABLE_EMAIL_DNS_SERVER=stubdns:53
+      - SHELLHUB_DISPOSABLE_EMAIL_LIST_URL=http://stubdns:1/
+    depends_on:
+      - stubdns
+  stubdns:
+    image: ${DOCKERHUB_MIRROR:-}coredns/coredns:1.11.3
+    labels: *e2e-labels
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes:
+      - ./tests/stubdns/Corefile:/etc/coredns/Corefile:ro
+    networks:
+      - shellhub
   stripe-cli:
     labels: *e2e-labels
   mailpit:
