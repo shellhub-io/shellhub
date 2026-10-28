@@ -18,6 +18,7 @@ import (
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestService_RegisterUser(t *testing.T) {
@@ -202,4 +203,36 @@ func TestService_RegisterUser(t *testing.T) {
 			storeMock.AssertExpectations(t)
 		})
 	}
+}
+
+func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.T) {
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+	hashMock.On("Do", "secret123").Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil)
+
+	ctx := context.TODO()
+
+	var received string
+	override(t, &openSignupEnabled, true)
+	override(t, &userRegisteredHooks, []UserRegisteredHookFn{
+		func(_ context.Context, _ *models.User, deviceCode, _, _ string) error {
+			received = deviceCode
+
+			return nil
+		},
+	})
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("UserInvitationGet", ctx, store.UserInvitationEmailResolver, "alice@test.com").
+		Return(nil, store.ErrNoDocuments).Once()
+	storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
+		Return("alice", nil).Once()
+
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+	_, err := s.RegisterUser(ctx, requests.RegisterUser{
+		Name: "Alice", Username: "alice", Email: "alice@test.com", Password: "secret123", DeviceCode: "wxyz-2k7q",
+	}, "shellhub.test", "")
+	require.NoError(t, err)
+	assert.Equal(t, "WXYZ2K7Q", received)
 }

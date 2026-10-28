@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,6 +18,8 @@ import (
 // account and — if the code resolves — joins the namespace in the same step. Open self-registration
 // is a capability (cloud only); community and enterprise are invite-only.
 func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
+	req.DeviceCode = pairingcode.Normalize(req.DeviceCode)
+
 	if req.Sig != "" {
 		if membership, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil {
 			invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, membership.UserID)
@@ -74,7 +77,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		return nil, NewErrUserCreate(err)
 	}
 
-	if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto); err != nil {
+	if err := fireUserRegistered(ctx, user, req.DeviceCode, forwardedHost, forwardedProto); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
@@ -174,7 +177,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return res, nil
 	case models.UserStatusNotConfirmed:
-		if err := fireUserRegistered(ctx, user, forwardedHost, forwardedProto); err != nil {
+		if err := fireUserRegistered(ctx, user, req.DeviceCode, forwardedHost, forwardedProto); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 

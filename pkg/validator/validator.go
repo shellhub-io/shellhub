@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 )
 
 // The errors validation returns, distinguishing a whole struct that failed from a single value.
@@ -53,6 +54,8 @@ const (
 	InstanceAPIKeyExpiresAtTag = "instance-api-key_expires-at"
 	// MemberRoleTag contains the rule to validate a namespace member's role.
 	MemberRoleTag = "member_role"
+	// DevicePairingCodeTag contains the rule to validate a device pairing code, as a user may type it.
+	DevicePairingCodeTag = "device_pairing_code"
 )
 
 // Rules is a slice that contains all validation rules.
@@ -140,6 +143,13 @@ var Rules = []Rule{
 			return authorizer.RoleFromString(field.Field().String()).Assignable()
 		},
 		Error: errors.New("role must be \"owner\", \"administrator\", \"operator\" or \"observer\""),
+	},
+	{
+		Tag: DevicePairingCodeTag,
+		Handler: func(field validator.FieldLevel) bool {
+			return pairingcode.IsValid(pairingcode.Normalize(field.Field().String()), pairingcode.DeviceCodeLength)
+		},
+		Error: errors.New("the device code must be an 8-character pairing code"),
 	},
 	{
 		Tag: PrivateKeyPEMTag,

@@ -665,3 +665,46 @@ eiDIAGdPArZi+JWdNsp+TK4MJjcy
 		})
 	}
 }
+
+func TestDevicePairingCode(t *testing.T) {
+	tests := []struct {
+		description string
+		value       string
+		want        bool
+	}{
+		{
+			description: "succeeds when the code is canonical",
+			value:       "WXYZ2K7Q",
+			want:        true,
+		},
+		{
+			description: "succeeds when the code is grouped and lowercase, as a user types it",
+			value:       "wxyz-2k7q",
+			want:        true,
+		},
+		{
+			description: "fails when the code is too short",
+			value:       "WXYZ2K7",
+			want:        false,
+		},
+		{
+			description: "fails when the code has characters outside the alphabet",
+			value:       "WXYZ2K70",
+			want:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			data := struct {
+				Code string `validate:"device_pairing_code"`
+			}{
+				Code: tt.value,
+			}
+
+			ok, _ := New().Struct(data)
+
+			assert.Equal(t, tt.want, ok)
+		})
+	}
+}
