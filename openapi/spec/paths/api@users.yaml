@@ -38,7 +38,19 @@ patch:
     '200':
       $ref: ../components/responses/200.yaml
     '400':
-      $ref: ../components/responses/400.yaml
+      description: |
+        The request is invalid. On Cloud, a new `email` or `recovery_email`
+        whose domain is a known disposable-email domain answers with that field
+        set to `disposable`, and one whose domain cannot receive mail with
+        `unreachable`.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
+          example:
+            message: bad request
+            fields:
+              recovery_email: disposable
     '401':
       $ref: ../components/responses/401.yaml
     '404':
