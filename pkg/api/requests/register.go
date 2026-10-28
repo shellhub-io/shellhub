@@ -17,4 +17,8 @@ type RegisterUser struct {
 	// the email was already validated (the invitee clicked the link) and identifies the
 	// invitation. It's a human-readable pairing code, not a UUID.
 	Sig string `json:"sig" validate:"omitempty"`
+
+	// DeviceCode is the pairing code of a device waiting to be accepted, when the registration
+	// started from an accept-device link. Cloud carries it into the confirmation email's link.
+	DeviceCode string `json:"device_code" validate:"omitempty,device_pairing_code"`
 }

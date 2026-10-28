@@ -51,6 +51,15 @@ post:
                 A unique signature included in an invitation email. This is
                 used to automatically confirm the user's registration without
                 requiring an additional confirmation email.
+            device_code:
+              type: string
+              pattern: '^[2-9A-HJKMNP-TV-Za-hjkmnp-tv-z-]+$'
+              example: WXYZ2K7Q
+              description: |
+                The pairing code of a device waiting to be accepted, when the
+                registration started from an accept-device link. On Cloud the
+                confirmation email's link carries it, so confirming the email
+                on any device leads back to accepting this one.
           required:
             - name
             - email
