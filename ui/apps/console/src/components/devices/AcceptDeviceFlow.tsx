@@ -17,7 +17,7 @@ import {
   clearPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import { isEnterpriseOrCloud } from "@/env";
+import { isCloud, isEnterpriseOrCloud } from "@/env";
 import {
   NamespaceCreateForm,
   CommunityInstructions,
@@ -45,6 +45,11 @@ import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
+import { useSurveyBeforeNamespace } from "@/hooks/useOnboardingSurvey";
+import { useUserInfo } from "@/hooks/useUserRequests";
+import { canCreateNamespace } from "@/utils/namespaceCreation";
+import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
+import BackToSurveyButton from "@/components/firstRun/survey/BackToSurveyButton";
 
 type DevicePreview = ResolveDeviceLoginCodeResponse;
 
@@ -618,20 +623,7 @@ function NamespacePicker({
     );
   }
 
-  if (namespaces.length === 0) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-text-secondary leading-relaxed text-justify">
-          You don't have any namespaces yet. Create one to get started.
-        </p>
-        {isEnterpriseOrCloud() ? (
-          <NamespaceCreateForm />
-        ) : (
-          <CommunityInstructions />
-        )}
-      </div>
-    );
-  }
+  if (namespaces.length === 0) return <FirstNamespace />;
 
   const selected = namespaces.find((n) => n.tenant_id === value);
 
@@ -678,6 +670,29 @@ function NamespacePicker({
           })}
         </Dropdown.Panel>
       </Dropdown>
+    </div>
+  );
+}
+
+function FirstNamespace() {
+  const { data: user } = useUserInfo();
+  const survey = useSurveyBeforeNamespace(
+    isCloud() && canCreateNamespace(user),
+  );
+
+  if (survey.active) return <OnboardingStep {...survey.stepProps} />;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-text-secondary leading-relaxed text-justify">
+        You don't have any namespaces yet. Create one to get started.
+      </p>
+      {isEnterpriseOrCloud() ? (
+        <NamespaceCreateForm />
+      ) : (
+        <CommunityInstructions />
+      )}
+      {survey.visible && <BackToSurveyButton onClick={survey.back} />}
     </div>
   );
 }

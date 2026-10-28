@@ -9,6 +9,12 @@ import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import {
+  choiceElement,
+  mockSurveyPayload,
+  surveyEnvironment,
+} from "@/tests/onboardingSurvey";
+import { defaultConfig, getConfig } from "@/env";
+import {
   PENDING_DEVICE_CODE_KEY,
   hasPendingDeviceCode,
   setPendingDeviceCode,
@@ -542,5 +548,95 @@ describe("AcceptDeviceFlow signed out", () => {
     expect(
       await screen.findByRole("heading", { name: /accept this device/i }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("AcceptDeviceFlow onboarding survey", () => {
+  const SURVEY_API = "https://forms.example.test/api/v1/client/ws1";
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(getConfig).mockReturnValue({
+      ...defaultConfig,
+      edition: "cloud",
+      onboardingUrl: SURVEY_API,
+    });
+    seedAuthStore({ tenant: null, userId: "user-123" });
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal([])),
+      http.get("*/api/auth/user", () => HttpResponse.json(mockUserAuth())),
+      http.get(`${SURVEY_API}/environment`, () =>
+        HttpResponse.json(
+          surveyEnvironment(
+            mockSurveyPayload({
+              elements: [
+                choiceElement("role", "What's your role?", [
+                  ["dev", "Developer"],
+                ]),
+              ],
+            }),
+          ),
+        ),
+      ),
+    );
+  });
+
+  it("asks the survey before the namespace form when the user has no namespace", async () => {
+    renderFlow();
+
+    expect(
+      await screen.findByRole("radio", { name: /developer/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/namespace name/i)).not.toBeInTheDocument();
+  });
+
+  it("moves on to the namespace form when the survey is skipped, and back", async () => {
+    const user = userEvent.setup();
+    renderFlow();
+
+    await user.click(
+      await screen.findByRole("button", { name: /skip survey/i }),
+    );
+
+    expect(screen.getByLabelText(/namespace name/i)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /back to the survey/i }),
+    );
+
+    expect(
+      screen.getByRole("radio", { name: /developer/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("never asks the survey of a user who may not create a namespace", async () => {
+    server.use(
+      http.get("*/api/auth/user", () =>
+        HttpResponse.json(mockUserAuth({ max_namespaces: 0 })),
+      ),
+    );
+    renderFlow();
+
+    expect(
+      await screen.findByText(/you don't have any namespaces yet/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /skip survey/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("never asks the survey of a user who has a namespace", async () => {
+    server.use(
+      http.get("*/api/namespaces", () =>
+        jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
+      ),
+    );
+    renderFlow();
+
+    expect(await screen.findByText("my-ns")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /skip survey/i }),
+    ).not.toBeInTheDocument();
   });
 });
