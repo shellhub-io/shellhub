@@ -65,8 +65,7 @@ func (s *service) ResolveDeviceLoginCode(ctx context.Context, userID, code strin
 
 	data := new(deviceLoginCode)
 	if err := s.cache.Get(ctx, "login_code/"+code, data); err != nil || data.UID == "" {
-		pairing := new(devicePairing)
-		if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err == nil && pairing.PublicKey != "" && pairing.Status == models.DeviceStatusPending {
+		if pairing, _, err := s.liveDevicePairing(ctx, code); err == nil && pairing.Status == models.DeviceStatusPending {
 			return &models.DeviceLoginCodePreview{
 				Kind:     models.DeviceLoginCodeKindPairing,
 				Name:     pairingPreviewName(pairing),

@@ -206,6 +206,26 @@ func TestPairingTiesTheDeviceToTheAcceptingMember(t *testing.T) {
 	assert.Equal(t, member, device.OwnerID)
 }
 
+func TestAcceptingAPairingDoesNotRenewItsCode(t *testing.T) {
+	e := setupOwnershipE2E(t)
+	cache := newMemoryCache()
+	e.svc = NewService(e.st, privateKey, publicKey, cache, WithClock(e.clock))
+	member := e.member(t, "member", authorizer.RoleOperator)
+	ctx := context.Background()
+
+	created := e.clock.Now()
+	pairing, err := e.svc.CreateDevicePairing(ctx, pairingRequest("aa:bb:cc:dd:ee:01", "pk-1"))
+	require.NoError(t, err)
+
+	e.clock.Advance(5 * time.Minute)
+	_, err = e.svc.AcceptDevicePairing(ctx, member, &requests.DevicePairingAccept{Code: pairing.Code, TenantID: e.tenantID})
+	require.NoError(t, err)
+
+	var expiresAt time.Time
+	require.NoError(t, cache.Get(ctx, "pairing_code_expiry/"+pairing.Code, &expiresAt))
+	assert.True(t, expiresAt.Equal(created.Add(devicePairingRenewal)), "the accept moved the expiry to %s", expiresAt)
+}
+
 func TestNamespaceCredentialsEnrollTeamDevices(t *testing.T) {
 	e := setupOwnershipE2E(t)
 

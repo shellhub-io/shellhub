@@ -17,7 +17,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const devicePairingTTL = 10 * time.Minute
+const (
+	devicePairingRenewal     = 10 * time.Minute
+	devicePairingMaxLifetime = time.Hour
+	devicePairingAcceptedTTL = 10 * time.Minute
+)
 
 type devicePairing struct {
 	Hostname  string                 `json:"hostname"`
@@ -25,9 +29,10 @@ type devicePairing struct {
 	Info      *models.DeviceInfo     `json:"info"`
 	PublicKey string                 `json:"public_key"`
 
-	Status   models.DeviceStatus `json:"status"`
-	TenantID string              `json:"tenant_id"`
-	UID      string              `json:"uid"`
+	Status    models.DeviceStatus `json:"status"`
+	TenantID  string              `json:"tenant_id"`
+	UID       string              `json:"uid"`
+	CreatedAt time.Time           `json:"created_at"`
 }
 
 // DevicePairingService issues pairing codes to tenant-less agents and lets a logged-in member
@@ -39,9 +44,9 @@ type DevicePairingService interface {
 	//
 	// When an accepted device already holds the public key, it returns the
 	// accepted status and that device's tenant, with no code. While the key's
-	// previous code is still pending, it returns that code again. Once that code
-	// was accepted, it looks for an accepted device again and answers as above
-	// if it finds one.
+	// previous code is still pending, it returns that code again with the
+	// seconds it has left. Once that code was accepted, it looks for an accepted
+	// device again and answers as above if it finds one.
 	// Otherwise it drops the code and returns a new one; a drop that fails
 	// leaves the old code cached until it expires, where AcceptDevicePairing
 	// still refuses it.
@@ -54,6 +59,13 @@ type DevicePairingService interface {
 
 	// GetDevicePairingStatus reports the pairing outcome to the agent. The code
 	// itself is the secret; unknown or expired codes return not found.
+	//
+	// Each call on a pending code extends its life to ten minutes from now,
+	// never past an hour after its creation, and reports the seconds left. A
+	// renewal the cache fails to store is logged, and the seconds left are
+	// those before it. ctx bounds every cache call: a cancellation while
+	// reading the code returns not found, and one during the renewal is
+	// logged like any failed renewal.
 	GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error)
 
 	// AcceptDevicePairing materializes the pairing payload as a device in the
@@ -77,12 +89,11 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 
 	var existingCode string
 	if err := s.cache.Get(ctx, pubKeyRef, &existingCode); err == nil && existingCode != "" {
-		existing := new(devicePairing)
-		if err := s.cache.Get(ctx, "pairing_code/"+existingCode, existing); err == nil && existing.PublicKey != "" {
+		if existing, expiresAt, err := s.liveDevicePairing(ctx, existingCode); err == nil {
 			if existing.Status == models.DeviceStatusPending {
 				return &models.DevicePairing{
 					Code:      existingCode,
-					ExpiresIn: int(devicePairingTTL.Seconds()),
+					ExpiresIn: secondsUntil(expiresAt, s.clock.Now()),
 					Status:    models.DeviceStatusPending,
 				}, nil
 			}
@@ -99,10 +110,13 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 
 	code := pairingcode.New(pairingcode.DeviceCodeLength)
 
+	now := s.clock.Now()
+
 	pairing := &devicePairing{
 		Hostname:  req.Hostname,
 		PublicKey: req.PublicKey,
 		Status:    models.DeviceStatusPending,
+		CreatedAt: now,
 	}
 
 	if req.Identity != nil {
@@ -119,17 +133,21 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 		}
 	}
 
-	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
+	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingMaxLifetime); err != nil {
 		return nil, err
 	}
 
-	if err := s.cache.Set(ctx, pubKeyRef, code, devicePairingTTL); err != nil {
+	if err := s.cache.Set(ctx, "pairing_code_expiry/"+code, now.Add(devicePairingRenewal), devicePairingRenewal); err != nil {
+		return nil, err
+	}
+
+	if err := s.cache.Set(ctx, pubKeyRef, code, devicePairingMaxLifetime); err != nil {
 		log.WithError(err).Warn("failed to store the pairing dedup reference; a duplicate code may be minted")
 	}
 
 	return &models.DevicePairing{
 		Code:      code,
-		ExpiresIn: int(devicePairingTTL.Seconds()),
+		ExpiresIn: int(devicePairingRenewal.Seconds()),
 		Status:    models.DeviceStatusPending,
 	}, nil
 }
@@ -156,17 +174,60 @@ func hashPublicKey(publicKey string) string {
 func (s *service) GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
 	code = pairingcode.Normalize(code)
 
-	pairing := new(devicePairing)
-	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
-		return nil, NewErrDevicePairingCodeNotFound(code, err)
+	pairing, expiresAt, err := s.liveDevicePairing(ctx, code)
+	if err != nil {
+		return nil, err
 	}
 
-	return &models.DevicePairingStatus{
+	status := &models.DevicePairingStatus{
 		Status:   pairing.Status,
 		TenantID: pairing.TenantID,
 		UID:      pairing.UID,
 		Name:     pairingPreviewName(pairing),
-	}, nil
+	}
+
+	if pairing.Status == models.DeviceStatusPending {
+		status.ExpiresIn = s.renewDevicePairing(ctx, code, pairing, expiresAt)
+	}
+
+	return status, nil
+}
+
+func (s *service) liveDevicePairing(ctx context.Context, code string) (*devicePairing, time.Time, error) {
+	pairing := new(devicePairing)
+	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
+		return nil, time.Time{}, NewErrDevicePairingCodeNotFound(code, err)
+	}
+
+	if pairing.Status != models.DeviceStatusPending {
+		return pairing, time.Time{}, nil
+	}
+
+	var expiresAt time.Time
+	if err := s.cache.Get(ctx, "pairing_code_expiry/"+code, &expiresAt); err != nil || !expiresAt.After(s.clock.Now()) {
+		return nil, time.Time{}, NewErrDevicePairingCodeNotFound(code, err)
+	}
+
+	return pairing, expiresAt, nil
+}
+
+func (s *service) renewDevicePairing(ctx context.Context, code string, pairing *devicePairing, expiresAt time.Time) int {
+	now := s.clock.Now()
+
+	ttl := min(devicePairingRenewal, pairing.CreatedAt.Add(devicePairingMaxLifetime).Sub(now))
+	if renewed := now.Add(ttl); renewed.After(expiresAt) {
+		if err := s.cache.Set(ctx, "pairing_code_expiry/"+code, renewed, ttl); err != nil {
+			log.WithError(err).Warn("failed to renew the pairing code; it expires on its previous schedule")
+		} else {
+			expiresAt = renewed
+		}
+	}
+
+	return secondsUntil(expiresAt, now)
+}
+
+func secondsUntil(at, now time.Time) int {
+	return int(at.Sub(now).Seconds())
 }
 
 func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error) {
@@ -175,9 +236,9 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrDevicePairingCodeNotFound(code, nil)
 	}
 
-	pairing := new(devicePairing)
-	if err := s.cache.Get(ctx, "pairing_code/"+code, pairing); err != nil || pairing.PublicKey == "" {
-		return nil, NewErrDevicePairingCodeNotFound(code, err)
+	pairing, _, err := s.liveDevicePairing(ctx, code)
+	if err != nil {
+		return nil, err
 	}
 
 	if pairing.Status != models.DeviceStatusPending {
@@ -211,7 +272,7 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 	pairing.TenantID = namespace.TenantID
 	pairing.UID = auth.UID
 
-	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingTTL); err != nil {
+	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingAcceptedTTL); err != nil {
 		log.WithError(err).WithField("device_uid", auth.UID).
 			Warn("device accepted but failed to store the pairing outcome; the agent will not learn its tenant from this code")
 	}

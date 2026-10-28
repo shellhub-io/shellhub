@@ -56,7 +56,7 @@ func TestDevicePairingAgent(t *testing.T) {
 		status, resp, err := getPairingStatus(t.Context(), compose, code)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-		assert.Equal(t, &models.DevicePairingStatus{Status: models.DeviceStatusPending, Name: "pairing-waits"}, status)
+		assert.Equal(t, &models.DevicePairingStatus{Status: models.DeviceStatusPending, Name: "pairing-waits", ExpiresIn: 600}, status)
 
 		assert.NotContains(t, deviceNames(compose.ListDevices(t, models.DeviceStatusEmpty)), "pairing-waits", "a pairing created a device before anyone accepted it")
 

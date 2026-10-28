@@ -7,7 +7,9 @@ post:
     created until a user accepts the pairing into a namespace of their choice.
 
     This route is unauthenticated, like the device auth route; the returned
-    code is the secret. Codes expire after 10 minutes.
+    code is the secret. A code expires 10 minutes after it is created or
+    after its last status poll, and never later than an hour after it was
+    created.
   tags:
     - community
     - devices
