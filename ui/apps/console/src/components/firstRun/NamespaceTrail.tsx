@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { Button } from "@shellhub/design-system/primitives";
 import { isCloud, isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserInfo } from "@/hooks/useUserRequests";
 import { canCreateNamespace } from "@/utils/namespaceCreation";
-import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
+import { useSurveyBeforeNamespace } from "@/hooks/useOnboardingSurvey";
 import {
   CommunityInstructions,
   NamespaceCreateForm,
@@ -14,49 +13,29 @@ import { Trail, TrailStep, UpcomingDeviceSteps } from "./Trail";
 import { SETUP_STEP_TITLES } from "./stepTitles";
 import AskAdministrator from "./AskAdministrator";
 import OnboardingStep from "./survey/OnboardingStep";
-
-const STEP_SURVEY = 1;
-const STEP_NAMESPACE = 2;
+import BackToSurveyButton from "./survey/BackToSurveyButton";
 
 function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
-  const userId = useAuthStore((s) => s.userId);
-  const name = useAuthStore((s) => s.name);
-  const email = useAuthStore((s) => s.email);
-
-  const surveyStep = useOnboardingSurveyStep({ enabled: isCloud(), userId });
-  const showSurvey = surveyStep.visible;
-
-  const [chosenStep, setStep] = useState<number | null>(null);
-  const step = showSurvey
-    ? (chosenStep ?? (surveyStep.responseId ? STEP_NAMESPACE : STEP_SURVEY))
-    : STEP_NAMESPACE;
-  const namespaceStep = showSurvey ? 2 : 1;
+  const survey = useSurveyBeforeNamespace(isCloud());
+  const namespaceStep = survey.visible ? 2 : 1;
 
   return (
     <FirstRunLayout eyebrow={eyebrow} signedIn inConsole={false}>
       <Trail>
-        {showSurvey && (
+        {survey.visible && (
           <TrailStep
             number={1}
             title={SETUP_STEP_TITLES.survey}
-            state={step === STEP_SURVEY ? "active" : "done"}
-            summary={surveyStep.responseId ? "Thanks" : "Skipped"}
+            state={survey.active ? "active" : "done"}
+            summary={survey.responseId ? "Thanks" : "Skipped"}
           >
-            <OnboardingStep
-              {...surveyStep.stepProps}
-              known={{ name, email }}
-              onDone={(answers, responseId) => {
-                surveyStep.record(answers, responseId);
-                setStep(STEP_NAMESPACE);
-              }}
-              onSkip={() => setStep(STEP_NAMESPACE)}
-            />
+            <OnboardingStep {...survey.stepProps} />
           </TrailStep>
         )}
         <TrailStep
           number={namespaceStep}
           title="Create a namespace"
-          state={step === STEP_NAMESPACE ? "active" : "upcoming"}
+          state={survey.active ? "upcoming" : "active"}
         >
           <div className="space-y-3">
             <p className="text-xs text-text-secondary">
@@ -64,15 +43,7 @@ function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
               Its name shows up in every SSH address, so keep it short.
             </p>
             <NamespaceCreateForm />
-            {showSurvey && (
-              <button
-                type="button"
-                onClick={() => setStep(STEP_SURVEY)}
-                className="text-2xs font-medium text-text-muted hover:text-text-secondary transition-colors"
-              >
-                Back to the survey
-              </button>
-            )}
+            {survey.visible && <BackToSurveyButton onClick={survey.back} />}
           </div>
         </TrailStep>
         <UpcomingDeviceSteps start={namespaceStep + 1} />

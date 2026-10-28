@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getConfig } from "@/env";
+import { useAuthStore } from "@/stores/authStore";
 import {
   findOnboardingSurvey,
   type OnboardingSurvey,
@@ -81,6 +82,37 @@ export function useOnboardingSurveyStep({
       if (survey) saveResponseId(userId, survey.id, id);
       setSent({ answers, responseId: id });
     },
+  };
+}
+
+/**
+ * The survey that comes before creating the first namespace, for the signed-in user. It opens on
+ * the survey, or on the namespace once this browser already sent a response for the user. `active`
+ * says which one shows; `stepProps` are OnboardingStep's, prefilled with the account's name and
+ * email, and answering or skipping moves on to the namespace; `back` returns to the survey.
+ * `visible` follows useOnboardingSurveyStep: false drops the survey altogether.
+ */
+export function useSurveyBeforeNamespace(enabled: boolean) {
+  const userId = useAuthStore((s) => s.userId);
+  const name = useAuthStore((s) => s.name);
+  const email = useAuthStore((s) => s.email);
+  const surveyStep = useOnboardingSurveyStep({ enabled, userId });
+  const [surveyChosen, setSurveyChosen] = useState<boolean | null>(null);
+
+  return {
+    visible: surveyStep.visible,
+    active: surveyStep.visible && (surveyChosen ?? !surveyStep.responseId),
+    responseId: surveyStep.responseId,
+    stepProps: {
+      ...surveyStep.stepProps,
+      known: { name, email },
+      onDone: (answers: SurveyAnswers, responseId: string) => {
+        surveyStep.record(answers, responseId);
+        setSurveyChosen(false);
+      },
+      onSkip: () => setSurveyChosen(false),
+    },
+    back: () => setSurveyChosen(true),
   };
 }
 
