@@ -41,6 +41,11 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 }
 
 func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
+	email := strings.ToLower(req.Email)
+	if reason := checkEmail(ctx, email); reason != "" {
+		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
+	}
+
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
 		return nil, err
@@ -50,7 +55,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		Origin: models.UserOriginLocal,
 		UserData: models.UserData{
 			Name:     req.Name,
-			Email:    strings.ToLower(req.Email),
+			Email:    email,
 			Username: strings.ToLower(req.Username),
 		},
 		Password:       password,
