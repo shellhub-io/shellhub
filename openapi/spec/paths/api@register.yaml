@@ -80,7 +80,19 @@ post:
         Open registration completed. The account requires email confirmation
         before the user can log in.
     '400':
-      $ref: ../components/responses/400.yaml
+      description: |
+        The request is invalid. On Cloud, an open sign-up whose email domain is
+        a known disposable-email domain answers with `fields.email` set to
+        `disposable`, and one whose domain cannot receive mail with
+        `unreachable`.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
+          example:
+            message: bad request
+            fields:
+              email: disposable
     '401':
       $ref: ../components/responses/401.yaml
     '409':
