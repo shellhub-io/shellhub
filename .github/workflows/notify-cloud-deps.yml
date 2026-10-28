@@ -17,7 +17,7 @@ jobs:
   dispatch:
     name: Dispatch dependency sync to cloud
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
 
     permissions: {}
 

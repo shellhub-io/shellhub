@@ -20,7 +20,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
       && !github.event.pull_request.draft
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Generate token

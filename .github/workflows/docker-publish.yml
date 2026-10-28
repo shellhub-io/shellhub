@@ -19,7 +19,7 @@ jobs:
       matrix:
         project: [server, gateway, ui, server-enterprise]
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout shellhub source
@@ -188,7 +188,7 @@ jobs:
   release-sboms:
     name: Attach SBOMs to GitHub Release
     needs: [build]
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Download all SBOM artifacts
