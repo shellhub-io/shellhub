@@ -136,6 +136,7 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 
 	if e == EditionCloud {
 		envs["SHELLHUB_BILLING"] = "stripe"
+		envs["SHELLHUB_DISPOSABLE_EMAIL_CHECK"] = "false"
 		envs["SHELLHUB_EMAIL_PROVIDER"] = "smtp"
 		envs["SHELLHUB_EMAIL_SMTP_HOST"] = "mailpit"
 		envs["SHELLHUB_EMAIL_SMTP_PORT"] = "1025"

@@ -17,14 +17,19 @@ type UserService interface {
 	// invite code or a pending user_invitation for the email), it completes the invited account
 	// and joins the namespace. Open self-registration is cloud-only; community and enterprise are
 	// invite-only. Returns the auth response (when the account goes live) and an error if any. A
-	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s).
+	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s). An
+	// open sign-up whose email an [OnEmailCheck] hook refuses yields [ErrBadRequest] whose fields
+	// map "email" to the hook's reason; an invited account is not checked, since the invitation
+	// fixed its email.
 	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error)
 
 	// UpdateUser updates the user's data, such as email and username, and a password change revokes
 	// every token the user holds. It returns [ErrUserNotFound] when the user cannot be resolved,
 	// [ErrBadRequest] when the recovery email equals the current or the new email,
 	// [ErrUserPasswordNotMatch] when a password change carries the wrong current password, and the
-	// hashing error when the new one cannot be hashed. Since some attributes must be unique per
+	// hashing error when the new one cannot be hashed. When an [OnEmailCheck] hook refuses a
+	// changed email or recovery email it returns [ErrBadRequest] whose fields map "email" or
+	// "recovery_email" to the hook's reason. Since some attributes must be unique per
 	// user, a value already taken yields [ErrUserDuplicated] carrying the conflicting field
 	// name(s), or [ErrUserUnhandledDuplicate] when the store cannot name it. It returns
 	// [ErrUserUpdate] when the user cannot be saved or, on a password change, the tokens cannot be
@@ -77,6 +82,10 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		return err
 	}
 
+	if refused := refusedEmails(ctx, user, updatedUser); len(refused) > 0 {
+		return NewErrInvalidFields(ErrBadRequest, refused)
+	}
+
 	save := s.store.UserUpdate
 	if req.Password != "" {
 		save = s.store.UserUpdateRevokingTokens
@@ -122,6 +131,24 @@ func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, n
 	}
 
 	return nil
+}
+
+func refusedEmails(ctx context.Context, currentUser, updatedUser *models.User) map[string]string {
+	refused := map[string]string{}
+
+	if updatedUser.Email != currentUser.Email {
+		if reason := checkEmail(ctx, updatedUser.Email); reason != "" {
+			refused["email"] = reason
+		}
+	}
+
+	if updatedUser.RecoveryEmail != currentUser.RecoveryEmail {
+		if reason := checkEmail(ctx, updatedUser.RecoveryEmail); reason != "" {
+			refused["recovery_email"] = reason
+		}
+	}
+
+	return refused
 }
 
 func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) (*models.User, error) {
