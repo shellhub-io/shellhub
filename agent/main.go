@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/agent/pkg/connector"
 	"github.com/shellhub-io/shellhub/agent/pkg/selfupdater"
 	"github.com/shellhub-io/shellhub/agent/server/modes/host/command"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -322,7 +323,8 @@ waits until the device is accepted, rejected, or the code expires.`,
 				log.WithError(err).Fatal("Failed to create the device login code")
 			}
 
-			printPairingInstructions(cmd, cfg.ServerAddress, code.Code, code.ExpiresIn)
+			printPairingInstructions(cmd, cfg.ServerAddress, code.Code)
+			cmd.Printf("Waiting for acceptance... (code expires in %d minutes)\n", code.ExpiresIn/60)
 
 			deadline := time.Now().Add(time.Duration(code.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
 			for time.Now().Before(deadline) {                                       //nolint:forbidigo // a deadline
@@ -413,34 +415,18 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	log.Info("This device is not enrolled in any namespace yet.")
 	log.Infof("To pair it, open %s/accept-device and enter code %s", base, formatPairingCode(pairing.Code))
 	log.Infof("Or open the link directly: %s", url)
-	log.Infof("Waiting for acceptance... (code expires in %d minutes)", pairing.ExpiresIn/60)
+	log.Infof("Waiting for acceptance... (code expires in %d minutes; a server that renews it keeps it valid while the agent waits, up to an hour)", pairing.ExpiresIn/60)
 
-	deadline := time.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
-	for time.Now().Before(deadline) {                                          //nolint:forbidigo // a deadline
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		case <-time.After(3 * time.Second):
+	tenant, err := agentd.AwaitPairing(ctx, clock.New(), 3*time.Second, pairing.ExpiresIn, pairingStatus(ag, tenantFile, pairing.Code))
+	switch {
+	case err == nil:
+		if err := agentd.PersistTenant(tenantFile, tenant); err != nil {
+			log.WithError(err).Warn("Failed to persist the tenant; the device will need to be paired again on restart")
 		}
 
-		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
-			return tenant, nil
-		}
-
-		status, err := ag.GetPairingStatus(pairing.Code)
-		if err != nil {
-			log.WithError(err).Warn("Failed to get the pairing status")
-
-			continue
-		}
-
-		if status.Status == models.DeviceStatusAccepted && status.TenantID != "" {
-			if err := agentd.PersistTenant(tenantFile, status.TenantID); err != nil {
-				log.WithError(err).Warn("Failed to persist the tenant; the device will need to be paired again on restart")
-			}
-
-			return status.TenantID, nil
-		}
+		return tenant, nil
+	case !errors.Is(err, agentd.ErrPairingExpired):
+		return "", err
 	}
 
 	log.Info("The pairing code expired. Run 'shellhub-agent login' to get a new one.")
@@ -485,38 +471,33 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 		return
 	}
 
-	printPairingInstructions(cmd, cfg.ServerAddress, pairing.Code, pairing.ExpiresIn)
+	printPairingInstructions(cmd, cfg.ServerAddress, pairing.Code)
+	cmd.Printf("Waiting for acceptance... (code expires in %d minutes; a server that renews it keeps it valid while this command waits, up to an hour)\n", pairing.ExpiresIn/60)
 
-	deadline := time.Now().Add(time.Duration(pairing.ExpiresIn) * time.Second) //nolint:forbidigo // a deadline
-	for time.Now().Before(deadline) {                                          //nolint:forbidigo // a deadline
-		time.Sleep(3 * time.Second)
-
-		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
-			cmd.Println("✓ Device accepted. The agent will connect automatically.")
-
-			return
-		}
-
-		status, err := ag.GetPairingStatus(pairing.Code)
-		if err != nil {
-			log.WithError(err).Warn("Failed to get the pairing status")
-
-			continue
-		}
-
-		if status.Status == models.DeviceStatusAccepted && status.TenantID != "" {
-			if err := agentd.PersistTenant(tenantFile, status.TenantID); err != nil {
-				log.WithError(err).Fatal("Device accepted, but failed to persist the tenant")
-			}
-
-			cmd.Println("✓ Device accepted. The agent will connect automatically.")
-
-			return
-		}
+	tenant, err := agentd.AwaitPairing(cmd.Context(), clock.New(), 3*time.Second, pairing.ExpiresIn, pairingStatus(ag, tenantFile, pairing.Code))
+	switch {
+	case errors.Is(err, agentd.ErrPairingExpired):
+		cmd.PrintErrln("✗ The code expired before the device was accepted. Run 'shellhub-agent login' again.")
+		os.Exit(1)
+	case err != nil:
+		log.WithError(err).Fatal("Stopped waiting for the device to be accepted")
 	}
 
-	cmd.PrintErrln("✗ The code expired before the device was accepted. Run 'shellhub-agent login' again.")
-	os.Exit(1)
+	if err := agentd.PersistTenant(tenantFile, tenant); err != nil {
+		log.WithError(err).Fatal("Device accepted, but failed to persist the tenant")
+	}
+
+	cmd.Println("✓ Device accepted. The agent will connect automatically.")
+}
+
+func pairingStatus(ag *agentd.Agent, tenantFile, code string) func() (*models.DevicePairingStatus, error) {
+	return func() (*models.DevicePairingStatus, error) {
+		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
+			return &models.DevicePairingStatus{Status: models.DeviceStatusAccepted, TenantID: tenant}, nil
+		}
+
+		return ag.GetPairingStatus(code)
+	}
 }
 
 func formatPairingCode(code string) string {
@@ -527,7 +508,7 @@ func formatPairingCode(code string) string {
 	return code[:4] + "-" + code[4:]
 }
 
-func printPairingInstructions(cmd *cobra.Command, serverAddress, code string, expiresInSeconds int) {
+func printPairingInstructions(cmd *cobra.Command, serverAddress, code string) {
 	base := strings.TrimRight(serverAddress, "/")
 	url := fmt.Sprintf("%s/accept-device?code=%s", base, code)
 
@@ -548,7 +529,6 @@ func printPairingInstructions(cmd *cobra.Command, serverAddress, code string, ex
 	cmd.Println()
 	cmd.Printf("  %s\n", url)
 	cmd.Println()
-	cmd.Printf("Waiting for acceptance... (code expires in %d minutes)\n", expiresInSeconds/60)
 }
 
 func openBrowser(url string) bool {
