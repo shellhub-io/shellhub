@@ -7,9 +7,11 @@ import CopyButton from "@/components/common/CopyButton";
  * knows what to look for before running anything. In a new namespace the command carries no
  * credential and the installer runs `shellhub-agent login`, which prints a code. In a legacy
  * namespace it carries the tenant, the device waits to be accepted, and the user runs
- * `shellhub-agent login` to print the code that accepts it. Both show the same login output,
- * copied from what the agent prints when it does not open a browser. `tenant` is read only when
- * `legacy` is set.
+ * `shellhub-agent login` to print the code that accepts it. Both show the login output copied from
+ * what the agent prints when it does not open a browser, which differs only in its last line: a
+ * new namespace's code can be renewed while the command waits, a legacy one's expires in ten
+ * minutes.
+ * `tenant` is read only when `legacy` is set.
  */
 export default function InstallStep({
   legacy = false,
@@ -74,7 +76,9 @@ export default function InstallStep({
           {slot("XXXXXXXX")}
           {"\n\n"}
           <span className="text-text-secondary">
-            Waiting for acceptance... (code expires in 10 minutes)
+            {legacy
+              ? "Waiting for acceptance... (code expires in 10 minutes)"
+              : "Waiting for acceptance... (code expires in 10 minutes; a server that renews it keeps it valid while this command waits, up to an hour)"}
           </span>
         </pre>
       </WindowChrome>

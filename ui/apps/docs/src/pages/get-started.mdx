@@ -72,7 +72,7 @@ Enter it at https://cloud.shellhub.io/accept-device, or open the link:
 
   https://cloud.shellhub.io/accept-device?code=4KQP7M2X
 
-Waiting for acceptance... (code expires in 10 minutes)
+Waiting for acceptance... (code expires in 10 minutes; a server that renews it keeps it valid while this command waits, up to an hour)
 ```
 
 Where `xdg-open` is available, it also opens the link in the browser for you.
@@ -90,8 +90,8 @@ address. Pick the namespace there and click **Accept device**:
 The agent stops waiting, joins the namespace and connects. There is no second command to run.
 
 <Callout variant="info">
-The code lives ten minutes. If it expires, run `shellhub-agent login` on the device, with `sudo`
-on a native install, for a new one.
+The code stays valid while `shellhub-agent login` waits, up to an hour. If it expires, run
+`shellhub-agent login` on the device, with `sudo` on a native install, for a new one.
 </Callout>
 
 ## Open a shell in the browser

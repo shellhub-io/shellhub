@@ -116,8 +116,8 @@ export default function Install() {
                   <span className="font-mono text-text-primary">
                     /accept-device
                   </span>
-                  , and the device joins the namespace you pick. The code lasts
-                  ten minutes.
+                  , and the device joins the namespace you pick. The code stays
+                  valid while the agent waits, up to an hour.
                 </>
               ) : (
                 <>

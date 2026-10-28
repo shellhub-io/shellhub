@@ -11,11 +11,20 @@ const renderInstallStep = (props: ComponentProps<typeof InstallStep> = {}) =>
 
 describe("InstallStep", () => {
   it.each([
-    { namespace: "a new", props: {} },
-    { namespace: "a legacy", props: { legacy: true, tenant: "tenant-1" } },
+    {
+      namespace: "a new",
+      props: {},
+      waiting:
+        "Waiting for acceptance... (code expires in 10 minutes; a server that renews it keeps it valid while this command waits, up to an hour)",
+    },
+    {
+      namespace: "a legacy",
+      props: { legacy: true, tenant: "tenant-1" },
+      waiting: "Waiting for acceptance... (code expires in 10 minutes)",
+    },
   ])(
     "shows the shellhub-agent login output for $namespace namespace",
-    ({ props }) => {
+    ({ props, waiting }) => {
       renderInstallStep(props);
 
       expect(
@@ -33,11 +42,7 @@ describe("InstallStep", () => {
         screen.getByText(`${origin}/accept-device?code=`),
       ).toBeInTheDocument();
       expect(screen.getByText("XXXXXXXX")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          "Waiting for acceptance... (code expires in 10 minutes)",
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByText(waiting)).toBeInTheDocument();
     },
   );
 
