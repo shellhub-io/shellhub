@@ -5,6 +5,10 @@ import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useSignUpStore } from "@/stores/signUpStore";
+import {
+  clearPendingDeviceCode,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 import SignUp from "../SignUp";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -58,8 +62,20 @@ async function fillValidForm(
   }
 }
 
+function captureRegisterBody() {
+  const captured: { body?: Record<string, unknown> } = {};
+  server.use(
+    http.post("*/api/register", async ({ request }) => {
+      captured.body = (await request.json()) as Record<string, unknown>;
+      return new HttpResponse(null, { status: 204 });
+    }),
+  );
+  return captured;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  clearPendingDeviceCode();
   useSignUpStore.setState({
     signUpLoading: false,
     signUpError: null,
@@ -99,6 +115,34 @@ describe("SignUp", () => {
           expect.stringContaining("/confirm-account"),
         ),
       );
+    });
+
+    it("sends the pending device code with the registration", async () => {
+      setPendingDeviceCode("wxyz-2k7q");
+      const captured = captureRegisterBody();
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      await waitFor(() =>
+        expect(captured.body).toMatchObject({ device_code: "WXYZ2K7Q" }),
+      );
+    });
+
+    it("sends no device code when none is pending", async () => {
+      const captured = captureRegisterBody();
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      await waitFor(() =>
+        expect(captured.body?.email).toBe("alice@example.com"),
+      );
+      expect(captured.body).not.toHaveProperty("device_code");
     });
   });
 

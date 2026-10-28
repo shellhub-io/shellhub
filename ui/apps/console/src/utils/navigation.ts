@@ -23,7 +23,14 @@ export function clearPendingDeviceCode(): void {
  * Whether an enrolment code is waiting to be used.
  */
 export function hasPendingDeviceCode(): boolean {
-  return localStorage.getItem(PENDING_DEVICE_CODE_KEY) !== null;
+  return getPendingDeviceCode() !== null;
+}
+
+/**
+ * Reads the pending enrolment code without clearing it. Returns null when there is none.
+ */
+export function getPendingDeviceCode(): string | null {
+  return localStorage.getItem(PENDING_DEVICE_CODE_KEY);
 }
 
 /**
@@ -31,7 +38,7 @@ export function hasPendingDeviceCode(): boolean {
  * Returns null when there is none.
  */
 export function consumePendingDeviceCode(): string | null {
-  const code = localStorage.getItem(PENDING_DEVICE_CODE_KEY);
+  const code = getPendingDeviceCode();
   if (code) clearPendingDeviceCode();
   return code;
 }

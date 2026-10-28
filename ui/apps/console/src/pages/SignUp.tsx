@@ -7,6 +7,8 @@ import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
+import { getPendingDeviceCode } from "@/utils/navigation";
+import { parsePairingCode } from "@/utils/pairingCode";
 import AuthActions from "@/components/auth/AuthActions";
 import {
   FormInputField,
@@ -82,12 +84,14 @@ export default function SignUp() {
 
     resetSignUpErrors();
 
+    const deviceCode = parsePairingCode(getPendingDeviceCode());
     const token = await signUp({
       name: values.name,
       email: values.email,
       username: values.username,
       password: values.password,
       email_marketing: acceptMarketing,
+      ...(deviceCode && { device_code: deviceCode }),
     });
 
     const { signUpError: err, signUpServerFields: fields } =

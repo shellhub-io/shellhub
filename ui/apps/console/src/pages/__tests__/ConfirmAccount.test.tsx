@@ -7,6 +7,7 @@ import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
 import { mockUserAuth } from "@/tests/factories";
+import { clearPendingDeviceCode, getPendingDeviceCode } from "@/utils/navigation";
 import ConfirmAccount from "../ConfirmAccount";
 
 function RouteState() {
@@ -39,6 +40,15 @@ function renderConfirmAccount(search = "", state?: unknown) {
         />
         <Route path="/login" element={<div>Login Page</div>} />
         <Route path="/dashboard" element={<div>Dashboard</div>} />
+        <Route
+          path="/accept-device"
+          element={
+            <>
+              <div>Accept Device</div>
+              <RouteState />
+            </>
+          }
+        />
       </Routes>
     </MemoryRouter>,
   );
@@ -81,6 +91,7 @@ function resendWith(sent: unknown[]) {
 }
 
 beforeEach(() => {
+  clearPendingDeviceCode();
   useAuthStore.setState(useAuthStore.getInitialState(), true);
   useSignUpStore.setState({ resendLoading: false, resendError: null });
   server.use(
@@ -126,6 +137,19 @@ describe("ConfirmAccount", () => {
     expect(sent).toEqual([{ identifier: "john@example.com", code: "042917" }]);
   });
 
+  it("lands on the accept-device page for the device a link carries", async () => {
+    confirmWith([]);
+
+    renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+
+    expect(await screen.findByText("Accept Device")).toBeInTheDocument();
+    expect(screen.getByLabelText("Route search")).toHaveTextContent(
+      "?code=WXYZ2K7Q",
+    );
+  });
+
   it("sends an account that must sign in with its password to the login", async () => {
     server.use(
       http.post(
@@ -139,6 +163,22 @@ describe("ConfirmAccount", () => {
 
     expect(await screen.findByText("Login Page")).toBeInTheDocument();
     expect(useAuthStore.getState().token).toBeNull();
+  });
+
+  it("keeps the linked device pending for the sign-in when confirming does not sign in", async () => {
+    server.use(
+      http.post(
+        "*/api/user/confirm_account",
+        () => new HttpResponse(null, { status: 204 }),
+      ),
+    );
+
+    renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+
+    expect(await screen.findByText("Login Page")).toBeInTheDocument();
+    expect(getPendingDeviceCode()).toBe("WXYZ2K7Q");
   });
 
   it("keeps the code and says so when the server fails", async () => {

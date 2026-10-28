@@ -9,6 +9,16 @@ export function normalizePairingCode(input: string): string {
 }
 
 /**
+ * Normalizes input as normalizePairingCode does and returns the code when it has the shape the
+ * server issues, eight characters from its alphabet, which leaves out the ones easily misread
+ * (0, 1, I, L, O, U). Returns null for anything else, an empty or missing input included.
+ */
+export function parsePairingCode(input: string | null): string | null {
+  const code = normalizePairingCode(input ?? "");
+  return /^[2-9A-HJKMNP-TV-Z]{8}$/.test(code) ? code : null;
+}
+
+/**
  * Shows a bare code the way the agent prints it, `XXXX-XXXX`.
  */
 export function formatPairingCode(code: string): string {
