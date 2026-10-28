@@ -236,12 +236,14 @@ type DevicePairing struct {
 
 // DevicePairingStatus is what a tenant-less agent polls while waiting for the
 // device to be accepted. TenantID is set once accepted; UID and Name identify
-// the resulting device.
+// the resulting device. ExpiresIn is the seconds a pending code has left, which
+// each poll extends, never past an hour after the code was created.
 type DevicePairingStatus struct {
-	Status   DeviceStatus `json:"status"`
-	TenantID string       `json:"tenant_id,omitempty"`
-	UID      string       `json:"uid,omitempty"`
-	Name     string       `json:"name,omitempty"`
+	Status    DeviceStatus `json:"status"`
+	TenantID  string       `json:"tenant_id,omitempty"`
+	UID       string       `json:"uid,omitempty"`
+	Name      string       `json:"name,omitempty"`
+	ExpiresIn int          `json:"expires_in_seconds,omitempty"`
 }
 
 // DevicePairingAccepted is the response to a pairing accept request.

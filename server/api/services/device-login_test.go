@@ -4,8 +4,10 @@ import (
 	"context"
 	"regexp"
 	"testing"
+	"time"
 
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -291,11 +293,25 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds to resolve a pairing code",
+			description: "fails when the pending pairing code stopped being renewed",
 			userID:      "user1",
 			code:        "WXYZ2K7Q",
 			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
 				populatePairingCode(cacheMock, models.DeviceStatusPending)
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", time.Time{})
+			},
+			expected: Expected{
+				preview: nil,
+				err:     NewErrDeviceLoginCodeNotFound("WXYZ2K7Q", nil),
+			},
+		},
+		{
+			description: "succeeds to resolve a pairing code without renewing it",
+			userID:      "user1",
+			code:        "WXYZ2K7Q",
+			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
+				populatePairingCode(cacheMock, models.DeviceStatusPending)
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(5*time.Minute))
 			},
 			expected: Expected{
 				preview: &models.DeviceLoginCodePreview{
@@ -317,7 +333,7 @@ func TestResolveDeviceLoginCode(t *testing.T) {
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock, WithClock(clock.NewFixed(pairingNow)))
 
 			preview, err := service.ResolveDeviceLoginCode(context.TODO(), tc.userID, tc.code)
 			require.Equal(tt, tc.expected, Expected{preview, err})

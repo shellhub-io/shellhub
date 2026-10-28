@@ -6,6 +6,10 @@ get:
     until a user accepts the pairing; once accepted, `tenant_id` carries the
     namespace the device was accepted into.
 
+    Each poll of a pending code makes it expire ten minutes after the poll,
+    never past one hour after the code was created, and `expires_in_seconds`
+    reports the seconds left.
+
     This route is unauthenticated; the code is the secret. Unknown or expired
     codes return 404.
   tags:
@@ -37,6 +41,10 @@ get:
                 $ref: ../components/schemas/deviceUID.yaml
               name:
                 $ref: ../components/schemas/deviceName.yaml
+              expires_in_seconds:
+                description: Seconds the pending code has left. Omitted once accepted.
+                type: integer
+                example: 600
     '404':
       $ref: ../components/responses/404.yaml
     '500':

@@ -5,10 +5,12 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -16,6 +18,22 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+var pairingNow = time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
+
+func cachedPairingExpiry(t *testing.T, cacheMock *cachemock.MockCache, code string, expiresAt time.Time) {
+	t.Helper()
+
+	cacheMock.
+		On("Get", mock.Anything, "pairing_code_expiry/"+code, mock.Anything).
+		Run(func(args mock.Arguments) {
+			arg, ok := args.Get(2).(*time.Time)
+			require.True(t, ok)
+			*arg = expiresAt
+		}).
+		Return(nil).
+		Once()
+}
 
 func TestCreateDevicePairing(t *testing.T) {
 	req := &requests.DevicePairingCreate{
@@ -85,15 +103,40 @@ func TestCreateDevicePairing(t *testing.T) {
 		cacheMock.
 			On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
 				return regexp.MustCompile(`^pairing_code_pubkey/[0-9a-f]{64}$`).MatchString(key)
-			}), mock.AnythingOfType("string"), devicePairingTTL).
+			}), mock.AnythingOfType("string"), devicePairingMaxLifetime).
 			Return(nil).
 			Once()
+	}
+
+	storesNewPairing := func(cacheMock *cachemock.MockCache) {
+		cacheMock.
+			On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+				return regexp.MustCompile(`^pairing_code/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
+			}), mock.MatchedBy(func(pairing *devicePairing) bool {
+				return pairing.Hostname == "device1" &&
+					pairing.PublicKey == "public-key" &&
+					pairing.Identity.MAC == "00:00:00:00:00:01" &&
+					pairing.Info.PrettyName == "Ubuntu 24.04 LTS" &&
+					pairing.Status == models.DeviceStatusPending &&
+					pairing.TenantID == "" &&
+					pairing.CreatedAt.Equal(pairingNow)
+			}), devicePairingMaxLifetime).
+			Return(nil).
+			Once()
+		cacheMock.
+			On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
+				return regexp.MustCompile(`^pairing_code_expiry/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
+			}), pairingNow.Add(devicePairingRenewal), devicePairingRenewal).
+			Return(nil).
+			Once()
+		storesCodeReference(cacheMock)
 	}
 
 	type Expected struct {
 		resume    bool
 		tenantID  string
 		reuseCode string
+		expiresIn int
 		staleCode string
 		err       error
 	}
@@ -108,19 +151,7 @@ func TestCreateDevicePairing(t *testing.T) {
 			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
 				notAlreadyAccepted(storeMock)
 				noLiveCode(cacheMock)
-				cacheMock.
-					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
-						return regexp.MustCompile(`^pairing_code/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
-					}), mock.MatchedBy(func(pairing *devicePairing) bool {
-						return pairing.Hostname == "device1" &&
-							pairing.PublicKey == "public-key" &&
-							pairing.Identity.MAC == "00:00:00:00:00:01" &&
-							pairing.Info.PrettyName == "Ubuntu 24.04 LTS" &&
-							pairing.Status == models.DeviceStatusPending
-					}), devicePairingTTL).
-					Return(nil).
-					Once()
-				storesCodeReference(cacheMock)
+				storesNewPairing(cacheMock)
 			},
 			expected: Expected{resume: false, err: nil},
 		},
@@ -137,8 +168,20 @@ func TestCreateDevicePairing(t *testing.T) {
 				notAlreadyAccepted(storeMock)
 				liveCode(cacheMock, "WXYZ2K7Q")
 				cachedPairing(cacheMock, "WXYZ2K7Q", devicePairing{PublicKey: "public-key", Status: models.DeviceStatusPending})
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(4*time.Minute))
 			},
-			expected: Expected{resume: false, reuseCode: "WXYZ2K7Q", err: nil},
+			expected: Expected{resume: false, reuseCode: "WXYZ2K7Q", expiresIn: 240, err: nil},
+		},
+		{
+			description: "mints a new code when the public key's pending code expired",
+			requiredMocks: func(cacheMock *cachemock.MockCache, storeMock *storemock.MockStore) {
+				notAlreadyAccepted(storeMock)
+				liveCode(cacheMock, "WXYZ2K7Q")
+				cachedPairing(cacheMock, "WXYZ2K7Q", devicePairing{PublicKey: "public-key", Status: models.DeviceStatusPending})
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", time.Time{})
+				storesNewPairing(cacheMock)
+			},
+			expected: Expected{resume: false, staleCode: "WXYZ2K7Q", err: nil},
 		},
 		{
 			description: "mints a new code when the public key's code was already accepted",
@@ -147,15 +190,7 @@ func TestCreateDevicePairing(t *testing.T) {
 				liveCode(cacheMock, "WXYZ2K7Q")
 				cachedPairing(cacheMock, "WXYZ2K7Q", acceptedPairing)
 				notAlreadyAccepted(storeMock)
-				cacheMock.
-					On("Set", mock.Anything, mock.MatchedBy(func(key string) bool {
-						return regexp.MustCompile(`^pairing_code/[2-9A-HJKMNP-TV-Z]{8}$`).MatchString(key)
-					}), mock.MatchedBy(func(pairing *devicePairing) bool {
-						return pairing.Status == models.DeviceStatusPending && pairing.TenantID == ""
-					}), devicePairingTTL).
-					Return(nil).
-					Once()
-				storesCodeReference(cacheMock)
+				storesNewPairing(cacheMock)
 				cacheMock.
 					On("Delete", mock.Anything, "pairing_code/WXYZ2K7Q").
 					Return(nil).
@@ -186,7 +221,7 @@ func TestCreateDevicePairing(t *testing.T) {
 				notAlreadyAccepted(storeMock)
 				noLiveCode(cacheMock)
 				cacheMock.
-					On("Set", mock.Anything, mock.AnythingOfType("string"), mock.Anything, devicePairingTTL).
+					On("Set", mock.Anything, mock.AnythingOfType("string"), mock.Anything, devicePairingMaxLifetime).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -200,7 +235,7 @@ func TestCreateDevicePairing(t *testing.T) {
 			storeMock := new(storemock.MockStore)
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock, WithClock(clock.NewFixed(pairingNow)))
 
 			pairing, err := service.CreateDevicePairing(context.TODO(), req)
 			require.Equal(tt, tc.expected.err, err)
@@ -213,10 +248,11 @@ func TestCreateDevicePairing(t *testing.T) {
 					require.Empty(tt, pairing.Code)
 				case tc.expected.reuseCode != "":
 					require.Equal(tt, tc.expected.reuseCode, pairing.Code)
+					require.Equal(tt, tc.expected.expiresIn, pairing.ExpiresIn)
 					require.Equal(tt, models.DeviceStatusPending, pairing.Status)
 				default:
 					require.Regexp(tt, `^[2-9A-HJKMNP-TV-Z]{8}$`, pairing.Code)
-					require.Equal(tt, int(devicePairingTTL.Seconds()), pairing.ExpiresIn)
+					require.Equal(tt, int(devicePairingRenewal.Seconds()), pairing.ExpiresIn)
 					require.Equal(tt, models.DeviceStatusPending, pairing.Status)
 					require.NotEqual(tt, tc.expected.staleCode, pairing.Code)
 					require.Empty(tt, pairing.TenantID)
@@ -231,6 +267,29 @@ func TestCreateDevicePairing(t *testing.T) {
 
 func TestGetDevicePairingStatus(t *testing.T) {
 	storeMock := new(storemock.MockStore)
+
+	cachedPendingPairing := func(cacheMock *cachemock.MockCache, createdAt time.Time) {
+		cacheMock.
+			On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
+			Run(func(args mock.Arguments) {
+				arg, ok := args.Get(2).(*devicePairing)
+				require.True(t, ok)
+				*arg = devicePairing{
+					PublicKey: "public-key",
+					Status:    models.DeviceStatusPending,
+					CreatedAt: createdAt,
+				}
+			}).
+			Return(nil).
+			Once()
+	}
+
+	renewsUntil := func(cacheMock *cachemock.MockCache, ttl time.Duration) {
+		cacheMock.
+			On("Set", mock.Anything, "pairing_code_expiry/WXYZ2K7Q", pairingNow.Add(ttl), ttl).
+			Return(nil).
+			Once()
+	}
 
 	type Expected struct {
 		status *models.DevicePairingStatus
@@ -258,24 +317,52 @@ func TestGetDevicePairingStatus(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds while the pairing is pending",
+			description: "fails when the pending code stopped being renewed",
 			code:        "WXYZ2K7Q",
 			requiredMocks: func(cacheMock *cachemock.MockCache) {
-				cacheMock.
-					On("Get", mock.Anything, "pairing_code/WXYZ2K7Q", mock.Anything).
-					Run(func(args mock.Arguments) {
-						arg, ok := args.Get(2).(*devicePairing)
-						require.True(t, ok)
-						*arg = devicePairing{
-							PublicKey: "public-key",
-							Status:    models.DeviceStatusPending,
-						}
-					}).
-					Return(nil).
-					Once()
+				cachedPendingPairing(cacheMock, pairingNow.Add(-15*time.Minute))
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", time.Time{})
 			},
 			expected: Expected{
-				status: &models.DevicePairingStatus{Status: models.DeviceStatusPending},
+				status: nil,
+				err:    NewErrDevicePairingCodeNotFound("WXYZ2K7Q", nil),
+			},
+		},
+		{
+			description: "renews the pending code for another full TTL",
+			code:        "WXYZ2K7Q",
+			requiredMocks: func(cacheMock *cachemock.MockCache) {
+				cachedPendingPairing(cacheMock, pairingNow.Add(-20*time.Minute))
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(2*time.Minute))
+				renewsUntil(cacheMock, devicePairingRenewal)
+			},
+			expected: Expected{
+				status: &models.DevicePairingStatus{Status: models.DeviceStatusPending, ExpiresIn: 600},
+				err:    nil,
+			},
+		},
+		{
+			description: "renews the pending code no further than an hour after its creation",
+			code:        "WXYZ2K7Q",
+			requiredMocks: func(cacheMock *cachemock.MockCache) {
+				cachedPendingPairing(cacheMock, pairingNow.Add(-55*time.Minute))
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(3*time.Minute))
+				renewsUntil(cacheMock, 5*time.Minute)
+			},
+			expected: Expected{
+				status: &models.DevicePairingStatus{Status: models.DeviceStatusPending, ExpiresIn: 300},
+				err:    nil,
+			},
+		},
+		{
+			description: "stops renewing once the code reached its hour",
+			code:        "WXYZ2K7Q",
+			requiredMocks: func(cacheMock *cachemock.MockCache) {
+				cachedPendingPairing(cacheMock, pairingNow.Add(-58*time.Minute))
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(2*time.Minute))
+			},
+			expected: Expected{
+				status: &models.DevicePairingStatus{Status: models.DeviceStatusPending, ExpiresIn: 120},
 				err:    nil,
 			},
 		},
@@ -309,7 +396,7 @@ func TestGetDevicePairingStatus(t *testing.T) {
 			cacheMock := new(cachemock.MockCache)
 			tc.requiredMocks(cacheMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock, WithClock(clock.NewFixed(pairingNow)))
 
 			status, err := service.GetDevicePairingStatus(context.TODO(), tc.code)
 			require.Equal(tt, tc.expected, Expected{status, err})
@@ -348,6 +435,7 @@ func TestAcceptDevicePairing(t *testing.T) {
 
 	populatePairing := func(cacheMock *cachemock.MockCache) {
 		populatePairingWithStatus(cacheMock, models.DeviceStatusPending)
+		cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", pairingNow.Add(5*time.Minute))
 	}
 
 	cases := []struct {
@@ -382,6 +470,16 @@ func TestAcceptDevicePairing(t *testing.T) {
 			req:         &requests.DevicePairingAccept{Code: "WXYZ2K7Q", TenantID: "tenant1"},
 			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
 				populatePairingWithStatus(cacheMock, models.DeviceStatusAccepted)
+			},
+			expectedErr: NewErrDevicePairingCodeNotFound("WXYZ2K7Q", nil),
+		},
+		{
+			description: "fails when the pending code stopped being renewed",
+			userID:      "owner1",
+			req:         &requests.DevicePairingAccept{Code: "WXYZ2K7Q", TenantID: "tenant1"},
+			requiredMocks: func(cacheMock *cachemock.MockCache, _ *storemock.MockStore) {
+				populatePairingWithStatus(cacheMock, models.DeviceStatusPending)
+				cachedPairingExpiry(t, cacheMock, "WXYZ2K7Q", time.Time{})
 			},
 			expectedErr: NewErrDevicePairingCodeNotFound("WXYZ2K7Q", nil),
 		},
@@ -433,7 +531,7 @@ func TestAcceptDevicePairing(t *testing.T) {
 
 			tc.requiredMocks(cacheMock, storeMock)
 
-			service := NewService(storeMock, privateKey, publicKey, cacheMock)
+			service := NewService(storeMock, privateKey, publicKey, cacheMock, WithClock(clock.NewFixed(pairingNow)))
 
 			accepted, err := service.AcceptDevicePairing(context.TODO(), tc.userID, tc.req)
 			require.Equal(tt, tc.expectedErr, err)
