@@ -79,7 +79,7 @@ beforeEach(() => {
   useSignUpStore.setState({
     signUpLoading: false,
     signUpError: null,
-    signUpServerFields: [],
+    signUpServerFields: {},
     signUpToken: null,
     signUpTenant: null,
   });
@@ -220,16 +220,11 @@ describe("SignUp", () => {
   });
 
   describe("server field errors", () => {
-    function setServerFieldError(fields: string[]) {
+    function setServerFieldError(fields: Record<string, string>) {
       server.use(
         http.post("*/api/register", () =>
           HttpResponse.json(
-            {
-              message: "user invalid",
-              fields: Object.fromEntries(
-                fields.map((field) => [field, "invalid"]),
-              ),
-            },
+            { message: "user invalid", fields },
             { status: 400 },
           ),
         ),
@@ -237,7 +232,7 @@ describe("SignUp", () => {
     }
 
     it("shows server-side username error on the username field and disables submit", async () => {
-      setServerFieldError(["username"]);
+      setServerFieldError({ username: "invalid" });
       const user = userEvent.setup();
       renderSignUp();
 
@@ -254,7 +249,7 @@ describe("SignUp", () => {
     });
 
     it("shows server-side email error on the email field", async () => {
-      setServerFieldError(["email"]);
+      setServerFieldError({ email: "invalid" });
       const user = userEvent.setup();
       renderSignUp();
 
@@ -266,8 +261,42 @@ describe("SignUp", () => {
       ).toBeInTheDocument();
     });
 
+    it.each([
+      ["disposable", /use a permanent email address/i],
+      [
+        "unreachable",
+        /this domain cannot receive email\. check the spelling\./i,
+      ],
+    ])(
+      "says why the server refused the email as %s, and keeps submit disabled until it changes",
+      async (reason, message) => {
+        setServerFieldError({ email: reason });
+        const user = userEvent.setup();
+        renderSignUp();
+
+        await fillValidForm(user);
+        await user.click(
+          screen.getByRole("button", { name: /create account/i }),
+        );
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: /create account/i }),
+        ).toBeDisabled();
+
+        await user.type(screen.getByLabelText(/^email$/i), "m");
+
+        await waitFor(() =>
+          expect(screen.queryByText(message)).not.toBeInTheDocument(),
+        );
+        expect(
+          screen.getByRole("button", { name: /create account/i }),
+        ).toBeEnabled();
+      },
+    );
+
     it("clears the server field error after the user edits that field", async () => {
-      setServerFieldError(["username"]);
+      setServerFieldError({ username: "invalid" });
       const user = userEvent.setup();
       renderSignUp();
 

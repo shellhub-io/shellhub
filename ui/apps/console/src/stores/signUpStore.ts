@@ -23,7 +23,7 @@ interface SignUpState {
   signUpTenant: string | null;
   signUpLoading: boolean;
   signUpError: string | null;
-  signUpServerFields: string[]; // raw server field names from 400/409 responses
+  signUpServerFields: Record<string, string>;
 
   resendLoading: boolean;
   resendError: string | null;
@@ -44,7 +44,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
   signUpTenant: null,
   signUpLoading: false,
   signUpError: null,
-  signUpServerFields: [],
+  signUpServerFields: {},
 
   resendLoading: false,
   resendError: null,
@@ -53,7 +53,7 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
     set({
       signUpLoading: true,
       signUpError: null,
-      signUpServerFields: [],
+      signUpServerFields: {},
       signUpToken: null,
       signUpTenant: null,
     });
@@ -70,8 +70,8 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       });
       return response.token ?? null;
     } catch (error: unknown) {
-      const fields = Object.keys(apiErrorFields(error));
-      if (fields.length > 0) {
+      const fields = apiErrorFields(error);
+      if (Object.keys(fields).length > 0) {
         set({ signUpLoading: false, signUpServerFields: fields });
         return null;
       }
@@ -87,10 +87,12 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
 
   clearSignUpServerField: (field) =>
     set((s) => ({
-      signUpServerFields: s.signUpServerFields.filter((f) => f !== field),
+      signUpServerFields: Object.fromEntries(
+        Object.entries(s.signUpServerFields).filter(([f]) => f !== field),
+      ),
     })),
 
-  resetSignUpErrors: () => set({ signUpError: null, signUpServerFields: [] }),
+  resetSignUpErrors: () => set({ signUpError: null, signUpServerFields: {} }),
 
   resendEmail: async (identifier) => {
     set({ resendLoading: true, resendError: null });

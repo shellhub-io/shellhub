@@ -140,7 +140,7 @@ export default function AcceptInvite() {
 
     const { signUpError: err, signUpServerFields } = useSignUpStore.getState();
     if (err) return;
-    if (signUpServerFields.length > 0) {
+    if (Object.keys(signUpServerFields).length > 0) {
       setError(
         "That username or email is already in use. Try a different username.",
       );
