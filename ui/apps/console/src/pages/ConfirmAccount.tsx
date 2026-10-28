@@ -17,7 +17,6 @@ import AuthActions from "@/components/auth/AuthActions";
 import LockoutCallouts from "@/components/auth/LockoutCallouts";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import { landingAfterSignIn } from "@/utils/navigation";
-import type { LoginState } from "@/components/auth/loginState";
 
 const wrongCodeMessage =
   "This code is wrong or expired. Check the latest email or resend it.";
@@ -71,11 +70,10 @@ export default function ConfirmAccount() {
       if (signedIn) {
         void navigate(landingAfterSignIn("/dashboard"), { replace: true });
       } else {
-        const state: LoginState = {
-          notice: "Your email is confirmed. Sign in to continue.",
-          signOut: false,
-        };
-        void navigate("/login", { replace: true, state });
+        void navigate("/login", {
+          replace: true,
+          state: { notice: "Your email is confirmed. Sign in to continue." },
+        });
       }
     } catch (err) {
       setConfirming(false);
