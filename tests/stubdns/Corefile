@@ -1,0 +1,15 @@
+. {
+    template IN MX nomx.test {
+        rcode NXDOMAIN
+    }
+    template IN A nomx.test {
+        rcode NXDOMAIN
+    }
+    template IN AAAA nomx.test {
+        rcode NXDOMAIN
+    }
+    template IN MX . {
+        answer "{{ .Name }} 60 IN MX 10 mx.shellhub.test."
+    }
+    log
+}
