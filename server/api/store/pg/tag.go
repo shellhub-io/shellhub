@@ -156,7 +156,10 @@ func (pg *Pg) TagPushToTarget(ctx context.Context, id string, target store.TagTa
 
 	switch target {
 	case store.TagTargetDevice:
-		exists, err := db.NewSelect().Model((*entity.Device)(nil)).Where("id = ?", targetID).Exists(ctx)
+		exists, err := db.NewSelect().Model((*entity.Device)(nil)).
+			Where("id = ?", targetID).
+			Where("namespace_id = ?", tag.NamespaceID).
+			Exists(ctx)
 		if err != nil {
 			return fromSQLError(err)
 		}

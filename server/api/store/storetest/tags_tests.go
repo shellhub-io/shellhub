@@ -286,6 +286,22 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
+	t.Run("fails when device belongs to another namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		otherTenantID := s.CreateNamespace(t)
+		tagID := s.CreateTag(t, WithTagName("staging"), WithTagTenant(tenantID))
+		deviceUID := s.CreateDevice(t, WithTenantID(otherTenantID))
+
+		err := st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+
+		device, err := st.DeviceResolve(ctx, scope.MustBounded(otherTenantID), store.DeviceUIDResolver, string(deviceUID))
+		require.NoError(t, err)
+		assert.Empty(t, device.Tags)
+	})
+
 	t.Run("succeeds to push a tag to public key", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 

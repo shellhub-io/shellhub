@@ -84,7 +84,8 @@ type TagsStore interface {
 
 	// TagPushToTarget pushs an existent tag to the provided target.
 	//
-	// Returns an error if any issues occur during the tag addition or ErrNoDocuments when matching documents are found.
+	// Returns ErrNoDocuments when the tag does not exist or the target does not exist in the tag's namespace, or
+	// another error if any issues occur during the tag addition.
 	TagPushToTarget(ctx context.Context, id string, target TagTarget, targetID string) (err error)
 
 	// TagPullFromTarget removes a tag from tagged documents in a namespace. If targetsID is empty it removes the tag from
