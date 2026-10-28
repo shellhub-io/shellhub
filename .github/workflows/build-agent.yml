@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
 
     steps:
       - name: checkout code
@@ -148,7 +148,7 @@ jobs:
   sbom:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -207,7 +207,7 @@ jobs:
   build-binaries:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         include:
@@ -260,7 +260,7 @@ jobs:
   vendored-tarball:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: build
-    runs-on: octocat-microvm
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -301,7 +301,7 @@ jobs:
   draft:
     if: "contains(github.ref, 'refs/tags/v')"
     needs: [build-binaries, vendored-tarball, sbom]
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write

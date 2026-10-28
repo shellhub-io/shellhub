@@ -25,7 +25,7 @@ jobs:
   security-gate:
     name: security-gate
     if: ${{ github.event.pull_request.draft == false }}
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     env:
       UPLOAD_SARIF: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}

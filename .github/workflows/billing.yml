@@ -34,7 +34,7 @@ jobs:
   billing:
     name: TestCloudBilling
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
     timeout-minutes: 45
 
     steps:

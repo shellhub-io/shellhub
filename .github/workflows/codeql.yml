@@ -37,7 +37,7 @@ jobs:
           - module: tests
             build_tags: ""
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -85,7 +85,7 @@ jobs:
     name: security-gate
     needs: [analyze]
     if: always()
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check CodeQL results

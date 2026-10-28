@@ -17,7 +17,7 @@ jobs:
     name: go
     if: ${{ github.event.pull_request.draft == false }}
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     env:
       TESTCONTAINERS_RYUK_DISABLED: true
@@ -221,7 +221,7 @@ jobs:
     name: integration
     if: ${{ github.event.pull_request.draft == false }}
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -347,7 +347,7 @@ jobs:
     needs: [go, integration]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     steps:
       - name: Fail when a QA job failed or was cancelled

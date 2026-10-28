@@ -21,7 +21,7 @@ concurrency:
 jobs:
   channel:
     name: Decide what this build describes
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read
@@ -73,7 +73,7 @@ jobs:
 
   deploy:
     name: Build and deploy the documentation
-    runs-on: octocat-microvm
+    runs-on: ubuntu-latest
 
     needs: channel
     if: needs.channel.outputs.publish == 'true'
