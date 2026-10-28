@@ -8,6 +8,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
+import { setEdition } from "@/tests/edition";
 import {
   choiceElement,
   mockSurveyPayload,
@@ -490,6 +491,27 @@ describe("AcceptDeviceFlow signed out", () => {
       ),
     );
   });
+
+  it("offers to sign up on cloud", () => {
+    setEdition("cloud");
+    renderFlow({ initialCode: "WXYZ2K7Q" });
+
+    expect(
+      screen.getByRole("link", { name: /don't have an account\? sign up/i }),
+    ).toHaveAttribute("href", "/sign-up");
+  });
+
+  it.each(["community", "enterprise"] as const)(
+    "offers no sign up on %s",
+    (edition) => {
+      setEdition(edition);
+      renderFlow({ initialCode: "WXYZ2K7Q" });
+
+      expect(
+        screen.queryByRole("link", { name: /sign up/i }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it("asks to sign in while showing the code to check", () => {
     renderFlow({ initialCode: "WXYZ2K7Q" });

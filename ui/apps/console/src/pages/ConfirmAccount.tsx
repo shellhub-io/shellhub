@@ -16,7 +16,8 @@ import OtpCells from "@/components/mfa/OtpCells";
 import AuthActions from "@/components/auth/AuthActions";
 import LockoutCallouts from "@/components/auth/LockoutCallouts";
 import ScreenIntro from "@/components/layout/ScreenIntro";
-import { landingAfterSignIn } from "@/utils/navigation";
+import { landingAfterSignIn, setPendingDeviceCode } from "@/utils/navigation";
+import { parsePairingCode } from "@/utils/pairingCode";
 
 const wrongCodeMessage =
   "This code is wrong or expired. Check the latest email or resend it.";
@@ -24,15 +25,18 @@ const wrongCodeMessage =
 /**
  * The page a new account confirms its email on: the six cells for the emailed code, exchanged for
  * a session, and the resend. A code in the URL, from the email's button, is submitted on arrival.
- * Arriving with sendCode in the route state, from a sign-in that found the account pending, sends
- * a code on arrival, since nothing else on that path has. A wrong code clears the cells; too many
- * lock the form out with a countdown.
+ * A device code in the URL, from a sign-up that started on an accept-device link, becomes the
+ * pending one, so the session lands on accepting that device. Arriving with sendCode in the route
+ * state, from a sign-in that found the account pending, sends a code on arrival, since nothing
+ * else on that path has. A wrong code clears the cells; too many lock the form out with a
+ * countdown.
  */
 export default function ConfirmAccount() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const identifier = searchParams.get("identifier") ?? "";
   const linkedCode = searchParams.get("code") ?? "";
+  const linkedDevice = parsePairingCode(searchParams.get("device"));
   const location = useLocation();
   const sendCodeOnArrival =
     (location.state as { sendCode?: unknown } | null)?.sendCode === true;
@@ -42,8 +46,13 @@ export default function ConfirmAccount() {
   const otp = useOtpInput(6);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { lockFrom, clearLockout, lockedOut, countdownDisplay, lockoutExpired } =
-    useLockout();
+  const {
+    lockFrom,
+    clearLockout,
+    lockedOut,
+    countdownDisplay,
+    lockoutExpired,
+  } = useLockout();
   const linkedCodeSubmitted = useRef(false);
   const codeSentOnArrival = useRef(false);
 
@@ -65,6 +74,7 @@ export default function ConfirmAccount() {
     setError(null);
     clearLockout();
     clearResendNotice();
+    if (linkedDevice) setPendingDeviceCode(linkedDevice);
     try {
       const signedIn = await confirmAccount(identifier, code);
       if (signedIn) {

@@ -293,7 +293,17 @@ export default function AcceptDeviceFlow({
             redirect={`/accept-device?code=${encodeURIComponent(code)}`}
             submitLabel="Sign in and continue"
             onSignedIn={clearPendingDeviceCode}
-            links={codeExit}
+            links={
+              isCloud()
+                ? [
+                    {
+                      label: "Don't have an account? Sign up",
+                      to: "/sign-up",
+                    },
+                    ...codeExit,
+                  ]
+                : codeExit
+            }
           />
         </div>
       )}

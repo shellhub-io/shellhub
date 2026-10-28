@@ -9,6 +9,7 @@ interface SignUpPayload {
   password: string;
   email_marketing: boolean;
   sig?: string;
+  device_code?: string;
 }
 
 /**

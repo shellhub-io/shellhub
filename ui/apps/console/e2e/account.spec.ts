@@ -12,6 +12,7 @@ import {
   readConfirmationCode,
   signInAndOpen,
   signUpUser,
+  submitSignUpForm,
 } from "./helpers";
 import { buildUserIdentity, createUser, password } from "./seed";
 import {
@@ -30,24 +31,10 @@ const newPassword = `${password}-new`;
 
 async function signUp(
   page: Page,
-  { username, email }: { username: string; email: string },
+  account: { username: string; email: string },
 ) {
   await page.goto("/sign-up");
-  await page.getByLabel("Name", { exact: true }).fill("E2E Signup");
-  await page.getByLabel("Username", { exact: true }).fill(username);
-  await page.getByLabel("Email", { exact: true }).fill(email);
-  await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByLabel("Confirm Password", { exact: true }).fill(password);
-  const privacy = page.getByRole("checkbox", {
-    name: "I agree to the Privacy Policy.",
-  });
-  await privacy.press("Space");
-  await expect(privacy).toBeChecked();
-  await page.getByRole("button", { name: "Create Account" }).click();
-  await expect(page).toHaveURL(/\/confirm-account\?identifier=/);
-  await expect(
-    page.getByRole("heading", { name: "Confirm your email" }),
-  ).toBeVisible();
+  await submitSignUpForm(page, account);
 }
 
 test.describe("registration", () => {
