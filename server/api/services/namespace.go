@@ -38,6 +38,16 @@ var namespaceFilterColumns = map[string]string{
 // settings that apply to everything inside one.
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error)
+	// CreateNamespace creates a namespace owned by the requesting user. For a user with a
+	// namespace limit, concurrent calls count and insert one at a time, so the limit holds under
+	// parallel requests, and a call waiting on another returns ctx's error when ctx ends first. It
+	// returns ErrUserNotFound when the user cannot be resolved, whatever the store's error;
+	// ErrNamespaceCreationIsForbidden when the user may own no namespace; ErrNamespaceLimitReached
+	// when the user already owns as many as the limit allows; ErrNamespaceDuplicated when the name
+	// is taken or the name check fails; ErrNamespaceSingle when the instance is bound to a single
+	// namespace; ErrNamespaceCreateStore when the namespace cannot be stored; and the store's
+	// error when the transaction cannot begin or commit, the owner lock cannot be taken or the
+	// owned namespaces cannot be read. Any failure leaves nothing written.
 	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)
 	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
 	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)
@@ -52,8 +62,21 @@ type NamespaceService interface {
 	UpgradeNamespace(ctx context.Context, tenantID string) error
 }
 
-// CreateNamespace creates a new namespace.
 func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCreate) (*models.Namespace, error) {
+	var ns *models.Namespace
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		ns, err = s.createNamespaceInTransaction(ctx, req)
+
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
+	return ns, nil
+}
+
+func (s *service) createNamespaceInTransaction(ctx context.Context, req *requests.NamespaceCreate) (*models.Namespace, error) {
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil || user == nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
@@ -62,7 +85,11 @@ func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCr
 	if user.MaxNamespaces == 0 {
 		return nil, NewErrNamespaceCreationIsForbidden(user.MaxNamespaces, nil)
 	} else if user.MaxNamespaces > 0 {
-		info, err := s.store.UserGetInfo(ctx, req.UserID)
+		if err := s.store.NamespaceLockOwner(ctx, user.ID); err != nil {
+			return nil, err
+		}
+
+		info, err := s.store.UserGetInfo(ctx, user.ID)
 		switch {
 		case err != nil:
 			return nil, err
