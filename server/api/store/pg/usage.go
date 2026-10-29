@@ -80,7 +80,7 @@ func (pg *Pg) countSessionKinds(ctx context.Context, db bun.IDB, since time.Time
 			SELECT session_events.session_id, session_events.seat, session_events.type, session_events.data
 			FROM session_events
 			JOIN sessions ON sessions.id = session_events.session_id
-			WHERE sessions.started_at >= ?0 AND session_events.type IN (?1)
+			WHERE sessions.started_at >= ?0 AND session_events.type <> ?1
 		), seats AS (
 			SELECT
 				session_id,
@@ -116,7 +116,7 @@ func (pg *Pg) countSessionKinds(ctx context.Context, db bun.IDB, since time.Time
 			count(*) FILTER (WHERE agent_forwarding)
 		FROM kinds`,
 		since,
-		bun.List(sessionKindEvents),
+		models.SessionEventTypePtyOutput,
 		models.SessionEventTypePtyRequest,
 		models.SessionEventTypeShell,
 		models.SessionEventTypeExec,
@@ -148,8 +148,8 @@ func (pg *Pg) countSessionActivity(ctx context.Context, db bun.IDB, since time.T
 			count(*) FILTER (WHERE NOT authenticated),
 			(SELECT count(*) FROM active_sessions),
 			count(DISTINCT device_id) FILTER (WHERE authenticated),
-			(SELECT count(*) FROM session_events JOIN started ON started.id = session_events.session_id
-				WHERE session_events.type <> ?1),
+			(SELECT count(*) FROM sessions JOIN session_events ON session_events.session_id = sessions.id
+				WHERE sessions.started_at >= ?0 AND session_events.type <> ?1),
 			coalesce(sum(duration) FILTER (WHERE authenticated), 0)::bigint,
 			coalesce(percentile_cont(0.5) WITHIN GROUP (ORDER BY duration) FILTER (WHERE authenticated), 0)::bigint,
 			coalesce(percentile_cont(0.95) WITHIN GROUP (ORDER BY duration) FILTER (WHERE authenticated), 0)::bigint
@@ -162,15 +162,6 @@ func (pg *Pg) countSessionActivity(ctx context.Context, db bun.IDB, since time.T
 		&activity.DurationMedianSeconds,
 		&activity.DurationP95Seconds,
 	)
-}
-
-var sessionKindEvents = []models.SessionEventType{
-	models.SessionEventTypePtyRequest,
-	models.SessionEventTypeShell,
-	models.SessionEventTypeExec,
-	models.SessionEventTypeSubsystem,
-	models.SessionEventTypeDirectTCPIP,
-	models.SessionEventTypeAuthAgentRequest,
 }
 
 func (pg *Pg) countNamespaceKinds(ctx context.Context, db bun.IDB, _ time.Time, usage *models.InstanceUsage) error {
@@ -339,16 +330,29 @@ func (pg *Pg) NamespaceUsages(ctx context.Context, since time.Time) ([]models.Na
 
 	var rows []namespaceUsageRow
 	if err := db.NewRaw(`
+		WITH members AS (
+			SELECT namespace_id, count(*) AS count FROM memberships GROUP BY namespace_id
+		), devices_by_status AS (
+			SELECT
+				namespace_id,
+				count(*) FILTER (WHERE status = 'accepted') AS accepted,
+				count(*) FILTER (WHERE status = 'pending') AS pending,
+				count(*) FILTER (WHERE status = 'rejected') AS rejected
+			FROM devices GROUP BY namespace_id
+		), started AS (
+			SELECT namespace_id, count(*) AS count FROM sessions WHERE started_at >= ? GROUP BY namespace_id
+		)
 		SELECT
 			namespaces.id AS tenant_id,
-			(SELECT count(*) FROM memberships WHERE memberships.namespace_id = namespaces.id) AS members,
-			count(devices.id) FILTER (WHERE devices.status = 'accepted') AS accepted_devices,
-			count(devices.id) FILTER (WHERE devices.status = 'pending') AS pending_devices,
-			count(devices.id) FILTER (WHERE devices.status = 'rejected') AS rejected_devices,
-			(SELECT count(*) FROM sessions WHERE sessions.namespace_id = namespaces.id AND sessions.started_at >= ?) AS sessions_started
+			coalesce(members.count, 0) AS members,
+			coalesce(devices_by_status.accepted, 0) AS accepted_devices,
+			coalesce(devices_by_status.pending, 0) AS pending_devices,
+			coalesce(devices_by_status.rejected, 0) AS rejected_devices,
+			coalesce(started.count, 0) AS sessions_started
 		FROM namespaces
-		LEFT JOIN devices ON devices.namespace_id = namespaces.id
-		GROUP BY namespaces.id`, since).Scan(ctx, &rows); err != nil {
+		LEFT JOIN members ON members.namespace_id = namespaces.id
+		LEFT JOIN devices_by_status ON devices_by_status.namespace_id = namespaces.id
+		LEFT JOIN started ON started.namespace_id = namespaces.id`, since).Scan(ctx, &rows); err != nil {
 		return nil, fromSQLError(err)
 	}
 

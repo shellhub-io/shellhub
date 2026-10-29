@@ -217,7 +217,13 @@ func (s *Suite) TestInstanceUsage(t *testing.T) {
 
 		sftp := s.CreateSession(t, WithSessionDevice(native), WithSessionActive(false))
 		exec(`UPDATE sessions SET seen_at = started_at + interval '20 seconds' WHERE id = ?`, sftp)
-		events(sftp, []models.SessionEvent{command(models.SessionEventTypeSubsystem, "sftp")})
+		events(sftp,
+			[]models.SessionEvent{command(models.SessionEventTypeSubsystem, "sftp")},
+			[]models.SessionEvent{
+				{Type: models.SessionEventTypeEnv, Data: map[string]any{"name": "LANG", "value": "C"}},
+				{Type: models.SessionEventTypeExitStatus, Data: map[string]any{"status": 0}},
+			},
+		)
 
 		nul := s.CreateSession(t, WithSessionDevice(pending), WithSessionActive(false))
 		exec(`UPDATE sessions SET authenticated = false, seen_at = started_at + interval '5 seconds' WHERE id = ?`, nul)
@@ -251,7 +257,7 @@ func (s *Suite) TestInstanceUsage(t *testing.T) {
 				Unauthenticated:       1,
 				Active:                1,
 				Devices:               2,
-				Events:                10,
+				Events:                12,
 				DurationSeconds:       600 + 60 + 20,
 				DurationMedianSeconds: 60,
 				DurationP95Seconds:    546,
@@ -293,7 +299,8 @@ func (s *Suite) TestInstanceUsage(t *testing.T) {
 				ActiveUsers:   1,
 				UsersByOrigin: map[string]int64{"local": 2, "saml": 1},
 			},
-		}, usage, "a pty on another seat does not make a shell interactive, a refused retry is an attempt, and an "+
+		}, usage, "a pty on another seat does not make a shell interactive, a seat of only env and exit-status is no kind, "+
+			"a refused retry is an attempt, and an "+
 			"unauthenticated session adds no duration")
 	})
 }
