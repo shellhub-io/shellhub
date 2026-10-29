@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { cn } from "@shellhub/design-system/cn";
 import { devicesQueryOptions, type NormalizedDevice } from "@/hooks/useDevices";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePagedList } from "@/hooks/usePagedList";
@@ -32,6 +33,7 @@ import {
   XMarkIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -64,9 +66,8 @@ type SortField = "name" | "last_seen";
  */
 export default function Devices() {
   const sectionTitle = useNavSectionTitle("/devices");
-  const queue = useTenantRegistrationQueue();
-  const pendingCount = queue.waiting;
-  const showPending = queue.reachable;
+  const { waiting: pendingCount, reachable: showPending } = useTenantRegistrationQueue();
+  const hasWaiting = pendingCount > 0;
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "last_seen",
     onSortChange: () => setPage(1),
@@ -276,9 +277,15 @@ export default function Devices() {
           {showPending && (
             <Link
               to="/devices/pending"
-              className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md border border-accent-yellow/25 bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/15 transition-colors"
+              className={cn(
+                "h-8 inline-flex items-center gap-1.5 px-3.5 text-xs font-medium rounded-md border transition-colors",
+                hasWaiting
+                  ? "border-accent-yellow/25 bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/15"
+                  : "border-border text-text-secondary hover:bg-hover-subtle hover:text-text-primary",
+              )}
             >
-              {pendingCount} pending
+              {hasWaiting ? `${pendingCount} pending` : "Registrations"}
+              <ArrowRightIcon className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
