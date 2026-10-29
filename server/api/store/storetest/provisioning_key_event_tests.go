@@ -292,6 +292,32 @@ func (s *Suite) TestProvisioningKeyEventList(t *testing.T) {
 		assert.Equal(t, original, *still)
 	})
 
+	t.Run("reports the enrolled device's current status, and none for a refused attempt", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		digest := s.createProvisioningKey(t, tenantID)
+		device := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, &models.ProvisioningKeyEvent{
+			ProvisioningKeyID: digest, TenantID: tenantID, DeviceUID: string(device), Hostname: "enrolled",
+		}))
+		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, &models.ProvisioningKeyEvent{
+			ProvisioningKeyID: digest, TenantID: tenantID, DeviceUID: string(device), Hostname: "refused",
+			Refusal: models.ProvisioningKeyEventRefusalUnverifiedDeviceKey,
+		}))
+
+		events, _, err := st.ProvisioningKeyEventList(ctx, scope.MustBounded(tenantID), digest)
+		require.NoError(t, err)
+
+		statuses := map[string]models.DeviceStatus{}
+		for _, event := range events {
+			statuses[event.Hostname] = event.DeviceStatus
+		}
+
+		assert.Equal(t, map[string]models.DeviceStatus{"enrolled": models.DeviceStatusAccepted, "refused": ""}, statuses)
+	})
+
 	t.Run("returns empty for a key with no enrollments", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
