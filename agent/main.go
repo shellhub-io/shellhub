@@ -415,9 +415,10 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	log.Info("This device is not enrolled in any namespace yet.")
 	log.Infof("To pair it, open %s/accept-device and enter code %s", base, formatPairingCode(pairing.Code))
 	log.Infof("Or open the link directly: %s", url)
-	log.Infof("Waiting for acceptance... (code expires in %d minutes; a server that renews it keeps it valid while the agent waits, up to an hour)", pairing.ExpiresIn/60)
+	status := pairingStatus(ag, tenantFile, pairing.Code)
+	log.Infof("Waiting for acceptance... (%s)", agentd.PairingWaitNote(pairing.ExpiresIn, status))
 
-	tenant, err := agentd.AwaitPairing(ctx, clock.New(), 3*time.Second, pairing.ExpiresIn, pairingStatus(ag, tenantFile, pairing.Code))
+	tenant, err := agentd.AwaitPairing(ctx, clock.New(), 3*time.Second, pairing.ExpiresIn, status)
 	switch {
 	case err == nil:
 		if err := agentd.PersistTenant(tenantFile, tenant); err != nil {
@@ -472,9 +473,10 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	}
 
 	printPairingInstructions(cmd, cfg.ServerAddress, pairing.Code)
-	cmd.Printf("Waiting for acceptance... (code expires in %d minutes; a server that renews it keeps it valid while this command waits, up to an hour)\n", pairing.ExpiresIn/60)
+	status := pairingStatus(ag, tenantFile, pairing.Code)
+	cmd.Printf("Waiting for acceptance... (%s)\n", agentd.PairingWaitNote(pairing.ExpiresIn, status))
 
-	tenant, err := agentd.AwaitPairing(cmd.Context(), clock.New(), 3*time.Second, pairing.ExpiresIn, pairingStatus(ag, tenantFile, pairing.Code))
+	tenant, err := agentd.AwaitPairing(cmd.Context(), clock.New(), 3*time.Second, pairing.ExpiresIn, status)
 	switch {
 	case errors.Is(err, agentd.ErrPairingExpired):
 		cmd.PrintErrln("✗ The code expired before the device was accepted. Run 'shellhub-agent login' again.")

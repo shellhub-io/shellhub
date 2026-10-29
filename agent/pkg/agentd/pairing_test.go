@@ -82,3 +82,39 @@ func TestAwaitPairing(t *testing.T) {
 		})
 	}
 }
+
+func TestPairingWaitNote(t *testing.T) {
+	cases := []struct {
+		description string
+		status      func() (*models.DevicePairingStatus, error)
+		expected    string
+	}{
+		{
+			description: "says the server renews the code, without a deadline, when it does",
+			status: func() (*models.DevicePairingStatus, error) {
+				return &models.DevicePairingStatus{Status: models.DeviceStatusPending, ExpiresIn: 600}, nil
+			},
+			expected: "the server renews the code while this waits",
+		},
+		{
+			description: "gives the deadline from creation when the server does not renew",
+			status: func() (*models.DevicePairingStatus, error) {
+				return &models.DevicePairingStatus{Status: models.DeviceStatusPending}, nil
+			},
+			expected: "code expires in 10 minutes",
+		},
+		{
+			description: "gives the deadline from creation when the status cannot be read",
+			status: func() (*models.DevicePairingStatus, error) {
+				return nil, errors.New("unreachable")
+			},
+			expected: "code expires in 10 minutes",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(tt *testing.T) {
+			assert.Equal(tt, tc.expected, PairingWaitNote(600, tc.status))
+		})
+	}
+}
