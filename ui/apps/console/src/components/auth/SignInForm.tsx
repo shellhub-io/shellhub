@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
@@ -21,6 +21,7 @@ interface SignInFormProps {
   submitLabel?: string;
   onSignedIn?: () => void;
   links?: AuthLink[];
+  secondaryAction?: ReactNode;
 }
 
 /**
@@ -30,13 +31,15 @@ interface SignInFormProps {
  * device code when that is the dashboard, and a second factor continues on the MFA page, which
  * comes back to `redirect`. With `onSignedIn` the screen carries on in place, so the second factor
  * is asked for right here and `onSignedIn` runs once the session is full. `links` are the ways out
- * of the screen, shown under the button of whichever step is on screen.
+ * of the screen, shown under the button of whichever step is on screen. `secondaryAction` sits
+ * under the sign-in button on the first step only.
  */
 export default function SignInForm({
   redirect,
   submitLabel = "Sign In",
   onSignedIn,
   links = [],
+  secondaryAction,
 }: SignInFormProps) {
   const navigate = useNavigate();
   const { login, loading } = useAuthStore();
@@ -174,6 +177,7 @@ export default function SignInForm({
             {loading ? "Authenticating..." : submitLabel}
           </Button>
         }
+        secondary={secondaryAction}
         links={links}
       />
     </form>

@@ -1,4 +1,5 @@
 import type {
+  AcceptDevicePairingResponse,
   AccessPolicy,
   Device,
   FirewallRulesResponse,
@@ -36,6 +37,22 @@ export function mockAdminUser(
     admin: false,
     created_at: "2024-01-01T00:00:00Z",
     last_login: "2024-06-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+/**
+ * Builds the answer to accepting a pairing code: the device's uid, the namespace it joined and
+ * the member who owns it.
+ */
+export function mockPairingAccepted(
+  overrides: Partial<AcceptDevicePairingResponse> = {},
+): AcceptDevicePairingResponse {
+  return {
+    uid: "new-uid",
+    tenant_id: "t1",
+    namespace: "my-ns",
+    owner_id: "user-1",
     ...overrides,
   };
 }

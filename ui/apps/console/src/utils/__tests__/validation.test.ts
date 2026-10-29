@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  suggestNamespaceName,
   validateEmail,
   validateIdentifier,
   validateName,
@@ -63,6 +64,27 @@ describe("validateNamespaceName", () => {
       );
     });
   });
+});
+
+describe("suggestNamespaceName", () => {
+  it.each([
+    { username: "joaocel", expected: "joaocel" },
+    { username: "Joao.Cel_01", expected: "joao-cel-01" },
+    { username: "__ana--placa!!", expected: "ana-placa" },
+    { username: `${"a".repeat(29)}_b`, expected: "a".repeat(29) },
+    { username: "a.b", expected: "a-b" },
+    { username: "ab", expected: "" },
+    { username: "!!", expected: "" },
+  ])("$username → $expected", ({ username, expected }) => {
+    expect(suggestNamespaceName(username)).toBe(expected);
+  });
+
+  it.each(["joaocel", "Joao.Cel_01", `${"a".repeat(29)}_b`, "x".repeat(40)])(
+    "suggests a name the namespace rules accept for %s",
+    (username) => {
+      expect(validateNamespaceName(suggestNamespaceName(username))).toBeNull();
+    },
+  );
 });
 
 describe("validateName", () => {
