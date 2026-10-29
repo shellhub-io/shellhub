@@ -1223,6 +1223,65 @@ func (s *Suite) TestSessionEventsFirst(t *testing.T) {
 	})
 }
 
+// TestSessionEventsSummary tests that resolving and listing a session report the distinct event
+// types and seats it recorded, and nothing of another session's.
+func (s *Suite) TestSessionEventsSummary(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	recordedAt := s.Clock().Now()
+	seed := func(t *testing.T, uid models.UID, seat int, event models.SessionEventType) {
+		t.Helper()
+
+		recordedAt = recordedAt.Add(time.Millisecond)
+		require.NoError(t, st.SessionEventsCreate(ctx, &models.SessionEvent{
+			Session:   string(uid),
+			Type:      event,
+			Timestamp: recordedAt,
+			Data:      map[string]any{},
+			Seat:      seat,
+		}))
+	}
+
+	recorded := s.CreateSession(t)
+	seed(t, recorded, 0, models.SessionEventTypePtyRequest)
+	seed(t, recorded, 0, models.SessionEventTypeShell)
+	seed(t, recorded, 0, models.SessionEventTypePtyOutput)
+	seed(t, recorded, 0, models.SessionEventTypePtyOutput)
+	seed(t, recorded, 2, models.SessionEventTypeExec)
+
+	silent := s.CreateSession(t)
+
+	want := map[models.UID]models.SessionEvents{
+		recorded: {
+			Types: []string{"exec", "pty-output", "pty-req", "shell"},
+			Seats: []int{0, 2},
+			First: models.SessionEventTypePtyRequest,
+		},
+		silent: {Types: []string{}, Seats: []int{}},
+	}
+
+	t.Run("resolving a session", func(t *testing.T) {
+		for uid, events := range want {
+			session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(uid))
+			require.NoError(t, err)
+			assert.Equal(t, events, session.Events, uid)
+		}
+	})
+
+	t.Run("listing sessions", func(t *testing.T) {
+		sessions, _, err := st.SessionList(ctx, scope.NewUnbounded(reasonTestQueryMechanics))
+		require.NoError(t, err)
+		require.Len(t, sessions, len(want))
+
+		for _, session := range sessions {
+			assert.Equal(t, want[models.UID(session.UID)], session.Events, session.UID)
+		}
+	})
+}
+
 // TestSessionEventsTimeline tests that a session's timeline is ordered, capped, and free of the
 // terminal output that the recording carries.
 func (s *Suite) TestSessionEventsTimeline(t *testing.T) {

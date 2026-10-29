@@ -78,6 +78,7 @@ var Groups = []Group{
 		(*Suite).TestSessionEventsList,
 		(*Suite).TestSessionEventsDelete,
 		(*Suite).TestSessionEventsFirst,
+		(*Suite).TestSessionEventsSummary,
 		(*Suite).TestSessionEventsTimeline,
 		(*Suite).TestSessionCleanup,
 		(*Suite).TestSessionKeepAlive,
