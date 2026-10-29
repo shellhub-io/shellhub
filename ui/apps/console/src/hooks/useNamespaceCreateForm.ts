@@ -12,6 +12,14 @@ const SUBMIT_ERRORS: Record<number, string> = {
 };
 
 /**
+ * The text for a rejected namespace creation: one message each for a 400, a 403 and a 409, and a
+ * generic one for any other status or for an error that is not an API response.
+ */
+export function namespaceCreateError(caught: unknown): string {
+  return (isSdkError(caught) && SUBMIT_ERRORS[caught.status]) || GENERIC_ERROR;
+}
+
+/**
  * Drives the namespace name form shared by the create-namespace screen and dialog: it validates
  * before the request, keeps the field and its error in step, and turns a rejected creation into
  * text keyed by status. `onCreated` runs only after a successful creation.
@@ -42,9 +50,7 @@ export function useNamespaceCreateForm(onCreated?: () => void) {
       await createNs.mutateAsync(name);
       onCreated?.();
     } catch (caught) {
-      setSubmitError(
-        (isSdkError(caught) && SUBMIT_ERRORS[caught.status]) || GENERIC_ERROR,
-      );
+      setSubmitError(namespaceCreateError(caught));
     }
   };
 

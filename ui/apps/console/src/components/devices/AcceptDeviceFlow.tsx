@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type FormEvent,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CpuChipIcon,
@@ -18,10 +23,8 @@ import {
   setPendingDeviceCode,
 } from "@/utils/navigation";
 import { isCloud, isEnterpriseOrCloud } from "@/env";
-import {
-  NamespaceCreateForm,
-  CommunityInstructions,
-} from "@/components/common/CreateNamespace";
+import { CommunityInstructions } from "@/components/common/CreateNamespace";
+import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { useAcceptDevice } from "@/hooks/useDeviceRequests";
 import {
   useResolveDeviceCode,
@@ -29,10 +32,12 @@ import {
 } from "@/hooks/useDeviceCode";
 import {
   type Namespace,
+  useCreateNamespaceInPlace,
   useNamespace,
   useNamespaces,
   useSwitchNamespace,
 } from "@/hooks/useNamespaceRequests";
+import { namespaceCreateError } from "@/hooks/useNamespaceCreateForm";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import SignInForm from "@/components/auth/SignInForm";
@@ -45,11 +50,13 @@ import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
-import { useSurveyBeforeNamespace } from "@/hooks/useOnboardingSurvey";
-import { useUserInfo } from "@/hooks/useUserRequests";
-import { canCreateNamespace } from "@/utils/namespaceCreation";
+import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
-import BackToSurveyButton from "@/components/firstRun/survey/BackToSurveyButton";
+import {
+  NAMESPACE_NAME_MIN_LENGTH,
+  suggestNamespaceName,
+  validateNamespaceName,
+} from "@/utils/validation";
 
 type DevicePreview = ResolveDeviceLoginCodeResponse;
 
@@ -70,12 +77,19 @@ type Branch =
       tenantId: string;
       namespace: string;
       teamDevice: boolean;
+      firstNamespace: boolean;
     };
 
 /**
  * Enrols a device from a code, either as a page or inside a dialog. initialCode is what an
  * accept-device link arrives with, so the code does not have to be typed twice. Signed out, it
- * shows the code with a sign-in form and carries on in place once there is a session.
+ * shows the code with a sign-in form, plus a way to create an account on Cloud, and carries on in
+ * place once there is a session. A pairing code for a user with no namespace offers one step that
+ * creates a namespace, named after the username, and accepts the device into it; if the accept then
+ * fails, the new namespace stays selected with the regular Accept. On the page, on Cloud, the
+ * screen after that first accept asks the onboarding survey one question at a time, unless this
+ * browser already sent a response, and offers the way into the device only once the survey is
+ * answered or skipped.
  */
 export default function AcceptDeviceFlow({
   initialCode = "",
@@ -98,11 +112,15 @@ export default function AcceptDeviceFlow({
 
   const acceptDevice = useAcceptDevice();
   const acceptPairing = useAcceptDevicePairing();
+  const createNamespace = useCreateNamespaceInPlace();
   const switchNamespace = useSwitchNamespace();
 
   const [actionBranch, setActionBranch] = useState<Branch | null>(null);
   const [actionError, setActionError] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
+  const [createdTenant, setCreatedTenant] = useState("");
+  const [pairingInFirstNamespace, setPairingInFirstNamespace] =
+    useState<DevicePreview | null>(null);
   const { namespace: targetNamespace } = useNamespace(
     selectedTenant || authTenant || "",
   );
@@ -118,6 +136,8 @@ export default function AcceptDeviceFlow({
 
   const branch: Branch = (() => {
     if (actionBranch) return actionBranch;
+    if (pairingInFirstNamespace)
+      return { kind: "pick-namespace", device: pairingInFirstNamespace };
     if (!code) return { kind: "missing-code" };
     if (!signedIn) return { kind: "sign-in" };
     if (isResolving) return { kind: "loading" };
@@ -130,6 +150,14 @@ export default function AcceptDeviceFlow({
       return { kind: "switching" };
     return { kind: "ready", device };
   })();
+
+  const {
+    namespaces,
+    isLoading: namespacesLoading,
+    error: namespacesError,
+  } = useNamespaces({ enabled: branch.kind === "pick-namespace" });
+  const namespacesRead = !namespacesLoading && !namespacesError;
+  const firstNamespace = namespacesRead && namespaces.length === 0;
 
   useEffect(() => {
     if (branch.kind === "error" || branch.kind === "already-accepted") {
@@ -164,13 +192,16 @@ export default function AcceptDeviceFlow({
     }
   };
 
-  const handleAcceptPairing = async (device: DevicePreview) => {
-    if (!selectedTenant) return;
+  const acceptPairingInto = async (
+    device: DevicePreview,
+    tenantId: string,
+    intoFirstNamespace = false,
+  ) => {
     setActionError("");
     try {
       const data = await acceptPairing.mutateAsync({
         path: { code },
-        body: { tenant_id: selectedTenant },
+        body: { tenant_id: tenantId },
       });
       finish({
         kind: "pairing-success",
@@ -179,10 +210,35 @@ export default function AcceptDeviceFlow({
         tenantId: data.tenant_id ?? "",
         namespace: data.namespace ?? "",
         teamDevice: !data.owner_id,
+        firstNamespace: intoFirstNamespace,
       });
     } catch (err) {
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
+  };
+
+  const handleAcceptPairing = (device: DevicePreview) =>
+    selectedTenant
+      ? acceptPairingInto(
+          device,
+          selectedTenant,
+          selectedTenant === createdTenant,
+        )
+      : undefined;
+
+  const handleCreateAndAccept = async (device: DevicePreview, name: string) => {
+    setPairingInFirstNamespace(device);
+    let tenantId: string;
+    try {
+      tenantId = await createNamespace.mutateAsync(name);
+    } catch (err) {
+      setPairingInFirstNamespace(null);
+      return namespaceCreateError(err);
+    }
+    setSelectedTenant(tenantId);
+    setCreatedTenant(tenantId);
+    await acceptPairingInto(device, tenantId, true);
+    return null;
   };
 
   const dashboardExit: AuthLink[] = inDialog
@@ -213,12 +269,14 @@ export default function AcceptDeviceFlow({
     note,
     onViewDevice,
     viewing = false,
+    askSurvey = false,
   }: {
     device: DevicePreview;
     namespace?: string;
     note?: string;
     onViewDevice?: () => void;
     viewing?: boolean;
+    askSurvey?: boolean;
   }) =>
     inDialog ? (
       <ResultMessage
@@ -256,7 +314,8 @@ export default function AcceptDeviceFlow({
         }
       />
     ) : (
-      <DeviceAccepted
+      <AcceptedWithSurvey
+        askSurvey={askSurvey && isCloud()}
         device={device}
         namespace={namespace}
         note={note}
@@ -293,17 +352,20 @@ export default function AcceptDeviceFlow({
             redirect={`/accept-device?code=${encodeURIComponent(code)}`}
             submitLabel="Sign in and continue"
             onSignedIn={clearPendingDeviceCode}
-            links={
-              isCloud()
-                ? [
-                    {
-                      label: "Don't have an account? Sign up",
-                      to: "/sign-up",
-                    },
-                    ...codeExit,
-                  ]
-                : codeExit
+            secondaryAction={
+              isCloud() && (
+                <Button
+                  as={Link}
+                  to="/sign-up"
+                  variant="secondary"
+                  size={buttonSize}
+                  fullWidth
+                >
+                  Create account
+                </Button>
+              )
             }
+            links={codeExit}
           />
         </div>
       )}
@@ -494,28 +556,46 @@ export default function AcceptDeviceFlow({
               <AcceptingAs />
             </div>
 
-            <NamespacePicker
-              value={selectedTenant}
-              onChange={setSelectedTenant}
-              preferredTenant={authTenant ?? ""}
-            />
+            {namespacesError ? (
+              <p className="text-sm text-accent-red" role="alert">
+                Your namespaces could not be loaded. Reload the page to try
+                again.
+              </p>
+            ) : firstNamespace ? (
+              <FirstNamespace
+                buttonSize={buttonSize}
+                pending={createNamespace.isPending || acceptPairing.isPending}
+                onCreateAndAccept={(name) =>
+                  handleCreateAndAccept(branch.device, name)
+                }
+              />
+            ) : (
+              <NamespacePicker
+                value={selectedTenant}
+                onChange={setSelectedTenant}
+                preferredTenant={authTenant ?? ""}
+              />
+            )}
           </div>
 
           <ActionError message={actionError} />
 
           <AuthActions
             primary={
-              <Button
-                variant="primary"
-                size={buttonSize}
-                fullWidth
-                loading={acceptPairing.isPending}
-                disabled={!selectedTenant}
-                icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
-                onClick={() => void handleAcceptPairing(branch.device)}
-              >
-                Accept device
-              </Button>
+              namespacesRead &&
+              !firstNamespace && (
+                <Button
+                  variant="primary"
+                  size={buttonSize}
+                  fullWidth
+                  loading={acceptPairing.isPending}
+                  disabled={!selectedTenant}
+                  icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+                  onClick={() => void handleAcceptPairing(branch.device)}
+                >
+                  Accept device
+                </Button>
+              )
             }
             links={
               inDialog
@@ -541,11 +621,45 @@ export default function AcceptDeviceFlow({
             ? "It took the place of a team device with the same MAC address, so it stays the team's rather than being tied to you."
             : undefined,
           viewing: switchNamespace.isPending,
+          askSurvey: branch.firstNamespace,
           onViewDevice: branch.uid
             ? () => viewPairedDevice(branch.uid, branch.tenantId)
             : undefined,
         })}
     </>
+  );
+}
+
+function AcceptedWithSurvey({
+  askSurvey,
+  onViewDevice,
+  ...accepted
+}: ComponentProps<typeof DeviceAccepted> & { askSurvey: boolean }) {
+  const userId = useAuthStore((s) => s.userId);
+  const name = useAuthStore((s) => s.name);
+  const email = useAuthStore((s) => s.email);
+  const survey = useOnboardingSurveyStep({ enabled: askSurvey, userId });
+  const [answered, setAnswered] = useState(false);
+  const asking = survey.visible && !survey.responseId && !answered;
+
+  return (
+    <DeviceAccepted
+      {...accepted}
+      onViewDevice={asking ? undefined : onViewDevice}
+    >
+      {asking && (
+        <OnboardingStep
+          {...survey.stepProps}
+          known={{ name, email }}
+          finishLabel="Finish"
+          onDone={(answers, responseId) => {
+            survey.record(answers, responseId);
+            setAnswered(true);
+          }}
+          onSkip={() => setAnswered(true)}
+        />
+      )}
+    </DeviceAccepted>
   );
 }
 
@@ -633,8 +747,6 @@ function NamespacePicker({
     );
   }
 
-  if (namespaces.length === 0) return <FirstNamespace />;
-
   const selected = namespaces.find((n) => n.tenant_id === value);
 
   return (
@@ -684,26 +796,66 @@ function NamespacePicker({
   );
 }
 
-function FirstNamespace() {
-  const { data: user } = useUserInfo();
-  const survey = useSurveyBeforeNamespace(
-    isCloud() && canCreateNamespace(user),
-  );
+function FirstNamespace({
+  buttonSize,
+  pending,
+  onCreateAndAccept,
+}: {
+  buttonSize: "md" | "lg";
+  pending: boolean;
+  onCreateAndAccept: (name: string) => Promise<string | null>;
+}) {
+  const username = useAuthStore((s) => s.user ?? s.username);
+  const [name, setName] = useState(() => suggestNamespaceName(username ?? ""));
+  const [error, setError] = useState<string | null>(null);
 
-  if (survey.active) return <OnboardingStep {...survey.stepProps} />;
+  if (!isEnterpriseOrCloud()) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-text-secondary leading-relaxed text-justify">
+          You don't have any namespaces yet. Create one to get started.
+        </p>
+        <CommunityInstructions />
+      </div>
+    );
+  }
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const invalid = validateNamespaceName(name);
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
+    setError(await onCreateAndAccept(name));
+  };
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-text-secondary leading-relaxed text-justify">
-        You don't have any namespaces yet. Create one to get started.
+    <form onSubmit={(e) => void submit(e)} className="space-y-4">
+      <p className="text-sm text-text-secondary leading-relaxed">
+        You don't have a namespace yet. Name one and the device goes into it.
       </p>
-      {isEnterpriseOrCloud() ? (
-        <NamespaceCreateForm />
-      ) : (
-        <CommunityInstructions />
-      )}
-      {survey.visible && <BackToSurveyButton onClick={survey.back} />}
-    </div>
+      <NamespaceNameField
+        id="first-namespace-name"
+        value={name}
+        onChange={(value) => {
+          setName(value);
+          setError(null);
+        }}
+        error={error}
+      />
+      <Button
+        type="submit"
+        variant="primary"
+        size={buttonSize}
+        fullWidth
+        loading={pending}
+        disabled={pending || name.length < NAMESPACE_NAME_MIN_LENGTH}
+        icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
+      >
+        Create and accept
+      </Button>
+    </form>
   );
 }
 

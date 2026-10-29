@@ -127,6 +127,21 @@ export function validateNamespaceName(name: string): string | null {
 }
 
 /**
+ * A namespace name made from a username: lowercased, every run of other characters turned into
+ * one hyphen, cut to the longest accepted name and only then trimmed of hyphens at both ends, so
+ * the cut cannot leave one at the end. Returns an empty string when what is left is shorter than
+ * the shortest accepted name.
+ */
+export function suggestNamespaceName(username: string): string {
+  const name = username
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, NAMESPACE_NAME_MAX_LENGTH)
+    .replace(/^-+|-+$/g, "");
+  return name.length < NAMESPACE_NAME_MIN_LENGTH ? "" : name;
+}
+
+/**
  * The message shown when the namespace limit is not a usable number.
  */
 export const MAX_NAMESPACES_ERROR =

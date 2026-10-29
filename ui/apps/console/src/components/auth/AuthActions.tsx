@@ -13,6 +13,7 @@ export type AuthLink =
 
 interface AuthActionsProps {
   primary?: ReactNode;
+  secondary?: ReactNode;
   links?: AuthLink[];
   align?: "start" | "center";
 }
@@ -21,18 +22,20 @@ const linkClass =
   "text-xs text-text-muted hover:text-text-secondary transition-colors";
 
 /**
- * The bottom of every screen outside the console: the one primary action, then the ways out of
- * the screen, in one row, in one style. Screens send the user elsewhere only from here, so moving
- * between them always happens in the same place.
+ * The bottom of every screen outside the console: the one primary action, an optional secondary one
+ * under it, then the ways out of the screen, in one row, in one style. Screens send the user
+ * elsewhere only from here, so moving between them always happens in the same place.
  */
 export default function AuthActions({
   primary,
+  secondary,
   links = [],
   align = "start",
 }: AuthActionsProps) {
   return (
     <div className="space-y-4">
       {primary}
+      {secondary}
       {links.length > 0 && (
         <div
           className={cn(

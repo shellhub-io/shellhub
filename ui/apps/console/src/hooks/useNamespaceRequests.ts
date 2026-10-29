@@ -22,7 +22,10 @@ import {
 import { useAuthStore } from "@/stores/authStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import { consumePendingDeviceCode } from "@/utils/navigation";
-import { queryOperationId, useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  queryOperationId,
+  useInvalidateByIds,
+} from "@/hooks/useInvalidateQueries";
 
 /**
  * A namespace as the console uses it: the generated model plus the type the cloud API adds and
@@ -46,11 +49,12 @@ export interface NamespaceMember {
 
 /**
  * Every namespace the user belongs to. Fetched as one page of a hundred — the switcher shows
- * them all, and nobody is in more.
+ * them all, and nobody is in more. Idle while `enabled` is false.
  */
-export function useNamespaces() {
+export function useNamespaces({ enabled = true }: { enabled?: boolean } = {}) {
   const result = useQuery({
     ...getNamespacesOptions({ query: { page: 1, per_page: 100 } }),
+    enabled,
   });
 
   return {
@@ -258,6 +262,36 @@ export function useCreateNamespace() {
           ),
       });
     },
+  });
+}
+
+/**
+ * Creates a namespace and enters it without leaving the page, and resolves to its tenant id. The
+ * session moves to the new namespace and the namespace lists are refetched before it resolves, so
+ * the new namespace is already in them and calls scoped to it are authorised. Rejects with the API
+ * error when the creation is refused: an invalid or taken name, or a limit or permission that does
+ * not allow another namespace; and when the new namespace's token cannot be issued, leaving the
+ * session as it was while the namespace exists. Either way the namespace lists are refreshed before
+ * it rejects, so a namespace that was created shows in them.
+ */
+export function useCreateNamespaceInPlace() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { data: ns } = await createNamespaceSdk({
+        body: { name },
+        throwOnError: true,
+      });
+      await enterNamespace(queryClient, ns.tenant_id, {
+        freshList: true,
+        land: () => undefined,
+      });
+      return ns.tenant_id;
+    },
+    onError: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) => isNamespaceList(query.queryKey),
+      }),
   });
 }
 

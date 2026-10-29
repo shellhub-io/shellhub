@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router-dom";
@@ -7,7 +7,11 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
-import { mockNamespace, mockUserAuth } from "@/tests/factories";
+import {
+  mockNamespace,
+  mockPairingAccepted,
+  mockUserAuth,
+} from "@/tests/factories";
 import { setEdition } from "@/tests/edition";
 import {
   choiceElement,
@@ -15,6 +19,7 @@ import {
   surveyEnvironment,
 } from "@/tests/onboardingSurvey";
 import { defaultConfig, getConfig } from "@/env";
+import { saveResponseId } from "@/utils/savedSurvey";
 import {
   PENDING_DEVICE_CODE_KEY,
   hasPendingDeviceCode,
@@ -56,12 +61,7 @@ beforeEach(() => {
       () => new HttpResponse(null, { status: 204 }),
     ),
     http.post("*/api/devices/pairing/:code/accept", () =>
-      HttpResponse.json({
-        uid: "new-uid",
-        tenant_id: "t1",
-        namespace: "my-ns",
-        owner_id: "user-1",
-      }),
+      HttpResponse.json(mockPairingAccepted()),
     ),
     http.get("*/api/namespaces", () =>
       jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
@@ -72,6 +72,7 @@ beforeEach(() => {
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
+    http.get("*/api/vault", () => new HttpResponse(null, { status: 404 })),
   );
 });
 
@@ -381,12 +382,7 @@ describe("AcceptDeviceFlow standalone", () => {
   async function acceptPairingAnsweredWith(ownerId?: string) {
     server.use(
       http.post("*/api/devices/pairing/:code/accept", () =>
-        HttpResponse.json({
-          uid: "new-uid",
-          tenant_id: "t1",
-          namespace: "my-ns",
-          owner_id: ownerId,
-        }),
+        HttpResponse.json(mockPairingAccepted({ owner_id: ownerId })),
       ),
     );
     setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
@@ -492,23 +488,23 @@ describe("AcceptDeviceFlow signed out", () => {
     );
   });
 
-  it("offers to sign up on cloud", () => {
+  it("offers to create an account next to signing in on cloud", () => {
     setEdition("cloud");
     renderFlow({ initialCode: "WXYZ2K7Q" });
 
     expect(
-      screen.getByRole("link", { name: /don't have an account\? sign up/i }),
+      screen.getByRole("link", { name: /^create account$/i }),
     ).toHaveAttribute("href", "/sign-up");
   });
 
   it.each(["community", "enterprise"] as const)(
-    "offers no sign up on %s",
+    "offers no account creation on %s",
     (edition) => {
       setEdition(edition);
       renderFlow({ initialCode: "WXYZ2K7Q" });
 
       expect(
-        screen.queryByRole("link", { name: /sign up/i }),
+        screen.queryByRole("link", { name: /create account|sign up/i }),
       ).not.toBeInTheDocument();
     },
   );
@@ -575,8 +571,26 @@ describe("AcceptDeviceFlow signed out", () => {
 
 describe("AcceptDeviceFlow onboarding survey", () => {
   const SURVEY_API = "https://forms.example.test/api/v1/client/ws1";
+  const acceptedIntoNewNamespace = mockPairingAccepted({
+    tenant_id: "t-new",
+    namespace: "joaocel",
+    owner_id: "user-123",
+  });
+  let surveySent: unknown[];
+
+  async function createAndAccept(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(
+      await screen.findByRole("button", { name: /^create and accept$/i }),
+    );
+    await screen.findByRole("heading", { name: /device accepted/i });
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
 
   beforeEach(() => {
+    surveySent = [];
     localStorage.clear();
     vi.mocked(getConfig).mockReturnValue({
       ...defaultConfig,
@@ -596,69 +610,286 @@ describe("AcceptDeviceFlow onboarding survey", () => {
                 choiceElement("role", "What's your role?", [
                   ["dev", "Developer"],
                 ]),
+                choiceElement("use", "What will you use ShellHub for?", [
+                  ["iot", "A fleet of IoT devices"],
+                ]),
               ],
             }),
           ),
         ),
       ),
+      http.post(`${SURVEY_API}/responses`, async ({ request }) => {
+        surveySent.push(await request.json());
+        return HttpResponse.json({ data: { id: "response-1" } });
+      }),
+      http.post("*/api/namespaces", () =>
+        HttpResponse.json(
+          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
+        ),
+      ),
+      http.post("*/api/devices/pairing/:code/accept", () =>
+        HttpResponse.json(acceptedIntoNewNamespace),
+      ),
     );
+    useAuthStore.setState({ user: "joaocel", username: null });
   });
 
-  it("asks the survey before the namespace form when the user has no namespace", async () => {
+  it("asks the survey one question at a time after accepting into a first namespace", async () => {
+    const user = userEvent.setup();
     renderFlow();
 
+    await createAndAccept(user);
+
+    expect(screen.getByText(/question 1 of 2/i)).toBeInTheDocument();
     expect(
-      await screen.findByRole("radio", { name: /developer/i }),
+      screen.queryByRole("button", { name: /view device/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("radio", { name: /developer/i }));
+    await user.click(screen.getByRole("button", { name: /^next$/i }));
+    await user.click(screen.getByRole("radio", { name: /iot devices/i }));
+    await user.click(screen.getByRole("button", { name: /^finish$/i }));
+
+    expect(
+      await screen.findByRole("button", { name: /view device/i }),
     ).toBeInTheDocument();
-    expect(screen.queryByLabelText(/namespace name/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+    expect(surveySent).toHaveLength(1);
   });
 
-  it("moves on to the namespace form when the survey is skipped, and back", async () => {
+  it("still asks the survey when accepting into the new namespace succeeds on a retry", async () => {
+    let namespaces: { name: string; tenant_id: string }[] = [];
+    let accepts = 0;
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal(namespaces)),
+      http.post("*/api/namespaces", () => {
+        namespaces = [{ name: "joaocel", tenant_id: "t-new" }];
+        return HttpResponse.json(
+          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
+        );
+      }),
+      http.post("*/api/devices/pairing/:code/accept", () => {
+        accepts += 1;
+        return accepts === 1
+          ? HttpResponse.json({}, { status: 500 })
+          : HttpResponse.json(acceptedIntoNewNamespace);
+      }),
+    );
     const user = userEvent.setup();
     renderFlow();
 
     await user.click(
-      await screen.findByRole("button", { name: /skip survey/i }),
+      await screen.findByRole("button", { name: /^create and accept$/i }),
     );
-
-    expect(screen.getByLabelText(/namespace name/i)).toBeInTheDocument();
-
     await user.click(
-      screen.getByRole("button", { name: /back to the survey/i }),
+      await screen.findByRole("button", { name: /^accept device$/i }),
     );
 
-    expect(
-      screen.getByRole("radio", { name: /developer/i }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
   });
 
-  it("never asks the survey of a user who may not create a namespace", async () => {
-    server.use(
-      http.get("*/api/auth/user", () =>
-        HttpResponse.json(mockUserAuth({ max_namespaces: 0 })),
-      ),
-    );
+  it("offers no way to skip the survey in production", async () => {
+    vi.stubEnv("DEV", false);
+    const user = userEvent.setup();
     renderFlow();
 
-    expect(
-      await screen.findByText(/you don't have any namespaces yet/i),
-    ).toBeInTheDocument();
+    await createAndAccept(user);
+
+    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /skip survey/i }),
     ).not.toBeInTheDocument();
   });
 
-  it("never asks the survey of a user who has a namespace", async () => {
+  it("asks nothing after accepting when this browser already sent a response", async () => {
+    saveResponseId("user-123", "survey-1", "response-0");
+    const user = userEvent.setup();
+    renderFlow();
+
+    await createAndAccept(user);
+
+    expect(
+      await screen.findByRole("button", { name: /view device/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+  });
+
+  it("offers no namespace to create when the namespaces cannot be read", async () => {
+    server.use(
+      http.get("*/api/namespaces", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    renderFlow();
+
+    expect(
+      await screen.findByText(/your namespaces could not be loaded/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^create and accept$/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^accept device$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers no Accept while the namespaces are loading", async () => {
+    server.use(http.get("*/api/namespaces", () => new Promise(() => {})));
+    renderFlow();
+
+    expect(await screen.findByText(/loading namespaces/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^accept device$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the device on screen while creating the namespace and accepting into it", async () => {
+    let resolves = 0;
+    let acceptSent = false;
+    server.use(
+      http.get("*/api/devices/login-code/:code", () => {
+        resolves += 1;
+        return resolves === 1
+          ? HttpResponse.json(mockDevice({ kind: "pairing", tenant_id: null }))
+          : new Promise(() => {});
+      }),
+      http.post("*/api/devices/pairing/:code/accept", () => {
+        acceptSent = true;
+        return new Promise(() => {});
+      }),
+    );
+    const user = userEvent.setup();
+    renderFlow();
+
+    await user.click(
+      await screen.findByRole("button", { name: /^create and accept$/i }),
+    );
+    await waitFor(() => expect(acceptSent).toBe(true));
+
+    expect(screen.queryByText("Checking code...")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /accept this device/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the new namespace when it was created but could not be entered", async () => {
+    let namespaces: { name: string; tenant_id: string }[] = [];
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal(namespaces)),
+      http.post("*/api/namespaces", () => {
+        namespaces = [{ name: "joaocel", tenant_id: "t-new" }];
+        return HttpResponse.json(
+          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
+        );
+      }),
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderFlow();
+
+    await user.click(
+      await screen.findByRole("button", { name: /^create and accept$/i }),
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Namespace: joaocel" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^create and accept$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the new namespace and offers Accept again when accepting into it fails", async () => {
+    let namespaces: { name: string; tenant_id: string }[] = [];
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal(namespaces)),
+      http.post("*/api/namespaces", () => {
+        namespaces = [{ name: "joaocel", tenant_id: "t-new" }];
+        return HttpResponse.json(
+          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
+        );
+      }),
+      http.post("*/api/devices/pairing/:code/accept", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderFlow();
+
+    await user.click(
+      await screen.findByRole("button", { name: /^create and accept$/i }),
+    );
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Namespace: joaocel" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /^accept device$/i }),
+    ).toBeEnabled();
+  });
+
+  it("offers a namespace named after the user, with no survey first", async () => {
+    useAuthStore.setState({ user: "Joao.Cel_01", username: null });
+    renderFlow();
+
+    expect(await screen.findByLabelText(/namespace name/i)).toHaveValue(
+      "joao-cel-01",
+    );
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^accept device$/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("creates the namespace and accepts the device into it in one step", async () => {
+    let created: unknown;
+    let accepted: unknown;
+    server.use(
+      http.post("*/api/namespaces", async ({ request }) => {
+        created = await request.json();
+        return HttpResponse.json(
+          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
+        );
+      }),
+      http.post("*/api/devices/pairing/:code/accept", async ({ request }) => {
+        accepted = await request.json();
+        return HttpResponse.json(acceptedIntoNewNamespace);
+      }),
+    );
+    useAuthStore.setState({ user: "joaocel", username: null });
+    const user = userEvent.setup();
+    renderFlow();
+
+    await user.click(
+      await screen.findByRole("button", { name: /^create and accept$/i }),
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: /device accepted/i }),
+    ).toBeInTheDocument();
+    expect(created).toEqual({ name: "joaocel" });
+    expect(accepted).toEqual({ tenant_id: "t-new" });
+    expect(useAuthStore.getState().tenant).toBe("t-new");
+  });
+
+  it("never asks the survey of a user who already had a namespace", async () => {
     server.use(
       http.get("*/api/namespaces", () =>
         jsonWithTotal([{ name: "my-ns", tenant_id: "t1" }]),
       ),
     );
+    const user = userEvent.setup();
     renderFlow();
+    await screen.findByText("my-ns");
 
-    expect(await screen.findByText("my-ns")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^accept device$/i }));
+
     expect(
-      screen.queryByRole("button", { name: /skip survey/i }),
-    ).not.toBeInTheDocument();
+      await screen.findByRole("button", { name: /view device/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
   });
 });
