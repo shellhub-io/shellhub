@@ -202,13 +202,10 @@ func (pg *Pg) UserDelete(ctx context.Context, user *models.User) error {
 	return fromSQLError(err)
 }
 
-// UserSelectQuery applies the standard user SELECT decorations: all columns
-// plus the computed namespaces count. The caller provides the base query
-// with the desired model (core or cloud entity).
+// UserSelectQuery selects every column of users. The caller provides the base query with the
+// desired model (core or cloud entity).
 func UserSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
-	return q.
-		ColumnExpr(`"user".*`).
-		ColumnExpr(`(SELECT COUNT(*) FROM namespaces WHERE owner_id = "user".id) AS namespaces`)
+	return q.ColumnExpr(`"user".*`)
 }
 
 // UserResolverToString returns the column resolver selects, reporting

@@ -7,7 +7,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// User is a row of users. Namespaces is scan-only: it is computed by a join, not stored.
+// User is a row of users.
 type User struct {
 	bun.BaseModel `bun:"table:users"`
 
@@ -26,7 +26,6 @@ type User struct {
 	Admin            bool            `bun:"admin"`
 	AwaitingApproval bool            `bun:"awaiting_approval"`
 	TokenVersion     int             `bun:"token_version,skipupdate"`
-	Namespaces       int             `bun:"namespaces,scanonly"`
 }
 
 // UserPreferences is embedded into the users row, so a user and their preferences are read in
