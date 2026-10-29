@@ -63,6 +63,14 @@ type NamespaceStore interface {
 	// caller's rollback also removes the namespace.
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error)
 
+	// NamespaceLockOwner blocks until no other transaction holds the namespace ownership lock of
+	// ownerID, then holds it until the transaction in ctx ends. Locks on different owners do not
+	// wait on each other. A caller enforcing a namespace limit takes it before counting the
+	// owner's namespaces, so the count sees what the previous holder committed. It returns
+	// ErrLockOutsideTransaction when ctx carries no transaction, ctx's error when ctx ends while
+	// waiting, and an error wrapping ErrInternal when the lock query fails otherwise.
+	NamespaceLockOwner(ctx context.Context, ownerID string) error
+
 	NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) (conflicts []string, has bool, err error)
 
 	// NamespaceUpdate updates a namespace. It returns an error, if any, or store.ErrNoDocuments if the

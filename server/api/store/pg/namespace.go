@@ -101,6 +101,11 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	return namespace.TenantID, nil
 }
 
+// NamespaceLockOwner implements [store.NamespaceStore].
+func (pg *Pg) NamespaceLockOwner(ctx context.Context, ownerID string) error {
+	return pg.transactionLock(ctx, "namespace-owner:"+ownerID)
+}
+
 // NamespaceConflicts implements [store.NamespaceStore].
 func (pg *Pg) NamespaceConflicts(ctx context.Context, target *models.NamespaceConflicts) ([]string, bool, error) {
 	db := pg.GetConnection(ctx)
