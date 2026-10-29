@@ -53,6 +53,7 @@ function storedEntries(): Map<string, string | null> {
 }
 
 async function answerAndContinue(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: /^next$/i }));
   await user.click(await screen.findByRole("radio", { name: /developer/i }));
   await user.click(screen.getByRole("button", { name: /^continue$/i }));
   await screen.findByRole("button", { name: /back to the survey/i });
@@ -153,7 +154,7 @@ describe("NamespaceTrail onboarding survey", () => {
   it("adds only the response id to browser storage, never the answers", async () => {
     const user = userEvent.setup();
     renderTrail();
-    await screen.findByRole("radio", { name: /developer/i });
+    await screen.findByLabelText(/^name$/i);
     const before = storedEntries();
 
     await answerAndContinue(user);
@@ -187,9 +188,75 @@ describe("NamespaceTrail onboarding survey", () => {
     saveResponseId("user-123", "old-survey", "response-0");
     renderTrail();
 
+    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
+  });
+
+  it("asks one question at a time", async () => {
+    const user = userEvent.setup();
+    renderTrail();
+
+    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^next$/i }));
+
+    expect(screen.getByText(/question 2 of 2/i)).toBeInTheDocument();
     expect(
-      await screen.findByRole("radio", { name: /developer/i }),
+      screen.getByRole("radio", { name: /developer/i }),
     ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^name$/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps the answers when stepping back a question", async () => {
+    const user = userEvent.setup();
+    renderTrail();
+    const name = await screen.findByLabelText(/^name$/i);
+    await user.clear(name);
+    await user.type(name, "Ana");
+    await user.click(screen.getByRole("button", { name: /^next$/i }));
+
+    await user.click(screen.getByRole("button", { name: /^back$/i }));
+
+    expect(screen.getByLabelText(/^name$/i)).toHaveValue("Ana");
+  });
+
+  it("shows the last question before a double click on Next can send the answers", async () => {
+    const user = userEvent.setup();
+    renderTrail();
+    await user.click(await screen.findByRole("button", { name: /^next$/i }));
+    await user.click(screen.getByRole("radio", { name: /developer/i }));
+    await user.click(screen.getByRole("button", { name: /^back$/i }));
+
+    await user.dblClick(screen.getByRole("button", { name: /^next$/i }));
+
+    expect(await screen.findByText(/question 2 of 2/i)).toBeInTheDocument();
+    expect(sent).toEqual([]);
+  });
+
+  it("holds a required question until it is answered", async () => {
+    server.use(
+      http.get(`${SURVEY_API}/environment`, () =>
+        HttpResponse.json(
+          surveyEnvironment(
+            mockSurveyPayload({
+              elements: [
+                choiceElement("role", "What's your role?", [
+                  ["dev", "Developer"],
+                ]),
+                contactElement(),
+              ],
+            }),
+          ),
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    renderTrail();
+
+    await user.click(await screen.findByRole("button", { name: /^next$/i }));
+
+    expect(await screen.findByText(/pick one/i)).toBeInTheDocument();
+    expect(screen.getByText(/question 1 of 2/i)).toBeInTheDocument();
   });
 
   it("takes back the contact details sent earlier when the user turns anonymous", async () => {
@@ -203,6 +270,7 @@ describe("NamespaceTrail onboarding survey", () => {
     await user.click(
       await screen.findByRole("checkbox", { name: /answer anonymously/i }),
     );
+    await user.click(screen.getByRole("button", { name: /^next$/i }));
     await user.click(screen.getByRole("button", { name: /^continue$/i }));
     await screen.findByRole("button", { name: /back to the survey/i });
 
