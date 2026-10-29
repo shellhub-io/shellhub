@@ -3,6 +3,7 @@ package agentd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -48,4 +49,18 @@ func AwaitPairing(ctx context.Context, clk clock.Clock, interval time.Duration, 
 	}
 
 	return "", ErrPairingExpired
+}
+
+// PairingWaitNote says how long a pairing code stays valid, for the line printed while waiting. It
+// asks status once: a pending status that reports the seconds left comes from a server that renews
+// the code while the agent polls, and the note says so without naming a deadline, since how long
+// the server keeps renewing is the server's to decide and [AwaitPairing] reports when it stops. A
+// status without them, or a failed call, gets the minutes from expiresIn, the seconds the server
+// gave at creation.
+func PairingWaitNote(expiresIn int, status func() (*models.DevicePairingStatus, error)) string {
+	if current, err := status(); err == nil && current.ExpiresIn > 0 {
+		return "the server renews the code while this waits"
+	}
+
+	return fmt.Sprintf("code expires in %d minutes", expiresIn/60)
 }
