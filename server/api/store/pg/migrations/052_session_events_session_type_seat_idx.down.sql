@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS session_events_session_type_seat_idx;
