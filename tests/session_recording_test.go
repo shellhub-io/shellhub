@@ -282,6 +282,8 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 	})
 
 	t.Run("deleting a recording before it is archived removes its terminal output", func(t *testing.T) {
+		unpauseCron := compose.PauseCron(t)
+
 		uid := fixture.finish(t, func(t *testing.T, conn *ssh.Client, uid string) {
 			t.Helper()
 
@@ -290,11 +292,17 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 			compose.AwaitSessionEventOfType(t, uid, models.SessionEventTypePtyOutput)
 		})
 
-		require.Empty(t, compose.RecordingObjects(t, uid), "the archiver took the session before the delete")
+		compose.RunCron(t, recordingArchiveCron)
+
+		require.Empty(t, compose.RecordingObjects(t, uid), "the archive job ran while the cron queue was paused")
 
 		fixture.requireDeleted(t, uid)
 
+		unpauseCron()
+
 		fixture.archived(t, "control")
+		compose.AwaitCronIdle(t)
+
 		assert.Empty(t, compose.RecordingObjects(t, uid))
 		fixture.requireNoPlayback(t, uid, 0)
 	})
