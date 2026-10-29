@@ -7,7 +7,7 @@ import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
-import { getPendingDeviceCode } from "@/utils/navigation";
+import { getPendingDeviceCode, hasPendingDeviceCode } from "@/utils/navigation";
 import { parsePairingCode } from "@/utils/pairingCode";
 import AuthActions from "@/components/auth/AuthActions";
 import {
@@ -74,8 +74,8 @@ export default function SignUp() {
     for (const [field, reason] of Object.entries(signUpServerFields)) {
       const key = SERVER_FIELD_MAP[field];
       const message =
-        (field === "email" ? emailRefusalMessage(reason) : undefined)
-        ?? SERVER_FIELD_MESSAGES[field];
+        (field === "email" ? emailRefusalMessage(reason) : undefined) ??
+        SERVER_FIELD_MESSAGES[field];
 
       if (key && message) {
         setError(key, { type: "server", message });
@@ -104,9 +104,9 @@ export default function SignUp() {
     if (err !== null || Object.keys(fields).length > 0) return;
 
     if (!token) {
-      void navigate(
-        `/confirm-account?identifier=${encodeURIComponent(values.email)}`,
-      );
+      const confirm = new URLSearchParams({ identifier: values.email });
+      if (deviceCode) confirm.set("device", deviceCode);
+      void navigate(`/confirm-account?${confirm.toString()}`);
       return;
     }
 
@@ -126,7 +126,11 @@ export default function SignUp() {
       <ScreenIntro
         eyebrow="Account"
         title="Create your account"
-        lead="Next you name a namespace and connect your first device to it."
+        lead={
+          hasPendingDeviceCode()
+            ? "Next you name a namespace and accept the device that is waiting."
+            : "Next you name a namespace and connect your first device to it."
+        }
       />
 
       <div className="flex flex-col gap-3 mb-6 empty:hidden">
@@ -233,9 +237,7 @@ export default function SignUp() {
                 type="submit"
                 loading={signUpLoading}
                 disabled={
-                  signUpLoading ||
-                  !formState.isValid ||
-                  hasServerFieldErrors
+                  signUpLoading || !formState.isValid || hasServerFieldErrors
                 }
               >
                 {signUpLoading ? "Creating account..." : "Create Account"}

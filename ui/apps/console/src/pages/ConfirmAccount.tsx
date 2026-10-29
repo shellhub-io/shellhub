@@ -16,19 +16,28 @@ import OtpCells from "@/components/mfa/OtpCells";
 import AuthActions from "@/components/auth/AuthActions";
 import LockoutCallouts from "@/components/auth/LockoutCallouts";
 import ScreenIntro from "@/components/layout/ScreenIntro";
-import { landingAfterSignIn, setPendingDeviceCode } from "@/utils/navigation";
+import {
+  clearPendingDeviceCode,
+  getPendingDeviceCode,
+  hasPendingDeviceCode,
+  landingAfterSignIn,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 import { parsePairingCode } from "@/utils/pairingCode";
 
 const wrongCodeMessage =
-  "This code is wrong or expired. Check the latest email or resend it.";
+  "This code is wrong, expired or already used. If you already confirmed your email, sign in; otherwise check the latest email or resend it.";
 
 /**
- * The page a new account confirms its email on: the six cells for the emailed code, exchanged for
- * a session, and the resend. A code in the URL, from the email's button, is submitted on arrival.
- * A device code in the URL, from a sign-up that started on an accept-device link, becomes the
- * pending one, so the session lands on accepting that device. Arriving with sendCode in the route
- * state, from a sign-in that found the account pending, sends a code on arrival, since nothing
- * else on that path has. A wrong code clears the cells; too many lock the form out with a
+ * The page a new account confirms its email on: the six cells for the emailed code, exchanged for a
+ * session, and the resend. A code in the URL, from the email's button, is submitted on arrival. A
+ * device code in the URL, from a sign-up that started on an accept-device link, becomes the pending
+ * one once the account is confirmed, so the session lands on accepting that device. A code the
+ * server refuses keeps none. When it is the link's own code that is refused, the page also drops
+ * that device code if sign-up left it pending, since the link may be one already used on another
+ * device; a typed code that is refused leaves it, since it may be a typo. Arriving with sendCode in
+ * the route state, from a sign-in that found the account pending, sends a code on arrival, since
+ * nothing else on that path has. A wrong code clears the cells; too many lock the form out with a
  * countdown.
  */
 export default function ConfirmAccount() {
@@ -46,6 +55,7 @@ export default function ConfirmAccount() {
   const otp = useOtpInput(6);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deviceWaiting, setDeviceWaiting] = useState(hasPendingDeviceCode);
   const {
     lockFrom,
     clearLockout,
@@ -69,14 +79,14 @@ export default function ConfirmAccount() {
     resetResendError();
   }, [resetResendError]);
 
-  const confirm = async (code: string) => {
+  const confirm = async (code: string, fromLink = false) => {
     setConfirming(true);
     setError(null);
     clearLockout();
     clearResendNotice();
-    if (linkedDevice) setPendingDeviceCode(linkedDevice);
     try {
       const signedIn = await confirmAccount(identifier, code);
+      if (linkedDevice) setPendingDeviceCode(linkedDevice);
       if (signedIn) {
         void navigate(landingAfterSignIn("/dashboard"), { replace: true });
       } else {
@@ -92,6 +102,14 @@ export default function ConfirmAccount() {
         setError("Too many wrong codes. Please wait before trying again.");
         otp.reset();
       } else if (isSdkError(err) && err.status === 401) {
+        if (
+          fromLink &&
+          linkedDevice &&
+          parsePairingCode(getPendingDeviceCode()) === linkedDevice
+        ) {
+          clearPendingDeviceCode();
+          setDeviceWaiting(false);
+        }
         setError(wrongCodeMessage);
         otp.reset();
       } else {
@@ -117,11 +135,10 @@ export default function ConfirmAccount() {
   useEffect(() => {
     if (!identifier || !linkedCode || linkedCodeSubmitted.current) return;
     linkedCodeSubmitted.current = true;
-    void navigate(
-      { search: `?${new URLSearchParams({ identifier }).toString()}` },
-      { replace: true },
-    );
-    void confirm(linkedCode);
+    const kept = new URLSearchParams({ identifier });
+    if (linkedDevice) kept.set("device", linkedDevice);
+    void navigate({ search: `?${kept.toString()}` }, { replace: true });
+    void confirm(linkedCode, true);
   });
 
   if (!identifier) return <Navigate to="/login" replace />;
@@ -141,7 +158,14 @@ export default function ConfirmAccount() {
       <ScreenIntro
         eyebrow="Account"
         title="Confirm your email"
-        lead={`We sent a six-digit code to ${destination}. Enter it below to confirm your email and sign in.`}
+        lead={
+          <>
+            We sent a six-digit code to {destination}. Enter it below to confirm
+            your email and sign in.
+            {deviceWaiting &&
+              " The link in the email works on any device, your phone included, and the device you are pairing keeps waiting."}
+          </>
+        }
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">

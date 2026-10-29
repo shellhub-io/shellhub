@@ -7,7 +7,11 @@ import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import { useSignUpStore } from "@/stores/signUpStore";
 import { mockUserAuth } from "@/tests/factories";
-import { clearPendingDeviceCode, getPendingDeviceCode } from "@/utils/navigation";
+import {
+  clearPendingDeviceCode,
+  getPendingDeviceCode,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 import ConfirmAccount from "../ConfirmAccount";
 
 function RouteState() {
@@ -187,8 +191,12 @@ describe("ConfirmAccount", () => {
     const user = renderConfirmAccount("?identifier=john_doe");
     await submitCode(user, "042917");
 
-    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
-    expect(screen.queryByText(/code is wrong or expired/i)).not.toBeInTheDocument();
+    expect(
+      await screen.findByText(/something went wrong/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/code is wrong, expired or already used/i),
+    ).not.toBeInTheDocument();
     expect(screen.getAllByRole("textbox")[0]).toHaveValue("0");
   });
 
@@ -198,14 +206,94 @@ describe("ConfirmAccount", () => {
     renderConfirmAccount("?identifier=john%40example.com&code=042917");
 
     expect(
-      await screen.findByText(/code is wrong or expired/i),
+      await screen.findByText(/code is wrong, expired or already used/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "Route search" })).toHaveTextContent(
-      "?identifier=john%40example.com",
-    );
+    expect(
+      screen.getByRole("status", { name: "Route search" }),
+    ).toHaveTextContent("?identifier=john%40example.com");
     expect(
       screen.getByRole("status", { name: "Route search" }).textContent,
     ).not.toContain("code=");
+  });
+
+  it("keeps the link's device for a retry after the server failed", async () => {
+    let attempts = 0;
+    server.use(
+      http.post("*/api/user/confirm_account", () => {
+        attempts += 1;
+        return attempts === 1
+          ? HttpResponse.json({}, { status: 500 })
+          : HttpResponse.json(mockUserAuth({ token: "session-token" }));
+      }),
+    );
+
+    const user = renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+    await screen.findByText(/something went wrong/i);
+    await submitCode(user, "042917");
+
+    expect(await screen.findByText("Accept Device")).toBeInTheDocument();
+    expect(screen.getByLabelText("Route search")).toHaveTextContent(
+      "?code=WXYZ2K7Q",
+    );
+  });
+
+  it("drops the device a link carries when its code fails, even if sign-up left it pending", async () => {
+    setPendingDeviceCode("WXYZ2K7Q");
+    respondToCode(401);
+
+    renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+
+    expect(
+      await screen.findByText(/if you already confirmed your email, sign in/i),
+    ).toBeInTheDocument();
+    expect(getPendingDeviceCode()).toBeNull();
+  });
+
+  it("drops the pending device a refused link carries when it was stored in another form", async () => {
+    setPendingDeviceCode("wxyz-2k7q");
+    respondToCode(401);
+
+    renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+
+    expect(
+      await screen.findByText(/if you already confirmed your email, sign in/i),
+    ).toBeInTheDocument();
+    expect(getPendingDeviceCode()).toBeNull();
+  });
+
+  it("keeps the pending device when a typed code is refused, since it may be a typo", async () => {
+    setPendingDeviceCode("WXYZ2K7Q");
+    respondToCode(401);
+
+    const user = renderConfirmAccount(
+      "?identifier=john%40example.com&device=WXYZ2K7Q",
+    );
+    await submitCode(user, "042917");
+
+    expect(
+      await screen.findByText(/code is wrong, expired or already used/i),
+    ).toBeInTheDocument();
+    expect(getPendingDeviceCode()).toBe("WXYZ2K7Q");
+  });
+
+  it("stops saying a device is waiting once a refused link drops it", async () => {
+    setPendingDeviceCode("WXYZ2K7Q");
+    respondToCode(401);
+
+    renderConfirmAccount(
+      "?identifier=john%40example.com&code=042917&device=WXYZ2K7Q",
+    );
+
+    expect(
+      await screen.findByText(/if you already confirmed your email, sign in/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/keeps waiting/i)).not.toBeInTheDocument();
   });
 
   it("clears the cells and says so on a wrong code", async () => {
@@ -215,7 +303,7 @@ describe("ConfirmAccount", () => {
     await submitCode(user, "042917");
 
     expect(
-      await screen.findByText(/code is wrong or expired/i),
+      await screen.findByText(/code is wrong, expired or already used/i),
     ).toBeInTheDocument();
     for (const input of screen.getAllByRole("textbox")) {
       expect(input).toHaveValue("");
@@ -261,7 +349,7 @@ describe("ConfirmAccount", () => {
       const user = renderConfirmAccount("?identifier=john_doe");
       await submitCode(user, "042917");
       expect(
-        await screen.findByText(/code is wrong or expired/i),
+        await screen.findByText(/code is wrong, expired or already used/i),
       ).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: /resend email/i }));
@@ -270,7 +358,7 @@ describe("ConfirmAccount", () => {
         await screen.findByText(/we sent the code again/i),
       ).toBeInTheDocument();
       expect(
-        screen.queryByText(/code is wrong or expired/i),
+        screen.queryByText(/code is wrong, expired or already used/i),
       ).not.toBeInTheDocument();
     });
 
@@ -326,13 +414,15 @@ describe("ConfirmAccount", () => {
 
       const user = renderConfirmAccount("?identifier=john_doe");
       await submitCode(user, "042917");
-      await screen.findByText(/code is wrong or expired/i);
+      await screen.findByText(/code is wrong, expired or already used/i);
       await user.click(screen.getByRole("button", { name: /resend email/i }));
 
       expect(
         await screen.findByText(/failed to resend email/i),
       ).toBeInTheDocument();
-      expect(screen.getByText(/code is wrong or expired/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/code is wrong, expired or already used/i),
+      ).toBeInTheDocument();
     });
 
     it("drops the resend notice once a code is submitted", async () => {
@@ -345,7 +435,7 @@ describe("ConfirmAccount", () => {
       await submitCode(user, "042917");
 
       expect(
-        await screen.findByText(/code is wrong or expired/i),
+        await screen.findByText(/code is wrong, expired or already used/i),
       ).toBeInTheDocument();
       expect(
         screen.queryByText(/we sent the code again/i),
@@ -380,9 +470,9 @@ describe("ConfirmAccount", () => {
         await screen.findByRole("button", { name: /resend email \(\d+s\)/i }),
       ).toBeDisabled();
       expect(sent).toEqual([{ identifier: "john_doe" }]);
-      expect(screen.getByRole("status", { name: "Route state" })).toHaveTextContent(
-        "null",
-      );
+      expect(
+        screen.getByRole("status", { name: "Route state" }),
+      ).toHaveTextContent("null");
     });
 
     it("shows no error when the arrival send is throttled, and waits out the cooldown", async () => {
