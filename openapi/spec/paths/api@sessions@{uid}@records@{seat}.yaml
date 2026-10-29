@@ -65,7 +65,9 @@ post:
 get:
   operationId: getSessionRecord
   summary: Get session record
-  description: Get a session record based on its seat.
+  description: |
+    Get a session record based on its seat. The session must be closed: an active session is
+    still recording, so its record is partial and getting it is refused with 409.
   security:
     - jwt: []
     - api-key: []
@@ -95,6 +97,8 @@ get:
       $ref: ../components/responses/400.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '412':
       description: The If-Match or If-Unmodified-Since precondition failed.
     '416':
