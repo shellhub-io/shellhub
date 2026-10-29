@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isSdkError } from "@/api/errors";
 import { getSessionRecord, type Session } from "@/client";
 import { heldByBrowser, useRecordingsStore } from "@/stores/recordingsStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -21,6 +22,13 @@ function readSessionRecording(uid: string): Promise<string> {
   return local ? readRecording(local) : fetchRecording(uid);
 }
 
+const STILL_ACTIVE =
+  "The session is still active. Its recording is available when it ends.";
+
+function failureMessage(err: unknown, fallback: string): string {
+  return isSdkError(err) && err.status === 409 ? STILL_ACTIVE : fallback;
+}
+
 function recordingFilename(session: Session): string {
   return castFilename(
     session.device?.name ?? session.device_uid ?? "",
@@ -33,7 +41,8 @@ function recordingFilename(session: Session): string {
  * and the server's otherwise. play opens it in its own tab, or brings an open one forward without
  * reading it again; download saves it as an asciicast file. Not a query: a recording is large and
  * only wanted when it is played or downloaded, so caching it with the page would pull it for every
- * listed session. play resolves false, with error set, when the recording could not be read.
+ * listed session. play resolves false, with error set, when the recording could not be read. Both
+ * refuse a session that is still active, whatever copy exists, because its recording is partial.
  */
 export function useSessionRecording() {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +50,11 @@ export function useSessionRecording() {
   const [error, setError] = useState<string | null>(null);
 
   const play = async (session: Session): Promise<boolean> => {
+    if (session.active) {
+      setError(STILL_ACTIVE);
+      return false;
+    }
+
     const terminals = useTerminalStore.getState();
     if (terminals.recordings.some((r) => r.id === session.uid)) {
       setError(null);
@@ -61,8 +75,8 @@ export function useSessionRecording() {
         recorded: session.recorded,
       });
       return true;
-    } catch {
-      setError("Failed to load recording");
+    } catch (err: unknown) {
+      setError(failureMessage(err, "Failed to load recording"));
       return false;
     } finally {
       setIsLoading(false);
@@ -70,6 +84,11 @@ export function useSessionRecording() {
   };
 
   const download = async (session: Session): Promise<void> => {
+    if (session.active) {
+      setError(STILL_ACTIVE);
+      return;
+    }
+
     setIsDownloading(true);
     setError(null);
     try {
@@ -77,8 +96,8 @@ export function useSessionRecording() {
         await readSessionRecording(session.uid),
         recordingFilename(session),
       );
-    } catch {
-      setError("Failed to download recording");
+    } catch (err: unknown) {
+      setError(failureMessage(err, "Failed to download recording"));
     } finally {
       setIsDownloading(false);
     }

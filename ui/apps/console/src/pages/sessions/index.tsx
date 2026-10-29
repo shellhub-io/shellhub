@@ -22,6 +22,7 @@ import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog
 import RestrictedAction from "@/components/common/RestrictedAction";
 import RecordingActionsMenu from "@/components/sessions/RecordingActionsMenu";
 import { formatRelative, formatDuration } from "@/utils/date";
+import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
 import { sessionHasTerminal } from "@/utils/session";
 import { usePrincipalName } from "@/hooks/usePrincipalName";
 import SessionPrincipal from "@/components/sessions/SessionPrincipal";
@@ -88,6 +89,12 @@ function SessionActions({
     session.recorded,
   );
   const hasTerminal = sessionHasTerminal(session);
+  const recordingPartial = session.active && canPlay;
+  const playHint = !canPlay
+    ? "This session was not recorded"
+    : recordingPartial
+      ? AVAILABLE_WHEN_SESSION_ENDS
+      : "Play recording";
 
   return (
     <div className="flex items-center justify-end gap-1.5">
@@ -96,8 +103,8 @@ function SessionActions({
           <button
             type="button"
             className={PLAY_BTN}
-            disabled={playing || (!canPlay && premium)}
-            title={canPlay ? "Play recording" : "This session was not recorded"}
+            disabled={playing || recordingPartial || (!canPlay && premium)}
+            title={playHint}
             aria-label="Play recording"
             onClick={(e) => {
               e.stopPropagation();
