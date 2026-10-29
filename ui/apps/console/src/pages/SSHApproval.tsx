@@ -18,6 +18,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
+import CopyButton from "@/components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
 import { isSdkError } from "@/api/errors";
 import { webTerminalReauth, getSamlReauthUrl } from "@/client";
@@ -744,6 +745,7 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
       >
         {groupCode(code)}
       </output>
+      <CopyButton text={code} showLabel className="mt-3" />
     </div>
   );
 }
