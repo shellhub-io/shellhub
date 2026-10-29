@@ -131,6 +131,21 @@ describe("SignUp", () => {
       );
     });
 
+    it("carries the pending device code to the confirm page", async () => {
+      setPendingDeviceCode("wxyz-2k7q");
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          "/confirm-account?identifier=alice%40example.com&device=WXYZ2K7Q",
+        ),
+      );
+    });
+
     it("sends no device code when none is pending", async () => {
       const captured = captureRegisterBody();
       const user = userEvent.setup();
