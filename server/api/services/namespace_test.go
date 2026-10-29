@@ -563,6 +563,10 @@ func TestCreateNamespace(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
+				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
 						&models.UserInfo{
@@ -579,6 +583,56 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the namespace owner lock cannot be taken",
+			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: 1,
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(store.ErrInternal).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: store.ErrInternal,
+			},
+		},
+		{
+			description: "skips the namespace owner lock when the user has no limit",
+			req: &requests.NamespaceCreate{
+				UserID:   "000000000000000000000000",
+				Name:     "namespace",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:            "000000000000000000000000",
+						MaxNamespaces: -1,
+					}, nil).
+					Once()
+				storeMock.
+					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
+					Return(nil, true, nil).
+					Once()
+			},
+			expected: Expected{
+				ns:  nil,
+				err: NewErrNamespaceDuplicated(nil),
+			},
+		},
+		{
 			description: "fails when a namespace already exists",
 			req: &requests.NamespaceCreate{
 				UserID:   "000000000000000000000000",
@@ -586,6 +640,10 @@ func TestCreateNamespace(t *testing.T) {
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
+				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
@@ -622,6 +680,10 @@ func TestCreateNamespace(t *testing.T) {
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
+				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
@@ -684,6 +746,10 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
+				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
 						&models.UserInfo{
@@ -744,6 +810,10 @@ func TestCreateNamespace(t *testing.T) {
 				TenantID: "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
+				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
@@ -822,6 +892,10 @@ func TestCreateNamespace(t *testing.T) {
 				TenantID: "",
 			},
 			requiredMocks: func() {
+				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
 				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
@@ -903,6 +977,10 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
+				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
 						&models.UserInfo{
@@ -982,6 +1060,10 @@ func TestCreateNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				storeMock.
+					On("NamespaceLockOwner", ctx, "000000000000000000000000").
+					Return(nil).
+					Once()
+				storeMock.
 					On("UserGetInfo", ctx, "000000000000000000000000").
 					Return(
 						&models.UserInfo{
@@ -1054,6 +1136,10 @@ func TestCreateNamespace(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			storeMock.
+				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
 			tc.requiredMocks()
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithEdition(tc.edition), WithClock(clk))
