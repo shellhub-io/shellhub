@@ -8,6 +8,7 @@ import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
 import { type Action } from "@/utils/permission";
+import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
 import DeleteRecordingDialog from "./DeleteRecordingDialog";
 
 function MenuItem({
@@ -15,12 +16,14 @@ function MenuItem({
   icon,
   label,
   danger,
+  unavailableReason,
   onSelect,
 }: {
   action?: Action;
   icon: ReactNode;
   label: string;
   danger?: boolean;
+  unavailableReason?: string;
   onSelect: () => void;
 }) {
   return (
@@ -28,11 +31,21 @@ function MenuItem({
       <Dropdown.Item
         label={label}
         variant={danger ? "danger" : "default"}
+        disabled={unavailableReason !== undefined}
+        title={unavailableReason}
+        aria-label={label}
         onSelect={onSelect}
         className="gap-2.5 px-3 py-2"
       >
         <span className="shrink-0">{icon}</span>
-        {label}
+        <span className="flex flex-col">
+          {label}
+          {unavailableReason && (
+            <span className="text-2xs text-text-muted">
+              {unavailableReason}
+            </span>
+          )}
+        </span>
       </Dropdown.Item>
     </RestrictedAction>
   );
@@ -41,8 +54,9 @@ function MenuItem({
 /**
  * The overflow menu for a session's recording: download it, or delete every copy after
  * confirming, each gated by useRecordingPermissions. loaded says the caller already holds the
- * recording, so downloading it reads nothing and needs no permission. active hides the delete
- * while a server copy exists, which the server refuses while the session is still recording.
+ * recording, so downloading it reads nothing and needs no permission. active disables the download,
+ * since the recording is still partial, and hides the delete while a server copy exists, which the
+ * server refuses while the session is still recording.
  * portal is off inside an element that goes fullscreen, where a panel portalled to the body would
  * not show.
  */
@@ -80,6 +94,9 @@ export default function RecordingActionsMenu({
             action={loaded ? undefined : permissions.read}
             icon={<ArrowDownTrayIcon className="w-4 h-4" />}
             label="Download recording"
+            unavailableReason={
+              active ? AVAILABLE_WHEN_SESSION_ENDS : undefined
+            }
             onSelect={onDownload}
           />
           {!(active && recorded) && (

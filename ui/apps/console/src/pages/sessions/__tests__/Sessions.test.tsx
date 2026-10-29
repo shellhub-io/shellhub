@@ -182,6 +182,43 @@ describe("Sessions", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("holds back playing and downloading while the session is active", async () => {
+      const user = userEvent.setup();
+      setSessions([
+        mockSession({ uid: "session-1", recorded: true, active: true }),
+      ]);
+      renderSessions();
+
+      const play = await screen.findByRole("button", {
+        name: "Play recording",
+      });
+      expect(play).toBeDisabled();
+      expect(play).toHaveAccessibleDescription(
+        "Available when the session ends",
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: "Recording actions" }),
+      );
+
+      const download = screen.getByRole("menuitem", {
+        name: "Download recording",
+      });
+      expect(download).toHaveAttribute("aria-disabled", "true");
+      expect(download).toHaveAccessibleDescription(
+        "Available when the session ends",
+      );
+    });
+
+    it("still says an active session was not recorded", async () => {
+      setSessions([mockSession({ uid: "session-1", active: true })]);
+      renderSessions();
+
+      expect(
+        await screen.findByRole("button", { name: "Play recording" }),
+      ).toHaveAccessibleDescription("This session was not recorded");
+    });
+
     it("opens the menu without opening the session", async () => {
       const user = userEvent.setup();
       setSessions([mockSession({ uid: "session-1", recorded: true })]);

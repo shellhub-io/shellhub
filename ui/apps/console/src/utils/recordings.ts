@@ -68,6 +68,9 @@ async function recordingsDir(): Promise<FileSystemDirectoryHandle> {
   return base.getDirectoryHandle(userScope, { create: true });
 }
 
+/** Why playing or downloading a recording waits: an active session's recording is still partial. */
+export const AVAILABLE_WHEN_SESSION_ENDS = "Available when the session ends";
+
 /** Build a filesystem-safe `.cast` download name for a device, stamped with `at`. */
 export function castFilename(
   deviceName: string,

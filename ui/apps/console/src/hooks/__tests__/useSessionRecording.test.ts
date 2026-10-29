@@ -185,6 +185,85 @@ describe("useSessionRecording", () => {
     expect(await saved.blob?.text()).toBe("from-browser");
   });
 
+  describe("while the session is still active", () => {
+    const active = mockSession({
+      uid: "session-1",
+      active: true,
+      recorded: true,
+    });
+    const stillActive =
+      "The session is still active. Its recording is available when it ends.";
+
+    it("refuses to play it without fetching it", async () => {
+      const requests = serveRecording("partial");
+      const { result } = renderHook(() => useSessionRecording());
+
+      let played!: boolean;
+      await act(async () => {
+        played = await result.current.play(active);
+      });
+
+      expect(played).toBe(false);
+      expect(requests()).toBe(0);
+      expect(result.current.error).toBe(stillActive);
+      expect(openRecordings()).toEqual([]);
+    });
+
+    it("refuses to play the copy the browser holds", async () => {
+      const requests = serveRecording("partial");
+      holdInBrowser("partial");
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(() => result.current.play(active));
+
+      expect(requests()).toBe(0);
+      expect(readRecording).not.toHaveBeenCalled();
+      expect(result.current.error).toBe(stillActive);
+      expect(openRecordings()).toEqual([]);
+    });
+
+    it("refuses to download it", async () => {
+      const requests = serveRecording("partial");
+      holdInBrowser("partial");
+      const saved = captureDownloads();
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(() => result.current.download(active));
+
+      expect(requests()).toBe(0);
+      expect(readRecording).not.toHaveBeenCalled();
+      expect(saved.blob).toBeUndefined();
+      expect(result.current.error).toBe(stillActive);
+    });
+
+    it("names the server's refusal when the listed session looked closed", async () => {
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
+      const { result } = renderHook(() => useSessionRecording());
+
+      expect(await play(result)).toBe(false);
+      expect(result.current.error).toBe(stillActive);
+    });
+
+    it("names the server's refusal of a download too", async () => {
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          HttpResponse.json({}, { status: 409 }),
+        ),
+      );
+      const saved = captureDownloads();
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(() => result.current.download(session));
+
+      expect(saved.blob).toBeUndefined();
+      expect(result.current.error).toBe(stillActive);
+    });
+  });
+
   it("says so when the recording cannot be downloaded", async () => {
     serveNoRecording();
     const { result } = renderHook(() => useSessionRecording());

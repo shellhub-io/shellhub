@@ -39,6 +39,7 @@ import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "@/components/common/InfoItem";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
+import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
 import { sessionTerminal } from "@/utils/session";
 import ObjectName from "@/components/common/ObjectName";
 import { getSessionOptions } from "@/client";
@@ -389,7 +390,10 @@ export default function SessionDetails() {
                 <Button
                   icon={<PlayIcon className="w-4 h-4" />}
                   loading={logsLoading}
-                  disabled={logsLoading}
+                  disabled={logsLoading || session.active}
+                  title={
+                    session.active ? AVAILABLE_WHEN_SESSION_ENDS : undefined
+                  }
                   onClick={() => void handlePlayRecording()}
                 >
                   {logsLoading ? "Loading…" : "Play Recording"}
@@ -399,10 +403,14 @@ export default function SessionDetails() {
                 <IconButton
                   size="lg"
                   type="button"
-                  title="Download recording"
+                  title={
+                    session.active
+                      ? AVAILABLE_WHEN_SESSION_ENDS
+                      : "Download recording"
+                  }
                   aria-label="Download recording"
                   className="border border-border"
-                  disabled={isDownloading}
+                  disabled={isDownloading || session.active}
                   onClick={() => void download(session)}
                 >
                   <ArrowDownTrayIcon className="w-4 h-4" />
