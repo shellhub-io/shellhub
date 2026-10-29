@@ -3,6 +3,7 @@ package storetest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -795,5 +796,71 @@ func (s *Suite) TestNamespaceDeleteMany(t *testing.T) {
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenant3)
 		require.NoError(t, err)
 		assert.Equal(t, "ns-3", ns.Name)
+	})
+}
+
+// TestNamespaceLockOwner checks that the owner lock requires a transaction, makes a second
+// transaction on the same owner wait, and lets other owners through.
+func (s *Suite) TestNamespaceLockOwner(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	holdLock := func(t *testing.T, ownerID string) (release func()) {
+		t.Helper()
+
+		locked := make(chan error, 1)
+		done := make(chan struct{})
+		finished := make(chan struct{})
+
+		go func() {
+			defer close(finished)
+
+			_ = st.WithTransaction(ctx, func(ctx context.Context) error {
+				err := st.NamespaceLockOwner(ctx, ownerID)
+				locked <- err
+				if err != nil {
+					return err
+				}
+
+				<-done
+
+				return nil
+			})
+		}()
+
+		require.NoError(t, <-locked)
+
+		return func() {
+			close(done)
+			<-finished
+		}
+	}
+
+	t.Run("fails outside a transaction", func(t *testing.T) {
+		err := st.NamespaceLockOwner(ctx, "owner")
+		require.ErrorIs(t, err, store.ErrLockOutsideTransaction)
+	})
+
+	t.Run("waits while another transaction holds the same owner", func(t *testing.T) {
+		release := holdLock(t, "owner")
+		defer release()
+
+		waitCtx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+		defer cancel()
+
+		err := st.WithTransaction(waitCtx, func(ctx context.Context) error {
+			return st.NamespaceLockOwner(ctx, "owner")
+		})
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+	})
+
+	t.Run("does not wait on another owner", func(t *testing.T) {
+		release := holdLock(t, "owner")
+		defer release()
+
+		err := st.WithTransaction(ctx, func(ctx context.Context) error {
+			return st.NamespaceLockOwner(ctx, "other-owner")
+		})
+		require.NoError(t, err)
 	})
 }

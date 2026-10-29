@@ -43,6 +43,7 @@ var Groups = []Group{
 		(*Suite).TestNamespaceSyncDeviceCounts,
 		(*Suite).TestNamespaceDelete,
 		(*Suite).TestNamespaceDeleteMany,
+		(*Suite).TestNamespaceLockOwner,
 	}},
 	{Name: "DeviceStore", Tests: []TestFunc{
 		(*Suite).TestDeviceList,
