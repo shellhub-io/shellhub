@@ -236,6 +236,14 @@ describe("Devices pending queue", () => {
     );
   }
 
+  function serveLegacyNamespace() {
+    server.use(
+      http.get("*/api/namespaces/:tenant", () =>
+        HttpResponse.json(mockLegacyNamespace()),
+      ),
+    );
+  }
+
   it("is not offered by a new namespace no device registered with the tenant ID", async () => {
     serveRegistrations([]);
     const queryClient = createTestQueryClient();
@@ -244,8 +252,8 @@ describe("Devices pending queue", () => {
     await screen.findByText("mode: new");
     await waitFor(() => expect(queryClient.isFetching()).toBe(0));
     expect(
-      screen.queryByRole("link", { name: /pending$/ }),
-    ).not.toBeInTheDocument();
+      screen.queryAllByRole("link").map((link) => link.getAttribute("href")),
+    ).not.toContain("/devices/pending");
   });
 
   it("is linked from a new namespace with the count of devices waiting", async () => {
@@ -262,16 +270,22 @@ describe("Devices pending queue", () => {
     renderPage();
 
     expect(
-      await screen.findByRole("link", { name: "0 pending" }),
+      await screen.findByRole("link", { name: "Registrations" }),
+    ).toHaveAttribute("href", "/devices/pending");
+  });
+
+  it("is linked from a legacy namespace with nothing waiting", async () => {
+    serveLegacyNamespace();
+    serveRegistrations([]);
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: "Registrations" }),
     ).toHaveAttribute("href", "/devices/pending");
   });
 
   it("is linked from a legacy namespace with its count", async () => {
-    server.use(
-      http.get("*/api/namespaces/:tenant", () =>
-        HttpResponse.json(mockLegacyNamespace()),
-      ),
-    );
+    serveLegacyNamespace();
     serveRegistrations(["pending", "pending", "pending"]);
     renderPage();
 
@@ -282,18 +296,14 @@ describe("Devices pending queue", () => {
 
   it("is not offered to a member who may not accept devices", async () => {
     seedAuthStore({ role: "observer" });
-    server.use(
-      http.get("*/api/namespaces/:tenant", () =>
-        HttpResponse.json(mockLegacyNamespace()),
-      ),
-    );
+    serveLegacyNamespace();
     const queryClient = createTestQueryClient();
     renderPage(["/"], queryClient);
 
     await screen.findByText("mode: legacy");
     await waitFor(() => expect(queryClient.isFetching()).toBe(0));
     expect(
-      screen.queryByRole("link", { name: /pending$/ }),
-    ).not.toBeInTheDocument();
+      screen.queryAllByRole("link").map((link) => link.getAttribute("href")),
+    ).not.toContain("/devices/pending");
   });
 });
