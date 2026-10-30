@@ -36,7 +36,8 @@ type fakeSession struct {
 	events    []recordedEvent
 	forwarded []string
 
-	agentConn net.Conn
+	agentConn         net.Conn
+	agentHangsUpOnEOF bool
 
 	agentChannel gossh.Channel
 
@@ -153,6 +154,20 @@ func (f *fakeSession) CloseAgentWrite(int) error {
 	return f.agentChannel.CloseWrite()
 }
 
+func (f *fakeSession) CloseAgentForwardWrite(conn net.Conn) error {
+	f.record("CloseAgentForwardWrite")
+
+	if f.agentHangsUpOnEOF {
+		return nil
+	}
+
+	if writeCloser, ok := conn.(interface{ CloseWrite() error }); ok {
+		return writeCloser.CloseWrite()
+	}
+
+	return conn.Close()
+}
+
 func (f *fakeSession) Recorded(int) error           { return f.recordedErr }
 func (f *fakeSession) Announce(gossh.Channel) error { return nil }
 
@@ -199,6 +214,7 @@ type rejectingNewChannel struct {
 	accepted bool
 
 	extraData []byte
+	client    gossh.Channel
 }
 
 func (n *rejectingNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, error) {
@@ -206,6 +222,10 @@ func (n *rejectingNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, er
 	defer n.mu.Unlock()
 
 	n.accepted = true
+
+	if n.client != nil {
+		return n.client, closedRequests(), nil
+	}
 
 	return &nopChannel{}, closedRequests(), nil
 }
@@ -396,6 +416,177 @@ func TestDirectTCPIPChannelRecordsOnlyTheFirstForwardToEachDestination(t *testin
 		{Type: models.SessionEventTypeDirectTCPIP, Seat: 0},
 	}, sess.events)
 	assert.Equal(t, []string{"10.0.0.1:8080", "10.0.0.2:8080"}, sess.forwarded)
+}
+
+func dialDevice(t *testing.T) (net.Conn, gossh.Channel) {
+	t.Helper()
+
+	sshClient, chans := sshClientOverLoopback(t)
+
+	accepted := make(chan gossh.Channel, 1)
+
+	go func() {
+		newChannel, ok := <-chans
+		if !ok {
+			return
+		}
+
+		channel, requests, err := newChannel.Accept()
+		if err != nil {
+			return
+		}
+
+		go gossh.DiscardRequests(requests)
+
+		accepted <- channel
+	}()
+
+	agent, err := sshClient.DialContext(t.Context(), "tcp", "10.0.0.1:8080")
+	require.NoError(t, err)
+
+	select {
+	case device := <-accepted:
+		return agent, device
+	case <-time.After(5 * time.Second):
+		t.Fatal("the device never accepted the forward")
+
+		return nil, nil
+	}
+}
+
+func forwardThrough(t *testing.T, sess *fakeSession, client *fakeChannel, agent net.Conn) chan struct{} {
+	t.Helper()
+
+	t.Cleanup(client.quiet)
+
+	sess.agentConn = agent
+	newChan := &rejectingNewChannel{extraData: forwardPayload(t), client: client}
+
+	ended := make(chan struct{})
+
+	go func() {
+		defer close(ended)
+
+		allow := func(gliderssh.Context, string, uint32) bool { return true }
+		directTCPIPChannel(newStubContext(), sess, newChan, allow)
+	}()
+
+	return ended
+}
+
+func readUntilEOF(t *testing.T, r io.Reader, failure string) string {
+	t.Helper()
+
+	received := make(chan []byte, 1)
+
+	go func() {
+		data, _ := io.ReadAll(r)
+		received <- data
+	}()
+
+	select {
+	case data := <-received:
+		return string(data)
+	case <-time.After(5 * time.Second):
+		t.Fatal(failure)
+
+		return ""
+	}
+}
+
+func TestDirectTCPIPChannelPassesTheClientEOFToTheDeviceAndStillDeliversItsReply(t *testing.T) {
+	agent, device := dialDevice(t)
+	client := newFakeChannel()
+	ended := forwardThrough(t, new(fakeSession), client, agent)
+
+	_, err := client.dataIn.Write([]byte("upload"))
+	require.NoError(t, err)
+	client.dataIn.close()
+
+	assert.Equal(t, "upload", readUntilEOF(t, device, "the device never saw the end of the client's data"))
+
+	_, err = device.Write([]byte("reply"))
+	require.NoError(t, err)
+	require.NoError(t, device.CloseWrite())
+
+	waitFor(t, ended)
+
+	assert.Equal(t, "reply", client.dataOut.String())
+	assert.True(t, client.closeWriteCalled(), "the client never saw the end of the device's data")
+}
+
+func TestDirectTCPIPChannelPassesTheDeviceEOFToTheClientAndStillDeliversItsUpload(t *testing.T) {
+	agent, device := dialDevice(t)
+	client := newFakeChannel()
+	ended := forwardThrough(t, new(fakeSession), client, agent)
+
+	_, err := device.Write([]byte("banner"))
+	require.NoError(t, err)
+	require.NoError(t, device.CloseWrite())
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		assert.True(tt, client.closeWriteCalled())
+	}, 5*time.Second, 10*time.Millisecond, "the client never saw the end of the device's data")
+	assert.Equal(t, "banner", client.dataOut.String())
+
+	_, err = client.dataIn.Write([]byte("upload"))
+	require.NoError(t, err)
+	client.dataIn.close()
+
+	assert.Equal(t, "upload", readUntilEOF(t, device, "the device never saw the end of the client's data"))
+
+	waitFor(t, ended)
+}
+
+func TestDirectTCPIPChannelLeavesTheClientEOFToTheSession(t *testing.T) {
+	agent, device := dialDevice(t)
+	client := newFakeChannel()
+	sess := &fakeSession{agentHangsUpOnEOF: true}
+	ended := forwardThrough(t, sess, client, agent)
+
+	_, err := client.dataIn.Write([]byte("request"))
+	require.NoError(t, err)
+	client.dataIn.close()
+
+	request := make(chan string, 1)
+
+	go func() {
+		data := make([]byte, len("request"))
+		_, _ = io.ReadFull(device, data)
+		request <- string(data)
+	}()
+
+	select {
+	case data := <-request:
+		assert.Equal(t, "request", data)
+	case <-time.After(5 * time.Second):
+		t.Fatal("the device never received the client's request")
+	}
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		assert.True(tt, sess.called("CloseAgentForwardWrite"))
+	}, 5*time.Second, 10*time.Millisecond, "the gateway never asked the session to pass the client's EOF on")
+
+	deviceSawEOF := make(chan struct{})
+
+	go func() {
+		_, _ = device.Read(make([]byte, 1))
+		close(deviceSawEOF)
+	}()
+
+	select {
+	case <-deviceSawEOF:
+		t.Fatal("the gateway passed the client's EOF on without the session")
+	case <-time.After(200 * time.Millisecond):
+	}
+
+	_, err = device.Write([]byte("reply"))
+	require.NoError(t, err)
+	require.NoError(t, device.CloseWrite())
+
+	waitFor(t, ended)
+
+	assert.Equal(t, "reply", client.dataOut.String())
 }
 
 func TestSessionChannelEndsWhenItsChannelsEndBeforeAShellOrExecStarts(t *testing.T) {
