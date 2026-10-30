@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { validateName, validateEmail, validateRecoveryEmail } from "./validate";
+import { validateEmail, validateName } from "@/utils/validation";
+import { validateRecoveryEmail } from "./validate";
 
 /**
  * The profile as it stands. The schema is built around it so a field can be validated only when
@@ -24,6 +25,8 @@ export type EditProfileFormValues = z.infer<typeof editProfileFields>;
 /**
  * Builds the edit-profile schema around the current values, so an unchanged field is not
  * re-validated: a stored value that fails today's rules must not block saving the other fields.
+ * A field counts as changed when its input differs from the stored value at all, padding
+ * included.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {

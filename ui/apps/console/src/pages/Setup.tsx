@@ -19,7 +19,7 @@ import {
 import { SETUP_STEP_TITLES } from "@/components/firstRun/stepTitles";
 import { firstRunEntryState } from "@/components/firstRun/entry";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
-import { suggestNamespace } from "./setup/validate";
+import { suggestNamespaceName } from "@/utils/validation";
 
 /**
  * First-run setup for a fresh instance, as the opening step of the first-run trail: the first
@@ -54,7 +54,7 @@ export default function Setup() {
 
   useEffect(() => {
     if (!import.meta.env.DEV && !namespaceEdited) {
-      setValue("namespace", suggestNamespace(usernameValue ?? ""), {
+      setValue("namespace", suggestNamespaceName(usernameValue ?? ""), {
         shouldValidate: true,
       });
     }

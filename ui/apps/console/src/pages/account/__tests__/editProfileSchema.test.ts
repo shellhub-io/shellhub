@@ -89,12 +89,20 @@ describe("editProfileSchema", () => {
 
     it("emits error for an invalid email format", () => {
       expect(resolve({ email: "not-an-email" }).email).toBe(
-        "Invalid email format",
+        "Enter a valid email address",
       );
     });
 
     it("emits no error for a valid email", () => {
       expect(resolve({ email: "user@example.com" }).email).toBeUndefined();
+    });
+  });
+
+  describe("padding", () => {
+    const blankName = { name: "   ", email: "alice@example.com" };
+
+    it("rejects a blank stored name once it is edited, even by padding alone", () => {
+      expect(resolve({ ...blankName, name: "    " }, blankName).name).toBe("Name is required");
     });
   });
 
@@ -105,7 +113,7 @@ describe("editProfileSchema", () => {
 
     it("emits error for an invalid recovery email format", () => {
       expect(resolve({ recoveryEmail: "bad-email" }).recoveryEmail).toBe(
-        "Invalid email format",
+        "Enter a valid email address",
       );
     });
 

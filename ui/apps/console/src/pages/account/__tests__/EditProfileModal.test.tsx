@@ -67,6 +67,36 @@ describe("EditProfileModal", () => {
     });
   });
 
+  describe("name padding", () => {
+    it("saves a padded name trimmed", async () => {
+      const { user } = await changeField("Name", "  Alice  ");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({ name: "Alice" }),
+      );
+    });
+
+    it("saves a stored name with its padding removed", async () => {
+      const props = { ...defaultProps, currentName: " Alice " };
+      const { user } = await changeField("Name", "Alice", props);
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({ name: "Alice" }),
+      );
+    });
+
+    it("blocks saving a blank stored name that only gains padding", async () => {
+      await changeField("Name", "    ", { ...defaultProps, currentName: "   " });
+
+      expect(await screen.findByText("Name is required")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
+    });
+  });
+
   describe("required fields", () => {
     it("shows 'Email is required' and blocks submit when a required field is cleared", async () => {
       const user = userEvent.setup();
