@@ -104,7 +104,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	wg.Go(func() {
 		defer client.CloseWrite() //nolint:errcheck // the forward is ending, so nothing is left to act on a failed half-close
 
-		logger.Trace("copying data from client to agent")
+		logger.Trace("copying data from agent to client")
 
 		if _, err := io.Copy(client, &deadReadGuard{r: agent}); err != nil && !errors.Is(err, io.EOF) {
 			logger.WithError(err).Error("failed to copy data from agent to client")
@@ -119,7 +119,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	wg.Go(func() {
 		defer sess.CloseAgentForwardWrite(agent) //nolint:errcheck // the forward is ending, so nothing is left to act on a failed half-close
 
-		logger.Trace("copying data from agent to client")
+		logger.Trace("copying data from client to agent")
 
 		if _, err := io.Copy(agent, &deadReadGuard{r: client}); err != nil && !errors.Is(err, io.EOF) {
 			logger.WithError(err).Error("failed to copy data from client to agent")
