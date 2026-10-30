@@ -6,8 +6,8 @@ describe("validateRecoveryEmail", () => {
     expect(validateRecoveryEmail("", "user@example.com")).toBeNull();
   });
 
-  it("rejects invalid email format", () => {
-    expect(validateRecoveryEmail("not-an-email", "user@example.com")).toBe("Invalid email format");
+  it("rejects an invalid email address", () => {
+    expect(validateRecoveryEmail("not-an-email", "user@example.com")).toBe("Enter a valid email address");
   });
 
   it("rejects when emails match exactly", () => {

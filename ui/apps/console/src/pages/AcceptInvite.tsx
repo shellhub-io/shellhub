@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ComponentType, SVGProps, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CheckCircleIcon,
   ArrowRightIcon,
@@ -18,7 +19,7 @@ import {
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
 import { acceptInviteMutation, resolveInvitationOptions } from "@/client";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
-import { inviteResolver, type InviteFormValues } from "./setup/inviteResolver";
+import { inviteSchema, type InviteFormValues } from "./setup/schemas";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
 
@@ -89,7 +90,7 @@ export default function AcceptInvite() {
   const [error, setError] = useState("");
 
   const { control, handleSubmit } = useForm<InviteFormValues>({
-    resolver: inviteResolver,
+    resolver: zodResolver(inviteSchema),
     mode: "onTouched",
     defaultValues: {
       name: "",

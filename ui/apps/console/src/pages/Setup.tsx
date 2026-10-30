@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
@@ -18,8 +19,8 @@ import {
 } from "@/components/firstRun/Trail";
 import { SETUP_STEP_TITLES } from "@/components/firstRun/stepTitles";
 import { firstRunEntryState } from "@/components/firstRun/entry";
-import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
-import { suggestNamespace } from "./setup/validate";
+import { suggestNamespaceName } from "@/utils/validation";
+import { setupSchema, type SetupFormValues } from "./setup/schemas";
 
 /**
  * First-run setup for a fresh instance, as the opening step of the first-run trail: the first
@@ -36,7 +37,7 @@ export default function Setup() {
 
   const { control, handleSubmit, formState, setValue } =
     useForm<SetupFormValues>({
-      resolver: setupResolver,
+      resolver: zodResolver(setupSchema),
       mode: "onTouched",
       defaultValues: {
         name: "",
@@ -54,7 +55,7 @@ export default function Setup() {
 
   useEffect(() => {
     if (!import.meta.env.DEV && !namespaceEdited) {
-      setValue("namespace", suggestNamespace(usernameValue ?? ""), {
+      setValue("namespace", suggestNamespaceName(usernameValue ?? ""), {
         shouldValidate: true,
       });
     }
