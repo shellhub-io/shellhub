@@ -40,5 +40,8 @@ export const inviteResolver: Resolver<InviteFormValues> = (values) => {
     return { values: {}, errors };
   }
 
-  return { values, errors: {} };
+  return {
+    values: { ...values, name: values.name.trim(), username: values.username.trim() },
+    errors: {},
+  };
 };

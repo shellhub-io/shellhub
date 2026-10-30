@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { USERNAME_HINT } from "@/utils/validation";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSurveyPayload, surveyEnvironment } from "@/tests/onboardingSurvey";
 import Setup from "../Setup";
@@ -65,24 +66,24 @@ describe("Setup", () => {
       const user = userEvent.setup();
       renderSetup();
 
-      expect(screen.queryByText(/name must be/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/name is required/i)).not.toBeInTheDocument();
 
       await user.click(screen.getByLabelText(/^name$/i));
       await user.tab();
 
-      expect(await screen.findByText(/name must be/i)).toBeInTheDocument();
+      expect(await screen.findByText(/name is required/i)).toBeInTheDocument();
     });
 
     it("shows username error only after blurring with a too-short value", async () => {
       const user = userEvent.setup();
       renderSetup();
 
-      expect(screen.queryByText(/username must be/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(USERNAME_HINT)).not.toBeInTheDocument();
 
       await user.type(screen.getByLabelText(/^username$/i), "ab");
       await user.tab();
 
-      expect(await screen.findByText(/username must be/i)).toBeInTheDocument();
+      expect(await screen.findByText(USERNAME_HINT)).toBeInTheDocument();
     });
 
     it("shows email error only after blurring with an invalid address", async () => {

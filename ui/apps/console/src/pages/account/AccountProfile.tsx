@@ -64,7 +64,7 @@ export function EditProfileModal({
       email?: string;
       recovery_email?: string;
     } = {};
-    if (dirty.name) data.name = values.name;
+    if (dirty.name) data.name = values.name.trim();
     if (dirty.email) data.email = values.email;
     if (dirty.recoveryEmail) data.recovery_email = values.recoveryEmail;
 
