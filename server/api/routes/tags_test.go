@@ -74,7 +74,7 @@ func TestGetTags(t *testing.T) {
 			query:          "sort_by=badcolumn",
 			requiredMocks:  func() {},
 			expectedStatus: http.StatusBadRequest,
-			expectedFields: map[string]string{"sort_by": query.ErrSorterFieldInvalid.Error()},
+			expectedFields: map[string]string{"sort_by": "names an unknown field: badcolumn"},
 		},
 		{
 			description: "succeeds and returns X-Total-Count header",
