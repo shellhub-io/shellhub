@@ -2,6 +2,7 @@ package session
 
 import (
 	"io"
+	"net"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -111,6 +112,92 @@ func TestCloseAgentWriteOnAnUnknownSeat(t *testing.T) {
 	require.ErrorIs(t, sess.CloseAgentWrite(404), ErrSeatNotFound)
 	assert.False(t, channel.closed)
 	assert.False(t, channel.closedWrite)
+}
+
+type halfClosableConn struct {
+	net.Conn
+
+	closed      bool
+	closedWrite bool
+}
+
+func (c *halfClosableConn) Close() error {
+	c.closed = true
+
+	return nil
+}
+
+func (c *halfClosableConn) CloseWrite() error {
+	c.closedWrite = true
+
+	return nil
+}
+
+type fullCloseOnlyConn struct {
+	net.Conn
+
+	closed bool
+}
+
+func (c *fullCloseOnlyConn) Close() error {
+	c.closed = true
+
+	return nil
+}
+
+func TestCloseAgentForwardWrite(t *testing.T) {
+	cases := []struct {
+		name             string
+		version          string
+		expectCloseWrite bool
+	}{
+		{
+			name:             "leaves the forward open on an agent that hangs up on EOF",
+			version:          "v0.29.0",
+			expectCloseWrite: false,
+		},
+		{
+			name:             "closes the write side on the first agent that half-closes forwards",
+			version:          "v0.29.1",
+			expectCloseWrite: true,
+		},
+		{
+			name:             "closes the write side on a newer agent",
+			version:          "v0.29.2",
+			expectCloseWrite: true,
+		},
+		{
+			name:             "closes the write side when the version does not parse",
+			version:          "not-a-version",
+			expectCloseWrite: true,
+		},
+		{
+			name:             "closes the write side when the version is empty",
+			version:          "",
+			expectCloseWrite: true,
+		},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			conn := new(halfClosableConn)
+			sess := newAgentSession(t, tt.version)
+
+			require.NoError(t, sess.CloseAgentForwardWrite(conn))
+
+			assert.Equal(t, tt.expectCloseWrite, conn.closedWrite, "write-side close")
+			assert.False(t, conn.closed, "a forward is never closed fully on EOF")
+		})
+	}
+}
+
+func TestCloseAgentForwardWriteClosesAConnThatCannotHalfClose(t *testing.T) {
+	conn := new(fullCloseOnlyConn)
+	sess := newAgentSession(t, "v0.29.1")
+
+	require.NoError(t, sess.CloseAgentForwardWrite(conn))
+
+	assert.True(t, conn.closed)
 }
 
 func newAgentSession(t *testing.T, version string) *Session {

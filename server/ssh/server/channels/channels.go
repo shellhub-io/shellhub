@@ -50,6 +50,7 @@ type Session interface {
 	ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel))
 	DialAgent(ctx context.Context, network, addr string) (net.Conn, error)
 	CloseAgentWrite(seat int) error
+	CloseAgentForwardWrite(conn net.Conn) error
 
 	Recorded(seat int) error
 	Announce(client gossh.Channel) error

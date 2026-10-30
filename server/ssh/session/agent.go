@@ -15,6 +15,8 @@ const SeatTypeExec = "exec"
 
 var agentExecCloseFloor = semver.MustParse("v0.9.3")
 
+var agentForwardHalfCloseFloor = semver.MustParse("v0.29.1")
+
 // AuthRequestOpenSSHChannel is the channel the server opens to reach a forwarded agent.
 //
 // After a client has requested that a session have agent forwarding enabled, the server later may request a connection
@@ -112,7 +114,40 @@ func (s *Session) CloseAgentWrite(seat int) error {
 	return channel.Channel.CloseWrite()
 }
 
+// CloseAgentForwardWrite tells the device that the client has finished sending
+// on a port forward, by closing the write side of conn, a connection from
+// [Session.DialAgent].
+//
+// Agents older than [agentForwardHalfCloseFloor] close the device's socket as
+// soon as a forward's write side closes, which loses the device's reply, so
+// for those it does nothing, returns nil, and conn stays open until the
+// forward ends. A version that does not parse, and a device with no reported
+// version, are treated as new. A conn without CloseWrite is closed fully.
+// Otherwise it returns the error from closing conn, which a conn already
+// closed also returns.
+func (s *Session) CloseAgentForwardWrite(conn net.Conn) error {
+	if s.agentOlderThan(agentForwardHalfCloseFloor) {
+		return nil
+	}
+
+	if writeCloser, ok := conn.(interface{ CloseWrite() error }); ok {
+		return writeCloser.CloseWrite()
+	}
+
+	return conn.Close()
+}
+
 func (s *Session) closesAgentOnExec(seat int) bool {
+	if !s.agentOlderThan(agentExecCloseFloor) {
+		return false
+	}
+
+	item, ok := s.seats.Get(seat)
+
+	return ok && item.Type == SeatTypeExec
+}
+
+func (s *Session) agentOlderThan(floor *semver.Version) bool {
 	if s.Device == nil || s.Device.Info == nil {
 		return false
 	}
@@ -122,11 +157,5 @@ func (s *Session) closesAgentOnExec(seat int) bool {
 		return false
 	}
 
-	if !version.LessThan(agentExecCloseFloor) {
-		return false
-	}
-
-	item, ok := s.seats.Get(seat)
-
-	return ok && item.Type == SeatTypeExec
+	return version.LessThan(floor)
 }
