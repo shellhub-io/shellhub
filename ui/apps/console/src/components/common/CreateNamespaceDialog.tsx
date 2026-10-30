@@ -24,7 +24,7 @@ export default function CreateNamespaceDialog({
   const autoId = useId();
   const inputId = `create-ns-input-${autoId}`;
   const isPremium = isEnterpriseOrCloud();
-  const form = useNamespaceCreateForm(onClose);
+  const form = useNamespaceCreateForm({ onCreated: onClose });
 
   if (!isPremium) return null;
 
