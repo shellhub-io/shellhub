@@ -89,7 +89,7 @@ describe("editProfileSchema", () => {
 
     it("emits error for an invalid email format", () => {
       expect(resolve({ email: "not-an-email" }).email).toBe(
-        "Invalid email format",
+        "Enter a valid email address",
       );
     });
 
@@ -98,14 +98,32 @@ describe("editProfileSchema", () => {
     });
   });
 
+  describe("unchanged fields", () => {
+    it("does not re-validate a stored name or email that only differs by padding", () => {
+      expect(
+        resolve(
+          { name: "a".repeat(65), email: "legacy" },
+          { name: ` ${"a".repeat(65)} `, email: " legacy " },
+        ),
+      ).toEqual({});
+    });
+  });
+
   describe("recoveryEmail", () => {
+    it("trims a pasted recovery email before checking it", () => {
+      expect(
+        resolve({ email: "user@example.com", recoveryEmail: " backup@example.com " })
+          .recoveryEmail,
+      ).toBeUndefined();
+    });
+
     it("emits no error when recoveryEmail is empty", () => {
       expect(resolve({ recoveryEmail: "" }).recoveryEmail).toBeUndefined();
     });
 
     it("emits error for an invalid recovery email format", () => {
       expect(resolve({ recoveryEmail: "bad-email" }).recoveryEmail).toBe(
-        "Invalid email format",
+        "Enter a valid email address",
       );
     });
 
