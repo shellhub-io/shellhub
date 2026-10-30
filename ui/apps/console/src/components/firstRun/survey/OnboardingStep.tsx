@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { useForm, useWatch, type FieldPath } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { getConfig } from "@/env";
 import { useSubmitOnboardingSurvey } from "@/hooks/useOnboardingSurvey";
 import {
+  answerFields,
   emptyAnswers,
   responseData,
   surveyAnswersSchema,
   type KnownContact,
   type OnboardingSurvey,
   type SurveyAnswers,
-  type SurveyQuestion,
 } from "@/utils/onboardingSurvey";
 import OnboardingSurveyFields from "./OnboardingSurveyFields";
 
@@ -22,17 +22,6 @@ interface StepProps {
   onDone: (answers: SurveyAnswers, responseId: string) => void;
   onSkip: () => void;
   finishLabel?: string;
-}
-
-function answerFields(question: SurveyQuestion): FieldPath<SurveyAnswers>[] {
-  switch (question.kind) {
-    case "choice":
-      return [`choices.${question.id}`, `other.${question.id}`];
-    case "contact":
-      return [`contact.${question.id}`];
-    case "consent":
-      return [`consent.${question.id}`];
-  }
 }
 
 function SurveyForm({
@@ -109,7 +98,7 @@ function SurveyForm({
       </div>
 
       <OnboardingSurveyFields
-        survey={{ ...survey, questions: [questions[current]] }}
+        questions={[questions[current]]}
         control={control}
       />
 

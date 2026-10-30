@@ -7,6 +7,7 @@ import {
   surveyEnvironment,
 } from "@/tests/onboardingSurvey";
 import {
+  answerFields,
   emptyAnswers,
   findOnboardingSurvey,
   responseData,
@@ -182,6 +183,16 @@ describe("emptyAnswers", () => {
       emptyAnswers(survey, { name: "Ana Maria Souza", email: null }).contact
         .contact,
     ).toEqual({ firstName: "Ana", lastName: "Maria Souza", email: "" });
+  });
+});
+
+describe("answerFields", () => {
+  it("names the fields each question's answer is held in", () => {
+    expect(parse().questions.map(answerFields)).toEqual([
+      ["contact.contact"],
+      ["choices.role", "other.role"],
+      ["consent.consent"],
+    ]);
   });
 });
 
