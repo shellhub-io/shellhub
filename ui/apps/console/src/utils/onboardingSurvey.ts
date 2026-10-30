@@ -1,3 +1,4 @@
+import type { FieldPath } from "react-hook-form";
 import { z } from "zod";
 
 /**
@@ -306,6 +307,25 @@ export function emptyAnswers(
   }
 
   return answers;
+}
+
+/**
+ * The form fields that hold a question's answer, to check one question before moving on to the
+ * next: a choice and the text typed for "other", a contact question's fields, or a consent box.
+ */
+export function answerFields(
+  question: SurveyQuestion,
+): FieldPath<SurveyAnswers>[] {
+  switch (question.kind) {
+    case "choice":
+      return [`choices.${question.id}`, `other.${question.id}`];
+    case "contact":
+      return [`contact.${question.id}`];
+    case "consent":
+      return [`consent.${question.id}`];
+    default:
+      return question satisfies never;
+  }
 }
 
 /**

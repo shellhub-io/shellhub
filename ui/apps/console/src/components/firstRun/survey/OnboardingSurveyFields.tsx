@@ -8,7 +8,6 @@ import {
 import RadioPill from "@/components/common/fields/RadioPill";
 import {
   isOtherChoice,
-  type OnboardingSurvey,
   type SurveyAnswers,
   type SurveyQuestion,
 } from "@/utils/onboardingSurvey";
@@ -157,15 +156,15 @@ function ConsentQuestion({
  * answers outlive this component when the user steps away and back.
  */
 export default function OnboardingSurveyFields({
-  survey,
+  questions,
   control,
 }: {
-  survey: OnboardingSurvey;
+  questions: SurveyQuestion[];
   control: Control<SurveyAnswers>;
 }) {
   return (
     <div className="space-y-6">
-      {survey.questions.map((question) => {
+      {questions.map((question) => {
         switch (question.kind) {
           case "choice":
             return (
@@ -191,6 +190,8 @@ export default function OnboardingSurveyFields({
                 control={control}
               />
             );
+          default:
+            return question satisfies never;
         }
       })}
     </div>
