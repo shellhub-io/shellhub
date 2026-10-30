@@ -113,6 +113,16 @@ func (s *Session) CloseAgentWrite(seat int) error {
 }
 
 func (s *Session) closesAgentOnExec(seat int) bool {
+	if !s.agentOlderThan(agentExecCloseFloor) {
+		return false
+	}
+
+	item, ok := s.seats.Get(seat)
+
+	return ok && item.Type == SeatTypeExec
+}
+
+func (s *Session) agentOlderThan(floor *semver.Version) bool {
 	if s.Device == nil || s.Device.Info == nil {
 		return false
 	}
@@ -122,11 +132,5 @@ func (s *Session) closesAgentOnExec(seat int) bool {
 		return false
 	}
 
-	if !version.LessThan(agentExecCloseFloor) {
-		return false
-	}
-
-	item, ok := s.seats.Get(seat)
-
-	return ok && item.Type == SeatTypeExec
+	return version.LessThan(floor)
 }
