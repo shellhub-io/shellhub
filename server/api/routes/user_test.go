@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -368,6 +370,75 @@ func TestRevokeUserTokens(t *testing.T) {
 			e.ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+		})
+	}
+}
+
+func TestRecordOnboardingSurvey(t *testing.T) {
+	const userID = "000000000000000000000000"
+
+	cases := []struct {
+		description   string
+		outcome       string
+		requiredMocks func(svcMock *mocks.MockService)
+		expected      int
+	}{
+		{
+			description:   "refuses pending",
+			outcome:       "pending",
+			requiredMocks: func(_ *mocks.MockService) {},
+			expected:      http.StatusBadRequest,
+		},
+		{
+			description: "fails when the user does not exist",
+			outcome:     "skipped",
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RecordOnboardingSurvey", gomock.Anything, &requests.RecordOnboardingSurvey{UserID: userID, Outcome: models.UserOnboardingSurveySkipped}).
+					Return(svc.ErrUserNotFound).
+					Once()
+			},
+			expected: http.StatusNotFound,
+		},
+		{
+			description: "fails when the outcome cannot be saved",
+			outcome:     "skipped",
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RecordOnboardingSurvey", gomock.Anything, &requests.RecordOnboardingSurvey{UserID: userID, Outcome: models.UserOnboardingSurveySkipped}).
+					Return(svc.NewErrUserUpdate(&models.User{ID: userID}, stderrors.New("error"))).
+					Once()
+			},
+			expected: http.StatusInternalServerError,
+		},
+		{
+			description: "records an answer",
+			outcome:     "answered",
+			requiredMocks: func(svcMock *mocks.MockService) {
+				svcMock.
+					On("RecordOnboardingSurvey", gomock.Anything, &requests.RecordOnboardingSurvey{UserID: userID, Outcome: models.UserOnboardingSurveyAnswered}).
+					Return(nil).
+					Once()
+			},
+			expected: http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			svcMock := mocks.NewMockService(t)
+			tc.requiredMocks(svcMock)
+
+			body := strings.NewReader(fmt.Sprintf(`{"outcome":%q}`, tc.outcome))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/users/onboarding-survey", body)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-ID", userID)
+			req.Header.Set("X-Role", authorizer.RoleObserver.String())
+
+			rec := httptest.NewRecorder()
+			newTestRouter(t, svcMock).ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode, rec.Body.String())
 		})
 	}
 }

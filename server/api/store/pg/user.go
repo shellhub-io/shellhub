@@ -153,6 +153,31 @@ func (pg *Pg) UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID
 	return nil
 }
 
+// UserUpdateOnboardingSurvey implements [store.UserStore].
+func (pg *Pg) UserUpdateOnboardingSurvey(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("onboarding_survey = ?", string(outcome)).
+		Where("id = ?", userID).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	rowsAffected, err := r.RowsAffected()
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 // UserRevokeTokens implements [store.UserStore].
 func (pg *Pg) UserRevokeTokens(ctx context.Context, userID string) error {
 	db := pg.GetConnection(ctx)

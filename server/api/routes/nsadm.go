@@ -244,6 +244,8 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 		req.TokenVersion = &version
 	}
 
+	req.Impersonated = authctx.UserImpersonated(c.Ctx(), req.UserID)
+
 	res, err := h.service.LeaveNamespace(c.Ctx(), req)
 	switch {
 	case err != nil:

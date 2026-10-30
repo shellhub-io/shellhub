@@ -1,0 +1,9 @@
+description: |
+  What the user did with the onboarding survey the console asks on sign-in.
+  `pending` means they have not answered or skipped it.
+type: string
+enum:
+  - pending
+  - answered
+  - skipped
+example: pending

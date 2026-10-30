@@ -38,6 +38,7 @@ type UserPreferences struct {
 	SecurityEmail      string   `bun:"security_email,nullzero"`
 	MaxNamespaces      int      `bun:"namespace_ownership_limit"`
 	EmailMarketing     bool     `bun:"email_marketing"`
+	OnboardingSurvey   string   `bun:"onboarding_survey,nullzero,skipupdate"`
 }
 
 // UserFromModel projects a user into its row form.
@@ -78,6 +79,7 @@ func UserFromModel(model *models.User) *User {
 			SecurityEmail:      model.UserData.RecoveryEmail,
 			MaxNamespaces:      model.MaxNamespaces,
 			EmailMarketing:     model.EmailMarketing,
+			OnboardingSurvey:   string(model.Preferences.OnboardingSurvey),
 		},
 	}
 }
@@ -113,6 +115,7 @@ func UserToModel(entity *User) *models.User {
 		Preferences: models.UserPreferences{
 			PreferredNamespace: entity.Preferences.PreferredNamespace,
 			AuthMethods:        authMethods,
+			OnboardingSurvey:   models.UserOnboardingSurvey(entity.Preferences.OnboardingSurvey),
 		},
 	}
 }

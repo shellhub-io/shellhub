@@ -102,6 +102,8 @@ paths:
     $ref: paths/api@users@{id}@password.yaml
   /api/users/tokens:
     $ref: paths/api@users@tokens.yaml
+  /api/users/onboarding-survey:
+    $ref: paths/api@users@onboarding-survey.yaml
   /api/users/security/{tenant}:
     $ref: paths/api@users@security@{tenant}.yaml
   /api/devices:

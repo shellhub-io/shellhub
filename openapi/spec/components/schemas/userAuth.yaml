@@ -40,6 +40,14 @@ properties:
     $ref: maxNamespaces.yaml
   auth_methods:
     $ref: userAuthMethods.yaml
+  onboarding_survey:
+    $ref: userOnboardingSurvey.yaml
+  impersonated:
+    type: boolean
+    description: |
+      Whether an instance administrator signed in as the user. Such a session cannot record the
+      onboarding survey outcome.
+    example: false
 required:
   - token
   - id
@@ -54,3 +62,5 @@ required:
   - max_namespaces
   - admin
   - auth_methods
+  - onboarding_survey
+  - impersonated

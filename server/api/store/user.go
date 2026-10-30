@@ -41,6 +41,11 @@ type UserStore interface {
 	// [ErrNoDocuments] if no user is found.
 	UserUpdatePreferredNamespace(ctx context.Context, userID, tenantID string) error
 
+	// UserUpdateOnboardingSurvey sets what the user did with the onboarding survey, which
+	// [UserStore.UserUpdate] leaves untouched. Returns [ErrNoDocuments] if no user is found, and
+	// the database error otherwise.
+	UserUpdateOnboardingSurvey(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error
+
 	// UserGetInfo retrieves the user's information, like the owned and associated namespaces.
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)

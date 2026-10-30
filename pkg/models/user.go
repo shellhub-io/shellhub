@@ -59,6 +59,23 @@ func (a UserAuthMethod) String() string {
 	return string(a)
 }
 
+// UserOnboardingSurvey is what a user did with the onboarding survey the console asks on sign-in.
+// A user starts pending and, once answered or skipped, never returns to it.
+type UserOnboardingSurvey string
+
+const (
+	// UserOnboardingSurveyPending means the user has neither answered nor skipped the survey, so
+	// the console asks it on every sign-in where it can load it, even after a visit that left it
+	// unfinished.
+	UserOnboardingSurveyPending UserOnboardingSurvey = "pending"
+
+	// UserOnboardingSurveyAnswered means the user sent their answers.
+	UserOnboardingSurveyAnswered UserOnboardingSurvey = "answered"
+
+	// UserOnboardingSurveySkipped means the user chose not to answer.
+	UserOnboardingSurveySkipped UserOnboardingSurvey = "skipped"
+)
+
 // User is an account on the instance. It exists independently of any namespace: membership is
 // what ties a user to one, so a user with no memberships is valid and simply sees nothing.
 type User struct {
@@ -132,6 +149,8 @@ type UserPreferences struct {
 
 	// AuthMethods indicates the authentication methods that the user can use to authenticate.
 	AuthMethods []UserAuthMethod `json:"auth_methods"`
+
+	OnboardingSurvey UserOnboardingSurvey `json:"-"`
 }
 
 // UserPassword holds a password in both forms. Plain is populated on the way in from a request and
@@ -196,6 +215,10 @@ type UserAuthResponse struct {
 	MFA           bool             `json:"mfa"`
 	MaxNamespaces int              `json:"max_namespaces"`
 	Admin         bool             `json:"admin"`
+
+	OnboardingSurvey UserOnboardingSurvey `json:"onboarding_survey"`
+	// Impersonated is true when an instance administrator signed in as the user.
+	Impersonated bool `json:"impersonated"`
 }
 
 // UserInfo is the namespaces a user can reach, split by whether they own them. A namespace appears

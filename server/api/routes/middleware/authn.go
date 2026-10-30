@@ -237,7 +237,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 		}
 
 		c.SetRequest(c.Request().WithContext(
-			authctx.WithUserTokenVersion(c.Request().Context(), claims.ID, claims.TokenVersion),
+			authctx.WithUserBearer(c.Request().Context(), claims.ID, claims.TokenVersion, claims.Impersonated),
 		))
 
 		return &gateway.Identity{

@@ -9268,6 +9268,69 @@ func (_c *MockStore_UserUpdate_Call) RunAndReturn(run func(ctx context.Context, 
 	return _c
 }
 
+// UserUpdateOnboardingSurvey provides a mock function for the type MockStore
+func (_mock *MockStore) UserUpdateOnboardingSurvey(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error {
+	ret := _mock.Called(ctx, userID, outcome)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserUpdateOnboardingSurvey")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UserOnboardingSurvey) error); ok {
+		r0 = returnFunc(ctx, userID, outcome)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserUpdateOnboardingSurvey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserUpdateOnboardingSurvey'
+type MockStore_UserUpdateOnboardingSurvey_Call struct {
+	*mock.Call
+}
+
+// UserUpdateOnboardingSurvey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - outcome models.UserOnboardingSurvey
+func (_e *MockStore_Expecter) UserUpdateOnboardingSurvey(ctx any, userID any, outcome any) *MockStore_UserUpdateOnboardingSurvey_Call {
+	return &MockStore_UserUpdateOnboardingSurvey_Call{Call: _e.mock.On("UserUpdateOnboardingSurvey", ctx, userID, outcome)}
+}
+
+func (_c *MockStore_UserUpdateOnboardingSurvey_Call) Run(run func(ctx context.Context, userID string, outcome models.UserOnboardingSurvey)) *MockStore_UserUpdateOnboardingSurvey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 models.UserOnboardingSurvey
+		if args[2] != nil {
+			arg2 = args[2].(models.UserOnboardingSurvey)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserUpdateOnboardingSurvey_Call) Return(err error) *MockStore_UserUpdateOnboardingSurvey_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserUpdateOnboardingSurvey_Call) RunAndReturn(run func(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error) *MockStore_UserUpdateOnboardingSurvey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UserUpdatePreferredNamespace provides a mock function for the type MockStore
 func (_mock *MockStore) UserUpdatePreferredNamespace(ctx context.Context, userID string, tenantID string) error {
 	ret := _mock.Called(ctx, userID, tenantID)

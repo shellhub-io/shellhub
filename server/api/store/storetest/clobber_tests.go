@@ -214,6 +214,61 @@ func (s *Suite) TestUserUpdatePreferredNamespace(t *testing.T) {
 	})
 }
 
+// TestUserUpdateDoesNotClobberOnboardingSurvey ensures a full-model UserUpdate carrying a stale
+// onboarding survey outcome, as sign-in writes one, cannot put a user back to pending after they
+// answered.
+func (s *Suite) TestUserUpdateDoesNotClobberOnboardingSurvey(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	userID := s.CreateUser(t)
+
+	snapshot, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+	require.Equal(t, models.UserOnboardingSurveyPending, snapshot.Preferences.OnboardingSurvey)
+
+	require.NoError(t, st.UserUpdateOnboardingSurvey(ctx, userID, models.UserOnboardingSurveyAnswered))
+
+	snapshot.Name = "renamed"
+	require.NoError(t, st.UserUpdate(ctx, snapshot))
+
+	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+	assert.Equal(t, "renamed", updated.Name, "the intended field must still be written")
+	assert.Equal(t, models.UserOnboardingSurveyAnswered, updated.Preferences.OnboardingSurvey, "the recorded outcome must not be clobbered")
+}
+
+// TestUserUpdateOnboardingSurvey covers the targeted onboarding_survey write.
+func (s *Suite) TestUserUpdateOnboardingSurvey(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("a new user is pending, and each outcome is stored", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, models.UserOnboardingSurveyPending, user.Preferences.OnboardingSurvey)
+
+		for _, outcome := range []models.UserOnboardingSurvey{models.UserOnboardingSurveySkipped, models.UserOnboardingSurveyAnswered} {
+			require.NoError(t, st.UserUpdateOnboardingSurvey(ctx, userID, outcome))
+			user, err = st.UserResolve(ctx, store.UserIDResolver, userID)
+			require.NoError(t, err)
+			assert.Equal(t, outcome, user.Preferences.OnboardingSurvey)
+		}
+	})
+
+	t.Run("fails for non-existent user", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.UserUpdateOnboardingSurvey(ctx, "00000000-0000-4000-8000-000000000000", models.UserOnboardingSurveySkipped)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+}
+
 // TestUserInvitationUpdateDoesNotClobberInvitations ensures a status-change UserInvitationUpdate
 // carrying a stale count cannot clobber a concurrent re-invite increment.
 func (s *Suite) TestUserInvitationUpdateDoesNotClobberInvitations(t *testing.T) {

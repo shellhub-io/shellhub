@@ -11,19 +11,20 @@ import (
 type ctxKey string
 
 const (
-	deviceLimitKey  ctxKey = "namespace-device-limit"
-	tokenVersionKey ctxKey = "user-token-version" //nolint:gosec // a context key, not a credential
+	deviceLimitKey ctxKey = "namespace-device-limit"
+	userBearerKey  ctxKey = "user-bearer"
 )
 
-type userTokenVersion struct {
-	userID  string
-	version int
+type userBearer struct {
+	userID       string
+	version      int
+	impersonated bool
 }
 
-// WithUserTokenVersion returns ctx carrying the token version of the bearer userID authenticated
-// with.
-func WithUserTokenVersion(ctx context.Context, userID string, version int) context.Context {
-	return context.WithValue(ctx, tokenVersionKey, userTokenVersion{userID: userID, version: version})
+// WithUserBearer returns ctx carrying what the bearer userID authenticated with says: its token
+// version, and whether an instance administrator was issued it to act as the user.
+func WithUserBearer(ctx context.Context, userID string, version int, impersonated bool) context.Context {
+	return context.WithValue(ctx, userBearerKey, userBearer{userID: userID, version: version, impersonated: impersonated})
 }
 
 // UserTokenVersion returns the token version of the bearer userID authenticated with, which
@@ -31,12 +32,21 @@ func WithUserTokenVersion(ctx context.Context, userID string, version int) conte
 // authenticate with a user bearer, which covers API keys, device tokens, anonymous requests and
 // contexts built outside an HTTP request, and when the bearer belongs to another user.
 func UserTokenVersion(ctx context.Context, userID string) (int, bool) {
-	held, ok := ctx.Value(tokenVersionKey).(userTokenVersion)
+	held, ok := ctx.Value(userBearerKey).(userBearer)
 	if !ok || held.userID != userID {
 		return 0, false
 	}
 
 	return held.version, true
+}
+
+// UserImpersonated reports whether the bearer userID authenticated with was issued to an
+// instance administrator acting as the user. It reports false for every request
+// [UserTokenVersion] reports false for.
+func UserImpersonated(ctx context.Context, userID string) bool {
+	held, ok := ctx.Value(userBearerKey).(userBearer)
+
+	return ok && held.userID == userID && held.impersonated
 }
 
 type namespaceDeviceLimit struct {

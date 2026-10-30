@@ -14,6 +14,9 @@ type UserClaims struct {
 	// Admin indicates whether the user has administrative privileges.
 	Admin        bool `json:"admin"`
 	TokenVersion int  `json:"token_version"`
+	// Impersonated marks a token an instance administrator was issued to act as the user. A
+	// renewal of it stays impersonated.
+	Impersonated bool `json:"impersonated,omitempty"`
 }
 
 // DeviceClaims represents the attributes needed to authenticate a device.

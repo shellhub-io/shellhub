@@ -591,6 +591,8 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 			User:  "john_doe",
 			Email: "john.doe@test.com",
 			Token: "not-empty",
+
+			OnboardingSurvey: models.UserOnboardingSurveyPending,
 		}, nil).
 		Once()
 
@@ -618,7 +620,9 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 		"token": "not-empty",
 		"mfa": false,
 		"max_namespaces": 0,
-		"admin": false
+		"admin": false,
+		"onboarding_survey": "pending",
+		"impersonated": false
 	}`, string(body))
 }
 
