@@ -21,7 +21,6 @@ import {
 } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import { useVaultStore } from "@/stores/vaultStore";
-import { consumePendingDeviceCode } from "@/utils/navigation";
 import {
   queryOperationId,
   useInvalidateByIds,
@@ -240,51 +239,28 @@ export function useSwitchNamespace() {
 }
 
 /**
- * Creates a namespace and enters it, so the user ends up inside what they just made.
+ * Creates a namespace, enters it as useEnterNamespace does, and resolves to its tenant id. land
+ * runs in the same tick as the session swap, so a caller that navigates there renders the new
+ * namespace's page at once; a caller that stays on the page passes a land that does nothing. The
+ * namespace lists are refetched before it resolves, so the new namespace is already in them and
+ * calls scoped to it are authorised. Rejects with the API error when the creation is refused (an
+ * invalid or taken name, or a limit or permission that does not allow another namespace) or fails
+ * for any other reason, an expired session, a server error or no network included, and when the
+ * new namespace's token cannot be issued, leaving the session as it was while the namespace exists.
+ * Either way the namespace lists are refreshed before it rejects, so a namespace that was created
+ * shows in them.
  */
 export function useCreateNamespace() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   return useMutation({
-    mutationFn: async (name: string) => {
-      const { data: ns } = await createNamespaceSdk({
-        body: { name },
-        throwOnError: true,
-      });
-      const pendingCode = consumePendingDeviceCode();
-      await enterNamespace(queryClient, ns.tenant_id, {
-        freshList: true,
-        land: () =>
-          void navigate(
-            pendingCode
-              ? `/accept-device?code=${encodeURIComponent(pendingCode)}`
-              : "/dashboard",
-          ),
-      });
-    },
-  });
-}
-
-/**
- * Creates a namespace and enters it without leaving the page, and resolves to its tenant id. The
- * session moves to the new namespace and the namespace lists are refetched before it resolves, so
- * the new namespace is already in them and calls scoped to it are authorised. Rejects with the API
- * error when the creation is refused: an invalid or taken name, or a limit or permission that does
- * not allow another namespace; and when the new namespace's token cannot be issued, leaving the
- * session as it was while the namespace exists. Either way the namespace lists are refreshed before
- * it rejects, so a namespace that was created shows in them.
- */
-export function useCreateNamespaceInPlace() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, land }: { name: string; land: () => void }) => {
       const { data: ns } = await createNamespaceSdk({
         body: { name },
         throwOnError: true,
       });
       await enterNamespace(queryClient, ns.tenant_id, {
         freshList: true,
-        land: () => undefined,
+        land,
       });
       return ns.tenant_id;
     },

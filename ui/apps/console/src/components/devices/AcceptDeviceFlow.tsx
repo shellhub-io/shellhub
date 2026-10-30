@@ -32,7 +32,7 @@ import {
 } from "@/hooks/useDeviceCode";
 import {
   type Namespace,
-  useCreateNamespaceInPlace,
+  useCreateNamespace,
   useNamespace,
   useNamespaces,
   useSwitchNamespace,
@@ -112,7 +112,7 @@ export default function AcceptDeviceFlow({
 
   const acceptDevice = useAcceptDevice();
   const acceptPairing = useAcceptDevicePairing();
-  const createNamespace = useCreateNamespaceInPlace();
+  const createNamespace = useCreateNamespace();
   const switchNamespace = useSwitchNamespace();
 
   const [actionBranch, setActionBranch] = useState<Branch | null>(null);
@@ -230,7 +230,10 @@ export default function AcceptDeviceFlow({
     setPairingInFirstNamespace(device);
     let tenantId: string;
     try {
-      tenantId = await createNamespace.mutateAsync(name);
+      tenantId = await createNamespace.mutateAsync({
+        name,
+        land: () => undefined,
+      });
     } catch (err) {
       setPairingInFirstNamespace(null);
       return namespaceCreateError(err);
