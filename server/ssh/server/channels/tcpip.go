@@ -91,7 +91,15 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 
 	defer client.Close() //nolint:errcheck
 
-	go gossh.DiscardRequests(reqs)
+	uploaded := make(chan struct{})
+
+	go func() {
+		gossh.DiscardRequests(reqs)
+		<-uploaded
+
+		_ = agent.Close()
+		_ = client.Close()
+	}()
 
 	if sess.FirstForwardTo(dest) {
 		sess.Event(DirectTCPIPChannel, data, forwardEventSeat)
@@ -117,6 +125,7 @@ func directTCPIPChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewCh
 	})
 
 	wg.Go(func() {
+		defer close(uploaded)
 		defer sess.CloseAgentForwardWrite(agent) //nolint:errcheck // the forward is ending, so nothing is left to act on a failed half-close
 
 		logger.Trace("copying data from client to agent")

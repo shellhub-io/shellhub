@@ -215,6 +215,7 @@ type rejectingNewChannel struct {
 
 	extraData []byte
 	client    gossh.Channel
+	requests  chan *gossh.Request
 }
 
 func (n *rejectingNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, error) {
@@ -224,7 +225,7 @@ func (n *rejectingNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, er
 	n.accepted = true
 
 	if n.client != nil {
-		return n.client, closedRequests(), nil
+		return n.client, n.requests, nil
 	}
 
 	return &nopChannel{}, closedRequests(), nil
@@ -454,13 +455,24 @@ func dialDevice(t *testing.T) (net.Conn, gossh.Channel) {
 	}
 }
 
-func forwardThrough(t *testing.T, sess *fakeSession, client *fakeChannel, agent net.Conn) chan struct{} {
+func forwardThrough(t *testing.T, sess *fakeSession, client *fakeChannel, agent net.Conn) (chan struct{}, func()) {
 	t.Helper()
 
-	t.Cleanup(client.quiet)
+	requests := make(chan *gossh.Request)
+
+	var closeOnce sync.Once
+
+	closeClient := func() {
+		closeOnce.Do(func() {
+			client.quiet()
+			close(requests)
+		})
+	}
+
+	t.Cleanup(closeClient)
 
 	sess.agentConn = agent
-	newChan := &rejectingNewChannel{extraData: forwardPayload(t), client: client}
+	newChan := &rejectingNewChannel{extraData: forwardPayload(t), client: client, requests: requests}
 
 	ended := make(chan struct{})
 
@@ -471,7 +483,7 @@ func forwardThrough(t *testing.T, sess *fakeSession, client *fakeChannel, agent 
 		directTCPIPChannel(newStubContext(), sess, newChan, allow)
 	}()
 
-	return ended
+	return ended, closeClient
 }
 
 func readUntilEOF(t *testing.T, r io.Reader, failure string) string {
@@ -497,7 +509,7 @@ func readUntilEOF(t *testing.T, r io.Reader, failure string) string {
 func TestDirectTCPIPChannelPassesTheClientEOFToTheDeviceAndStillDeliversItsReply(t *testing.T) {
 	agent, device := dialDevice(t)
 	client := newFakeChannel()
-	ended := forwardThrough(t, new(fakeSession), client, agent)
+	ended, _ := forwardThrough(t, new(fakeSession), client, agent)
 
 	_, err := client.dataIn.Write([]byte("upload"))
 	require.NoError(t, err)
@@ -518,7 +530,7 @@ func TestDirectTCPIPChannelPassesTheClientEOFToTheDeviceAndStillDeliversItsReply
 func TestDirectTCPIPChannelPassesTheDeviceEOFToTheClientAndStillDeliversItsUpload(t *testing.T) {
 	agent, device := dialDevice(t)
 	client := newFakeChannel()
-	ended := forwardThrough(t, new(fakeSession), client, agent)
+	ended, _ := forwardThrough(t, new(fakeSession), client, agent)
 
 	_, err := device.Write([]byte("banner"))
 	require.NoError(t, err)
@@ -538,11 +550,20 @@ func TestDirectTCPIPChannelPassesTheDeviceEOFToTheClientAndStillDeliversItsUploa
 	waitFor(t, ended)
 }
 
+func TestDirectTCPIPChannelEndsWhenTheClientClosesWhileTheDeviceIsIdle(t *testing.T) {
+	agent, _ := dialDevice(t)
+	ended, closeClient := forwardThrough(t, new(fakeSession), newFakeChannel(), agent)
+
+	closeClient()
+
+	waitFor(t, ended)
+}
+
 func TestDirectTCPIPChannelLeavesTheClientEOFToTheSession(t *testing.T) {
 	agent, device := dialDevice(t)
 	client := newFakeChannel()
 	sess := &fakeSession{agentHangsUpOnEOF: true}
-	ended := forwardThrough(t, sess, client, agent)
+	ended, _ := forwardThrough(t, sess, client, agent)
 
 	_, err := client.dataIn.Write([]byte("request"))
 	require.NoError(t, err)
