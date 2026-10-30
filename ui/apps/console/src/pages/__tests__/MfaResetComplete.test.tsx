@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { mockUserAuth } from "@/tests/factories";
+import { useAuthStore } from "@/stores/authStore";
 import MfaResetComplete from "../MfaResetComplete";
 
 function renderPage() {
@@ -52,5 +54,24 @@ describe("MfaResetComplete", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+  });
+
+  it("signs in carrying the onboarding survey outcome", async () => {
+    server.use(
+      http.put("*/api/user/mfa/reset/:userId", () =>
+        HttpResponse.json(mockUserAuth({ onboarding_survey: "pending" })),
+      ),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await fillCode(user, "Main Email Code", "ABCDE");
+    await fillCode(user, "Recovery Email Code", "FGHIJ");
+    await user.click(
+      screen.getByRole("button", { name: "Reset MFA and Login" }),
+    );
+
+    expect(await screen.findByText("Dashboard")).toBeInTheDocument();
+    expect(useAuthStore.getState().onboardingSurvey).toBe("pending");
   });
 });

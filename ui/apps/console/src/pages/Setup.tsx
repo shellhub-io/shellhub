@@ -5,39 +5,32 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { setup } from "@/client";
-import { isCommunity } from "@/env";
-import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
 import { useAuthStore } from "@/stores/authStore";
 import {
   FormInputField,
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import FirstRunLayout from "@/components/firstRun/FirstRunLayout";
-import { Trail, TrailStep, UpcomingDeviceSteps } from "@/components/firstRun/Trail";
+import {
+  Trail,
+  TrailStep,
+  UpcomingDeviceSteps,
+} from "@/components/firstRun/Trail";
 import { SETUP_STEP_TITLES } from "@/components/firstRun/stepTitles";
 import { firstRunEntryState } from "@/components/firstRun/entry";
-import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
 import { setupResolver, type SetupFormValues } from "./setup/setupResolver";
 import { suggestNamespace } from "./setup/validate";
 
-const STEP_ONBOARDING = 1;
-const STEP_ACCOUNT = 2;
-
 /**
- * First-run setup for a fresh instance, as the opening steps of the first-run trail: the optional
- * survey on community, then the first account, which becomes the instance's admin, with its
- * namespace. It signs that account straight in, since there is nobody yet to sign in as, and hands
- * over to the dashboard, where the trail goes on to the first device.
+ * First-run setup for a fresh instance, as the opening step of the first-run trail: the first
+ * account, which becomes the instance's admin, with its namespace. It signs that account straight
+ * in, since there is nobody yet to sign in as, and hands over to the dashboard, where the trail
+ * goes on to the first device.
  */
 export default function Setup() {
   const navigate = useNavigate();
   const loginWithToken = useAuthStore((state) => state.loginWithToken);
 
-  const surveyStep = useOnboardingSurveyStep({ enabled: isCommunity() });
-  const showOnboarding = surveyStep.visible;
-
-  const [chosenStep, setStep] = useState(STEP_ONBOARDING);
-  const step = showOnboarding ? chosenStep : STEP_ACCOUNT;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -101,7 +94,7 @@ export default function Setup() {
       await loginWithToken(token);
       void navigate("/dashboard", {
         replace: true,
-        state: firstRunEntryState(showOnboarding),
+        state: firstRunEntryState(),
       });
     } catch {
       void navigate("/login", {
@@ -117,9 +110,6 @@ export default function Setup() {
     void handleSubmit(onSubmit)(e);
   };
 
-  const surveyState = step === STEP_ONBOARDING ? "active" : "done";
-  const accountStep = showOnboarding ? 2 : 1;
-
   return (
     <FirstRunLayout
       eyebrow="Welcome to ShellHub"
@@ -127,28 +117,7 @@ export default function Setup() {
       inConsole={false}
     >
       <Trail>
-        {showOnboarding && (
-          <TrailStep
-            number={1}
-            title={SETUP_STEP_TITLES.survey}
-            state={surveyState}
-            summary={surveyStep.responseId ? "Thanks" : "Skipped"}
-          >
-            <OnboardingStep
-              {...surveyStep.stepProps}
-              onDone={(answers, responseId) => {
-                surveyStep.record(answers, responseId);
-                setStep(STEP_ACCOUNT);
-              }}
-              onSkip={() => setStep(STEP_ACCOUNT)}
-            />
-          </TrailStep>
-        )}
-        <TrailStep
-          number={accountStep}
-          title={SETUP_STEP_TITLES.account}
-          state={step === STEP_ACCOUNT ? "active" : "upcoming"}
-        >
+        <TrailStep number={1} title={SETUP_STEP_TITLES.account} state="active">
           <form onSubmit={handleFormSubmit} className="space-y-4">
             <p className="text-xs text-text-secondary leading-relaxed">
               This instance has no users yet. You become its administrator, and
@@ -233,14 +202,6 @@ export default function Setup() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-1">
-              {showOnboarding && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setStep(STEP_ONBOARDING)}
-                >
-                  Back
-                </Button>
-              )}
               <Button
                 type="submit"
                 loading={loading}
@@ -251,7 +212,7 @@ export default function Setup() {
             </div>
           </form>
         </TrailStep>
-        <UpcomingDeviceSteps start={accountStep + 1} />
+        <UpcomingDeviceSteps start={2} />
       </Trail>
     </FirstRunLayout>
   );

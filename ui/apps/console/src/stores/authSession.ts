@@ -25,5 +25,7 @@ export function signedInSession(auth: UserAuth) {
     name: auth.name,
     isAdmin: auth.admin ?? false,
     mfaEnabled: auth.mfa || false,
+    onboardingSurvey: auth.onboarding_survey,
+    impersonated: auth.impersonated,
   };
 }

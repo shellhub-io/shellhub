@@ -240,21 +240,6 @@ describe("responseData", () => {
     expect(responseData(survey, answers, {})).toEqual({ role: "Developer" });
   });
 
-  it("blanks every unanswered or withheld question on an update", () => {
-    const survey = parse();
-    const answers = emptyAnswers(survey);
-    answers.anonymous = true;
-    answers.choices.role = "dev";
-    answers.contact.contact = { email: "ana@example.com" };
-    answers.consent.consent = true;
-
-    expect(responseData(survey, answers, {}, { update: true })).toEqual({
-      role: "Developer",
-      contact: ["", "", "", "", ""],
-      consent: "",
-    });
-  });
-
   it("sends the typed text for other, and leaves unanswered questions out", () => {
     const survey = parse();
     const answers = emptyAnswers(survey);

@@ -2,14 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { delay, http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import {
-  choiceElement,
-  mockSurveyPayload,
-  surveyEnvironment,
-} from "@/tests/onboardingSurvey";
+import { mockSurveyPayload, surveyEnvironment } from "@/tests/onboardingSurvey";
 import Setup from "../Setup";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -163,7 +159,7 @@ describe("Setup", () => {
       await waitFor(() =>
         expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
           replace: true,
-          state: { firstRun: { fromSetup: true, survey: false } },
+          state: { firstRun: { fromSetup: true } },
         }),
       );
       expect(mockLoginWithToken).toHaveBeenCalledWith("jwt-token");
@@ -257,212 +253,19 @@ describe("Setup", () => {
     });
   });
 
-  describe("onboarding survey (when onboardingUrl is set)", () => {
+  it("opens on the account step even when a survey is configured", async () => {
     const surveyApi = "https://forms.example.test/api/v1/client/ws1";
-    let sent: { method: string; url: string; body: unknown }[];
-
-    const survey = mockSurveyPayload({
-      hiddenFields: { enabled: true, fieldIds: ["instance_domain"] },
-      elements: [
-        choiceElement("role", "What is your role?", [
-          ["dev", "Developer"],
-          ["ops", "Operator"],
-        ]),
-      ],
+    mockGetConfig.mockReturnValue({
+      ...defaultConfig,
+      onboardingUrl: surveyApi,
     });
-
-    function serveSurvey(environment: () => Response | Promise<Response>) {
-      server.use(
-        http.get(`${surveyApi}/environment`, environment),
-        http.post(`${surveyApi}/responses`, async ({ request }) => {
-          sent.push({
-            method: "POST",
-            url: request.url,
-            body: await request.json(),
-          });
-          return HttpResponse.json({ data: { id: "response-1" } });
-        }),
-        http.put(`${surveyApi}/responses/:id`, async ({ request }) => {
-          sent.push({
-            method: "PUT",
-            url: request.url,
-            body: await request.json(),
-          });
-          return HttpResponse.json({ data: {} });
-        }),
-      );
-    }
-
-    beforeEach(() => {
-      sent = [];
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        onboardingUrl: surveyApi,
-      });
-      serveSurvey(() => HttpResponse.json(surveyEnvironment(survey)));
-    });
-
-    async function answerAndContinue(
-      user: ReturnType<typeof userEvent.setup>,
-      choice: RegExp,
-    ) {
-      await user.click(await screen.findByRole("radio", { name: choice }));
-      await user.click(screen.getByRole("button", { name: /^continue$/i }));
-      await screen.findByLabelText(/^name$/i);
-    }
-
-    it("starts on the survey, rendered from the Formbricks workspace", async () => {
-      renderSetup();
-
-      expect(
-        await screen.findByRole("radiogroup", { name: /what is your role/i }),
-      ).toBeInTheDocument();
-      expect(screen.queryByLabelText(/^name$/i)).not.toBeInTheDocument();
-    });
-
-    it("holds the user on the survey until a required question is answered", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await user.click(
-        await screen.findByRole("button", { name: /^continue$/i }),
-      );
-
-      expect(await screen.findByText(/pick one/i)).toBeInTheDocument();
-      expect(sent).toEqual([]);
-    });
-
-    it("sends the answers with the instance domain, then moves to the account step", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await answerAndContinue(user, /developer/i);
-
-      expect(sent).toEqual([
-        {
-          method: "POST",
-          url: `${surveyApi}/responses`,
-          body: {
-            surveyId: "survey-1",
-            finished: true,
-            data: {
-              role: "Developer",
-              instance_domain: window.location.hostname,
-            },
-          },
-        },
-      ]);
-    });
-
-    it("updates the response already sent when the user goes back and changes an answer", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await answerAndContinue(user, /developer/i);
-      await user.click(screen.getByRole("button", { name: /back/i }));
-
-      expect(
-        await screen.findByRole("radio", { name: /developer/i }),
-      ).toBeChecked();
-
-      await answerAndContinue(user, /operator/i);
-
-      expect(sent.map((s) => [s.method, s.url])).toEqual([
-        ["POST", `${surveyApi}/responses`],
-        ["PUT", `${surveyApi}/responses/response-1`],
-      ]);
-      expect(sent[1].body).toEqual({
-        finished: true,
-        data: { role: "Operator", instance_domain: window.location.hostname },
-      });
-    });
-
-    it("tells the dashboard the survey is behind the user", async () => {
-      const user = userEvent.setup();
-      renderSetup();
-
-      await answerAndContinue(user, /developer/i);
-      await fillValidForm(user);
-      await user.click(
-        screen.getByRole("button", { name: /create and continue/i }),
-      );
-
-      await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
-          replace: true,
-          state: { firstRun: { fromSetup: true, survey: true } },
-        }),
-      );
-    });
-
-    it("offers to skip when the answers cannot be sent", async () => {
-      server.use(
-        http.post(`${surveyApi}/responses`, () =>
-          HttpResponse.json({}, { status: 500 }),
-        ),
-      );
-      const user = userEvent.setup();
-      renderSetup();
-
-      await user.click(
-        await screen.findByRole("radio", { name: /developer/i }),
-      );
-      await user.click(screen.getByRole("button", { name: /^continue$/i }));
-
-      expect(
-        await screen.findByText(/your answers could not be sent/i),
-      ).toBeInTheDocument();
-
-      await user.click(screen.getByRole("button", { name: /skip survey/i }));
-
-      expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
-    });
-
-    it("reads the survey from a URL configured with a trailing slash", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        onboardingUrl: `${surveyApi}/`,
-      });
-      renderSetup();
-
-      expect(
-        await screen.findByRole("radiogroup", { name: /what is your role/i }),
-      ).toBeInTheDocument();
-    });
-
-    it("goes straight to the account step when the workspace never answers", async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
-      try {
-        serveSurvey(() => delay("infinite").then(() => HttpResponse.json({})));
-        renderSetup();
-        expect(screen.getByText(/loading survey/i)).toBeInTheDocument();
-
-        await vi.advanceTimersByTimeAsync(5000);
-
-        expect(await screen.findByLabelText(/^name$/i)).toBeInTheDocument();
-      } finally {
-        vi.useRealTimers();
-      }
-    });
-
-    it.each([
-      [
-        "the workspace cannot be reached",
-        () => HttpResponse.json({}, { status: 503 }),
-      ],
-      [
-        "the workspace has no onboarding survey",
-        () => HttpResponse.json(surveyEnvironment()),
-      ],
-    ])(
-      "goes straight to the account step when %s",
-      async (_case, environment) => {
-        serveSurvey(environment);
-        renderSetup();
-
-        expect(await screen.findByLabelText(/^name$/i)).toBeInTheDocument();
-        expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
-      },
+    server.use(
+      http.get(`${surveyApi}/environment`, () =>
+        HttpResponse.json(surveyEnvironment(mockSurveyPayload())),
+      ),
     );
+    renderSetup();
+
+    expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
   });
 });

@@ -9,6 +9,7 @@ import {
   authMfa,
   mfaRecover,
   confirmAccount as confirmAccountSdk,
+  type UserOnboardingSurvey,
   type UserOrigin,
 } from "../client";
 import { queryClient } from "../api/queryClient";
@@ -42,6 +43,8 @@ interface AuthState {
   mfaEnabled: boolean;
   mfaToken: string | null;
   mfaRecoveryExpiry: number | null;
+  onboardingSurvey: UserOnboardingSurvey | null;
+  impersonated: boolean;
   signOutHandedOver: boolean;
   login: (username: string, password: string) => Promise<void>;
   loginWithToken: (token: string) => Promise<void>;
@@ -68,6 +71,7 @@ interface AuthState {
   recoverWithCode: (code: string, identifier?: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
+  setOnboardingSurvey: (outcome: UserOnboardingSurvey) => void;
   isFromAbandonedSession: (sentToken: string | null) => boolean;
 }
 
@@ -88,6 +92,8 @@ const initialState = {
   mfaEnabled: false,
   mfaToken: null,
   mfaRecoveryExpiry: null,
+  onboardingSurvey: null,
+  impersonated: false,
   signOutHandedOver: false,
 };
 
@@ -142,14 +148,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await getUserInfo({ throwOnError: true });
           set({
-            user: data.user,
-            userId: data.id,
-            email: data.email,
+            ...signedInSession(data),
+            token,
             origin: data.origin ?? null,
-            tenant: data.tenant,
-            name: data.name,
-            isAdmin: data.admin ?? false,
-            mfaEnabled: data.mfa || false,
             loading: false,
           });
         } catch {
@@ -300,6 +301,10 @@ export const useAuthStore = create<AuthState>()(
         set({ mfaToken: token });
       },
 
+      setOnboardingSurvey: (outcome) => {
+        set({ onboardingSurvey: outcome });
+      },
+
       isFromAbandonedSession: (sentToken: string | null) => {
         const { token, signOutHandedOver } = get();
         if (signOutHandedOver) return true;
@@ -321,6 +326,8 @@ export const useAuthStore = create<AuthState>()(
         isAdmin: state.isAdmin,
         name: state.name,
         mfaEnabled: state.mfaEnabled,
+        onboardingSurvey: state.onboardingSurvey,
+        impersonated: state.impersonated,
       }),
     },
   ),

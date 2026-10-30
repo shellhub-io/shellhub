@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { mockUserAuth } from "@/tests/factories";
 import { useSignUpStore } from "../signUpStore";
 
 beforeEach(() => {
   useSignUpStore.setState({
-    signUpToken: null,
-    signUpTenant: null,
+    signUpAuth: null,
     signUpLoading: false,
     signUpError: null,
     signUpServerFields: {},
@@ -56,28 +56,29 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpLoading).toBe(false);
     });
 
-    it("stores token and tenant on success and returns token", async () => {
+    it("keeps the sign-up response on success and returns its token", async () => {
+      const registered = mockUserAuth({
+        token: "jwt-token",
+        tenant: "tenant-abc",
+        onboarding_survey: "pending",
+      });
       server.use(
-        http.post("*/api/register", () =>
-          HttpResponse.json({ token: "jwt-token", tenant: "tenant-abc" }),
-        ),
+        http.post("*/api/register", () => HttpResponse.json(registered)),
       );
 
       const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBe("jwt-token");
-      expect(useSignUpStore.getState().signUpToken).toBe("jwt-token");
-      expect(useSignUpStore.getState().signUpTenant).toBe("tenant-abc");
+      expect(useSignUpStore.getState().signUpAuth).toEqual(registered);
     });
 
-    it("returns null and stores null token when response has no token (normal flow)", async () => {
+    it("returns null and keeps no response when it has no token (normal flow)", async () => {
       server.use(http.post("*/api/register", () => HttpResponse.json({})));
 
       const result = await useSignUpStore.getState().signUp(payload);
 
       expect(result).toBeNull();
-      expect(useSignUpStore.getState().signUpToken).toBeNull();
-      expect(useSignUpStore.getState().signUpTenant).toBeNull();
+      expect(useSignUpStore.getState().signUpAuth).toBeNull();
     });
 
     it("sets signUpServerFields on a 400 carrying per-field detail and returns null", async () => {
@@ -155,17 +156,15 @@ describe("signUpStore", () => {
       expect(useSignUpStore.getState().signUpServerFields).toEqual({});
     });
 
-    it("clears stale token and tenant at the start of a new attempt", async () => {
+    it("clears the stale sign-up response at the start of a new attempt", async () => {
       useSignUpStore.setState({
-        signUpToken: "old-token",
-        signUpTenant: "old-tenant",
+        signUpAuth: mockUserAuth({ token: "old-token", tenant: "old-tenant" }),
       });
       server.use(http.post("*/api/register", () => HttpResponse.error()));
 
       await useSignUpStore.getState().signUp(payload);
 
-      expect(useSignUpStore.getState().signUpToken).toBeNull();
-      expect(useSignUpStore.getState().signUpTenant).toBeNull();
+      expect(useSignUpStore.getState().signUpAuth).toBeNull();
     });
   });
 

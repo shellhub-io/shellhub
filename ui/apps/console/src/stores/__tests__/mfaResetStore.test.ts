@@ -138,6 +138,18 @@ describe("mfaResetStore", () => {
       expect(auth.mfaEnabled).toBe(false);
     });
 
+    it("carries the onboarding survey outcome into the session", async () => {
+      server.use(
+        http.put("*/api/user/mfa/reset/:userId", () =>
+          HttpResponse.json(mockUserAuth({ onboarding_survey: "pending" })),
+        ),
+      );
+
+      await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
+
+      expect(useAuthStore.getState().onboardingSurvey).toBe("pending");
+    });
+
     it("clears mfaResetToken and mfaResetIdentifier on success", async () => {
       useMfaResetStore.setState({
         mfaResetToken: "user-123",

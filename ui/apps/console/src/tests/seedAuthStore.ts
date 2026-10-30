@@ -20,6 +20,8 @@ type AuthData = Pick<
   | "tenant"
   | "role"
   | "isAdmin"
+  | "onboardingSurvey"
+  | "impersonated"
 >;
 
 /**
@@ -42,6 +44,8 @@ export function seedAuthStore(overrides: Partial<AuthData> = {}) {
     tenant: auth.tenant,
     role: auth.role,
     isAdmin: auth.admin,
+    onboardingSurvey: auth.onboarding_survey,
+    impersonated: auth.impersonated,
     ...overrides,
   });
 }

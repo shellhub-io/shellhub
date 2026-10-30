@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentProps } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CpuChipIcon,
@@ -45,8 +45,6 @@ import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
-import { useOnboardingSurveyStep } from "@/hooks/useOnboardingSurvey";
-import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
 import {
   NAMESPACE_NAME_MIN_LENGTH,
   suggestNamespaceName,
@@ -71,7 +69,6 @@ type Branch =
       tenantId: string;
       namespace: string;
       teamDevice: boolean;
-      firstNamespace: boolean;
     };
 
 /**
@@ -80,10 +77,7 @@ type Branch =
  * shows the code with a sign-in form, plus a way to create an account on Cloud, and carries on in
  * place once there is a session. A pairing code for a user with no namespace offers one step that
  * creates a namespace, named after the username, and accepts the device into it; if the accept then
- * fails, the new namespace stays selected with the regular Accept. On the page, on Cloud, the
- * screen after that first accept asks the onboarding survey one question at a time, unless this
- * browser already sent a response, and offers the way into the device only once the survey is
- * answered or skipped.
+ * fails, the new namespace stays selected with the regular Accept.
  */
 export default function AcceptDeviceFlow({
   initialCode = "",
@@ -112,7 +106,6 @@ export default function AcceptDeviceFlow({
   const [actionBranch, setActionBranch] = useState<Branch | null>(null);
   const [actionError, setActionError] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
-  const [createdTenant, setCreatedTenant] = useState("");
   const [pairingInFirstNamespace, setPairingInFirstNamespace] =
     useState<DevicePreview | null>(null);
   const { namespace: targetNamespace } = useNamespace(
@@ -186,11 +179,7 @@ export default function AcceptDeviceFlow({
     }
   };
 
-  const acceptPairingInto = async (
-    device: DevicePreview,
-    tenantId: string,
-    intoFirstNamespace = false,
-  ) => {
+  const acceptPairingInto = async (device: DevicePreview, tenantId: string) => {
     setActionError("");
     try {
       const data = await acceptPairing.mutateAsync({
@@ -204,7 +193,6 @@ export default function AcceptDeviceFlow({
         tenantId: data.tenant_id ?? "",
         namespace: data.namespace ?? "",
         teamDevice: !data.owner_id,
-        firstNamespace: intoFirstNamespace,
       });
     } catch (err) {
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
@@ -212,13 +200,7 @@ export default function AcceptDeviceFlow({
   };
 
   const handleAcceptPairing = (device: DevicePreview) =>
-    selectedTenant
-      ? acceptPairingInto(
-          device,
-          selectedTenant,
-          selectedTenant === createdTenant,
-        )
-      : undefined;
+    selectedTenant ? acceptPairingInto(device, selectedTenant) : undefined;
 
   const handleCreateAndAccept = async (device: DevicePreview, name: string) => {
     setPairingInFirstNamespace(device);
@@ -233,8 +215,7 @@ export default function AcceptDeviceFlow({
       throw err;
     }
     setSelectedTenant(tenantId);
-    setCreatedTenant(tenantId);
-    await acceptPairingInto(device, tenantId, true);
+    await acceptPairingInto(device, tenantId);
   };
 
   const dashboardExit: AuthLink[] = inDialog
@@ -265,14 +246,12 @@ export default function AcceptDeviceFlow({
     note,
     onViewDevice,
     viewing = false,
-    askSurvey = false,
   }: {
     device: DevicePreview;
     namespace?: string;
     note?: string;
     onViewDevice?: () => void;
     viewing?: boolean;
-    askSurvey?: boolean;
   }) =>
     inDialog ? (
       <ResultMessage
@@ -310,8 +289,7 @@ export default function AcceptDeviceFlow({
         }
       />
     ) : (
-      <AcceptedWithSurvey
-        askSurvey={askSurvey && isCloud()}
+      <DeviceAccepted
         device={device}
         namespace={namespace}
         note={note}
@@ -616,45 +594,11 @@ export default function AcceptDeviceFlow({
             ? "It took the place of a team device with the same MAC address, so it stays the team's rather than being tied to you."
             : undefined,
           viewing: switchNamespace.isPending,
-          askSurvey: branch.firstNamespace,
           onViewDevice: branch.uid
             ? () => viewPairedDevice(branch.uid, branch.tenantId)
             : undefined,
         })}
     </>
-  );
-}
-
-function AcceptedWithSurvey({
-  askSurvey,
-  onViewDevice,
-  ...accepted
-}: ComponentProps<typeof DeviceAccepted> & { askSurvey: boolean }) {
-  const userId = useAuthStore((s) => s.userId);
-  const name = useAuthStore((s) => s.name);
-  const email = useAuthStore((s) => s.email);
-  const survey = useOnboardingSurveyStep({ enabled: askSurvey, userId });
-  const [answered, setAnswered] = useState(false);
-  const asking = survey.visible && !survey.responseId && !answered;
-
-  return (
-    <DeviceAccepted
-      {...accepted}
-      onViewDevice={asking ? undefined : onViewDevice}
-    >
-      {asking && (
-        <OnboardingStep
-          {...survey.stepProps}
-          known={{ name, email }}
-          finishLabel="Finish"
-          onDone={(answers, responseId) => {
-            survey.record(answers, responseId);
-            setAnswered(true);
-          }}
-          onSkip={() => setAnswered(true)}
-        />
-      )}
-    </DeviceAccepted>
   );
 }
 

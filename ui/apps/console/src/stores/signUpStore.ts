@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { apiErrorFields, apiErrorMessage, isSdkError } from "../api/errors";
-import { registerUser, resendEmail as resendEmailSdk } from "../client";
+import {
+  registerUser,
+  resendEmail as resendEmailSdk,
+  type UserAuth,
+} from "../client";
 
 interface SignUpPayload {
   name: string;
@@ -19,8 +23,7 @@ interface SignUpPayload {
 export type ResendOutcome = "sent" | "throttled" | "failed";
 
 interface SignUpState {
-  signUpToken: string | null;
-  signUpTenant: string | null;
+  signUpAuth: UserAuth | null;
   signUpLoading: boolean;
   signUpError: string | null;
   signUpServerFields: Record<string, string>;
@@ -40,8 +43,7 @@ interface SignUpState {
  * errors from the server are kept apart from the general one, so each lands on its own input.
  */
 export const useSignUpStore = create<SignUpState>()((set) => ({
-  signUpToken: null,
-  signUpTenant: null,
+  signUpAuth: null,
   signUpLoading: false,
   signUpError: null,
   signUpServerFields: {},
@@ -54,19 +56,17 @@ export const useSignUpStore = create<SignUpState>()((set) => ({
       signUpLoading: true,
       signUpError: null,
       signUpServerFields: {},
-      signUpToken: null,
-      signUpTenant: null,
+      signUpAuth: null,
     });
     try {
       const { data } = await registerUser({
         body: payload,
         throwOnError: true,
       });
-      const response = (data ?? {}) as { token?: string; tenant?: string };
+      const response = (data ?? {}) as Partial<UserAuth>;
       set({
         signUpLoading: false,
-        signUpToken: response.token ?? null,
-        signUpTenant: response.tenant ?? null,
+        signUpAuth: response.token ? (response as UserAuth) : null,
       });
       return response.token ?? null;
     } catch (error: unknown) {

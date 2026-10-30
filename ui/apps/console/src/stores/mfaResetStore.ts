@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { requestResetMfa, resetMfa } from "../client";
 import { useAuthStore } from "./authStore";
+import { signedInSession } from "./authSession";
 
 interface MfaResetState {
   mfaResetToken: string | null;
@@ -71,16 +72,7 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
         throwOnError: true,
       });
 
-      useAuthStore.setState({
-        token: data.token,
-        user: data.user,
-        userId: data.id,
-        email: data.email,
-        tenant: data.tenant,
-        name: data.name,
-        isAdmin: data.admin ?? false,
-        mfaEnabled: data.mfa ?? false,
-      });
+      useAuthStore.setState(signedInSession(data));
       set({ mfaResetToken: null, mfaResetIdentifier: null, loading: false });
     } catch {
       set({

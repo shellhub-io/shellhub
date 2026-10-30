@@ -2,9 +2,9 @@ import type { FieldPath } from "react-hook-form";
 import { z } from "zod";
 
 /**
- * The Formbricks action that marks a survey as the one setup shows. The survey to show is picked
- * by this trigger in the Formbricks dashboard, not by an id in each instance's config, so moving
- * the trigger to another survey reaches instances already installed.
+ * The Formbricks action that marks a survey as the one the console asks on sign-in. The survey to
+ * show is picked by this trigger in the Formbricks dashboard, not by an id in each instance's
+ * config, so moving the trigger to another survey reaches instances already installed.
  */
 export const ONBOARDING_TRIGGER = "shellhub-setup-onboarding";
 
@@ -43,8 +43,8 @@ export type SurveyQuestion =
   | (QuestionBase & { kind: "consent"; label: string });
 
 /**
- * A survey reduced to what setup can render. Only built when every question is of a kind setup
- * knows and no question carries branching logic.
+ * A survey reduced to what the console can render. Only built when every question is of a kind
+ * the console knows and no question carries branching logic.
  */
 export interface OnboardingSurvey {
   id: string;
@@ -211,8 +211,8 @@ function toQuestion(
 /**
  * Picks the survey carrying the onboarding trigger out of a Formbricks client environment
  * payload. Returns null when there is none, when it is not running, or when it uses a question
- * type or branching that setup does not render, so setup skips the survey rather than showing
- * part of it.
+ * type or branching the console does not render, so the onboarding gate skips the survey rather
+ * than showing part of it.
  */
 export function findOnboardingSurvey(
   payload: unknown,
@@ -341,30 +341,20 @@ export function isOtherChoice(choice: SurveyChoice): boolean {
  * declares. Contact details are sent whether or not consent is given: consent decides whether we
  * may reach out, not whether we keep what was typed. An anonymous answer withholds both.
  *
- * A new response leaves out what was not answered or withheld. An update (`update: true`) sends
- * every question, blank where there is nothing to send, because Formbricks merges an update into
- * the stored data: a key left out would keep the earlier pass's value, so ticking "anonymous" on a
- * second pass would not take back the contact details sent on the first.
+ * A question that was not answered or withheld is left out.
  */
 export function responseData(
   survey: OnboardingSurvey,
   answers: SurveyAnswers,
   hidden: Record<string, string>,
-  { update = false }: { update?: boolean } = {},
 ): Record<string, string | string[]> {
   const data: Record<string, string | string[]> = {};
-  const blank = (id: string, value: string | string[]) => {
-    if (update) data[id] = value;
-  };
 
   for (const q of survey.questions) {
     switch (q.kind) {
       case "choice": {
         const choice = q.choices.find((c) => c.id === answers.choices[q.id]);
-        if (!choice) {
-          blank(q.id, "");
-          break;
-        }
+        if (!choice) break;
         data[q.id] = isOtherChoice(choice)
           ? answers.other[q.id]?.trim() || choice.label
           : choice.label;
@@ -374,14 +364,11 @@ export function responseData(
         const values = answers.anonymous ? {} : (answers.contact[q.id] ?? {});
         const row = CONTACT_FIELDS.map((name) => values[name]?.trim() ?? "");
         if (row.some((v) => v !== "")) data[q.id] = row;
-        else blank(q.id, row);
         break;
       }
       case "consent":
         if (!answers.anonymous && answers.consent[q.id]) {
           data[q.id] = "accepted";
-        } else {
-          blank(q.id, "");
         }
         break;
       default:

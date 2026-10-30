@@ -80,8 +80,7 @@ beforeEach(() => {
     signUpLoading: false,
     signUpError: null,
     signUpServerFields: {},
-    signUpToken: null,
-    signUpTenant: null,
+    signUpAuth: null,
   });
   server.use(
     http.post("*/api/register", () => new HttpResponse(null, { status: 204 })),

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
+import { signedInSession } from "../stores/authSession";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
@@ -41,15 +42,7 @@ export default function MfaResetComplete() {
         throwOnError: true,
       });
 
-      useAuthStore.setState({
-        token: data.token,
-        user: data.user,
-        userId: data.id,
-        email: data.email,
-        tenant: data.tenant,
-        name: data.name,
-        mfaEnabled: data.mfa || false,
-      });
+      useAuthStore.setState(signedInSession(data));
       void navigate(landingAfterSignIn("/dashboard"));
     } catch {
       setError("Invalid verification codes. Please check and try again.");

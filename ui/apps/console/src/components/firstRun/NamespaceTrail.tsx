@@ -1,52 +1,30 @@
 import { Button } from "@shellhub/design-system/primitives";
-import { isCloud, isCommunity } from "@/env";
+import { isCommunity } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserInfo } from "@/hooks/useUserRequests";
 import { canCreateNamespace } from "@/utils/namespaceCreation";
-import { useSurveyBeforeNamespace } from "@/hooks/useOnboardingSurvey";
 import {
   CommunityInstructions,
   NamespaceCreateForm,
 } from "@/components/common/CreateNamespace";
 import FirstRunLayout from "./FirstRunLayout";
 import { Trail, TrailStep, UpcomingDeviceSteps } from "./Trail";
-import { SETUP_STEP_TITLES } from "./stepTitles";
 import AskAdministrator from "./AskAdministrator";
-import OnboardingStep from "./survey/OnboardingStep";
-import BackToSurveyButton from "./survey/BackToSurveyButton";
 
 function CreateNamespaceTrail({ eyebrow }: { eyebrow: string }) {
-  const survey = useSurveyBeforeNamespace(isCloud());
-  const namespaceStep = survey.visible ? 2 : 1;
-
   return (
     <FirstRunLayout eyebrow={eyebrow} signedIn inConsole={false}>
       <Trail>
-        {survey.visible && (
-          <TrailStep
-            number={1}
-            title={SETUP_STEP_TITLES.survey}
-            state={survey.active ? "active" : "done"}
-            summary={survey.responseId ? "Thanks" : "Skipped"}
-          >
-            <OnboardingStep {...survey.stepProps} />
-          </TrailStep>
-        )}
-        <TrailStep
-          number={namespaceStep}
-          title="Create a namespace"
-          state={survey.active ? "upcoming" : "active"}
-        >
+        <TrailStep number={1} title="Create a namespace" state="active">
           <div className="space-y-3">
             <p className="text-xs text-text-secondary">
               A namespace holds your devices and the people who can reach them.
               Its name shows up in every SSH address, so keep it short.
             </p>
             <NamespaceCreateForm />
-            {survey.visible && <BackToSurveyButton onClick={survey.back} />}
           </div>
         </TrailStep>
-        <UpcomingDeviceSteps start={namespaceStep + 1} />
+        <UpcomingDeviceSteps start={2} />
       </Trail>
     </FirstRunLayout>
   );
