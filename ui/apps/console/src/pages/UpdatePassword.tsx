@@ -1,10 +1,10 @@
 import { useState, FormEvent } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { updateRecoverPassword } from "@/client";
-import { updatePasswordResolver } from "./setup/updatePasswordResolver";
-import type { UpdatePasswordFormValues } from "./setup/updatePasswordResolver";
+import { updatePasswordSchema, type UpdatePasswordFormValues } from "./setup/schemas";
 import { FormPasswordField } from "@/components/common/fields/rhf";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
@@ -24,7 +24,7 @@ export default function UpdatePassword() {
 
   const { control, handleSubmit, formState } =
     useForm<UpdatePasswordFormValues>({
-      resolver: updatePasswordResolver,
+      resolver: zodResolver(updatePasswordSchema),
       mode: "onTouched",
       defaultValues: { password: "", confirmPassword: "" },
     });
