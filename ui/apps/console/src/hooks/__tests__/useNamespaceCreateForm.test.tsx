@@ -6,11 +6,16 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
+import {
+  getPendingDeviceCode,
+  setPendingDeviceCode,
+} from "@/utils/navigation";
 
 const createSpy = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
   server.use(
     http.post("*/api/namespaces", async ({ request }) => {
       createSpy(await request.json());
@@ -22,8 +27,10 @@ beforeEach(() => {
   );
 });
 
-function Harness({ onCreated }: { onCreated?: () => void }) {
-  const form = useNamespaceCreateForm({ onCreated });
+type FormOptions = Parameters<typeof useNamespaceCreateForm>[0];
+
+function Harness({ options }: { options?: FormOptions }) {
+  const form = useNamespaceCreateForm(options);
 
   return (
     <form onSubmit={(e) => void form.submit(e)}>
@@ -38,8 +45,8 @@ function Harness({ onCreated }: { onCreated?: () => void }) {
   );
 }
 
-function renderForm(onCreated?: () => void) {
-  render(<Harness onCreated={onCreated} />, {
+function renderForm(options?: FormOptions) {
+  render(<Harness options={options} />, {
     wrapper: createTestWrapper({ initialEntries: ["/"] }),
   });
   return {
@@ -109,7 +116,7 @@ describe("useNamespaceCreateForm", () => {
   it("sends the typed name and runs onCreated once the namespace exists", async () => {
     const onCreated = vi.fn();
     const user = userEvent.setup();
-    const form = renderForm(onCreated);
+    const form = renderForm({ onCreated });
 
     await user.type(form.nameInput(), "my-ns");
     await user.click(form.create());
@@ -117,5 +124,45 @@ describe("useNamespaceCreateForm", () => {
     await waitFor(() => expect(onCreated).toHaveBeenCalledOnce());
     expect(createSpy).toHaveBeenCalledWith({ name: "my-ns" });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("starts from the initial name and hands it to the given create step", async () => {
+    const create = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const form = renderForm({ initialName: "my-ns", create });
+
+    expect(form.nameInput()).toHaveValue("my-ns");
+    await user.click(form.create());
+
+    await waitFor(() => expect(create).toHaveBeenCalledWith("my-ns"));
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("reports a rejection from the given create step on the field", async () => {
+    const create = vi
+      .fn()
+      .mockRejectedValue({ status: 409, message: "conflict" });
+    const user = userEvent.setup();
+    const form = renderForm({ initialName: "my-ns", create });
+
+    await user.click(form.create());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "A namespace with this name already exists.",
+    );
+  });
+
+  it("keeps a pending device code when the new namespace cannot be entered", async () => {
+    setPendingDeviceCode("ABCD1234");
+    server.use(
+      http.get("*/api/auth/token/:tenant", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+
+    await submitName("my-ns");
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(getPendingDeviceCode()).toBe("ABCD1234");
   });
 });
