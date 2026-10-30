@@ -1,8 +1,8 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { signUpResolver } from "./setup/signUpResolver";
-import type { SignUpFormValues } from "./setup/signUpResolver";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signUpSchema, type SignUpFormValues } from "./setup/schemas";
 import { useSignUpStore } from "../stores/signUpStore";
 import AccountCreated from "../components/auth/AccountCreated";
 import { Button, Callout } from "@shellhub/design-system/primitives";
@@ -58,7 +58,7 @@ export default function SignUp() {
 
   const { control, handleSubmit, setError, formState } =
     useForm<SignUpFormValues>({
-      resolver: signUpResolver,
+      resolver: zodResolver(signUpSchema),
       mode: "onTouched",
       defaultValues: {
         name: "",

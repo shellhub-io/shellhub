@@ -1,6 +1,7 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
 import { recoveryDisableMfa } from "@/client";
@@ -9,8 +10,7 @@ import { landingAfterSignIn } from "@/utils/navigation";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import { FormInputField } from "@/components/common/fields/rhf";
-import { mfaRecoverResolver } from "./setup/mfaRecoverResolver";
-import type { MfaRecoverFormValues } from "./setup/mfaRecoverResolver";
+import { mfaRecoverSchema, type MfaRecoverFormValues } from "./setup/schemas";
 
 /**
  * Signing in with a recovery code, for someone without their authenticator. Each code works
@@ -34,7 +34,7 @@ export default function MfaRecover() {
 
   const { control, handleSubmit, reset, resetField, formState } =
     useForm<MfaRecoverFormValues>({
-      resolver: mfaRecoverResolver,
+      resolver: zodResolver(mfaRecoverSchema),
       mode: "onTouched",
       defaultValues: { recoveryCode: "" },
     });
