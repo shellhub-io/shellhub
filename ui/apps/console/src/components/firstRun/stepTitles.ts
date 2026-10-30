@@ -3,7 +3,6 @@
  * to.
  */
 export const SETUP_STEP_TITLES = {
-  survey: "Tell us about you",
   account: "Create your account and namespace",
 } as const;
 

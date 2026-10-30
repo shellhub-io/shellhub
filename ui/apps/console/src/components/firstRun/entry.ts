@@ -4,16 +4,13 @@
  */
 export interface FirstRunEntry {
   fromSetup: true;
-  survey: boolean;
 }
 
 /**
  * The route state setup navigates with, handing the entry over to the dashboard.
  */
-export function firstRunEntryState(survey: boolean): {
-  firstRun: FirstRunEntry;
-} {
-  return { firstRun: { fromSetup: true, survey } };
+export function firstRunEntryState(): { firstRun: FirstRunEntry } {
+  return { firstRun: { fromSetup: true } };
 }
 
 /**
@@ -23,7 +20,6 @@ export function readFirstRunEntry(state: unknown): FirstRunEntry | null {
   if (typeof state !== "object" || state === null) return null;
   const entry = (state as { firstRun?: unknown }).firstRun;
   if (typeof entry !== "object" || entry === null) return null;
-  const { fromSetup, survey } = entry as Partial<FirstRunEntry>;
-  if (fromSetup !== true) return null;
-  return { fromSetup: true, survey: survey === true };
+  if ((entry as Partial<FirstRunEntry>).fromSetup !== true) return null;
+  return { fromSetup: true };
 }

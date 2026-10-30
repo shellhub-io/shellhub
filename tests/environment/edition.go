@@ -119,14 +119,15 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	}
 
 	envs := map[string]string{
-		"SHELLHUB_EDITION":       string(e),
-		"SHELLHUB_BUILD_EDITION": e.Build(),
-		"SHELLHUB_CLOUD_SRC":     cloudSrc,
-		"SHELLHUB_ENV":           "production",
-		"SHELLHUB_BIND_ADDRESS":  "127.0.0.1",
-		"SHELLHUB_LOG_LEVEL":     "trace",
-		"SHELLHUB_TELEMETRY":     "false",
-		testimage.MirrorEnv:      testimage.Mirror(),
+		"SHELLHUB_EDITION":        string(e),
+		"SHELLHUB_BUILD_EDITION":  e.Build(),
+		"SHELLHUB_CLOUD_SRC":      cloudSrc,
+		"SHELLHUB_ENV":            "production",
+		"SHELLHUB_BIND_ADDRESS":   "127.0.0.1",
+		"SHELLHUB_LOG_LEVEL":      "trace",
+		"SHELLHUB_TELEMETRY":      "false",
+		"SHELLHUB_ONBOARDING_URL": "",
+		testimage.MirrorEnv:       testimage.Mirror(),
 	}
 
 	if e != EditionCommunity {

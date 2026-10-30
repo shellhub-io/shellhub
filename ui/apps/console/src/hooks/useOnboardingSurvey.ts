@@ -1,13 +1,14 @@
-import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  recordOnboardingSurveyMutation,
+  type UserOnboardingSurvey,
+} from "@/client";
 import { getConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import {
   findOnboardingSurvey,
   type OnboardingSurvey,
-  type SurveyAnswers,
 } from "@/utils/onboardingSurvey";
-import { readSavedResponseId, saveResponseId } from "@/utils/savedSurvey";
 
 const REQUEST_TIMEOUT_MS = 5000;
 
@@ -34,24 +35,13 @@ async function fetchOnboardingSurvey(
 }
 
 /**
- * The survey step of a first-run trail, from the Formbricks workspace whose client API root is the
- * configured onboardingUrl. `visible` is true while the survey loads and once it has loaded; it
- * turns false, and the caller drops the step, when `enabled` is false, no URL is configured, the
- * workspace does not answer within a few seconds or answers with an error, or it has no survey the
- * console can render. Fetched once per page, since the choice order is shuffled at parse time.
- *
- * `record` takes the answers and response id a send resolved to. `stepProps` hands them back to
- * OnboardingStep, so stepping back to the survey shows the same answers and updates the same
- * response. Given a `userId`, the response id is also kept in this browser per user and survey,
- * and `responseId` starts from it on a later visit.
+ * The onboarding survey from the Formbricks workspace whose client API root is the configured
+ * onboardingUrl. `visible` is true while the survey loads and once it has loaded, with `survey`
+ * null until then; it turns false when `enabled` is false, no URL is configured, the workspace
+ * does not answer within a few seconds or answers with an error, or it has no survey the console
+ * can render. Fetched once per page, since the choice order is shuffled at parse time.
  */
-export function useOnboardingSurveyStep({
-  enabled,
-  userId = null,
-}: {
-  enabled: boolean;
-  userId?: string | null;
-}) {
+export function useOnboardingSurvey(enabled: boolean) {
   const root = enabled ? surveyApiRoot() : "";
   const query = useQuery({
     queryKey: ["onboarding-survey", root],
@@ -62,119 +52,57 @@ export function useOnboardingSurveyStep({
     refetchOnWindowFocus: false,
   });
   const survey = query.data ?? null;
-  const [sent, setSent] = useState<{
-    answers: SurveyAnswers;
-    responseId: string;
-  } | null>(null);
-  const responseId =
-    sent?.responseId ??
-    (survey ? readSavedResponseId(userId, survey.id) : null);
 
   return {
     visible: root !== "" && (query.isPending || survey !== null),
-    responseId,
-    stepProps: {
-      survey,
-      initialAnswers: sent?.answers ?? null,
-      responseId,
-    },
-    record: (answers: SurveyAnswers, id: string) => {
-      if (survey) saveResponseId(userId, survey.id, id);
-      setSent({ answers, responseId: id });
-    },
+    survey,
   };
 }
 
 /**
- * The survey that comes before creating the first namespace, for the signed-in user. It opens on
- * the survey, or on the namespace once this browser already sent a response for the user. `active`
- * says which one shows; `stepProps` are OnboardingStep's, prefilled with the account's name and
- * email, and answering or skipping moves on to the namespace; `back` returns to the survey.
- * `visible` follows useOnboardingSurveyStep: false drops the survey altogether.
+ * Records on the server whether the signed-in user answered or skipped the onboarding survey. The
+ * auth store takes the outcome as the call starts, so the console moves on at once; when the call
+ * fails, the error is logged, the server still holds pending and the next sign-in brings the
+ * survey back.
  */
-export function useSurveyBeforeNamespace(enabled: boolean) {
-  const userId = useAuthStore((s) => s.userId);
-  const name = useAuthStore((s) => s.name);
-  const email = useAuthStore((s) => s.email);
-  const surveyStep = useOnboardingSurveyStep({ enabled, userId });
-  const [surveyChosen, setSurveyChosen] = useState<boolean | null>(null);
+export function useRecordOnboardingSurvey() {
+  const setOnboardingSurvey = useAuthStore((s) => s.setOnboardingSurvey);
+  const mutation = useMutation({
+    ...recordOnboardingSurveyMutation(),
+    onError: (err) =>
+      console.error("onboarding survey: failed to record the outcome", err),
+  });
 
-  return {
-    visible: surveyStep.visible,
-    active: surveyStep.visible && (surveyChosen ?? !surveyStep.responseId),
-    responseId: surveyStep.responseId,
-    stepProps: {
-      ...surveyStep.stepProps,
-      known: { name, email },
-      onDone: (answers: SurveyAnswers, responseId: string) => {
-        surveyStep.record(answers, responseId);
-        setSurveyChosen(false);
-      },
-      onSkip: () => setSurveyChosen(false),
-    },
-    back: () => setSurveyChosen(true),
+  return (outcome: Exclude<UserOnboardingSurvey, "pending">) => {
+    setOnboardingSurvey(outcome);
+    mutation.mutate({ body: { outcome } });
   };
 }
 
 interface SubmitVariables {
   surveyId: string;
-  responseId: string | null;
   data: Record<string, string | string[]>;
 }
 
-function sendJson(url: string, method: "POST" | "PUT", body: unknown) {
-  return surveyFetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-}
-
-async function submitResponse({
-  surveyId,
-  responseId,
-  data,
-}: SubmitVariables): Promise<string> {
+async function submitResponse({ surveyId, data }: SubmitVariables) {
   if (import.meta.env.MODE === "development") {
     console.info("Onboarding survey response not sent in development", data);
-    return responseId ?? "development";
+    return;
   }
 
-  const root = surveyApiRoot();
-  if (responseId) {
-    const res = await sendJson(
-      `${root}/responses/${encodeURIComponent(responseId)}`,
-      "PUT",
-      { finished: true, data },
-    );
-    if (res.ok) return responseId;
-    if (res.status !== 404) {
-      throw new Error(`survey response: HTTP ${res.status}`);
-    }
-  }
-
-  const res = await sendJson(`${root}/responses`, "POST", {
-    surveyId,
-    finished: true,
-    data,
+  const res = await surveyFetch(`${surveyApiRoot()}/responses`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ surveyId, finished: true, data }),
   });
   if (!res.ok) throw new Error(`survey response: HTTP ${res.status}`);
-
-  const body = (await res.json()) as { data?: { id?: unknown } };
-  if (typeof body.data?.id !== "string") {
-    throw new Error("survey response: no id returned");
-  }
-  return body.data.id;
 }
 
 /**
- * Sends the onboarding answers to the configured Formbricks workspace and resolves to the
- * response id. The first send creates the response; passing the id it resolved to updates that
- * response instead, so a user who goes back and changes an answer leaves one response, not two.
- * An update whose response no longer exists, say deleted in the dashboard, creates a new one. A
+ * Sends the onboarding answers to the configured Formbricks workspace as one finished response. A
  * request that does not finish within a few seconds fails like any other. Under the Vite dev
- * server nothing is sent: the answers are logged and the call resolves as if it had been, so
- * local runs never land in the real survey.
+ * server nothing is sent: the answers are logged and the call resolves as if it had been, so local
+ * runs never land in the real survey.
  */
 export function useSubmitOnboardingSurvey() {
   return useMutation({ mutationFn: submitResponse });

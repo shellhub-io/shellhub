@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
+import { signedInSession } from "@/stores/authSession";
 import { useSignUpStore } from "@/stores/signUpStore";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthActions from "@/components/auth/AuthActions";
@@ -13,22 +14,20 @@ import ScreenIntro from "@/components/layout/ScreenIntro";
 export default function AccountCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const signUpToken = useSignUpStore((s) => s.signUpToken);
-  const signUpTenant = useSignUpStore((s) => s.signUpTenant);
-  const setSession = useAuthStore((s) => s.setSession);
+  const signUpAuth = useSignUpStore((s) => s.signUpAuth);
 
   const acceptInviteTarget = `/accept-invite${location.search}`;
 
   useEffect(() => {
-    if (!signUpToken || !signUpTenant) return;
+    if (!signUpAuth?.tenant) return;
 
-    setSession({ token: signUpToken, tenant: signUpTenant });
+    useAuthStore.setState(signedInSession(signUpAuth));
 
     const timer = setTimeout(() => {
       void navigate(acceptInviteTarget);
     }, 5000);
     return () => clearTimeout(timer);
-  }, [signUpToken, signUpTenant, setSession, navigate, acceptInviteTarget]);
+  }, [signUpAuth, navigate, acceptInviteTarget]);
 
   const handleRedirect = () => {
     void navigate(acceptInviteTarget);

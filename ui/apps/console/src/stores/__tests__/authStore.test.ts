@@ -183,9 +183,9 @@ describe("authStore", () => {
       useAuthStore.getState().logout();
       useAuthStore.setState({ token: "next-jwt" });
 
-      expect(
-        useAuthStore.getState().isFromAbandonedSession("next-jwt"),
-      ).toBe(false);
+      expect(useAuthStore.getState().isFromAbandonedSession("next-jwt")).toBe(
+        false,
+      );
     });
 
     it("closes the open recordings, whose output belongs to the user leaving", () => {
@@ -326,6 +326,19 @@ describe("authStore", () => {
       expect(useAuthStore.getState().origin).toBe("saml");
     });
 
+    it("leaves the onboarding survey to sign-in, so a session never starts it mid-visit", async () => {
+      useAuthStore.setState({ onboardingSurvey: null });
+      server.use(
+        http.get("*/api/auth/user", () =>
+          HttpResponse.json(mockUserAuth({ onboarding_survey: "pending" })),
+        ),
+      );
+
+      await useAuthStore.getState().fetchUser();
+
+      expect(useAuthStore.getState().onboardingSurvey).toBeNull();
+    });
+
     it("silently ignores errors (interceptor handles redirect)", async () => {
       vi.stubGlobal("location", { href: "", search: "" });
       server.use(
@@ -351,6 +364,27 @@ describe("authStore", () => {
       await useAuthStore.getState().loginWithToken(VALID_JWT);
 
       expect(useAuthStore.getState().origin).toBe("saml");
+    });
+
+    it("keeps the token it was given and takes the account from the response", async () => {
+      server.use(
+        http.get("*/api/auth/user", () =>
+          HttpResponse.json(
+            mockUserAuth({
+              token: "a-newly-minted-token",
+              onboarding_survey: "pending",
+            }),
+          ),
+        ),
+      );
+
+      await useAuthStore.getState().loginWithToken(VALID_JWT);
+
+      const state = useAuthStore.getState();
+      expect(state.token).toBe(VALID_JWT);
+      expect(state.userId).toBe("user-123");
+      expect(state.onboardingSurvey).toBe("pending");
+      expect(state.loading).toBe(false);
     });
   });
 

@@ -15,27 +15,21 @@ import {
 } from "@/utils/onboardingSurvey";
 import OnboardingSurveyFields from "./OnboardingSurveyFields";
 
-interface StepProps {
-  initialAnswers: SurveyAnswers | null;
+interface OnboardingSurveyFormProps {
   known?: KnownContact;
-  responseId: string | null;
-  onDone: (answers: SurveyAnswers, responseId: string) => void;
+  onDone: () => void;
   onSkip: () => void;
-  finishLabel?: string;
 }
 
 function SurveyForm({
   survey,
-  initialAnswers,
   known,
-  responseId,
   onDone,
   onSkip,
-  finishLabel = "Continue",
-}: StepProps & { survey: OnboardingSurvey }) {
+}: OnboardingSurveyFormProps & { survey: OnboardingSurvey }) {
   const { control, handleSubmit, trigger } = useForm<SurveyAnswers>({
     resolver: zodResolver(surveyAnswersSchema(survey)),
-    defaultValues: initialAnswers ?? emptyAnswers(survey, known),
+    defaultValues: emptyAnswers(survey, known),
   });
   const submit = useSubmitOnboardingSurvey();
   const anonymous = useWatch({ control, name: "anonymous" });
@@ -56,14 +50,8 @@ function SurveyForm({
       instance_domain: window.location.hostname,
     };
     submit.mutate(
-      {
-        surveyId: survey.id,
-        responseId,
-        data: responseData(survey, answers, hidden, {
-          update: responseId !== null,
-        }),
-      },
-      { onSuccess: (id) => onDone(answers, id) },
+      { surveyId: survey.id, data: responseData(survey, answers, hidden) },
+      { onSuccess: onDone },
     );
   };
 
@@ -109,11 +97,9 @@ function SurveyForm({
       )}
 
       <div className="flex items-center justify-end gap-3">
-        {(import.meta.env.DEV || submit.isError) && (
-          <Button variant="secondary" onClick={onSkip}>
-            Skip survey
-          </Button>
-        )}
+        <Button variant="secondary" onClick={onSkip}>
+          Skip survey
+        </Button>
         {current > 0 && (
           <Button variant="secondary" onClick={() => setStep(current - 1)}>
             Back
@@ -126,7 +112,7 @@ function SurveyForm({
             if (e.detail > 1) e.preventDefault();
           }}
         >
-          {last ? finishLabel : "Next"}
+          {last ? "Continue" : "Next"}
         </Button>
       </div>
     </form>
@@ -134,19 +120,17 @@ function SurveyForm({
 }
 
 /**
- * The survey step of a first-run trail: the questions one at a time, each checked before Next moves
- * on, Back to the one before, and on the last question a button labelled `finishLabel` ("Continue"
- * by default) that sends the answers before moving on. A double click on that button counts as one,
- * so it cannot step onto the last question and send it in one go. The consent question is left out
- * while the user answers anonymously. A null survey is still loading. It starts from
- * `initialAnswers` when the caller kept the last ones, so stepping back from the next step keeps
- * them, and otherwise from blanks with the contact fields filled from `known`. Given a
- * `responseId`, it updates that response rather than sending a second.
+ * The onboarding survey form: the questions one at a time, each checked before Next moves on, Back
+ * to the one before, and on the last question a Continue button that sends the answers and calls
+ * `onDone` once they are sent. A double click on Next counts as one, so it cannot step onto the
+ * last question and send it in one go. Skip survey, on every question, calls `onSkip` without
+ * sending anything. The consent question is left out while the user answers anonymously. It starts from blanks with the contact fields filled from `known`. A null survey is
+ * still loading.
  */
-export default function OnboardingStep({
+export default function OnboardingSurveyForm({
   survey,
   ...props
-}: StepProps & { survey: OnboardingSurvey | null }) {
+}: OnboardingSurveyFormProps & { survey: OnboardingSurvey | null }) {
   if (!survey) {
     return <p className="text-xs text-text-muted">Loading survey...</p>;
   }

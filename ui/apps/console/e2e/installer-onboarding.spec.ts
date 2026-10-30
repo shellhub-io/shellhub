@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { createDevicePairing, getDevicePairingStatus } from "@/client";
-import { mockSurveyPayload, surveyEnvironment } from "@/tests/onboardingSurvey";
 import { isCloud } from "./env";
 import { buildRequestContext, loginAs } from "./api";
 import { buildDeviceAuthRequest } from "./devices";
@@ -33,14 +32,6 @@ test.describe("onboarding from the installer", () => {
     expect(link.params.get("device")).toBe(code);
 
     const phone = await browser.newContext();
-    await phone.route("**/api/v1/client/*/environment", (route) =>
-      route.fulfill({ json: surveyEnvironment(mockSurveyPayload()) }),
-    );
-    let surveyResponses = 0;
-    await phone.route("**/api/v1/client/*/responses", (route) => {
-      surveyResponses += 1;
-      return route.fulfill({ json: { data: { id: "response-1" } } });
-    });
     const phonePage = await phone.newPage();
     await phonePage.goto(link.path);
 
@@ -57,23 +48,7 @@ test.describe("onboarding from the installer", () => {
       phonePage.getByRole("heading", { name: "Device accepted" }),
     ).toBeVisible();
 
-    await expect(phonePage.getByText("Question 1 of 3")).toBeVisible();
-    await expect(
-      phonePage.getByRole("button", { name: "Skip survey" }),
-    ).toBeHidden();
-    await expect(
-      phonePage.getByRole("button", { name: "View device" }),
-    ).toBeHidden();
-    await phonePage.getByRole("button", { name: "Next", exact: true }).click();
-    await phonePage.getByRole("radio", { name: "Developer" }).press("Space");
-    await phonePage.getByRole("button", { name: "Next", exact: true }).click();
-    await phonePage
-      .getByRole("button", { name: "Finish", exact: true })
-      .click();
-    const viewDevice = phonePage.getByRole("button", { name: "View device" });
-    await expect(viewDevice).toBeVisible();
-    expect(surveyResponses).toBe(1);
-    await viewDevice.click();
+    await phonePage.getByRole("button", { name: "View device" }).click();
     await expect(phonePage).toHaveURL(/\/devices\/[^/]+$/);
     await phone.close();
 

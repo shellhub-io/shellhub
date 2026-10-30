@@ -11,13 +11,12 @@ interface DeviceAcceptedProps {
   note?: ReactNode;
   onViewDevice?: () => void;
   viewing?: boolean;
-  children?: ReactNode;
 }
 
 /**
  * The screen after a device is accepted: the device, where it went, and the way into its page.
- * The agent connects on its own, so there is nothing to wait for here. `children` go under the
- * device; without `onViewDevice` there is no way into its page.
+ * The agent connects on its own, so there is nothing to wait for here. Without `onViewDevice`
+ * there is no way into its page.
  */
 export default function DeviceAccepted({
   device,
@@ -25,7 +24,6 @@ export default function DeviceAccepted({
   note,
   onViewDevice,
   viewing = false,
-  children,
 }: DeviceAcceptedProps) {
   return (
     <div className="space-y-5">
@@ -60,8 +58,6 @@ export default function DeviceAccepted({
           </span>
         }
       />
-
-      {children}
 
       {onViewDevice && (
         <AuthActions

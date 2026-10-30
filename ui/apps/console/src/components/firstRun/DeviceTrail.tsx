@@ -14,9 +14,8 @@ const DEVICE_STAGES: FirstDeviceStage[] = ["install", "pair", "shell"];
 
 /**
  * The first run of an account, inside its namespace: install the agent, pair the device, open a
- * shell. The steps before it (the survey and the setup form, or getting the namespace) are
- * already behind the user, and show as done; setup hands over what it did through the route
- * state.
+ * shell. The step before it (the setup form, or getting the namespace) is already behind the
+ * user, and shows as done; setup hands over what it did through the route state.
  */
 export default function DeviceTrail() {
   const location = useLocation();
@@ -33,8 +32,6 @@ export default function DeviceTrail() {
     return index === at ? "active" : "upcoming";
   };
 
-  const namespaceStep = entry?.survey ? 2 : 1;
-
   return (
     <FirstRunLayout
       eyebrow={`Welcome, ${name || email || "back"}`}
@@ -42,16 +39,8 @@ export default function DeviceTrail() {
       inConsole
     >
       <Trail>
-        {entry?.survey && (
-          <TrailStep
-            number={1}
-            title={SETUP_STEP_TITLES.survey}
-            state="done"
-            summary="Thanks"
-          />
-        )}
         <TrailStep
-          number={namespaceStep}
+          number={1}
           title={entry ? SETUP_STEP_TITLES.account : "Namespace"}
           state="done"
           summary={
@@ -66,7 +55,7 @@ export default function DeviceTrail() {
           }
         />
         <TrailStep
-          number={namespaceStep + 1}
+          number={2}
           title={DEVICE_STEP_TITLES.install}
           state={stateOf("install")}
           summary={
@@ -89,7 +78,7 @@ export default function DeviceTrail() {
           </InstallStep>
         </TrailStep>
         <TrailStep
-          number={namespaceStep + 2}
+          number={3}
           title={DEVICE_STEP_TITLES.pair}
           state={stateOf("pair")}
           summary={
@@ -115,7 +104,7 @@ export default function DeviceTrail() {
           )}
         </TrailStep>
         <TrailStep
-          number={namespaceStep + 3}
+          number={4}
           title={DEVICE_STEP_TITLES.shell}
           state={stateOf("shell")}
         >

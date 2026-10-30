@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router-dom";
@@ -19,7 +19,6 @@ import {
   surveyEnvironment,
 } from "@/tests/onboardingSurvey";
 import { defaultConfig, getConfig } from "@/env";
-import { saveResponseId } from "@/utils/savedSurvey";
 import {
   PENDING_DEVICE_CODE_KEY,
   hasPendingDeviceCode,
@@ -569,7 +568,7 @@ describe("AcceptDeviceFlow signed out", () => {
   });
 });
 
-describe("AcceptDeviceFlow onboarding survey", () => {
+describe("AcceptDeviceFlow first namespace", () => {
   const SURVEY_API = "https://forms.example.test/api/v1/client/ws1";
   const acceptedIntoNewNamespace = mockPairingAccepted({
     tenant_id: "t-new",
@@ -585,13 +584,8 @@ describe("AcceptDeviceFlow onboarding survey", () => {
     await screen.findByRole("heading", { name: /device accepted/i });
   }
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
   beforeEach(() => {
     surveySent = [];
-    localStorage.clear();
     vi.mocked(getConfig).mockReturnValue({
       ...defaultConfig,
       edition: "cloud",
@@ -634,75 +628,7 @@ describe("AcceptDeviceFlow onboarding survey", () => {
     useAuthStore.setState({ user: "joaocel", username: null });
   });
 
-  it("asks the survey one question at a time after accepting into a first namespace", async () => {
-    const user = userEvent.setup();
-    renderFlow();
-
-    await createAndAccept(user);
-
-    expect(screen.getByText(/question 1 of 2/i)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /view device/i }),
-    ).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("radio", { name: /developer/i }));
-    await user.click(screen.getByRole("button", { name: /^next$/i }));
-    await user.click(screen.getByRole("radio", { name: /iot devices/i }));
-    await user.click(screen.getByRole("button", { name: /^finish$/i }));
-
-    expect(
-      await screen.findByRole("button", { name: /view device/i }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
-    expect(surveySent).toHaveLength(1);
-  });
-
-  it("still asks the survey when accepting into the new namespace succeeds on a retry", async () => {
-    let namespaces: { name: string; tenant_id: string }[] = [];
-    let accepts = 0;
-    server.use(
-      http.get("*/api/namespaces", () => jsonWithTotal(namespaces)),
-      http.post("*/api/namespaces", () => {
-        namespaces = [{ name: "joaocel", tenant_id: "t-new" }];
-        return HttpResponse.json(
-          mockNamespace({ name: "joaocel", tenant_id: "t-new" }),
-        );
-      }),
-      http.post("*/api/devices/pairing/:code/accept", () => {
-        accepts += 1;
-        return accepts === 1
-          ? HttpResponse.json({}, { status: 500 })
-          : HttpResponse.json(acceptedIntoNewNamespace);
-      }),
-    );
-    const user = userEvent.setup();
-    renderFlow();
-
-    await user.click(
-      await screen.findByRole("button", { name: /^create and accept$/i }),
-    );
-    await user.click(
-      await screen.findByRole("button", { name: /^accept device$/i }),
-    );
-
-    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
-  });
-
-  it("offers no way to skip the survey in production", async () => {
-    vi.stubEnv("DEV", false);
-    const user = userEvent.setup();
-    renderFlow();
-
-    await createAndAccept(user);
-
-    expect(await screen.findByText(/question 1 of 2/i)).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /skip survey/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("asks nothing after accepting when this browser already sent a response", async () => {
-    saveResponseId("user-123", "survey-1", "response-0");
+  it("offers the way into the device after accepting into a first namespace, with no survey", async () => {
     const user = userEvent.setup();
     renderFlow();
 
@@ -712,6 +638,7 @@ describe("AcceptDeviceFlow onboarding survey", () => {
       await screen.findByRole("button", { name: /view device/i }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
+    expect(surveySent).toEqual([]);
   });
 
   it("offers no namespace to create when the namespaces cannot be read", async () => {
