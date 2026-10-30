@@ -1,0 +1,38 @@
+put:
+  operationId: recordOnboardingSurvey
+  summary: Record onboarding survey outcome
+  description: |
+    Record whether the authenticated user answered or skipped the onboarding survey, so the
+    console does not show it again.
+  tags:
+    - community
+    - users
+  security:
+    - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            outcome:
+              type: string
+              enum:
+                - answered
+                - skipped
+          required:
+            - outcome
+  responses:
+    '200':
+      $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

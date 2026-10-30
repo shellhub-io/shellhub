@@ -374,7 +374,7 @@ func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespa
 			Error("failed to reset user's preferred namespace")
 	}
 
-	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID, TokenVersion: req.TokenVersion})
+	return s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: req.UserID, TokenVersion: req.TokenVersion, Impersonated: req.Impersonated})
 }
 
 func (s *service) DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error) {

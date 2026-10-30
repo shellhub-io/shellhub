@@ -264,6 +264,66 @@ func testAdminAuthToken(t *testing.T, compose *environment.DockerCompose) {
 		assert.Equal(t, tenant, *signedIn.Tenant)
 	})
 
+	t.Run("a session signed in by an administrator is marked impersonated and cannot answer the onboarding survey", func(t *testing.T) {
+		compose.NewUser(t, "impersonatedsurvey", "impersonatedsurvey@shellhub.io", ShellHubPassword)
+		target := adminUser(t, compose, "impersonatedsurvey")
+
+		token := struct {
+			Token string `json:"token"`
+		}{}
+
+		resp, err := compose.R(t.Context()).SetResult(&token).Get("/admin/api/auth/token/" + target.ID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		signedIn := new(models.UserAuthResponse)
+		resp, err = asBearer(t, compose, token.Token).SetResult(signedIn).Get("/api/auth/user")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.True(t, signedIn.Impersonated, "the administrator's session")
+
+		renewed := new(models.UserAuthResponse)
+		resp, err = asBearer(t, compose, signedIn.Token).SetResult(renewed).Get("/api/auth/user")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.True(t, renewed.Impersonated, "a token renewed from the administrator's session")
+
+		resp, err = recordOnboardingSurvey(asBearer(t, compose, token.Token), "skipped")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		own := compose.AuthUser(t, "impersonatedsurvey", ShellHubPassword)
+		assert.False(t, own.Impersonated, "the user's own sign-in")
+		assert.Equal(t, models.UserOnboardingSurveyPending, own.OnboardingSurvey, "the administrator left the user's survey untouched")
+	})
+
+	t.Run("the token an impersonated session gets back on leaving its namespace stays impersonated", func(t *testing.T) {
+		compose.NewUser(t, "impersonatedowner", "impersonatedowner@shellhub.io", ShellHubPassword)
+		tenant := uuid.Generate()
+		compose.NewNamespace(t, "impersonatedowner", "impersonated-leave", tenant)
+		compose.NewUser(t, "impersonatedleaver", "impersonatedleaver@shellhub.io", ShellHubPassword)
+		compose.NewMember(t, "impersonatedleaver", "impersonated-leave", string(authorizer.RoleObserver))
+		target := adminUser(t, compose, "impersonatedleaver")
+
+		token := struct {
+			Token string `json:"token"`
+		}{}
+
+		resp, err := compose.R(t.Context()).SetResult(&token).Get("/admin/api/auth/token/" + target.ID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		left := new(models.UserAuthResponse)
+		resp, err = asBearer(t, compose, token.Token).SetResult(left).Delete("/api/namespaces/" + tenant + "/members")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.True(t, left.Impersonated, "the replacement token's session")
+
+		resp, err = recordOnboardingSurvey(asBearer(t, compose, left.Token), "skipped")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+	})
+
 	t.Run("a token for a user that does not exist is refused as not found", func(t *testing.T) {
 		requireAnswer(t, compose.R(t.Context()), http.MethodGet, "/admin/api/auth/token/"+uuid.Generate(), http.StatusNotFound)
 	})

@@ -103,6 +103,10 @@ type LeaveNamespace struct {
 	// authenticated namespace carries. Nil mints at the user's current version. The handler fills
 	// it from the authentication step; no client input reaches it.
 	TokenVersion *int `json:"-"`
+	// Impersonated keeps the token minted on leaving marked as an instance administrator's, when
+	// the caller's bearer was. The handler fills it from the authentication step; no client input
+	// reaches it.
+	Impersonated bool `json:"-"`
 }
 
 // SessionEditRecordStatus is the structure to represent the request data for edit session record status endpoint.

@@ -20,6 +20,13 @@ type RevokeUserTokens struct {
 	UserID string `header:"X-ID" validate:"required"`
 }
 
+// RecordOnboardingSurvey is the request of the endpoint that records what the caller did with the
+// onboarding survey.
+type RecordOnboardingSurvey struct {
+	UserID  string                      `header:"X-ID" validate:"required"`
+	Outcome models.UserOnboardingSurvey `json:"outcome" validate:"required,oneof=answered skipped"`
+}
+
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
 type UserPasswordUpdate struct {
 	UserID          string `header:"X-ID" validate:"required"`

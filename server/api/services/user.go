@@ -50,6 +50,23 @@ type UserService interface {
 	// bounded by ctx. It returns [ErrUserNotFound] when the user does not exist and [ErrUserUpdate]
 	// when the tokens cannot be revoked, a cancelled ctx included.
 	RevokeUserTokens(ctx context.Context, userID string) error
+
+	// RecordOnboardingSurvey stores what the user did with the onboarding survey, overwriting any
+	// earlier outcome. It returns [ErrUserNotFound] when the user does not exist and
+	// [ErrUserUpdate] when the outcome cannot be saved, a cancelled ctx included.
+	RecordOnboardingSurvey(ctx context.Context, req *requests.RecordOnboardingSurvey) error
+}
+
+func (s *service) RecordOnboardingSurvey(ctx context.Context, req *requests.RecordOnboardingSurvey) error {
+	if err := s.store.UserUpdateOnboardingSurvey(ctx, req.UserID, req.Outcome); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrUserNotFound(req.UserID, err)
+		}
+
+		return NewErrUserUpdate(&models.User{ID: req.UserID}, err)
+	}
+
+	return nil
 }
 
 func (s *service) RevokeUserTokens(ctx context.Context, userID string) error {

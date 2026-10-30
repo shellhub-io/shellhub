@@ -9,4 +9,8 @@ type CreateUserToken struct {
 	// place of the user's current one. Nil mints at the user's current version. The handler
 	// fills it from the authentication step; no client input reaches it.
 	TokenVersion *int `json:"-"`
+	// Impersonated mints a token an instance administrator acts as the user with. The admin
+	// surface sets it, and every handler that mints a replacement for such a token keeps it; no
+	// client input reaches it.
+	Impersonated bool `json:"-"`
 }

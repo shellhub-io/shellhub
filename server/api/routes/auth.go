@@ -114,6 +114,8 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 		req.TokenVersion = &version
 	}
 
+	req.Impersonated = authctx.UserImpersonated(c.Ctx(), req.UserID)
+
 	res, err := h.service.CreateUserToken(c.Ctx(), req)
 	if err != nil {
 		return err

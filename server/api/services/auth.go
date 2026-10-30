@@ -866,6 +866,8 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
 		Admin:         user.Admin,
+
+		OnboardingSurvey: user.Preferences.OnboardingSurvey,
 	}
 
 	if tenantID != "" {
@@ -933,6 +935,7 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		MFA:          user.MFA.Enabled,
 		Admin:        user.Admin,
 		TokenVersion: tokenVersion,
+		Impersonated: req.Impersonated,
 	}
 
 	token, err := jwttoken.EncodeUserClaims(claims, s.issuer, s.privKey, s.clock.Now())
@@ -957,6 +960,9 @@ func (s *service) CreateUserToken(ctx context.Context, req *requests.CreateUserT
 		Token:         token,
 		MaxNamespaces: user.MaxNamespaces,
 		Admin:         user.Admin,
+
+		OnboardingSurvey: user.Preferences.OnboardingSurvey,
+		Impersonated:     req.Impersonated,
 	}
 
 	if tenantID != "" {
