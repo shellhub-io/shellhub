@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { isSdkError } from "@/api/errors";
+import { consumePendingDeviceCode } from "@/utils/navigation";
 import { validateNamespaceName } from "@/utils/validation";
 import { useCreateNamespace } from "@/hooks/useNamespaceRequests";
 
@@ -29,6 +31,16 @@ export function useNamespaceCreateForm(onCreated?: () => void) {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const createNs = useCreateNamespace();
+  const navigate = useNavigate();
+
+  const landInNewNamespace = () => {
+    const pendingCode = consumePendingDeviceCode();
+    void navigate(
+      pendingCode
+        ? `/accept-device?code=${encodeURIComponent(pendingCode)}`
+        : "/dashboard",
+    );
+  };
 
   const changeName = (value: string) => {
     setName(value);
@@ -47,7 +59,7 @@ export function useNamespaceCreateForm(onCreated?: () => void) {
     setValidationError(null);
     setSubmitError(null);
     try {
-      await createNs.mutateAsync(name);
+      await createNs.mutateAsync({ name, land: landInNewNamespace });
       onCreated?.();
     } catch (caught) {
       setSubmitError(namespaceCreateError(caught));
