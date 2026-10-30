@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 
 function Harness({ onCreated }: { onCreated?: () => void }) {
-  const form = useNamespaceCreateForm(onCreated);
+  const form = useNamespaceCreateForm({ onCreated });
 
   return (
     <form onSubmit={(e) => void form.submit(e)}>

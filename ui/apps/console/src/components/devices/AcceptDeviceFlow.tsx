@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useState,
-  type ComponentProps,
-  type FormEvent,
-} from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   CpuChipIcon,
@@ -37,7 +32,7 @@ import {
   useNamespaces,
   useSwitchNamespace,
 } from "@/hooks/useNamespaceRequests";
-import { namespaceCreateError } from "@/hooks/useNamespaceCreateForm";
+import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import SignInForm from "@/components/auth/SignInForm";
@@ -55,7 +50,6 @@ import OnboardingStep from "@/components/firstRun/survey/OnboardingStep";
 import {
   NAMESPACE_NAME_MIN_LENGTH,
   suggestNamespaceName,
-  validateNamespaceName,
 } from "@/utils/validation";
 
 type DevicePreview = ResolveDeviceLoginCodeResponse;
@@ -236,12 +230,11 @@ export default function AcceptDeviceFlow({
       });
     } catch (err) {
       setPairingInFirstNamespace(null);
-      return namespaceCreateError(err);
+      throw err;
     }
     setSelectedTenant(tenantId);
     setCreatedTenant(tenantId);
     await acceptPairingInto(device, tenantId, true);
-    return null;
   };
 
   const dashboardExit: AuthLink[] = inDialog
@@ -567,7 +560,6 @@ export default function AcceptDeviceFlow({
             ) : firstNamespace ? (
               <FirstNamespace
                 buttonSize={buttonSize}
-                pending={createNamespace.isPending || acceptPairing.isPending}
                 onCreateAndAccept={(name) =>
                   handleCreateAndAccept(branch.device, name)
                 }
@@ -801,16 +793,16 @@ function NamespacePicker({
 
 function FirstNamespace({
   buttonSize,
-  pending,
   onCreateAndAccept,
 }: {
   buttonSize: "md" | "lg";
-  pending: boolean;
-  onCreateAndAccept: (name: string) => Promise<string | null>;
+  onCreateAndAccept: (name: string) => Promise<void>;
 }) {
   const username = useAuthStore((s) => s.user ?? s.username);
-  const [name, setName] = useState(() => suggestNamespaceName(username ?? ""));
-  const [error, setError] = useState<string | null>(null);
+  const form = useNamespaceCreateForm({
+    initialName: suggestNamespaceName(username ?? ""),
+    create: onCreateAndAccept,
+  });
 
   if (!isEnterpriseOrCloud()) {
     return (
@@ -823,37 +815,26 @@ function FirstNamespace({
     );
   }
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    const invalid = validateNamespaceName(name);
-    if (invalid) {
-      setError(invalid);
-      return;
-    }
-    setError(await onCreateAndAccept(name));
-  };
-
   return (
-    <form onSubmit={(e) => void submit(e)} className="space-y-4">
+    <form onSubmit={(e) => void form.submit(e)} className="space-y-4">
       <p className="text-sm text-text-secondary leading-relaxed">
         You don't have a namespace yet. Name one and the device goes into it.
       </p>
       <NamespaceNameField
         id="first-namespace-name"
-        value={name}
-        onChange={(value) => {
-          setName(value);
-          setError(null);
-        }}
-        error={error}
+        value={form.name}
+        onChange={form.changeName}
+        error={form.error}
       />
       <Button
         type="submit"
         variant="primary"
         size={buttonSize}
         fullWidth
-        loading={pending}
-        disabled={pending || name.length < NAMESPACE_NAME_MIN_LENGTH}
+        loading={form.isPending}
+        disabled={
+          form.isPending || form.name.length < NAMESPACE_NAME_MIN_LENGTH
+        }
         icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
       >
         Create and accept
