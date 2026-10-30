@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
@@ -10,11 +11,10 @@ import {
   FormInputField,
   FormPasswordField,
 } from "@/components/common/fields/rhf";
-import { loginResolver } from "@/pages/setup/loginResolver";
+import { loginSchema, type LoginFormValues } from "@/pages/setup/schemas";
 import MfaCodeForm from "@/components/mfa/MfaCodeForm";
 import AuthActions, { type AuthLink } from "@/components/auth/AuthActions";
 import LockoutCallouts from "@/components/auth/LockoutCallouts";
-import type { LoginFormValues } from "@/pages/setup/loginResolver";
 
 interface SignInFormProps {
   redirect: string;
@@ -49,7 +49,7 @@ export default function SignInForm({
     useLockout();
 
   const { control, handleSubmit, formState } = useForm<LoginFormValues>({
-    resolver: loginResolver,
+    resolver: zodResolver(loginSchema),
     mode: "onTouched",
     defaultValues: { username: "", password: "" },
   });

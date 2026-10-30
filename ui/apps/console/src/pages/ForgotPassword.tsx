@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { recoverPassword } from "../client";
 import FormInputField from "@/components/common/fields/rhf/FormInputField";
-import {
-  forgotPasswordResolver,
-  type ForgotPasswordFormValues,
-} from "./setup/forgotPasswordResolver";
+import { forgotPasswordSchema, type ForgotPasswordFormValues } from "./setup/schemas";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import { ignoreFailure } from "@/utils/failure";
@@ -24,7 +22,7 @@ export default function ForgotPassword() {
 
   const { control, handleSubmit, formState } =
     useForm<ForgotPasswordFormValues>({
-      resolver: forgotPasswordResolver,
+      resolver: zodResolver(forgotPasswordSchema),
       mode: "onTouched",
       defaultValues: { account: "" },
     });
