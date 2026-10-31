@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo-contrib/v5/echoprometheus"
 	"github.com/labstack/echo/v5"
 	echoMiddleware "github.com/labstack/echo/v5/middleware"
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
@@ -150,137 +149,15 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 		}
 	}
 
-	publicAPI := router.Group("/api")
-	publicAPI.GET(HealthCheckURL, gateway.None(handler.EvaluateHealth)(gateway.Claims{Anonymous: true, Unbounded: true}))
-
-	publicAPI.GET(AuthLocalUserURLV2, gateway.Handler(handler.CreateUserToken))                                   // TODO: method POST
-	publicAPI.GET(AuthUserTokenPublicURL, gateway.Handler(handler.CreateUserToken), routesmiddleware.BlockAPIKey) // TODO: method POST
-	publicAPI.POST(AuthDeviceURL, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(AuthDeviceChallengeURL, gateway.Handler(handler.CreateDeviceAuthChallenge))
-	publicAPI.POST(AuthDeviceURLV2, gateway.Handler(handler.AuthDevice))
-	publicAPI.POST(EnrollmentCallbackURL, gateway.Handler(handler.EnrollmentCallback))
-	publicAPI.POST(AuthLocalUserURL, gateway.Handler(handler.AuthLocalUser))
-	publicAPI.POST(AuthLocalUserURLV2, gateway.Handler(handler.AuthLocalUser))
-	publicAPI.POST(AuthPublicKeyURL, gateway.Handler(handler.AuthPublicKey))
-
-	publicAPI.POST(CreateAPIKeyURL, gateway.Handler(handler.CreateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyCreate))
-	publicAPI.GET(ListAPIKeysURL, gateway.Handler(handler.ListAPIKeys), routesmiddleware.BlockAPIKey)
-	publicAPI.PATCH(UpdateAPIKeyURL, gateway.Handler(handler.UpdateAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyUpdate))
-	publicAPI.DELETE(DeleteAPIKeyURL, gateway.Handler(handler.DeleteAPIKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.APIKeyDelete))
-	publicAPI.POST(CreateAPIKeySSHIdentityURL, gateway.Handler(handler.CreateAPIKeySSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
-	publicAPI.GET(ListAPIKeySSHIdentitiesURL, gateway.Handler(handler.ListAPIKeySSHIdentities), routesmiddleware.RequiresPermission(authorizer.SSHIdentityManage))
-
-	publicAPI.POST(CreateProvisioningKeyURL, gateway.Handler(handler.CreateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
-	publicAPI.GET(ListProvisioningKeysURL, gateway.Handler(handler.ListProvisioningKeys), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
-	publicAPI.PATCH(UpdateProvisioningKeyURL, gateway.Handler(handler.UpdateProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyUpdate))
-	publicAPI.GET(RevealProvisioningKeyURL, gateway.Handler(handler.RevealProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyReveal))
-	publicAPI.GET(HistoryProvisioningKeyURL, gateway.Handler(handler.HistoryProvisioningKey), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyList))
-
-	publicAPI.PATCH(URLUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)
-	publicAPI.PATCH(URLDeprecatedUpdateUser, gateway.Handler(handler.UpdateUser), routesmiddleware.BlockAPIKey)                 // WARN: DEPRECATED.
-	publicAPI.PATCH(URLDeprecatedUpdateUserPassword, gateway.Handler(handler.UpdateUserPassword), routesmiddleware.BlockAPIKey) // WARN: DEPRECATED.
-	publicAPI.DELETE(URLRevokeUserTokens, gateway.Handler(handler.RevokeUserTokens), routesmiddleware.BlockAPIKey)
-	publicAPI.PUT(URLRecordOnboardingSurvey, gateway.Handler(handler.RecordOnboardingSurvey), routesmiddleware.BlockAPIKey)
-
-	publicAPI.POST(RegisterUserURL, gateway.Handler(handler.RegisterUser))
-	publicAPI.GET(URLResolveInvitation, gateway.Handler(handler.ResolveInvitation))
-	publicAPI.POST(URLGenerateInvitationLink, gateway.Handler(handler.GenerateInvitationLink), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
-	publicAPI.PATCH(URLAcceptInvite, gateway.Handler(handler.AcceptInvite), routesmiddleware.BlockAPIKey)
-	publicAPI.GET(URLUserMembershipInvitationList, gateway.Handler(handler.GetUserMembershipInvitationList))
-	publicAPI.GET(URLNamespaceMembershipInvitationList, gateway.Handler(handler.GetNamespaceMembershipInvitationList), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
-	publicAPI.DELETE(URLCancelMembershipInvitation, gateway.Handler(handler.CancelMembershipInvitation), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
-
-	publicAPI.GET(GetDeviceListURL, routesmiddleware.Authorize(gateway.Handler(handler.GetDeviceList)))
-	publicAPI.GET(GetDeviceURL, routesmiddleware.Authorize(gateway.One(handler.GetDevice)(gateway.Claims{})))
-	publicAPI.GET(ResolveDeviceURL, routesmiddleware.Authorize(gateway.Handler(handler.ResolveDevice)))
-	publicAPI.PUT(UpdateDevice, gateway.Handler(handler.UpdateDevice), routesmiddleware.RequiresPermission(authorizer.DeviceUpdate))
-	publicAPI.PATCH(RenameDeviceURL, gateway.Handler(handler.RenameDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRename))
-	publicAPI.GET(TenantRegistrationsURL, gateway.Handler(handler.TenantRegistrations), routesmiddleware.RequiresPermission(authorizer.DeviceStatusUpdate))
-	publicAPI.PATCH(UpdateDeviceStatusURL, gateway.Handler(handler.UpdateDeviceStatus), routesmiddleware.RequiresPermission(authorizer.DeviceStatusUpdate))
-
-	publicAPI.POST(CreateDeviceLoginCodeURL, gateway.Handler(handler.CreateDeviceLoginCode))
-	publicAPI.GET(GetDeviceAuthStatusURL, gateway.Handler(handler.GetDeviceAuthStatus))
-	publicAPI.GET(ResolveDeviceLoginCodeURL, gateway.Handler(handler.ResolveDeviceLoginCode), routesmiddleware.BlockAPIKey)
-
-	publicAPI.POST(CreateDevicePairingURL, gateway.Handler(handler.CreateDevicePairing))
-	publicAPI.GET(GetDevicePairingStatusURL, gateway.Handler(handler.GetDevicePairingStatus))
-	publicAPI.POST(AcceptDevicePairingURL, gateway.Handler(handler.AcceptDevicePairing), routesmiddleware.BlockAPIKey)
-
-	publicAPI.GET(GetSSHApprovalURL, gateway.Handler(handler.GetSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.POST(ConfirmSSHApprovalURL, gateway.Handler(handler.ConfirmSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.POST(RejectSSHApprovalURL, gateway.Handler(handler.RejectSSHApproval), routesmiddleware.BlockAPIKey)
-	publicAPI.DELETE(DeleteDeviceURL, gateway.Handler(handler.DeleteDevice), routesmiddleware.RequiresPermission(authorizer.DeviceRemove))
-	publicAPI.DELETE(MakeTeamDeviceURL, gateway.Handler(handler.MakeTeamDevice), routesmiddleware.RequiresPermission(authorizer.ProvisioningKeyCreate))
-	publicAPI.PUT(SetDeviceCustomFieldURL, gateway.Handler(handler.SetDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
-	publicAPI.DELETE(DeleteDeviceCustomFieldURL, gateway.Handler(handler.DeleteDeviceCustomField), routesmiddleware.RequiresPermission(authorizer.DeviceCustomFieldUpdate))
-
-	publicAPI.GET(URLGetTags, gateway.Handler(handler.GetTags))
-	publicAPI.POST(URLCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.PATCH(URLUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
-	publicAPI.DELETE(URLDeleteTag, gateway.Handler(handler.DeleteTag), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-	publicAPI.POST(URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.DELETE(URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-
-	publicAPI.GET(URLOldGetTags, gateway.Handler(handler.GetTags), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
-	publicAPI.POST(URLOldCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.PATCH(URLOldUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
-	publicAPI.DELETE(URLOldDeleteTag, gateway.Handler(handler.DeleteTag), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-	publicAPI.POST(URLOldPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
-	publicAPI.DELETE(URLOldPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
-
-	publicAPI.GET(GetSessionsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSessionList)))
-	publicAPI.GET(GetSessionURL, routesmiddleware.Authorize(gateway.Handler(handler.GetSession)))
-
-	publicAPI.GET(GetStatsURL, routesmiddleware.Authorize(gateway.Handler(handler.GetStats)))
-	publicAPI.GET(GetSystemInfoURL, gateway.Handler(handler.GetSystemInfo))
-	publicAPI.GET(GetSystemDownloadInstallScriptURL, gateway.Handler(handler.GetSystemDownloadInstallScript))
-
-	publicAPI.POST(CreatePublicKeyURL, gateway.Handler(handler.CreatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyCreate))
-	publicAPI.GET(GetPublicKeysURL, gateway.Handler(handler.GetPublicKeys))
-	publicAPI.PUT(UpdatePublicKeyURL, gateway.Handler(handler.UpdatePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyEdit))
-	publicAPI.DELETE(DeletePublicKeyURL, gateway.Handler(handler.DeletePublicKey), routesmiddleware.RequiresPermission(authorizer.PublicKeyRemove))
-
-	if handler.edition.IsEnterpriseOrCloud() {
-		publicAPI.POST(CreateNamespaceURL, gateway.Handler(handler.CreateNamespace), routesmiddleware.BlockAPIKey)
-	}
-	publicAPI.GET(GetNamespaceURL, gateway.Handler(handler.GetNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
-	publicAPI.GET(ListNamespaceURL, gateway.Handler(handler.GetNamespaceList), routesmiddleware.BlockAPIKey)
-	publicAPI.PUT(EditNamespaceURL, gateway.Handler(handler.EditNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
-	publicAPI.DELETE(DeleteNamespaceURL, gateway.Handler(handler.DeleteNamespace), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceDelete))
-
-	publicAPI.GET(ListNamespaceMembersURL, gateway.Handler(handler.ListNamespaceMembers), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
-	publicAPI.POST(AddNamespaceMemberURL, gateway.Handler(handler.AddNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceAddMember))
-	publicAPI.PATCH(EditNamespaceMemberURL, gateway.Handler(handler.EditNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceEditMember))
-	publicAPI.DELETE(RemoveNamespaceMemberURL, gateway.Handler(handler.RemoveNamespaceMember), routesmiddleware.RequiresPermission(authorizer.NamespaceRemoveMember))
-	publicAPI.DELETE(LeaveNamespaceURL, gateway.Handler(handler.LeaveNamespace), routesmiddleware.BlockAPIKey)
-
-	publicAPI.PUT(EditSessionRecordStatusURL, gateway.Handler(handler.EditSessionRecordStatus), routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceEnableSessionRecord))
-	publicAPI.POST(UpgradeNamespaceURL, gateway.Handler(handler.UpgradeNamespace), routesmiddleware.BlockAPIKey, routesmiddleware.RequiresTenant(ParamNamespaceTenant), routesmiddleware.RequiresPermission(authorizer.NamespaceUpdate))
-
-	publicAPI.GET(ListAccessPoliciesURL, gateway.Handler(handler.ListAccessPolicies), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.POST(CreateAccessPolicyURL, gateway.Handler(handler.CreateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.GET(GetAccessPolicyURL, gateway.Handler(handler.GetAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.PUT(UpdateAccessPolicyURL, gateway.Handler(handler.UpdateAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-	publicAPI.DELETE(DeleteAccessPolicyURL, gateway.Handler(handler.DeleteAccessPolicy), routesmiddleware.RequiresPermission(authorizer.AccessPolicyManage))
-
-	publicAPI.GET(ListSSHIdentitiesURL, gateway.Handler(handler.ListSSHIdentities))
-	publicAPI.POST(CreateSSHIdentityURL, gateway.Handler(handler.CreateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
-	publicAPI.PATCH(UpdateSSHIdentityURL, gateway.Handler(handler.UpdateSSHIdentity), routesmiddleware.RequiresPermission(authorizer.SSHIdentityAdd))
-	publicAPI.DELETE(DeleteSSHIdentityURL, gateway.Handler(handler.DeleteSSHIdentity))
-
-	publicAPI.POST(WebReauthURL, gateway.Handler(handler.WebReauthVerify))
-
-	if !handler.edition.IsCloud() {
-		publicAPI.POST(SetupEndpoint, gateway.Handler(handler.Setup))
-	}
+	table := handler.publicRoutes(handler.edition)
+	mount(router.Group(publicAPIPrefix), table)
 
 	SetupMCPRoutes(router)
 
 	registerInternalMetrics(router, handler.authn)
 
 	if handler.authn != nil {
-		registerAnonymousRoutes(handler.authn, handler.edition)
-		registerDeviceRoutes(handler.authn)
+		allow(handler.authn, table)
 	}
 
 	if err := applyExtensions(router, handler.authn, service); err != nil {
