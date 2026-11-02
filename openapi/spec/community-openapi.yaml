@@ -157,7 +157,8 @@ paths:
   /api/stats:
     $ref: paths/api@stats.yaml
   /api/namespaces:
-    $ref: paths/api@namespaces.yaml
+    get:
+      $ref: paths/api@namespaces.yaml#/get
   /api/namespaces/{tenant}:
     $ref: paths/api@namespaces@{tenant}.yaml
   /api/namespaces/{tenant}/members:
