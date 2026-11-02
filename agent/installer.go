@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -163,8 +164,21 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("failed to enable service: %w", err)
 	}
 
-	if err := exec.Command("systemctl", "restart", agentServiceName).Run(); err != nil {
-		return fmt.Errorf("failed to restart service: %w", err)
+	output, err := exec.Command("systemctl", "restart", agentServiceName).CombinedOutput()
+	if err != nil {
+		if disableErr := exec.Command("systemctl", "disable", agentServiceName).Run(); disableErr != nil {
+			fmt.Fprintf(
+				os.Stderr, 
+				"warning: failed to disable service %s during rollback: %v\n",
+				agentServiceName,
+				disableErr
+			)
+		}
+		return fmt.Errorf(
+			"failed to restart service: %w (output: %s)",
+			err,
+			strings.TrimSpace(string(output))
+		)
 	}
 
 	return nil
