@@ -1,171 +1,64 @@
 package routes
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
-	"os"
-	"path/filepath"
-	"strings"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
-const requestsPkgDir = "../../../pkg/api/requests"
-
-type queryEmbeds struct {
-	filters bool
-	sorter  bool
+var listQueryCases = []struct {
+	name   string
+	handle func(*Handler, *gateway.Context) error
+	filter bool
+	sort   bool
+}{
+	{"GetDeviceList", (*Handler).GetDeviceList, true, true},
+	{"GetSessionList", (*Handler).GetSessionList, true, false},
+	{"GetNamespaceList", (*Handler).GetNamespaceList, true, false},
+	{"GetPublicKeys", (*Handler).GetPublicKeys, true, false},
+	{"GetTags", (*Handler).GetTags, true, true},
+	{"ListAPIKeys", (*Handler).ListAPIKeys, false, true},
+	{"ListInstanceAPIKeys", (*Handler).ListInstanceAPIKeys, false, true},
+	{"ListProvisioningKeys", (*Handler).ListProvisioningKeys, false, true},
+	{"HistoryProvisioningKey", (*Handler).HistoryProvisioningKey, false, true},
+	{"GetUserMembershipInvitationList", (*Handler).GetUserMembershipInvitationList, true, true},
+	{"GetNamespaceMembershipInvitationList", (*Handler).GetNamespaceMembershipInvitationList, true, true},
+	{"TenantRegistrations", (*Handler).TenantRegistrations, false, true},
 }
 
-func parsePackage(t *testing.T, dir string) []*ast.File {
-	t.Helper()
-
-	entries, err := os.ReadDir(dir)
-	require.NoError(t, err)
-
-	fset := token.NewFileSet()
-	files := make([]*ast.File, 0, len(entries))
-
-	for _, entry := range entries {
-		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-
-		file, err := parser.ParseFile(fset, filepath.Join(dir, name), nil, 0)
-		require.NoError(t, err)
-
-		files = append(files, file)
-	}
-
-	return files
-}
-
-func selectorPath(expr ast.Expr) string {
-	sel, ok := expr.(*ast.SelectorExpr)
-	if !ok {
-		return ""
-	}
-
-	pkg, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return ""
-	}
-
-	return pkg.Name + "." + sel.Sel.Name
-}
-
-func embeddedQueryTypes(t *testing.T) map[string]queryEmbeds {
-	t.Helper()
-
-	embeds := make(map[string]queryEmbeds)
-
-	for _, file := range parsePackage(t, requestsPkgDir) {
-		ast.Inspect(file, func(n ast.Node) bool {
-			spec, ok := n.(*ast.TypeSpec)
-			if !ok {
-				return true
-			}
-
-			structType, ok := spec.Type.(*ast.StructType)
-			if !ok {
-				return true
-			}
-
-			var found queryEmbeds
-			for _, field := range structType.Fields.List {
-				if len(field.Names) > 0 {
-					continue
-				}
-
-				switch selectorPath(field.Type) {
-				case "query.Filters":
-					found.filters = true
-				case "query.Sorter":
-					found.sorter = true
-				}
-			}
-
-			if found.filters || found.sorter {
-				embeds[spec.Name.Name] = found
-			}
-
-			return true
-		})
-	}
-
-	return embeds
-}
-
-func isHandler(fn *ast.FuncDecl) bool {
-	if fn.Recv == nil || fn.Body == nil {
-		return false
-	}
-
-	for _, param := range fn.Type.Params.List {
-		if star, ok := param.Type.(*ast.StarExpr); ok && selectorPath(star.X) == "gateway.Context" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func handlerQueryUsage(fn *ast.FuncDecl, embeds map[string]queryEmbeds) (queryEmbeds, map[string]bool) {
-	var needs queryEmbeds
-	calls := make(map[string]bool)
-
-	ast.Inspect(fn.Body, func(n ast.Node) bool {
-		switch node := n.(type) {
-		case *ast.SelectorExpr:
-			if pkg, ok := node.X.(*ast.Ident); ok && pkg.Name == "requests" {
-				if e, ok := embeds[node.Sel.Name]; ok {
-					needs.filters = needs.filters || e.filters
-					needs.sorter = needs.sorter || e.sorter
-				}
-			}
-		case *ast.CallExpr:
-			if path := selectorPath(node.Fun); path != "" {
-				calls[path] = true
-			}
-		}
-
-		return true
-	})
-
-	return needs, calls
-}
-
-func TestListHandlersValidateEveryQueryFieldTheyAccept(t *testing.T) {
-	embeds := embeddedQueryTypes(t)
-	require.NotEmpty(t, embeds)
-
-	for _, file := range parsePackage(t, ".") {
-		for _, decl := range file.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || !isHandler(fn) {
+func TestListHandlersRejectUnexposedQueryFields(t *testing.T) {
+	for _, tc := range listQueryCases {
+		for _, field := range []string{"filter", "sort_by"} {
+			if field == "filter" && !tc.filter || field == "sort_by" && !tc.sort {
 				continue
 			}
-
-			needs, calls := handlerQueryUsage(fn, embeds)
-
-			if needs.filters && !calls["query.ValidateFilters"] {
-				t.Errorf(
-					"%s binds a request carrying a client filter but never calls query.ValidateFilters: "+
-						"the filter then names any column on the table, including ones the response omits",
-					fn.Name.Name,
-				)
-			}
-
-			if needs.sorter && !calls["query.ValidateSorter"] {
-				t.Errorf(
-					"%s binds a request carrying a client sort_by but never calls query.ValidateSorter: "+
-						"the sort then orders by any column on the table, including ones the response omits",
-					fn.Name.Name,
-				)
-			}
+			t.Run(tc.name+"/"+field, func(t *testing.T) {
+				svc := servicemock.NewMockService(t)
+				handler := NewHandler(svc)
+				values := url.Values{"sort_by": {"unexposed_column"}, "order_by": {"asc"}}
+				if field == "filter" {
+					values = url.Values{"filter": {encodeFilter(t, []query.Filter{{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "unexposed_column", Operator: "eq", Value: "secret"}}})}}
+				}
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/audit/00000000-0000-4000-0000-000000000000/key?"+values.Encode(), nil)
+				req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000001")
+				req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+				req.Header.Set("X-Role", "owner")
+				rec := httptest.NewRecorder()
+				router := newTestRouter(t, svc)
+				router.GET("/audit/:tenant/:id", gateway.Handler(func(c *gateway.Context) error {
+					return tc.handle(handler, c)
+				}))
+				router.ServeHTTP(rec, req)
+				assert.Equal(t, http.StatusBadRequest, rec.Code)
+				assert.Contains(t, rec.Body.String(), field)
+				assert.Empty(t, svc.Calls, "an invalid query must not reach the service")
+			})
 		}
 	}
 }

@@ -5,26 +5,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestHash(t *testing.T) {
-	cases := []struct {
-		description string
-		password    string
-	}{
-		{
-			description: "succeeds when create a hash",
-			password:    "secret",
-		},
-	}
+	hashed, err := Do("secret")
+	require.NoError(t, err)
 
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			hash, err := Do(tc.password)
-			require.NoError(t, err)
-			assert.NotEmpty(t, hash)
-		})
-	}
+	require.NoError(t, bcrypt.CompareHashAndPassword([]byte(hashed), []byte("secret")))
+	require.ErrorIs(t, bcrypt.CompareHashAndPassword([]byte(hashed), []byte("wrong")), bcrypt.ErrMismatchedHashAndPassword)
+	cost, err := bcrypt.Cost([]byte(hashed))
+	require.NoError(t, err)
+	assert.Equal(t, 10, cost)
 }
 
 func TestCompare(t *testing.T) {
