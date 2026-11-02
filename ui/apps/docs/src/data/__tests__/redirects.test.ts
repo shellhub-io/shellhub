@@ -34,7 +34,14 @@ describe("_redirects", () => {
   const rules = readRules();
 
   it("carries a rule for every address the old site published", () => {
-    expect(rules.length).toBeGreaterThan(150);
+    const inventory = JSON.parse(readFileSync(
+      join(import.meta.dirname, "../../../test/fixtures/legacy-redirects.json"), "utf-8",
+    )) as { redirects: Record<string, string> };
+
+    for (const [path, destination] of Object.entries(inventory.redirects)) {
+      expect(firstRuleThatMatches(rules, path)?.to, path).toBe(destination);
+      expect(firstRuleThatMatches(rules, path + "/")?.to, path + "/").toBe(destination);
+    }
   });
 
   it("answers every rule with a permanent redirect", () => {

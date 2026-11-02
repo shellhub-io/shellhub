@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Spinner } from "../primitives/Spinner";
-import type { SpinnerSize, SpinnerTone } from "../primitives/Spinner";
+import type { SpinnerSize, SpinnerTone } from "../primitives";
 
 describe("Spinner", () => {
   it("renders with default md size and onSurface tone", () => {
@@ -56,11 +56,5 @@ describe("Spinner", () => {
     const cls = (container.firstChild as HTMLElement).className;
     expect(cls).toContain("mb-4");
     expect(cls.indexOf("mb-4")).toBeGreaterThan(cls.indexOf("animate-spin"));
-  });
-
-  it("re-exports SpinnerSize and SpinnerTone types from primitives/index", async () => {
-    const mod = await import("../primitives/index");
-    expect(mod).toBeDefined();
-    expect(mod.Spinner).toBeDefined();
   });
 });

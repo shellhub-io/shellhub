@@ -13,7 +13,7 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "tsc --noEmit && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {

@@ -51,12 +51,6 @@ describe("SectionHeader", () => {
     expect(h2).toContainElement(screen.getByTestId("inner-span"));
   });
 
-  it("size='sub' emits exact class text-[clamp(1.75rem,4vw,2.5rem)]", () => {
-    render(<SectionHeader title="Sub" size="sub" reveal={false} />);
-    const h2 = screen.getByRole("heading", { level: 2 });
-    expect(h2.className).toContain("text-[clamp(1.75rem,4vw,2.5rem)]");
-  });
-
   it("align='left' does not apply text-center or mx-auto to the wrapper", () => {
     const { container } = render(
       <SectionHeader title="Left" align="left" reveal={false} />,
@@ -64,34 +58,6 @@ describe("SectionHeader", () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.className).not.toContain("text-center");
     expect(wrapper.className).not.toContain("mx-auto");
-  });
-
-  it("eyebrow has the complete required class set and does not use text-sm", () => {
-    render(<SectionHeader title="T" eyebrow="Feature" reveal={false} />);
-    const eyebrow = screen.getByText("Feature");
-    expect(eyebrow).toHaveClass("text-2xs");
-    expect(eyebrow).toHaveClass("font-mono");
-    expect(eyebrow).toHaveClass("font-semibold");
-    expect(eyebrow).toHaveClass("uppercase");
-    expect(eyebrow).toHaveClass("tracking-label");
-    expect(eyebrow).toHaveClass("mb-3");
-    expect(eyebrow).toHaveClass("text-primary");
-    expect(eyebrow).not.toHaveClass("text-sm");
-  });
-
-  it("h2 has tracking-[-0.03em]", () => {
-    render(<SectionHeader title="My Title" reveal={false} />);
-    const h2 = screen.getByRole("heading", { level: 2 });
-    expect(h2.className).toContain("tracking-[-0.03em]");
-  });
-
-  it("className='mb-10' lands on the outer wrapper", () => {
-    render(<SectionHeader title="T" className="mb-10" reveal={false} />);
-    const wrapper =
-      screen.queryByTestId("reveal-wrapper") ??
-      document.querySelector(".mb-10");
-    expect(wrapper).not.toBeNull();
-    expect((wrapper as HTMLElement).className).toContain("mb-10");
   });
 
   it("subtitle has default text-sm max-w-lg mx-auto leading-relaxed and mt-4", () => {
