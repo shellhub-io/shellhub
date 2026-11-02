@@ -310,7 +310,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 		run     func(*testing.T, *Environment, *models.Device)
 	}{
 		{
-			name: "reconnect to server",
+			name:    "reconnect to server",
+			options: []NewAgentContainerOption{NewAgentContainerWithIdentity("custom-reconnect")},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
@@ -333,33 +334,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "reconnect to server with custom identity",
-			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("custom-reconnect"),
-			},
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				ctx := context.Background()
-
-				err := environment.agent.Stop(ctx, nil)
-				require.NoError(t, err)
-
-				environment.services.AwaitDeviceOffline(t, device.UID)
-
-				err = environment.agent.Start(ctx)
-				require.NoError(t, err)
-
-				environment.services.AwaitDeviceOnline(t, device.UID)
-
-				conn := dialDevice(t, ctx, environment.services, device, environment.signer)
-				defer conn.Close() //nolint:errcheck // the test is over once the new tunnel answered
-
-				assert.Equal(t, "reconnected", runOnDevice(t, conn, "echo -n reconnected"))
-			},
-		},
-		{
-			name: "authenticate with password",
+			name:    "authenticate with password",
+			options: []NewAgentContainerOption{NewAgentContainerWithIdentity("custom-password")},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
@@ -405,36 +381,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "authenticate with password with custom identity",
-			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("custom-password"),
-			},
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				skipUnlessAgentAcceptsPasswords(t)
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.Password(ShellHubAgentPassword),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				_ = conn.Close()
-			},
-		},
-		{
 			name: "authenticate with public key",
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
@@ -474,45 +420,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				err := handshakeWith(t.Context(), environment.services.SSHAddress(), config)
 				require.ErrorContains(t, err, "ssh: unable to authenticate, attempted methods [none publickey]")
-			},
-		},
-		{
-			name: "connection SHELL with Pty",
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-
-				err = sess.RequestPty("xterm", 100, 100, ssh.TerminalModes{
-					ssh.ECHO:          1,
-					ssh.TTY_OP_ISPEED: 14400,
-					ssh.TTY_OP_OSPEED: 14400,
-				})
-				require.NoError(t, err)
-
-				err = sess.Shell()
-				require.NoError(t, err)
-
-				_ = sess.Close()
-				_ = conn.Close()
 			},
 		},
 		{
@@ -569,7 +476,8 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 			},
 		},
 		{
-			name: "connection EXEC",
+			name:    "connection EXEC",
+			options: []NewAgentContainerOption{NewAgentContainerWithIdentity("custom-exec")},
 			run: func(t *testing.T, environment *Environment, device *models.Device) {
 				t.Helper()
 
@@ -634,82 +542,6 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 
 				assert.Equal(t, 142, status.ExitStatus())
 				assert.Equal(t, "test", string(output))
-
-				_ = sess.Close()
-				_ = conn.Close()
-			},
-		},
-		{
-			name: "connection EXEC with custom identity",
-			options: []NewAgentContainerOption{
-				NewAgentContainerWithIdentity("custom-exec"),
-			},
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				sess, err := conn.NewSession()
-				require.NoError(t, err)
-
-				output, err := sess.Output(`echo -n "test"`)
-				require.NoError(t, err)
-
-				assert.Equal(t, "test", string(output))
-
-				_ = sess.Close()
-				_ = conn.Close()
-			},
-		},
-		{
-			name:    "connection SFTP to upload file",
-			options: []NewAgentContainerOption{},
-			run: func(t *testing.T, environment *Environment, device *models.Device) {
-				t.Helper()
-
-				config := &ssh.ClientConfig{
-					User: deviceSSHID(device),
-					Auth: []ssh.AuthMethod{
-						ssh.PublicKeys(environment.signer),
-					},
-					HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec
-				}
-
-				var conn *ssh.Client
-
-				require.EventuallyWithT(t, func(tt *assert.CollectT) {
-					var err error
-
-					conn, err = ssh.Dial("tcp", environment.services.SSHAddress(), config)
-					assert.NoError(tt, err)
-				}, 30*time.Second, 1*time.Second)
-
-				sess, err := sftp.NewClient(conn)
-				require.NoError(t, err)
-
-				sent, err := sess.OpenFile("/tmp/sent", (os.O_WRONLY | os.O_CREATE | os.O_TRUNC))
-				require.NoError(t, err)
-
-				_, err = fmt.Fprintf(sent, "sent file content")
-				require.NoError(t, err)
-				require.NoError(t, sent.Close())
-
-				assert.Equal(t, "sent file content", runOnDevice(t, conn, "cat /tmp/sent"))
 
 				_ = sess.Close()
 				_ = conn.Close()

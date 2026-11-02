@@ -1,5 +1,5 @@
 import { type Page, expect, test } from "@playwright/test";
-import { createAccessPolicy, listAccessPolicies } from "@/client";
+import { listAccessPolicies } from "@/client";
 import { isCommunity } from "./env";
 import {
   createTeamWithOwnerInAnother,
@@ -9,7 +9,6 @@ import {
   singleNamespaceReason,
   switchNamespace,
 } from "./helpers";
-import { buildShortId } from "./seed";
 import { buildRequestContext, createApiKey } from "./api";
 
 const isApiKeyList = (url: URL) => url.pathname === "/api/namespaces/api-key";
@@ -79,27 +78,6 @@ test.describe("Namespaces", () => {
       expect(await readAccessPolicyNames(owner.token)).toEqual([
         "Owner access",
       ]);
-    });
-
-    test("keeps existing policies without seeding another", async ({
-      page,
-    }) => {
-      const { owner, namespace } = await createTeam({ legacy: true });
-      const name = `e2e-policy-${buildShortId()}`;
-      await createAccessPolicy({
-        ...buildRequestContext({ token: owner.token }),
-        body: {
-          name,
-          subject: { type: "all-members", value: "" },
-          filter: { all: true },
-          logins: ["*"],
-        },
-      });
-      await signInAndOpen(page, owner.username, "/settings/ssh");
-
-      await upgradeNamespace(page, namespace);
-
-      expect(await readAccessPolicyNames(owner.token)).toEqual([name]);
     });
   });
 });

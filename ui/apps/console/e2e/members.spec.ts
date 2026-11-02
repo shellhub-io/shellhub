@@ -42,6 +42,7 @@ import {
   buildRequestContext,
   createApiKey,
   expectStatus,
+  expectLoginStatus,
   invite,
   loginAs,
 } from "./api";
@@ -436,6 +437,8 @@ test.describe("paired devices", () => {
     const removed = await pairDevice(member, tenant);
 
     await deleteOwnAccount(page, member.username);
+
+    await expectLoginStatus(member.username, password, 401);
 
     expect(await readAcceptedDevices(owner)).toStrictEqual([]);
     expect(await authenticateAgent(removed)).toBe(401);
