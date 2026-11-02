@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -10,6 +12,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/require"
@@ -125,17 +130,14 @@ func sweepOperations(t *testing.T) []sweepOperation {
 	return operations
 }
 
-// TestOpenAPIDescribesEveryRefusal calls every operation the bundled spec declares without a
-// credential and again as an observer. It pins that strict mode is on and that every documented
-// operation answers a shape the document allows on the paths the validator reaches.
-//
-// It does not reach a refusal the error handler renders: the validator returns before validating
-// when a handler returns an error, and pkgmiddleware.Log renders outside the capture. The source
-// ratchet in server/api/routes is what catches a regression to c.NoContent.
-func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
+func TestOpenAPIDescribesSweptResponses(t *testing.T) {
 	t.Parallel()
-
 	ctx := context.Background()
+	loader := openapi3.NewLoader()
+	doc, err := loader.LoadFromFile(bundledSpec)
+	require.NoError(t, err)
+	router, err := gorillamux.NewRouter(doc)
+	require.NoError(t, err)
 
 	compose := environment.New(t, run).Up(ctx)
 	t.Cleanup(compose.Down)
@@ -184,6 +186,18 @@ func TestOpenAPIDescribesEveryRefusal(t *testing.T) {
 				require.NoError(t, err)
 				require.NotContains(t, string(resp.Body()), strictModeMismatchMarker,
 					"%s %s answered a shape the spec does not describe", operation.method, operation.path)
+				request := resp.Request.RawRequest
+				route, params, err := router.FindRoute(request)
+				require.NoError(t, err)
+				err = openapi3filter.ValidateResponse(ctx, &openapi3filter.ResponseValidationInput{
+					RequestValidationInput: &openapi3filter.RequestValidationInput{
+						Request: request, PathParams: params, Route: route,
+					},
+					Status: resp.StatusCode(), Header: resp.Header(),
+					Body:    io.NopCloser(bytes.NewReader(resp.Body())),
+					Options: &openapi3filter.Options{IncludeResponseStatus: true},
+				})
+				require.NoError(t, err, "%s %s returned %d: %s", operation.method, operation.path, resp.StatusCode(), resp.Body())
 			})
 		}
 	}
