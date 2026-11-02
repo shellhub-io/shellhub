@@ -1,30 +1,40 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { routes } from "@/routes";
 import App from "@/App";
 
 afterEach(cleanup);
 
-describe("routes smoke", () => {
-  it("exports exactly 12 route entries", () => {
-    expect(routes).toHaveLength(12);
-  });
+const pageHeadings = [
+  ["/", "All your devices. One gateway."],
+  ["/getting-started", "Get started with ShellHub"],
+  ["/enterprise", "Device management built for scale and control"],
+  ["/pricing", "Simple, transparent pricing"],
+  ["/features", "Everything you need to manage remote devices"],
+  ["/how-it-works", "From anywhere to any device"],
+  ["/integrations", "Works with your existing tools"],
+  ["/use-cases/iot-embedded", "IoT & Embedded Device Management"],
+  ["/use-cases/edge-computing", "Edge Computing Access"],
+  ["/use-cases/remote-support", "Remote Support & Troubleshooting"],
+  ["/use-cases/devops-ci-cd", "DevOps & CI/CD Automation"],
+  ["/use-cases/container-management", "SSH into Docker containers without docker exec"],
+];
 
-  it("route paths are unique", () => {
+describe("routes smoke", () => {
+  it("covers every declared route once", () => {
     const paths = routes.map((r) => r.path);
     expect(new Set(paths).size).toBe(paths.length);
+    expect(pageHeadings.map(([path]) => path).sort()).toEqual(paths.sort());
   });
 
-  for (const { path } of routes) {
-    it(`mounts without throwing: ${path}`, () => {
-      expect(() => {
-        render(
-          <MemoryRouter initialEntries={[path]}>
-            <App />
-          </MemoryRouter>,
-        );
-      }).not.toThrow();
-    });
-  }
+  it.each(pageHeadings)("%s shows its page", (path, heading) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeInTheDocument();
+  });
 });

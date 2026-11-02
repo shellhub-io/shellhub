@@ -5,30 +5,26 @@ import { Callout } from "../primitives/Callout";
 
 describe("Callout — semantic roles", () => {
   it("error variant uses role=alert and aria-live=assertive", () => {
-    const { container } = render(<Callout variant="error">Error</Callout>);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveAttribute("role", "alert");
+    render(<Callout variant="error">Error</Callout>);
+    const el = screen.getByRole("alert");
     expect(el).toHaveAttribute("aria-live", "assertive");
   });
 
   it("warning variant uses role=alert and aria-live=assertive", () => {
-    const { container } = render(<Callout variant="warning">Warning</Callout>);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveAttribute("role", "alert");
+    render(<Callout variant="warning">Warning</Callout>);
+    const el = screen.getByRole("alert");
     expect(el).toHaveAttribute("aria-live", "assertive");
   });
 
   it("success variant uses role=status and aria-live=polite", () => {
-    const { container } = render(<Callout variant="success">Success</Callout>);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveAttribute("role", "status");
+    render(<Callout variant="success">Success</Callout>);
+    const el = screen.getByRole("status");
     expect(el).toHaveAttribute("aria-live", "polite");
   });
 
   it("info variant uses role=status and aria-live=polite", () => {
-    const { container } = render(<Callout variant="info">Info</Callout>);
-    const el = container.firstChild as HTMLElement;
-    expect(el).toHaveAttribute("role", "status");
+    render(<Callout variant="info">Info</Callout>);
+    const el = screen.getByRole("status");
     expect(el).toHaveAttribute("aria-live", "polite");
   });
 });
@@ -49,16 +45,6 @@ describe("Callout — content rendering", () => {
     );
     expect(screen.getByText(/field required/)).toBeInTheDocument();
   });
-
-  it("is findable via role=alert for error", () => {
-    render(<Callout variant="error">Error message</Callout>);
-    expect(screen.getByRole("alert")).toBeInTheDocument();
-  });
-
-  it("is findable via role=status for success", () => {
-    render(<Callout variant="success">Saved</Callout>);
-    expect(screen.getByRole("status")).toBeInTheDocument();
-  });
 });
 
 describe("Callout — dismiss behavior", () => {
@@ -67,15 +53,6 @@ describe("Callout — dismiss behavior", () => {
     expect(
       screen.queryByRole("button", { name: /dismiss/i }),
     ).not.toBeInTheDocument();
-  });
-
-  it("renders a dismiss button when onDismiss is provided", () => {
-    render(
-      <Callout variant="error" onDismiss={() => {}}>
-        Error
-      </Callout>,
-    );
-    expect(screen.getByRole("button", { name: "Dismiss" })).toBeInTheDocument();
   });
 
   it("calls onDismiss when the dismiss button is clicked", async () => {

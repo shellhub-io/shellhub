@@ -47,20 +47,6 @@ describe("IconButton — base classes", () => {
     expect(el.className).toContain("disabled:opacity-50");
     expect(el.className).toContain("disabled:cursor-not-allowed");
   });
-
-  it("includes focus-visible:ring-2", () => {
-    render(<IconButton data-testid="btn">X</IconButton>);
-    expect(screen.getByTestId("btn").className).toContain(
-      "focus-visible:ring-2",
-    );
-  });
-
-  it("includes disabled:opacity-50", () => {
-    render(<IconButton data-testid="btn">X</IconButton>);
-    expect(screen.getByTestId("btn").className).toContain(
-      "disabled:opacity-50",
-    );
-  });
 });
 
 describe("IconButton — sizes", () => {
