@@ -216,11 +216,8 @@ test.describe("MFA", () => {
     });
   });
 
-  test("an MFA-enabled account continues to the code prompt", async ({
-    page,
-  }) => {
+  test("signs in with a code from the authenticator", async ({ page }) => {
     const user = await createMFAUser();
-
     await page.goto("/login");
     const login = page.waitForResponse((r) => r.url().endsWith("/api/login"));
     await fillLoginForm(page, user.username, password);
@@ -234,11 +231,6 @@ test.describe("MFA", () => {
     expect(response.headers()["x-mfa-token"]).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
-  });
-
-  test("signs in with a code from the authenticator", async ({ page }) => {
-    const user = await createMFAUser();
-    await reachCodePrompt(page, user.username);
 
     const verified = page.waitForResponse((r) =>
       r.url().endsWith("/api/user/mfa/auth"),

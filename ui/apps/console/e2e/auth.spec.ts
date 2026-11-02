@@ -14,12 +14,6 @@ import { password, buildShortId, createNamespace, createUser } from "./seed";
 import { buildRequestContext, expectStatus, invite, loginAs } from "./api";
 
 test.describe("authentication", () => {
-  test("signs in with valid credentials", async ({ page }) => {
-    await signIn(page, adminUser.username, adminUser.password);
-
-    await expect(page).toHaveURL(/\/dashboard$/);
-  });
-
   test("rejects invalid credentials", async ({ page }) => {
     await signIn(page, "e2e-nobody", "wrong-password");
 
@@ -71,7 +65,7 @@ test.describe("session ended on the server", () => {
 });
 
 test.describe("account lockout", () => {
-  test("locks out after 3 failed attempts, then recovers", async ({ page }) => {
+  test("locks out after 3 failed attempts and displays the server deadline", async ({ page }) => {
     const user = createUser("lockout");
     createNamespace(
       user.username,
@@ -83,7 +77,11 @@ test.describe("account lockout", () => {
     for (let i = 0; i < 3; i++) {
       const resp = page.waitForResponse((r) => r.url().includes("/api/login"));
       await fillLoginForm(page, user.username, "wrong-password");
-      await resp;
+      const response = await resp;
+      if (i === 2) {
+        expect(response.status()).toBe(429);
+        expect(Number(response.headers()["x-account-lockout"])).toBeGreaterThan(Date.now() / 1000);
+      }
     }
 
     await expect(
@@ -92,14 +90,6 @@ test.describe("account lockout", () => {
     await expect(page.getByText(/\d+ seconds?/)).toBeVisible({
       timeout: accountLockoutBaseMs,
     });
-
-    await expect(page.getByText("Your timeout has finished")).toBeVisible({
-      timeout: accountLockoutBaseMs + 5_000,
-    });
-
-    await fillLoginForm(page, user.username, password);
-
-    await expect(page).toHaveURL(/\/dashboard$/);
   });
 });
 

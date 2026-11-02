@@ -272,30 +272,21 @@ describe("Login", () => {
       );
     });
 
-    it("shows lockout-expired alert when the countdown reaches zero", async () => {
-      const epoch = Math.floor(Date.now() / 1000) + 1;
+    it("allows a successful retry after the server deadline expires", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const epoch = Math.floor(Date.now() / 1000) + 60;
       setLoginError(429, { "x-account-lockout": String(epoch) });
-
       renderLogin();
       await fillAndSubmit();
+      await screen.findByText(/too many failed login attempts/i);
 
-      await waitFor(() =>
-        expect(
-          screen.getByText(/too many failed login attempts/i),
-        ).toBeInTheDocument(),
-      );
+      await act(() => vi.advanceTimersByTimeAsync(61_000));
 
-      await waitFor(
-        () =>
-          expect(
-            screen.getByText(/your timeout has finished/i),
-          ).toBeInTheDocument(),
-        { timeout: 4000 },
-      );
-
-      expect(
-        screen.queryByText(/too many failed login attempts/i),
-      ).not.toBeInTheDocument();
+      expect(screen.getByText(/your timeout has finished/i)).toBeInTheDocument();
+      expect(screen.queryByText(/too many failed login attempts/i)).not.toBeInTheDocument();
+      server.use(http.post("*/api/login", () => HttpResponse.json(mockUserAuth({ token: "jwt" }))));
+      await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
+      expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     });
 
     it("shows the lockout without a countdown when the deadline header is missing", async () => {

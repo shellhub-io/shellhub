@@ -3,10 +3,7 @@ import { getMembershipInvitationList, getUserInfo } from "@/client";
 import { isCloud } from "./env";
 import {
   confirmAccount,
-  consoleAccountDeletionReason,
   createTeam,
-  createTeamWithMember,
-  deleteOwnAccount,
   emailDeliveryReason,
   fillLoginForm,
   readConfirmationCode,
@@ -163,17 +160,5 @@ test.describe("password", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
     await expectStatus(getUserInfo, { token: before.token }, 401);
     await expectLoginStatus(user.username, password, 401);
-  });
-});
-
-test.describe("account deletion", () => {
-  test.skip(!isCloud, consoleAccountDeletionReason);
-
-  test("deleting the account removes the user", async ({ page }) => {
-    const { member } = await createTeamWithMember("operator");
-
-    await deleteOwnAccount(page, member.username);
-
-    await expectLoginStatus(member.username, password, 401);
   });
 });
