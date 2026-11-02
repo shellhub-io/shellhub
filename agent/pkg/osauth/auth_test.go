@@ -44,6 +44,12 @@ func TestVerifyPasswordHash(t *testing.T) {
 			want:     true,
 		},
 		{
+			name:     "yescrypt incorrect",
+			hash:     "$y$j9T$AAt9R641xPvCI9nXw1HHW/$nCv3bckjDEC9Q5ahIEpyXVNGZhySye/ZdjxNxTY5ttB",
+			password: "wrong-password",
+			want:     false,
+		},
+		{
 			name:     "empty hash",
 			hash:     "",
 			password: "any",

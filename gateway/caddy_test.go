@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"slices"
-	"strings"
 	"testing"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig"
@@ -121,54 +120,52 @@ func TestCaddyfileServesTheDevelopmentMailInbox(t *testing.T) {
 		"the mail inbox is development-only")
 }
 
-// TestEveryUpstreamReceivesTheClientAddress restores what the deleted nginx
-// headers test guarded. X-Real-IP is what the login lockout and the GeoIP rules
-// are keyed on, and it now reaches an upstream only because each route asks for
-// it. A route that forgets adapts cleanly and ships silently without it, which
-// is the regression this catches.
 func TestEveryUpstreamReceivesTheClientAddress(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
 			rendered, err := Caddyfile(cfg)
 			require.NoError(t, err)
+			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+			require.NoError(t, err)
+			var config any
+			require.NoError(t, json.Unmarshal(adapted, &config))
+			proxies := reverseProxies(config)
+			require.NotEmpty(t, proxies)
 
-			for _, block := range reverseProxyBlocks(string(rendered)) {
-				assert.True(t,
-					strings.Contains(block, "import forwarded") || strings.Contains(block, "X-Real-IP"),
-					"a reverse_proxy carries neither the forwarded snippet nor the client address:\n%s", block)
+			for _, proxy := range proxies {
+				encoded, err := json.Marshal(proxy)
+				require.NoError(t, err)
+				var handler struct {
+					Headers struct {
+						Request struct {
+							Set map[string][]string `json:"set"`
+						} `json:"request"`
+					} `json:"headers"`
+				}
+				require.NoError(t, json.Unmarshal(encoded, &handler))
+				assert.Equal(t, []string{"{http.request.remote.host}"}, handler.Headers.Request.Set["X-Real-Ip"], "%s", encoded)
 			}
 		})
 	}
 }
 
-func reverseProxyBlocks(caddyfile string) []string {
-	var blocks []string
-
-	for _, after := range strings.Split(caddyfile, "reverse_proxy ")[1:] {
-		open := strings.Index(after, "{")
-		if open == -1 {
-			continue
+func reverseProxies(node any) []map[string]any {
+	var proxies []map[string]any
+	switch value := node.(type) {
+	case map[string]any:
+		if value["handler"] == "reverse_proxy" {
+			proxies = append(proxies, value)
 		}
-
-		depth := 0
-
-		for i := open; i < len(after); i++ {
-			switch after[i] {
-			case '{':
-				depth++
-			case '}':
-				depth--
-
-				if depth == 0 {
-					blocks = append(blocks, after[open:i])
-
-					i = len(after)
-				}
-			}
+		for _, child := range value {
+			proxies = append(proxies, reverseProxies(child)...)
+		}
+	case []any:
+		for _, child := range value {
+			proxies = append(proxies, reverseProxies(child)...)
 		}
 	}
 
-	return blocks
+	return proxies
 }
 
 // TestCaddyfileTLSFollowsTheFlagAlone pins that development is not a special

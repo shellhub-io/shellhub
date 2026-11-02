@@ -5,7 +5,22 @@ import (
 	"testing"
 
 	pkgerrors "github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestNewErrPublicKeyDataInvalid(t *testing.T) {
+	cause := errors.New("invalid encoding")
+	value := []byte("invalid-key")
+
+	err := NewErrPublicKeyDataInvalid(value, cause)
+
+	require.ErrorIs(t, err, ErrPublicKeyDataInvalid)
+	require.ErrorIs(t, err, cause)
+	var payload pkgerrors.Error
+	require.ErrorAs(t, err, &payload)
+	assert.Equal(t, ErrDataInvalid{Data: map[string]any{"Data": value}}, payload.Data)
+}
 
 // TestErrDeviceLicenseLimit asserts that ErrDeviceLicenseLimit is a distinct sentinel
 // from ErrDeviceLimit: they share the same layer and code but differ by message,

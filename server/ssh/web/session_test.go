@@ -150,13 +150,7 @@ func dialWithBanner(t *testing.T, bannerText string) error {
 		User:            "test",
 		Auth:            []gossh.AuthMethod{gossh.Password("test")},
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec
-		BannerCallback: func(message string) error {
-			if message != "" {
-				return NewBannerError(message)
-			}
-
-			return nil
-		},
+		BannerCallback:  bannerCallback(),
 	})
 
 	return dialErr
@@ -208,48 +202,11 @@ func TestBannerKindMapsToSentinel(t *testing.T) {
 
 			require.ErrorAs(t, dialErr, &e, "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
 
+			assert.Equal(t, tc.kind, e.Kind())
+
 			got := mapBannerError(e)
 
 			assert.ErrorIs(t, got, tc.want, "expected %v, got %v", tc.want, got)
-		})
-	}
-}
-
-// TestBannerWireClassify verifies the full production round-trip: an SSH server
-// whose BannerHandler returns banner.Message(k) delivers that string over the wire;
-// the client's BannerCallback (identical to newSession's) returns NewBannerError;
-// gossh.Dial surfaces it as a dial error; and errors.As correctly extracts a
-// *BannerError with the expected Kind. This is the behavior that newSession depends on.
-func TestBannerWireClassify(t *testing.T) {
-	cases := []struct {
-		description string
-		kind        banner.Kind
-	}{
-		{
-			description: "KindConnectionFailed round-trip over wire",
-			kind:        banner.KindConnectionFailed,
-		},
-		{
-			description: "KindAccessDenied round-trip over wire",
-			kind:        banner.KindAccessDenied,
-		},
-		{
-			description: "KindInvalidSSHID round-trip over wire",
-			kind:        banner.KindInvalidSSHID,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			dialErr := dialWithBanner(t, banner.Message(tc.kind))
-
-			require.Error(t, dialErr, "expected dial to fail when BannerCallback returns a non-nil error")
-
-			var e *BannerError
-
-			require.ErrorAs(t, dialErr, &e, "expected errors.As to extract *BannerError from dial error, got: %v", dialErr)
-
-			assert.Equal(t, tc.kind, e.Kind(), "Kind extracted over the wire must match the banner sent by the server")
 		})
 	}
 }
