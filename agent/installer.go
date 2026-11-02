@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	oldPrivateKey = "/etc/shellhub.key"
 	agentEnvFile     = "/etc/shellhub-agent/shellhub-agent.env"
 	agentServiceFile = "/etc/systemd/system/shellhub-agent.service"
 	agentServiceName = "shellhub-agent"
@@ -125,6 +126,36 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	})
 }
 
+func migrateFile(oldPath, newPath string, removeOld bool) (bool, error) {
+	info, err := os.Stat(oldPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("failed to stat old file at %s: %w", oldPath, err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(newPath), 0o700); err != nil {
+		return false, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	data, err := os.ReadFile(oldPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read old file: %w", err)
+	}
+
+	if err := os.WriteFile(newPath, data, info.Mode()); err != nil {
+		return false, fmt.Errorf("failed to write file to new location: %w", err)
+	}
+
+	if removeOld {
+		if err := os.Remove(oldPath); err != nil {
+			return false, fmt.Errorf("failed to remove old file: %w", err)
+		}
+	}
+
+	return true, nil
+}
+
 func agentInstall(cfg installerConfig) error {
 	if os.Geteuid() != 0 {
 		return fmt.Errorf("must be run as root")
@@ -146,6 +177,12 @@ func agentInstall(cfg installerConfig) error {
 
 	if err := os.MkdirAll(filepath.Dir(agentEnvFile), 0o700); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", filepath.Dir(agentEnvFile), err)
+	}
+
+	newKeyPath := filepath.Join(filepath.Dir(agentEnvFile), "shellhub.key")
+	privateKeyMigrated, err := migrateFile(oldPrivateKey, newKeyPath, false)
+	if err != nil {
+		return fmt.Errorf("private key migration failed: %w", err)
 	}
 
 	if err := writeAgentEnvFile(cfg); err != nil {
@@ -179,6 +216,11 @@ func agentInstall(cfg installerConfig) error {
 			err,
 			strings.TrimSpace(string(output))
 		)
+	}
+
+	if privateKeyMigrated {
+		fmt.Printf("Existing private key successfully migrated to %s.\n", newKeyPath)
+		fmt.Printf("You can now safely delete the old private key at %s.\n", oldPrivateKey)
 	}
 
 	return nil
