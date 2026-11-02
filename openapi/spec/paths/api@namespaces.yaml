@@ -65,7 +65,8 @@ post:
   summary: Create namespace
   description: Create a namespace.
   tags:
-    - community
+    - enterprise
+    - cloud
     - namespaces
   security:
     - jwt: []

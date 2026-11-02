@@ -32,13 +32,17 @@ func specEndpoints(t *testing.T) map[string]bool {
 	dir := filepath.Join("..", "..", "..", "openapi", "spec")
 	endpoints := make(map[string]bool)
 
-	methodsOf := func(name string) []string {
+	readSpec := func(name string) map[string]any {
 		content, err := os.ReadFile(filepath.Join(dir, name)) //nolint:gosec // name comes from this repository's own spec entrypoints, not from input
 		require.NoError(t, err, "reading %s", name)
 
 		doc := map[string]any{}
 		require.NoError(t, yaml.Unmarshal(content, &doc), "parsing %s", name)
 
+		return doc
+	}
+
+	methodsOf := func(doc map[string]any) []string {
 		methods := make([]string, 0, len(doc))
 
 		for key := range doc {
@@ -61,12 +65,13 @@ func specEndpoints(t *testing.T) map[string]bool {
 
 	for path, value := range doc.Paths {
 		entry, isMapping := value.(map[string]any)
-		require.True(t, isMapping, "%s: %s must be declared with a $ref to its path file", communityEntrypoint, path)
+		require.True(t, isMapping, "%s: %s must declare its operations", communityEntrypoint, path)
 
-		ref, isRef := entry["$ref"].(string)
-		require.True(t, isRef, "%s: %s must be declared with a $ref to its path file", communityEntrypoint, path)
+		if ref, isRef := entry["$ref"].(string); isRef {
+			entry = readSpec(ref)
+		}
 
-		for _, method := range methodsOf(ref) {
+		for _, method := range methodsOf(entry) {
 			endpoints[method+" "+normalizePath(path, nil)] = true
 		}
 	}

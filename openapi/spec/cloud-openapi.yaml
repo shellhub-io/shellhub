@@ -85,6 +85,8 @@ tags:
 
 paths:
   $ref: community-openapi.yaml#/paths
+  /api/namespaces:
+    $ref: paths/api@namespaces.yaml
   /api/sessions/{uid}/records/{seat}:
     $ref: paths/api@sessions@{uid}@records@{seat}.yaml
   /api/firewall/rules:

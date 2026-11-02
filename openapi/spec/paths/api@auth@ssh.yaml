@@ -34,6 +34,8 @@ post:
               signature:
                 description: Device's signature.
                 type: string
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '404':

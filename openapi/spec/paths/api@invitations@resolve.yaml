@@ -35,6 +35,8 @@ get:
               status:
                 type: string
                 example: invited
+    '400':
+      $ref: ../components/responses/400.yaml
     '403':
       $ref: ../components/responses/403.yaml
     '404':

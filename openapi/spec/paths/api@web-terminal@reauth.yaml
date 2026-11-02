@@ -75,6 +75,8 @@ post:
                   the request released no held login.
                 type: string
                 example: WXYZ2K7Q
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':
