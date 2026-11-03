@@ -166,8 +166,8 @@ func cachedAgentImage(ctx context.Context, key string, build environment.AgentBu
 	return inflight.tag, inflight.err
 }
 
-func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
-	return NewAgentContainerAtVersion(ctx, gatewayID, "", opts...)
+func NewAgentContainer(ctx context.Context, relayID string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	return NewAgentContainerAtVersion(ctx, relayID, "", opts...)
 }
 
 // NewAgentContainerAtVersion builds an agent that reports version instead of "latest" and returns
@@ -177,17 +177,17 @@ func NewAgentContainer(ctx context.Context, gatewayID string, opts ...NewAgentCo
 // building waits for that build without blocking callers of other versions. It returns the error
 // of the build it waited for, even one that the building caller's context ended, or ctx.Err()
 // when ctx ends first, or the error of a container creation that fails, bounded by ctx.
-func NewAgentContainerAtVersion(ctx context.Context, gatewayID, version string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+func NewAgentContainerAtVersion(ctx context.Context, relayID, version string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
 	image, err := buildAgentImage(ctx, version)
 	if err != nil {
 		return nil, err
 	}
 
-	return newAgentContainer(ctx, gatewayID, image, opts...)
+	return newAgentContainer(ctx, relayID, image, opts...)
 }
 
-func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
-	req, err := agentContainerRequest(gatewayID, image, opts...)
+func newAgentContainer(ctx context.Context, relayID, image string, opts ...NewAgentContainerOption) (testcontainers.Container, error) {
+	req, err := agentContainerRequest(relayID, image, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func newAgentContainer(ctx context.Context, gatewayID, image string, opts ...New
 	return createAgentContainer(ctx, req)
 }
 
-func agentContainerRequest(gatewayID, image string, opts ...NewAgentContainerOption) (testcontainers.ContainerRequest, error) {
+func agentContainerRequest(relayID, image string, opts ...NewAgentContainerOption) (testcontainers.ContainerRequest, error) {
 	raw := make([]byte, 6)
 	if _, err := rand.Read(raw); err != nil {
 		return testcontainers.ContainerRequest{}, err
@@ -224,7 +224,7 @@ func agentContainerRequest(gatewayID, image string, opts ...NewAgentContainerOpt
 		Env:    envs,
 		Labels: run.Labels(),
 		HostConfigModifier: func(hc *container.HostConfig) {
-			hc.NetworkMode = container.NetworkMode("container:" + gatewayID)
+			hc.NetworkMode = container.NetworkMode("container:" + relayID)
 		},
 	}, nil
 }
@@ -1828,7 +1828,7 @@ func startAgent(t *testing.T, ctx context.Context, compose *environment.DockerCo
 
 	opts = append([]NewAgentContainerOption{withHarnessCredential(compose)}, opts...)
 
-	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), opts...)
+	agent, err := NewAgentContainer(ctx, compose.Service(environment.ServiceRelay).GetContainerID(), opts...)
 	require.NoError(t, err)
 
 	return runAgent(t, ctx, agent)
@@ -1842,7 +1842,7 @@ func startCustomAgent(t *testing.T, ctx context.Context, compose *environment.Do
 
 	opts = append([]NewAgentContainerOption{withHarnessCredential(compose)}, opts...)
 
-	req, err := agentContainerRequest(compose.Service(environment.ServiceGateway).GetContainerID(), image, opts...)
+	req, err := agentContainerRequest(compose.Service(environment.ServiceRelay).GetContainerID(), image, opts...)
 	require.NoError(t, err)
 
 	customize(&req)

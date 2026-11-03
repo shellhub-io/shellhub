@@ -25,16 +25,6 @@ services:
       - SHELLHUB_SESSION_RETENTION_DAYS=${SHELLHUB_SESSION_RETENTION_DAYS:-0}
     volumes:
       - ./openapi/static/openapi-${SHELLHUB_EDITION:-community}.json:/etc/shellhub/openapi.json:ro
-  gateway:
-    image: shellhub-e2e/gateway:${SHELLHUB_E2E_RUN:?}
-    labels: *e2e-labels
-    pull_policy: never
-    restart: on-failure:3
-    healthcheck:
-      interval: 5s
-      start_period: 10s
-      retries: 20
-    ports: []
   ui:
     image: shellhub-e2e/ui:${SHELLHUB_E2E_RUN:?}
     labels: *e2e-labels
@@ -44,6 +34,13 @@ services:
       interval: 5s
       start_period: 10s
       retries: 20
+  relay:
+    image: ${DOCKERHUB_MIRROR:-}alpine/socat:1.8.0.3
+    labels: *e2e-labels
+    restart: on-failure:3
+    command: TCP6-LISTEN:80,fork,reuseaddr,ipv6only=0 TCP:server:80
+    networks:
+      - shellhub
   redis:
     image: ${DOCKERHUB_MIRROR:-}valkey/valkey:9.1-alpine
     labels: *e2e-labels

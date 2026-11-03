@@ -40,15 +40,14 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_DOMAIN` | `localhost` | Public domain. Required for auto-SSL |
 | `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
 | `SHELLHUB_NETWORK_EXTERNAL` | `false` | Join `SHELLHUB_NETWORK` as an existing network instead of creating it. It must exist before the stack starts, and `down` leaves it in place |
-| `SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE` | *(empty)* | Size of the copy buffers the gateway allocates for every agent and web terminal connection (`/ssh/*`, `/agent/*`, `/ws*`), as a byte size such as `16KiB`. Empty keeps Caddy's 32 KiB. Gateway memory grows with this value times the number of connected devices |
-| `SHELLHUB_GATEWAY_API_MAX_CONNS` | *(empty)* | Most connections the gateway opens to the server for `/api/*`, and how many it keeps idle for reuse. Requests beyond it wait for a free connection instead of dialing a new one. Empty keeps Caddy's defaults: no cap, 32 idle |
+| `SHELLHUB_GATEWAY` | `true` | Run the gateway inside the server: it listens on the HTTP and HTTPS ports, obtains certificates, and serves the API, agent tunnels and web terminal with no proxy hop. Set `false` when a load balancer or Kubernetes ingress fronts the server, which then reaches it on port `8080` |
 
 ## TLS
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `SHELLHUB_AUTO_SSL` | `false` | Obtain certificates from Let's Encrypt |
-| `SHELLHUB_TLS_CERT_FILE` | *(empty)* | Path to your own certificate, inside the gateway container |
+| `SHELLHUB_TLS_CERT_FILE` | *(empty)* | Path to your own certificate, inside the server container |
 | `SHELLHUB_TLS_KEY_FILE` | *(empty)* | Its key. **Set both or the gateway will not start** |
 | `SHELLHUB_ACME_CA_SERVER` | *(empty)* | Alternative ACME directory. Empty means Let's Encrypt production |
 

@@ -53,7 +53,7 @@ import (
 // ACMEDNS, which needs ACME, sets SHELLHUB_WEB_ENDPOINTS_DOMAIN to [ACMEDNSWebEndpointsDomain] and
 // has the gateway prove that domain's wildcard over DNS-01 with its acme-dns provider. Up registers
 // an account on an acme-dns server first, through the server's own API, and hands its credentials
-// to the gateway. The server then runs in the gateway's network namespace as the gateway's DNS,
+// to the gateway. The acme-dns server then runs in the server's network namespace as its DNS,
 // answering for the parent of the web endpoint domain, with the challenge name a CNAME to the
 // account's record, as an operator delegates it.
 //
@@ -351,7 +351,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, down(err)
 	}
 
-	services := []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis}
+	services := []Service{ServiceRelay, ServiceServer, ServicePostgres, ServiceRedis}
 	if cfg.Edition != EditionCommunity {
 		services = append(services, ServiceObjectStorage)
 	}
@@ -485,7 +485,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 		}
 	}
 
-	for _, svc := range []Service{ServiceGateway, ServiceServer, ServicePostgres, ServiceRedis} {
+	for _, svc := range []Service{ServiceRelay, ServiceServer, ServicePostgres, ServiceRedis} {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err == nil {
 			s.services[svc] = c

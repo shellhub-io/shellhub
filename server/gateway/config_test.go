@@ -1,4 +1,4 @@
-package main
+package gateway
 
 import (
 	"testing"
@@ -8,9 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestConfigNamesTheMissingACMEDNSAccountField guards the error an operator
-// reads when the acme-dns account is half set: the field left empty, before
-// Caddy reports a directive without its argument.
 func TestConfigNamesTheMissingACMEDNSAccountField(t *testing.T) {
 	unsets := map[string]func(*GatewayConfig){
 		"WebEndpointsACMEDNSURL":       func(c *GatewayConfig) { c.WebEndpointsACMEDNSURL = "" },
@@ -31,9 +28,6 @@ func TestConfigNamesTheMissingACMEDNSAccountField(t *testing.T) {
 	}
 }
 
-// TestConfigAsksForNoACMEDNSAccountWithoutTheWildcard guards the configurations
-// that never render the acme-dns provider: without web endpoints or TLS, no
-// wildcard is proven, so an unset account is not an error.
 func TestConfigAsksForNoACMEDNSAccountWithoutTheWildcard(t *testing.T) {
 	for name, mutate := range map[string]func(*GatewayConfig){
 		"no web endpoints": func(c *GatewayConfig) { c.WebEndpoints = false },

@@ -61,7 +61,7 @@ func TestPullOrBuild(t *testing.T) {
 	newRemote := func(t *testing.T) string {
 		t.Helper()
 
-		remote := registry.Address + "/shellhub-e2e-cache:gateway-" + newRunID()
+		remote := registry.Address + "/shellhub-e2e-cache:server-" + newRunID()
 		t.Cleanup(func() { _, _ = cli.ImageRemove(context.Background(), remote, client.ImageRemoveOptions{}) })
 
 		return remote
@@ -69,7 +69,7 @@ func TestPullOrBuild(t *testing.T) {
 
 	images := func(run *Run, remote string) []stackImage {
 		return []stackImage{
-			{service: "gateway", local: "shellhub-e2e/cache-test-gateway:" + run.ID(), remote: remote},
+			{service: "server", local: "shellhub-e2e/cache-test-server:" + run.ID(), remote: remote},
 			{service: "ui", local: "shellhub-e2e/cache-test-ui:" + run.ID()},
 		}
 	}
@@ -114,7 +114,7 @@ func TestPullOrBuild(t *testing.T) {
 
 		require.NoError(t, imageCache{}.pullOrBuild(ctx, pushing, images(pushing, remote), build(pushing, &built)))
 
-		assert.Equal(t, []string{"gateway", "ui"}, built)
+		assert.Equal(t, []string{"server", "ui"}, built)
 		assert.False(t, pullable(t, remote), "pushed %s with push disabled", remote)
 	})
 
@@ -125,7 +125,7 @@ func TestPullOrBuild(t *testing.T) {
 
 		require.NoError(t, imageCache{push: true}.pullOrBuild(ctx, pushing, images(pushing, remote), build(pushing, &built)))
 
-		assert.Equal(t, []string{"gateway", "ui"}, built)
+		assert.Equal(t, []string{"server", "ui"}, built)
 		assert.True(t, pullable(t, remote), "did not push %s", remote)
 	})
 
@@ -155,18 +155,18 @@ func TestImageKey(t *testing.T) {
 		"versions.env":  "GOLANG_VERSION=1\n",
 		".dockerignore": ".git\n",
 
-		"docker-compose.test.build.yml": "services: {}\n",
-		"go.mod":                        "module github.com/shellhub-io/shellhub\n",
-		"go.sum":                        "",
-		"install.sh":                    "#!/bin/sh\n",
-		"pkg/a.go":                      "package pkg\n",
-		"openapi/spec.yaml":             "openapi: 3.1.0\n",
-		"server/Dockerfile":             "FROM scratch\n",
-		"server/main.go":                "package main\n",
-		"gateway/Dockerfile":            "FROM scratch\n",
-		"gateway/main.go":               "package main\n",
-		"agent/main.go":                 "package main\n",
-		"ui/index.html":                 "<html></html>\n",
+		"docker-compose.test.build.yml":  "services: {}\n",
+		"go.mod":                         "module github.com/shellhub-io/shellhub\n",
+		"go.sum":                         "",
+		"install.sh":                     "#!/bin/sh\n",
+		"pkg/a.go":                       "package pkg\n",
+		"openapi/spec.yaml":              "openapi: 3.1.0\n",
+		"server/Dockerfile":              "FROM scratch\n",
+		"server/main.go":                 "package main\n",
+		"agent/main.go":                  "package main\n",
+		"agent/Dockerfile.test":          "FROM scratch\n",
+		"tests/cmd/signal-reporter/a.go": "package main\n",
+		"ui/index.html":                  "<html></html>\n",
 	}
 
 	cloudFiles := map[string]string{"go.mod": "module github.com/shellhub-io/cloud\n"}
@@ -196,18 +196,18 @@ func TestImageKey(t *testing.T) {
 		changed bool
 	}{
 		{name: "a file under a server path", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{"server/main.go": "package main // changed\n"}, changed: true},
-		{name: "a file under a shared path", key: key{service: "gateway", edition: EditionCommunity}, repo: map[string]string{"pkg/b.go": "package pkg\n"}, changed: true},
-		{name: "the root module", key: key{service: "gateway", edition: EditionCommunity}, repo: map[string]string{"go.sum": "changed\n"}, changed: true},
-		{name: "the Dockerfile", key: key{service: "gateway", edition: EditionCommunity}, repo: map[string]string{"gateway/Dockerfile": "FROM alpine\n"}, changed: true},
+		{name: "a file under a shared path", key: key{service: "agent", edition: EditionCommunity}, repo: map[string]string{"pkg/b.go": "package pkg\n"}, changed: true},
+		{name: "the root module", key: key{service: "agent", edition: EditionCommunity}, repo: map[string]string{"go.sum": "changed\n"}, changed: true},
+		{name: "the Dockerfile", key: key{service: "agent", edition: EditionCommunity}, repo: map[string]string{"agent/Dockerfile.test": "FROM alpine\n"}, changed: true},
 		{name: "versions.env", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{"versions.env": "GOLANG_VERSION=2\n"}, changed: true},
-		{name: "the build's target and arguments", key: key{service: "gateway", edition: EditionCommunity}, repo: map[string]string{"docker-compose.test.build.yml": "services: {gateway: {}}\n"}, changed: true},
+		{name: "the build's target and arguments", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{"docker-compose.test.build.yml": "services: {server: {}}\n"}, changed: true},
 		{name: "the build context's ignore file", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{".dockerignore": ".git\n**/node_modules\n"}, changed: true},
 		{name: "the install script", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{"install.sh": "#!/bin/sh -e\n"}, changed: true},
 		{name: "the cloud source for the enterprise server", key: enterprise, cloud: map[string]string{"cmd/server/main.go": "package main\n"}, changed: true},
-		{name: "a file outside the gateway's paths", key: key{service: "gateway", edition: EditionCommunity}, repo: map[string]string{"server/main.go": "package main // changed\n"}},
+		{name: "a file outside the agent's paths", key: key{service: "agent", edition: EditionCommunity}, repo: map[string]string{"server/main.go": "package main // changed\n"}},
 		{name: "a file outside every path", key: key{service: "server", edition: EditionCommunity}, repo: map[string]string{"agent/main.go": "package main // changed\n", "ui/index.html": "<html>changed</html>\n"}},
 		{name: "the cloud source for the community server", key: key{service: "server", edition: EditionCommunity}, cloud: map[string]string{"cmd/server/main.go": "package main\n"}},
-		{name: "the cloud source for the gateway", key: key{service: "gateway", edition: EditionEnterprise}, cloud: map[string]string{"cmd/server/main.go": "package main\n"}},
+		{name: "the cloud source for the agent", key: key{service: "agent", edition: EditionEnterprise}, cloud: map[string]string{"cmd/server/main.go": "package main\n"}},
 	}
 
 	for _, tc := range cases {
@@ -245,7 +245,7 @@ func TestImageKey(t *testing.T) {
 		assert.NotEqual(t, community, base, "the edition")
 		assert.NotEqual(t, base, keyOf(t, repo, cloud, key{service: "server", edition: EditionEnterprise, ldflags: "-X key=b"}), "the issuer key")
 		assert.Equal(t, base, keyOf(t, repo, cloud, key{service: "server", edition: EditionCloud, ldflags: "-X key=a"}), "the cloud edition runs the enterprise server")
-		assert.NotEqual(t, community, keyOf(t, repo, cloud, key{service: "gateway", edition: EditionCommunity}), "the image")
+		assert.NotEqual(t, community, keyOf(t, repo, cloud, key{service: "agent", edition: EditionCommunity}), "the image")
 	})
 
 	t.Run("fails for an image it cannot reuse", func(t *testing.T) {
@@ -261,9 +261,8 @@ func TestReusableImageSourcesCoverTheirDockerfiles(t *testing.T) {
 	require.NoError(t, err)
 
 	dockerfiles := map[string]string{
-		"server":  "server/Dockerfile",
-		"gateway": "gateway/Dockerfile",
-		"agent":   defaultAgentDockerfile,
+		"server": "server/Dockerfile",
+		"agent":  defaultAgentDockerfile,
 	}
 
 	require.ElementsMatch(t, slices.Collect(maps.Keys(reusableImageSources)), slices.Collect(maps.Keys(dockerfiles)))

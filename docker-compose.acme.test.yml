@@ -17,7 +17,7 @@ services:
       - ${SHELLHUB_TEST_ACME_DIR:?}:/etc/pebble:ro
     networks:
       - shellhub
-  gateway:
+  server:
     depends_on:
       - pebble
     ports:

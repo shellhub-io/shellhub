@@ -101,10 +101,10 @@ func proxyPreamble(source string) string {
 	return "PROXY TCP4 " + source + " 127.0.0.1 40000 80\r\n"
 }
 
-func execInGateway(t *testing.T, compose *environment.DockerCompose, script string) string {
+func execInServer(t *testing.T, compose *environment.DockerCompose, script string) string {
 	t.Helper()
 
-	_, output, err := compose.Service(environment.ServiceGateway).Exec(t.Context(), []string{"sh", "-c", script}, tcexec.Multiplexed())
+	_, output, err := compose.Service(environment.ServiceServer).Exec(t.Context(), []string{"sh", "-c", script}, tcexec.Multiplexed())
 	require.NoError(t, err)
 
 	out, err := io.ReadAll(output)
@@ -214,13 +214,13 @@ func TestGateway(t *testing.T) {
 		compose.AwaitServerLogLine(t, mark, "status=200", probe)
 	})
 
-	t.Run("the gateway container reports itself healthy", func(t *testing.T) {
-		inspected, err := compose.Service(environment.ServiceGateway).Inspect(t.Context())
+	t.Run("the server container answers the gateway healthcheck", func(t *testing.T) {
+		inspected, err := compose.Service(environment.ServiceServer).Inspect(t.Context())
 		require.NoError(t, err)
 		require.NotNil(t, inspected.State.Health)
 		assert.Equal(t, "healthy", string(inspected.State.Health.Status))
 
-		assert.Equal(t, "ok", execInGateway(t, compose, "wget -q -O- http://healthcheck.internal/healthz"))
+		assert.Equal(t, "ok", execInServer(t, compose, "wget -q -O- http://healthcheck.internal/healthz"))
 	})
 
 	t.Run("the install script and its kickstart alias are served uncached and name the gateway's address", func(t *testing.T) {
@@ -272,7 +272,7 @@ func TestGateway(t *testing.T) {
 		mark := compose.ServerLogMark(t)
 		path := probePath()
 
-		execInGateway(t, compose, "wget -q -O- --header 'X-Real-IP: "+forgedAddress+"' http://localhost"+path)
+		execInServer(t, compose, "wget -q -O- --header 'X-Real-IP: "+forgedAddress+"' http://localhost"+path)
 
 		remote := net.ParseIP(requestLogged(t, compose, mark, path)["remote_ip"])
 		require.NotNil(t, remote)

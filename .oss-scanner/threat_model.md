@@ -20,10 +20,10 @@ Untrusted input enters at:
 - The web terminal's WebSocket sessions in `server/ssh/web`.
 - The HTTP tunnels to device ports. The server opens them through `server/ssh/pkg/dialer`, the
   agent serves them in `agent/pkg/agentd`, and `pkg/webendpoints` parses their hostnames.
-- The gateway in `gateway/`, which embeds Caddy as a library. It is the public entry point and
-  only routes requests. It does no authentication and passes client headers through, so the API
-  must delete and rewrite every identity header, such as `X-ID`, `X-Tenant-ID` and `X-Role`. That
-  happens in `server/api/pkg/gateway`.
+- The gateway in `server/gateway`, which embeds Caddy as a library in the server process. It is
+  the public entry point and only routes requests. It does no authentication and passes client
+  headers through, so the API must delete and rewrite every identity header, such as `X-ID`,
+  `X-Tenant-ID` and `X-Role`. That happens in `server/api/pkg/gateway`.
 - The React web console in `ui/apps/console`. It renders data that other users and devices
   control, such as device names, tags and session output.
 
@@ -49,9 +49,9 @@ third-party dependencies with no exploit path through ShellHub.
 
 ## How to exercise it
 
-- The image builds `/out/server`, `/out/agent` and `/out/gateway`. The console build is in
+- The image builds `/out/server` and `/out/agent`. The console build is in
   `ui/apps/console/dist`.
-- Run the unit tests with `go test ./...` inside `server/`, `gateway/` and `agent/`, adding
+- Run the unit tests with `go test ./...` inside `server/` and `agent/`, adding
   `-tags docker` for the agent, and with `go test ./pkg/...` from the root. Run `npm test` in
   `ui/apps/console` for the console.
 - The server needs PostgreSQL and Redis to run. Some tests start them through testcontainers and

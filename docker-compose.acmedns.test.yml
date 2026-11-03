@@ -9,14 +9,14 @@ services:
   acmedns:
     image: ${SHELLHUB_TEST_ACME_DNS_IMAGE:?}
     labels: *e2e-labels
-    network_mode: service:gateway
+    network_mode: service:server
     volumes:
       - ${SHELLHUB_TEST_ACME_DNS_DIR:?}/config.cfg:/etc/acme-dns/config.cfg:ro
       - ${SHELLHUB_TEST_ACME_DNS_DIR:?}/data:/var/lib/acme-dns
-  gateway:
+  server:
     dns:
       - 127.0.0.1
     entrypoint:
       - sh
       - -c
-      - until nslookup -type=SOA ${SHELLHUB_TEST_ACME_DNS_ZONE:?} 127.0.0.1 >/dev/null 2>&1; do sleep 0.2; done; exec /gateway
+      - until nslookup -type=SOA ${SHELLHUB_TEST_ACME_DNS_ZONE:?} 127.0.0.1 >/dev/null 2>&1; do sleep 0.2; done; exec /server server

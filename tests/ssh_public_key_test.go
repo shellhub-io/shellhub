@@ -83,7 +83,7 @@ func TestSSHPublicKeyRefusedBelowAgent060(t *testing.T) {
 	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 
-	agent, err := NewAgentContainerAtVersion(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), "0.5.2")
+	agent, err := NewAgentContainerAtVersion(ctx, compose.Service(environment.ServiceRelay).GetContainerID(), "0.5.2")
 	require.NoError(t, err)
 
 	t.Cleanup(func() { _ = agent.Terminate(context.Background()) })

@@ -1,5 +1,5 @@
 services:
-  gateway:
+  server:
     ports:
       - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTPS_PORT}:443
     volumes:

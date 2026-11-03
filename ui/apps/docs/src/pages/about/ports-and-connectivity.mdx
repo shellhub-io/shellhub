@@ -84,7 +84,7 @@ server. Certificates are obtained from Let's Encrypt and renewed for you. This r
 server to be reachable for the challenge.
 
 **Your own certificate.** Set `SHELLHUB_TLS_CERT_FILE` and `SHELLHUB_TLS_KEY_FILE` to paths
-inside the gateway container. Set **both** — with only one, the gateway will not start.
+inside the server container. Set **both**: with only one, the server will not start.
 
 **Terminate elsewhere.** Leave auto-SSL off, publish HTTP, and let your existing proxy or load
 balancer hold the certificate.

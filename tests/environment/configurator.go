@@ -129,7 +129,7 @@ func (dcc *DockerComposeConfigurator) WithTelemetryCollector(image string) *Dock
 }
 
 // Up initiates the ShellHub instance, blocking until all services are in the running or
-// healthy state. The first successful Up in a run builds the server, gateway and ui images;
+// healthy state. The first successful Up in a run builds the server and ui images;
 // every later Up starts from those images and fails if they were removed in between.
 //
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling

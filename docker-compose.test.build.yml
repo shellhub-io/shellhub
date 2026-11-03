@@ -22,19 +22,6 @@ services:
       additional_contexts:
         cloud-src: ${SHELLHUB_CLOUD_SRC:-.}
       labels: *e2e-build-labels
-  gateway:
-    pull_policy: build
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-      target: production
-      args:
-        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
-        GOLANG_VERSION: ${GOLANG_VERSION}
-        ALPINE_VERSION: ${ALPINE_VERSION}
-        AIR_VERSION: ${AIR_VERSION}
-        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
-      labels: *e2e-build-labels
   ui:
     pull_policy: build
     build:

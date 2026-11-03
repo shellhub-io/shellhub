@@ -26,11 +26,11 @@ import (
 )
 
 // BuildStackImages builds, at once, the images every stack of run starts from: the community
-// server, gateway and UI, and the enterprise server that the enterprise and cloud stacks share. An
+// server and UI, and the enterprise server that the enterprise and cloud stacks share. An
 // Up after it builds nothing. Without the cloud source in cloudDir (a go.mod) it builds the
 // community images only, and an enterprise or cloud Up still fails for the missing source; an
-// empty cloudDir is the one Up defaults to. It reuses and publishes the server and gateway images
-// as [BuildEditionImages] does. It returns an error when run is nil, and otherwise the first error
+// empty cloudDir is the one Up defaults to. It reuses and publishes the server image as
+// [BuildEditionImages] does. It returns an error when run is nil, and otherwise the first error
 // among: checking cloudDir, resolving it to an absolute path, encoding the run issuer's key into
 // the enterprise build, reading the edition's env files, resolving the Docker host, setting up the
 // Docker CLI, creating the compose service, loading the compose project, computing an image's
@@ -59,7 +59,7 @@ func BuildStackImages(ctx context.Context, run *Run, cloudDir string) error {
 
 	for edition := range builds {
 		group.Go(func() error {
-			services := []string{"server", "gateway", "ui"}
+			services := []string{"server", "ui"}
 			if edition != EditionCommunity {
 				services = []string{"server"}
 			}
@@ -83,9 +83,9 @@ func BuildStackImages(ctx context.Context, run *Run, cloudDir string) error {
 	return nil
 }
 
-// BuildEditionImages builds the server, gateway and UI images a stack of edition in run starts
+// BuildEditionImages builds the server and UI images a stack of edition in run starts
 // from, so an Up of that edition after it builds nothing. An empty cloudDir is the one Up defaults
-// to. With SHELLHUB_E2E_IMAGE_REPOSITORY set, it pulls the server and gateway images from that one
+// to. With SHELLHUB_E2E_IMAGE_REPOSITORY set, it pulls the server image from that one
 // repository instead, tagged <image>-<key>, the key covering the build's arguments and the sources
 // each copies as committed at HEAD, so uncommitted changes reuse the image of their commit, and
 // builds the ones it does not find there; with SHELLHUB_E2E_IMAGE_PUSH=true as well, it pushes each
@@ -109,7 +109,7 @@ func BuildEditionImages(ctx context.Context, run *Run, edition Edition, cloudDir
 		cloudDir = defaultCloudDir
 	}
 
-	if err := buildEditionImages(ctx, run, edition, cloudDir, []string{"server", "gateway", "ui"}); err != nil {
+	if err := buildEditionImages(ctx, run, edition, cloudDir, []string{"server", "ui"}); err != nil {
 		return fmt.Errorf("building the %s images: %w", edition, err)
 	}
 
@@ -349,10 +349,6 @@ var reusableImageSources = map[string][]string{
 	"server": {
 		"server/Dockerfile", "docker-compose.test.build.yml", "versions.env", ".dockerignore",
 		"go.mod", "go.sum", "pkg", "openapi", "server", "install.sh",
-	},
-	"gateway": {
-		"gateway/Dockerfile", "docker-compose.test.build.yml", "versions.env", ".dockerignore",
-		"go.mod", "go.sum", "pkg", "gateway",
 	},
 	"agent": {
 		defaultAgentDockerfile, "versions.env", ".dockerignore",

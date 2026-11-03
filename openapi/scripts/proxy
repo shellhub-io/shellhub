@@ -25,7 +25,7 @@ proxy() {
   local args="$@"
 
   ./bin/docker-compose exec openapi redocly bundle spec/$instance-openapi.yaml -o /tmp/openapi/proxy/openapi.json
-  ./bin/docker-compose exec openapi prism proxy -h 0.0.0.0 -p 4020 --errors $args /tmp/openapi/proxy/openapi.json http://gateway:80
+  ./bin/docker-compose exec openapi prism proxy -h 0.0.0.0 -p 4020 --errors $args /tmp/openapi/proxy/openapi.json http://server:8080
 }
 
 main() {

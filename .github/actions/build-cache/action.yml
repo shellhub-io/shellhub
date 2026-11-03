@@ -1,6 +1,6 @@
 name: Build cache
 description: >-
-  Restore the Go build, Go module and npm caches the server, gateway and UI Dockerfiles mount
+  Restore the Go build, Go module and npm caches the server and UI Dockerfiles mount
   into the builder of the Docker daemon, before the job builds those images. With save set, a
   job running on master also saves them, once a day: the cache is extracted from the builder and
   saved at the end of the job, after prune has dropped the Go build entries the job did not use.

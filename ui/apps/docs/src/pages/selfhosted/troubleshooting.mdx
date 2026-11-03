@@ -61,7 +61,7 @@ certificate.
 
 ## SSH connections do not arrive, but the console works
 
-The SSH port is published by the **server** service, not the gateway. A load balancer or firewall
+The SSH port is published by the **server** service, like HTTP and HTTPS. A load balancer or firewall
 configured only for the gateway's HTTP ports will pass web traffic and drop SSH.
 
 SSH is not HTTP and will not survive an HTTP proxy — it needs its own path through.
