@@ -122,9 +122,14 @@ type AuthService interface {
 	GetUserAdmin(ctx context.Context, userID string) (admin bool, err error)
 	// AuthAPIKey authenticates the given key, returning its API key document. An API key can be used
 	// in place of a JWT token to authenticate requests. The key authenticates for a namespace, not as a user,
-	// which means that some routes are blocked from authentication within this method. An API key can be expired,
-	// rendering it invalid, and it is invalid once its creator is no longer a member of its namespace. The key acts at
-	// its stored role, lowered to administrator when stored as owner. It returns the API key and an error if any.
+	// which means that some routes are blocked from authentication within this method. The key belongs to its
+	// namespace and does not depend on any member, the one who created it included. It acts at its stored role,
+	// lowered to administrator when stored as owner.
+	//
+	// It returns ErrAPIKeyNotFound when no key, or more than one, has the key's digest, or when resolving it fails;
+	// ErrAuthInvalid, through NewErrAPIKeyInvalid, when the key has expired or its namespace cannot be resolved,
+	// which a deleted namespace causes even while the key is still cached, and so does any other failure resolving
+	// it; and the cache's error, unwrapped, when reading the cache fails.
 	//
 	// The document is cached under the key's digest for at most apiKeyCacheTTL from the resolution that populated
 	// it; using the key does not extend that. DeleteAPIKey and UpdateAPIKey drop the entry, so a revoked key stops
@@ -1014,7 +1019,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 		}
 	}
 
-	if _, _, err := s.ResolveNamespaceRole(ctx, apiKey.TenantID, apiKey.CreatedBy); err != nil {
+	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, apiKey.TenantID); err != nil {
 		return nil, NewErrAPIKeyInvalid(apiKey.Name)
 	}
 

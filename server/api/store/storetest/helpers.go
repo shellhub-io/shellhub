@@ -484,16 +484,9 @@ func WithAPIKeyRole(role string) APIKeyOption {
 	}
 }
 
-// WithAPIKeyCreatedBy sets the creator user ID
-func WithAPIKeyCreatedBy(userID string) APIKeyOption {
-	return func(key *models.APIKey) {
-		key.CreatedBy = userID
-	}
-}
-
 // CreateAPIKey creates an API key with default or customized values
 // Returns the generated API key digest (SHA256 hash)
-// If tenant/user are not provided via options, defaults will be created
+// If the tenant is not provided via options, a namespace will be created
 func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 	t.Helper()
 	ctx := context.Background()
@@ -508,7 +501,6 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 		Name:      "apikey_" + uniqueHex(t, 16),
 		TenantID:  "", // Will be set below if not provided via options
 		Role:      authorizer.RoleAdministrator,
-		CreatedBy: "", // Will be set below if not provided via options
 		CreatedAt: s.Clock().Now(),
 		UpdatedAt: s.Clock().Now(),
 		ExpiresIn: 0, // no expiration
@@ -520,10 +512,6 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 
 	if key.TenantID == "" {
 		key.TenantID = s.CreateNamespace(t)
-	}
-
-	if key.CreatedBy == "" {
-		key.CreatedBy = s.CreateUser(t)
 	}
 
 	keyID, err := st.APIKeyCreate(ctx, key)

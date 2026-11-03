@@ -53,16 +53,20 @@ type MemberService interface {
 	// Returns an error, if any.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 
-	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave,
-	// their API keys are revoked and, unless departure keeps it, their membership is deleted. It
-	// commits that as one unit and then settles it (see SettleMemberDeparture). A caller that must
-	// fold the departure into a transaction of its own calls the store's NamespaceDepartMember and
-	// SettleMemberDeparture instead.
+	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave
+	// and, unless departure keeps it, their membership is deleted. The API keys they created stay,
+	// since a key belongs to the namespace. It commits that as one unit and then settles it (see
+	// SettleMemberDeparture). A caller that must fold the departure into a transaction of its own
+	// calls the store's NamespaceDepartMember and SettleMemberDeparture instead.
+	//
+	// It returns ErrForbidden when tenantID is empty, ErrDeviceNotOwned when departure keeps a device
+	// the member does not own, ErrNamespaceNotFound when the membership to delete does not exist, and
+	// any other store error unchanged; none of them leaves anything changed or settled.
 	DepartNamespaceMember(ctx context.Context, tenantID, memberID string, departure store.MemberDeparture) (*models.MemberDeparted, error)
 
 	// SettleMemberDeparture does what a committed departure leaves to the process: it closes the
 	// tunnels of the removed devices, drops their authentication cache, and uncaches the member's
-	// token and API keys. It cannot fail; what it cannot evict ends at the next authentication.
+	// token. It cannot fail; what it cannot evict ends at the next authentication.
 	SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted)
 }
 
@@ -415,12 +419,6 @@ func (s *service) SettleMemberDeparture(ctx context.Context, departed *models.Me
 
 	if err := s.AuthUncacheToken(ctx, departed.TenantID, departed.MemberID); err != nil {
 		log.WithError(err).WithFields(fields).Error("failed to uncache the departed member's token")
-	}
-
-	for _, digest := range departed.APIKeyDigests {
-		if err := s.cache.Delete(ctx, apiKeyCacheKey(digest)); err != nil {
-			log.WithError(err).WithFields(fields).Error("failed to uncache the departed member's API key")
-		}
 	}
 }
 

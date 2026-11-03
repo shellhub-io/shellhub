@@ -32,7 +32,6 @@ type ProvisioningKey struct {
 	Type               string     `bun:"type"`
 	KeyEncrypted       string     `bun:"key_encrypted,nullzero"`
 	KeyHint            string     `bun:"key_hint,nullzero"`
-	UserID             string     `bun:"user_id"`
 	CreatedAt          time.Time  `bun:"created_at"`
 	UpdatedAt          time.Time  `bun:"updated_at"`
 	ExpiresAt          *time.Time `bun:"expires_at,nullzero"`
@@ -92,7 +91,6 @@ func ProvisioningKeyFromModel(model *models.ProvisioningKey) *ProvisioningKey {
 		Type:               string(keyType),
 		KeyEncrypted:       model.KeyEncrypted,
 		KeyHint:            model.KeyHint,
-		UserID:             model.CreatedBy,
 		CreatedAt:          model.CreatedAt,
 		UpdatedAt:          model.UpdatedAt,
 		ExpiresAt:          model.ExpiresAt,
@@ -133,7 +131,6 @@ func ProvisioningKeyToModel(entity *ProvisioningKey) *models.ProvisioningKey {
 		Type:               models.ProvisioningKeyType(entity.Type),
 		KeyEncrypted:       entity.KeyEncrypted,
 		KeyHint:            entity.KeyHint,
-		CreatedBy:          entity.UserID,
 		CreatedAt:          entity.CreatedAt,
 		UpdatedAt:          entity.UpdatedAt,
 		ExpiresAt:          entity.ExpiresAt,

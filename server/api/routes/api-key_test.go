@@ -197,7 +197,6 @@ func TestCreateAPIKey(t *testing.T) {
 					"CreateAPIKey",
 					mock.Anything,
 					&requests.CreateAPIKey{
-						UserID:    "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Name:      "dev",
 						Role:      "owner",
@@ -230,7 +229,6 @@ func TestCreateAPIKey(t *testing.T) {
 					"CreateAPIKey",
 					mock.Anything,
 					&requests.CreateAPIKey{
-						UserID:    "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Name:      "dev",
 						Role:      "owner",
@@ -333,7 +331,6 @@ func TestListAPIKey(t *testing.T) {
 							{
 								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
-								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
 								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -350,7 +347,6 @@ func TestListAPIKey(t *testing.T) {
 				body: []models.APIKey{
 					{
 						Name:      "dev",
-						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
 						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -391,7 +387,6 @@ func TestListAPIKey(t *testing.T) {
 							{
 								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
-								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
 								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -408,7 +403,6 @@ func TestListAPIKey(t *testing.T) {
 				body: []models.APIKey{
 					{
 						Name:      "dev",
-						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
 						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -447,7 +441,6 @@ func TestListAPIKey(t *testing.T) {
 						[]models.APIKey{
 							{
 								Name:      "dev",
-								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
 								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -464,7 +457,6 @@ func TestListAPIKey(t *testing.T) {
 				body: []models.APIKey{
 					{
 						Name:      "dev",
-						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
 						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -504,7 +496,6 @@ func TestListAPIKey(t *testing.T) {
 							{
 								Digest:    "f23a2e56cd3fcfba002c72675c870e1e7813292adc40bbf14cea479a2e07976a",
 								Name:      "dev",
-								CreatedBy: "507f1f77bcf86cd799439011",
 								TenantID:  "00000000-0000-4000-0000-000000000000",
 								Role:      "admin",
 								CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),
@@ -521,7 +512,6 @@ func TestListAPIKey(t *testing.T) {
 				body: []models.APIKey{
 					{
 						Name:      "dev",
-						CreatedBy: "507f1f77bcf86cd799439011",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "admin",
 						CreatedAt: time.Date(2023, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC),

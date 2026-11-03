@@ -25,7 +25,6 @@ func (s *Suite) createProvisioningKey(t *testing.T, tenantID string) string {
 		Mode:       models.ProvisioningKeyModeAutomatic,
 		Reusable:   true,
 		UsageLimit: 0,
-		CreatedBy:  "00000000-0000-4000-0000-000000000009",
 	})
 	require.NoError(t, err)
 
@@ -244,7 +243,6 @@ func (s *Suite) TestProvisioningKeyEventList(t *testing.T) {
 			ID:   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 			Name: "other", TenantID: otherTenant, Mode: models.ProvisioningKeyModeAutomatic,
 			Reusable: true, UsageLimit: 0,
-			CreatedBy: "00000000-0000-4000-0000-000000000009",
 		})
 		require.NoError(t, err)
 		require.NoError(t, st.ProvisioningKeyEventCreate(ctx, &models.ProvisioningKeyEvent{

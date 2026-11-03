@@ -389,7 +389,6 @@ export function mockProvisioningKey(
   return {
     id: "key-digest-1",
     tenant_id: "tenant-456",
-    created_by: "user-123",
     name: "default-key",
     mode: "manual",
     reusable: true,

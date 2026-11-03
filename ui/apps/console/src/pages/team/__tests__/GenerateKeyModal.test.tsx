@@ -25,7 +25,6 @@ describe("GenerateKeyModal", () => {
           id: SURROGATE_ID,
           key: CREDENTIAL,
           tenant_id: "00000000-0000-4000-0000-000000000000",
-          created_by: "user-123",
           role: "administrator",
           name: "prod-key",
           expires_in: 0,

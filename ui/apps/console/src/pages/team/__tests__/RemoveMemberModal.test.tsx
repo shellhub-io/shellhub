@@ -21,7 +21,13 @@ function renderModal() {
   render(
     <RemoveMemberModal
       tenantId="tenant-1"
-      member={{ id: "user-7", email: "alice@example.com", role: "operator", status: "active", added_at: "" }}
+      member={{
+        id: "user-7",
+        email: "alice@example.com",
+        role: "operator",
+        status: "active",
+        added_at: "",
+      }}
       onClose={onClose}
     />,
     { wrapper: createTestWrapper() },
@@ -34,10 +40,14 @@ describe("RemoveMemberModal", () => {
     seedAuthStore({ role: "owner" });
     renderModal();
 
-    const devices = await screen.findByRole("region", { name: "Paired devices" });
+    const devices = await screen.findByRole("region", {
+      name: "Paired devices",
+    });
     expect(within(devices).getByText("laptop")).toBeInTheDocument();
-    expect(devices).toHaveTextContent("2 devices this member paired will be removed");
-    expect(screen.getByText(/API keys they created/i)).toBeInTheDocument();
+    expect(devices).toHaveTextContent(
+      "2 devices this member paired will be removed",
+    );
+    expect(screen.queryByText(/API keys/i)).not.toBeInTheDocument();
   });
 
   it("removes the member, keeping the devices marked as team devices", async () => {
@@ -53,13 +63,19 @@ describe("RemoveMemberModal", () => {
     const user = userEvent.setup();
 
     await user.click(
-      await screen.findByRole("checkbox", { name: "Keep laptop as a team device" }),
+      await screen.findByRole("checkbox", {
+        name: "Keep laptop as a team device",
+      }),
     );
     await user.click(screen.getByRole("button", { name: "Remove member" }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(removed?.pathname).toMatch(/\/api\/namespaces\/tenant-1\/members\/user-7$/);
-    expect(removed?.searchParams.getAll("keep_devices")).toEqual(["uid-laptop"]);
+    expect(removed?.pathname).toMatch(
+      /\/api\/namespaces\/tenant-1\/members\/user-7$/,
+    );
+    expect(removed?.searchParams.getAll("keep_devices")).toEqual([
+      "uid-laptop",
+    ]);
   });
 
   it("stays open and says why when the removal is refused", async () => {
@@ -87,14 +103,22 @@ describe("RemoveMemberModal", () => {
     render(
       <RemoveMemberModal
         tenantId="tenant-1"
-        member={{ id: "user-7", email: "alice@example.com", role: "operator", status: "active", added_at: "" }}
+        member={{
+          id: "user-7",
+          email: "alice@example.com",
+          role: "operator",
+          status: "active",
+          added_at: "",
+        }}
         onClose={vi.fn()}
       />,
       { wrapper: createTestWrapper() },
     );
 
     expect(await screen.findByText(/loading the devices/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Remove member" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Remove member" }),
+    ).toBeDisabled();
   });
 
   it("refuses the removal when the member's devices cannot be loaded", async () => {
@@ -105,7 +129,13 @@ describe("RemoveMemberModal", () => {
     render(
       <RemoveMemberModal
         tenantId="tenant-1"
-        member={{ id: "user-7", email: "alice@example.com", role: "operator", status: "active", added_at: "" }}
+        member={{
+          id: "user-7",
+          email: "alice@example.com",
+          role: "operator",
+          status: "active",
+          added_at: "",
+        }}
         onClose={vi.fn()}
       />,
       { wrapper: createTestWrapper() },
@@ -114,6 +144,8 @@ describe("RemoveMemberModal", () => {
     expect(
       await screen.findByText(/couldn.t load the devices/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Remove member" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Remove member" }),
+    ).toBeDisabled();
   });
 });

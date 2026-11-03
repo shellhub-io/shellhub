@@ -2,8 +2,8 @@ post:
   operationId: apiKeyCreate
   summary: Creates an API key.
   description: |
-    The `created_by`, `tenant_id`, and `role` (unless provided in the request
-    body) values will be obtained from the JWT token.
+    The `tenant_id` and `role` (unless provided in the request body) values will
+    be obtained from the JWT token.
   tags:
     - api-keys
     - community

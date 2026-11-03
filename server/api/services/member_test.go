@@ -1296,18 +1296,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
-					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000", APIKeyDigests: []string{"digest-1", "digest-2"}}, nil).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000"}, nil).
 					Once()
 				cacheMock.
 					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000000").
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Delete", ctx, "api-key/unique-digest={digest-1}").
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Delete", ctx, "api-key/unique-digest={digest-2}").
 					Return(nil).
 					Once()
 			},
@@ -1394,15 +1386,7 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Once()
 				storeMock.
 					On("NamespaceDepartMember", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000000", store.MemberDeparture{}).
-					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000", APIKeyDigests: []string{"digest-1", "digest-2"}}, nil).
-					Once()
-				cacheMock.
-					On("Delete", ctx, "api-key/unique-digest={digest-1}").
-					Return(nil).
-					Once()
-				cacheMock.
-					On("Delete", ctx, "api-key/unique-digest={digest-2}").
-					Return(nil).
+					Return(&models.MemberDeparted{TenantID: "00000000-0000-4000-0000-000000000000", MemberID: "000000000000000000000000"}, nil).
 					Once()
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").

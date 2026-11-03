@@ -294,7 +294,6 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 		EphemeralTimeout:   ephemeralTimeout,
 		Tags:               req.Tags,
 		ExpiresAt:          provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn),
-		CreatedBy:          req.UserID,
 		KeyEncrypted:       encryptedKey,
 		KeyHint:            provisioningKeyHint(key),
 	}

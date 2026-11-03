@@ -42,7 +42,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails when namespace does not exists invalid",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
 				Name:      "dev",
@@ -62,7 +61,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails when days to expire is invalid",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
 				Name:      "dev",
@@ -95,7 +93,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails when opt role is greater than user's role",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "administrator",
 				Name:      "dev",
@@ -129,7 +126,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails when attributes are duplicated",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
 				Name:      "dev",
@@ -171,7 +167,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails when unable to create the key",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
 				Name:      "dev",
@@ -208,7 +203,6 @@ func TestCreateAPIKey(t *testing.T) {
 					On("APIKeyCreate", ctx, &models.APIKey{
 						Digest:    hashedKey,
 						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "administrator",
 						ExpiresIn: -1,
@@ -224,7 +218,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "gives an owner who leaves the role out an administrator key",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "owner",
 				Name:      "dev",
@@ -261,7 +254,6 @@ func TestCreateAPIKey(t *testing.T) {
 					On("APIKeyCreate", ctx, &models.APIKey{
 						Digest:    hashedKey,
 						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "administrator",
 						ExpiresIn: -1,
@@ -274,7 +266,6 @@ func TestCreateAPIKey(t *testing.T) {
 						ID:        surrogateID,
 						Digest:    hashedKey,
 						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "administrator",
 						ExpiresIn: -1,
@@ -286,7 +277,6 @@ func TestCreateAPIKey(t *testing.T) {
 					ID:        surrogateID,
 					Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 					Name:      "dev",
-					CreatedBy: "000000000000000000000000",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Role:      "administrator",
 					ExpiresIn: -1,
@@ -297,7 +287,6 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "gives an operator who leaves the role out an operator key",
 			req: &requests.CreateAPIKey{
-				UserID:    "000000000000000000000000",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
 				Role:      "operator",
 				Name:      "dev",
@@ -334,7 +323,6 @@ func TestCreateAPIKey(t *testing.T) {
 					On("APIKeyCreate", ctx, &models.APIKey{
 						Digest:    hashedKey,
 						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "operator",
 						ExpiresIn: -1,
@@ -347,7 +335,6 @@ func TestCreateAPIKey(t *testing.T) {
 						ID:        surrogateID,
 						Digest:    hashedKey,
 						Name:      "dev",
-						CreatedBy: "000000000000000000000000",
 						TenantID:  "00000000-0000-4000-0000-000000000000",
 						Role:      "operator",
 						ExpiresIn: -1,
@@ -359,7 +346,6 @@ func TestCreateAPIKey(t *testing.T) {
 					ID:        surrogateID,
 					Key:       "cdfd3cb0-c44e-4e54-b931-6d57713ad159",
 					Name:      "dev",
-					CreatedBy: "000000000000000000000000",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
 					Role:      "operator",
 					ExpiresIn: -1,
@@ -453,8 +439,7 @@ func TestListAPIKey(t *testing.T) {
 					Return(
 						[]models.APIKey{
 							{
-								CreatedBy: "id",
-								Name:      "nameAPIKey",
+								Name: "nameAPIKey",
 							},
 						},
 						int64(1),
@@ -465,8 +450,7 @@ func TestListAPIKey(t *testing.T) {
 			expected: Expected{
 				apiKeys: []models.APIKey{
 					{
-						CreatedBy: "id",
-						Name:      "nameAPIKey",
+						Name: "nameAPIKey",
 					},
 				},
 				count: 1,
@@ -771,7 +755,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "succeeds raising a key above the role of its creator",
+			description: "succeeds raising a key within the authority of its editor",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
 				TenantID:    "00000000-0000-4000-0000-000000000000",
@@ -784,26 +768,23 @@ func TestUpdateAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{Members: []models.Member{
 						{ID: "000000000000000000000000", Role: "owner"},
-						{ID: "creator-id", Role: "operator"},
 					}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
 					Return(&models.APIKey{
-						Digest:    "existing-id",
-						Name:      "dev",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "observer",
-						CreatedBy: "creator-id",
+						Digest:   "existing-id",
+						Name:     "dev",
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Role:     "observer",
 					}, nil).
 					Once()
 				storeMock.
 					On("APIKeyUpdate", ctx, &models.APIKey{
-						Digest:    "existing-id",
-						Name:      "dev",
-						TenantID:  "00000000-0000-4000-0000-000000000000",
-						Role:      "administrator",
-						CreatedBy: "creator-id",
+						Digest:   "existing-id",
+						Name:     "dev",
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Role:     "administrator",
 					}).
 					Return(nil).
 					Once()

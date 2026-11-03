@@ -93,7 +93,7 @@ func (s *Suite) TestSSHIdentityBelongsToAnAPIKey(t *testing.T) {
 	userID := s.CreateUser(t)
 	s.CreateMembership(t, tenantID, userID, "administrator")
 
-	digest := s.CreateAPIKey(t, WithAPIKeyName("ci"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(userID))
+	digest := s.CreateAPIKey(t, WithAPIKeyName("ci"), WithAPIKeyTenant(tenantID))
 	key, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, digest)
 	require.NoError(t, err)
 
@@ -177,7 +177,7 @@ func seedSSHIdentityOwners(t *testing.T, ctx context.Context, s *Suite) sshIdent
 	otherID := s.CreateUser(t)
 	s.CreateMembership(t, tenantID, otherID, "operator")
 
-	digest := s.CreateAPIKey(t, WithAPIKeyName("ci"), WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(userID))
+	digest := s.CreateAPIKey(t, WithAPIKeyName("ci"), WithAPIKeyTenant(tenantID))
 	key, err := st.APIKeyResolve(ctx, scope.MustBounded(tenantID), store.APIKeyDigestResolver, digest)
 	require.NoError(t, err)
 
@@ -216,8 +216,7 @@ func sshIdentityNames(identities []models.SSHIdentity) []string {
 
 // TestSSHIdentityListFiltersByOwner covers the listing the console's SSH identities page asks
 // for: the caller's own identities and nobody else's. It is a store test rather than a service
-// one because the filter it names is SQL, and the query joins api_keys, which carries a user_id
-// of its own.
+// one because the filter it names is SQL, and the query joins api_keys.
 func (s *Suite) TestSSHIdentityListFiltersByOwner(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()

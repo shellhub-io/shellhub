@@ -21,8 +21,6 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 	tenantID := s.CreateNamespace(t)
 
-	const owner = "00000000-0000-4000-0000-000000000009"
-
 	webhookDigest := "1111111111111111111111111111111111111111111111111111111111111111"
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
 		ID:            webhookDigest,
@@ -32,7 +30,6 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 		WebhookURL:    "https://hook.example/enroll",
 		WebhookSecret: "s3cr3t",
 		Reusable:      true,
-		CreatedBy:     owner,
 	})
 	require.NoError(t, err)
 
@@ -44,7 +41,6 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 		Mode:              models.ProvisioningKeyModeAllowlist,
 		AllowedIdentities: []string{"aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"},
 		Reusable:          true,
-		CreatedBy:         owner,
 	})
 	require.NoError(t, err)
 
@@ -83,13 +79,12 @@ func (s *Suite) TestProvisioningKeyTags(t *testing.T) {
 		t.Helper()
 
 		_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-			ID:        strings.Repeat(digest, 64),
-			Name:      name,
-			TenantID:  tenantID,
-			Mode:      models.ProvisioningKeyModeAutomatic,
-			Reusable:  true,
-			TagIDs:    tagIDs,
-			CreatedBy: "00000000-0000-4000-0000-000000000009",
+			ID:       strings.Repeat(digest, 64),
+			Name:     name,
+			TenantID: tenantID,
+			Mode:     models.ProvisioningKeyModeAutomatic,
+			Reusable: true,
+			TagIDs:   tagIDs,
 		})
 		require.NoError(t, err)
 	}
@@ -178,27 +173,23 @@ func (s *Suite) TestProvisioningKeyListPendingDevices(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 	tenantID := s.CreateNamespace(t)
 
-	const owner = "00000000-0000-4000-0000-000000000009"
-
 	waitingDigest := "3333333333333333333333333333333333333333333333333333333333333333"
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        waitingDigest,
-		Name:      "waiting",
-		TenantID:  tenantID,
-		Mode:      models.ProvisioningKeyModeManual,
-		Reusable:  true,
-		CreatedBy: owner,
+		ID:       waitingDigest,
+		Name:     "waiting",
+		TenantID: tenantID,
+		Mode:     models.ProvisioningKeyModeManual,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 
 	settledDigest := "4444444444444444444444444444444444444444444444444444444444444444"
 	_, err = st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        settledDigest,
-		Name:      "settled",
-		TenantID:  tenantID,
-		Mode:      models.ProvisioningKeyModeAutomatic,
-		Reusable:  true,
-		CreatedBy: owner,
+		ID:       settledDigest,
+		Name:     "settled",
+		TenantID: tenantID,
+		Mode:     models.ProvisioningKeyModeAutomatic,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 

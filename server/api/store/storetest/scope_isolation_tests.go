@@ -136,12 +136,11 @@ func (s *Suite) TestScopeIsolationProvisioningKeyResolve(t *testing.T) {
 		{other, otherDigest, "other-key"},
 	} {
 		_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-			ID:        key.digest,
-			Name:      key.name,
-			TenantID:  key.tenant,
-			Mode:      models.ProvisioningKeyModeManual,
-			Reusable:  true,
-			CreatedBy: "00000000-0000-4000-0000-000000000009",
+			ID:       key.digest,
+			Name:     key.name,
+			TenantID: key.tenant,
+			Mode:     models.ProvisioningKeyModeManual,
+			Reusable: true,
 		})
 		require.NoError(t, err)
 	}
@@ -170,12 +169,11 @@ func (s *Suite) TestScopeIsolationProvisioningKeyList(t *testing.T) {
 	other := s.CreateNamespace(t)
 
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        "4444444444444444444444444444444444444444444444444444444444444444",
-		Name:      "only-key",
-		TenantID:  owner,
-		Mode:      models.ProvisioningKeyModeManual,
-		Reusable:  true,
-		CreatedBy: "00000000-0000-4000-0000-000000000009",
+		ID:       "4444444444444444444444444444444444444444444444444444444444444444",
+		Name:     "only-key",
+		TenantID: owner,
+		Mode:     models.ProvisioningKeyModeManual,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 
@@ -214,12 +212,11 @@ func (s *Suite) TestScopeIsolationProvisioningKeyConflicts(t *testing.T) {
 	other := s.CreateNamespace(t)
 
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        "5555555555555555555555555555555555555555555555555555555555555555",
-		Name:      "taken",
-		TenantID:  owner,
-		Mode:      models.ProvisioningKeyModeManual,
-		Reusable:  true,
-		CreatedBy: "00000000-0000-4000-0000-000000000009",
+		ID:       "5555555555555555555555555555555555555555555555555555555555555555",
+		Name:     "taken",
+		TenantID: owner,
+		Mode:     models.ProvisioningKeyModeManual,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 
@@ -264,12 +261,11 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventList(t *testing.T) {
 
 	const digest = "6666666666666666666666666666666666666666666666666666666666666666"
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        digest,
-		Name:      "with-history",
-		TenantID:  owner,
-		Mode:      models.ProvisioningKeyModeManual,
-		Reusable:  true,
-		CreatedBy: "00000000-0000-4000-0000-000000000009",
+		ID:       digest,
+		Name:     "with-history",
+		TenantID: owner,
+		Mode:     models.ProvisioningKeyModeManual,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 
@@ -544,12 +540,11 @@ func (s *Suite) TestScopeIsolationProvisioningKeyEventStampDecision(t *testing.T
 
 	const digest = "7777777777777777777777777777777777777777777777777777777777777777"
 	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
-		ID:        digest,
-		Name:      "stamped",
-		TenantID:  owner,
-		Mode:      models.ProvisioningKeyModeManual,
-		Reusable:  true,
-		CreatedBy: "00000000-0000-4000-0000-000000000009",
+		ID:       digest,
+		Name:     "stamped",
+		TenantID: owner,
+		Mode:     models.ProvisioningKeyModeManual,
+		Reusable: true,
 	})
 	require.NoError(t, err)
 

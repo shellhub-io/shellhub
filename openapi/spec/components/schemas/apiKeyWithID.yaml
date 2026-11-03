@@ -19,8 +19,6 @@ properties:
     type: string
     format: uuid
     example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
-  created_by:
-    $ref: userID.yaml
   role:
     type: string
     description: |
@@ -54,7 +52,6 @@ required:
   - id
   - key
   - tenant_id
-  - created_by
   - role
   - name
   - expires_in
