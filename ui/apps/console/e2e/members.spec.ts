@@ -17,6 +17,7 @@ import {
 import type { AssignableRole } from "@/pages/team/helpers";
 import { isCloud, isCommunity, isEnterprise } from "./env";
 import {
+  chooseRadio,
   createTeam,
   consoleAccountDeletionReason,
   createTeamWithMember,
@@ -206,7 +207,7 @@ async function changeRole(
   const row = findRow(page, member.email);
   await row.getByRole("button", { name: "Edit role" }).click();
   const drawer = page.getByRole("dialog", { name: "Edit Role" });
-  await drawer.getByRole("radio", { name: role }).press("Space");
+  await chooseRadio(drawer, role);
   await keepAsTeamDevices(drawer, keep);
   await drawer.getByRole("button", { name: "Save role" }).click();
   await expect(row).toContainText(role);

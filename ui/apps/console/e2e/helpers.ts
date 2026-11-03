@@ -1,4 +1,4 @@
-import { type Page, expect } from "@playwright/test";
+import { type Locator, type Page, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import {
   confirmAccount as confirmAccountSdk,
@@ -135,6 +135,16 @@ export async function createTeamWithOwnerInAnother(
   const other = await createTeam(options);
   addMember(team.owner.username, other.namespace, "administrator");
   return { ...team, other };
+}
+
+/**
+ * Selects the radio named `name` inside `scope` by clicking its label card, then waits for it to
+ * be checked. The console renders every radio as a hidden input inside a visible `<label>`.
+ */
+export async function chooseRadio(scope: Page | Locator, name: string) {
+  const radio = scope.getByRole("radio", { name });
+  await radio.locator("xpath=ancestor::label[1]").click();
+  await expect(radio).toBeChecked();
 }
 
 export function findRow(page: Page, text: string) {
