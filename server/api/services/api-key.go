@@ -98,7 +98,6 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 		TenantID:  req.TenantID,
 		Role:      req.Role,
 		ExpiresIn: expiresIn,
-		CreatedBy: req.UserID,
 	}
 
 	if _, err := s.store.APIKeyCreate(ctx, data); err != nil {

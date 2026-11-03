@@ -83,14 +83,13 @@ func setupLegacyEnrollmentE2E(t *testing.T) *enrollmentE2E {
 func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode models.ProvisioningKeyMode, keyType models.ProvisioningKeyType, opts func(*models.ProvisioningKey)) {
 	t.Helper()
 	key := &models.ProvisioningKey{
-		ID:        digest,
-		Name:      name,
-		TenantID:  e.tenantID,
-		Mode:      mode,
-		Type:      keyType,
-		Reusable:  true,
-		Tags:      []string{},
-		CreatedBy: "00000000-0000-4000-0000-000000000009",
+		ID:       digest,
+		Name:     name,
+		TenantID: e.tenantID,
+		Mode:     mode,
+		Type:     keyType,
+		Reusable: true,
+		Tags:     []string{},
 	}
 	if opts != nil {
 		opts(key)

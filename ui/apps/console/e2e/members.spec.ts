@@ -8,6 +8,7 @@ import {
 import {
   acceptInvite,
   acceptDevicePairing,
+  apiKeyList,
   authDevice,
   createDevicePairing,
   getDevices,
@@ -50,8 +51,23 @@ import {
 
 async function createTeamWithMemberKey() {
   const team = await createTeamWithMember("administrator");
-  const { key } = await createApiKey(team.member.token);
-  return { ...team, member: { ...team.member, apiKey: key } };
+  const { name, key } = await createApiKey(team.member.token);
+  return {
+    ...team,
+    member: { ...team.member, apiKey: key, apiKeyName: name },
+  };
+}
+
+async function expectKeyKept(
+  endpoint: Endpoint,
+  owner: { token: string },
+  member: { apiKey: string; apiKeyName: string },
+) {
+  await expectStatus(endpoint, { apiKey: member.apiKey }, 200);
+  const { data } = await apiKeyList(
+    buildRequestContext({ token: owner.token }),
+  );
+  expect(data?.map((key) => key.name)).toContain(member.apiKeyName);
 }
 
 type MemberWithKey = { token: string; apiKey: string };
@@ -69,15 +85,6 @@ const listMembers =
   (tenant: string): Endpoint =>
   (opts) =>
     listNamespaceMembers({ ...opts, path: { tenant } });
-
-async function rejoinAndExpectKeyRevoked({
-  member,
-  namespace,
-  tenant,
-}: Awaited<ReturnType<typeof createTeamWithMemberKey>>) {
-  addMember(member.username, namespace, "administrator");
-  await expectStatus(listMembers(tenant), { apiKey: member.apiKey }, 401);
-}
 
 async function expectInvitationPage(
   browser: Browser,
@@ -238,63 +245,53 @@ async function leaveNamespace(page: Page, member: { username: string }) {
 }
 
 test.describe("roles", () => {
-  test("demoting an administrator to operator restricts their token but not their API keys", async ({
-    page,
-  }) => {
-    const { owner, member } = await createTeamWithMemberKey();
-    await expectMemberStatus(listAccessPolicies, member, 200);
+  for (const role of [
+    "operator",
+    "observer",
+  ] as const satisfies readonly AssignableRole[]) {
+    test(`demoting an administrator to ${role} restricts their token but not their API keys`, async ({
+      page,
+    }) => {
+      const { owner, member } = await createTeamWithMemberKey();
+      await expectMemberStatus(listAccessPolicies, member, 200);
 
-    await changeRole(page, owner, member, "operator");
+      await changeRole(page, owner, member, role);
 
-    await expectStatus(listAccessPolicies, { token: member.token }, 403);
-    await expectStatus(listAccessPolicies, { apiKey: member.apiKey }, 200);
-  });
-
-  test("demoting to observer revokes the member's API keys", async ({
-    page,
-  }) => {
-    const { owner, member } = await createTeamWithMemberKey();
-    await expectMemberStatus(listAccessPolicies, member, 200);
-
-    await changeRole(page, owner, member, "observer");
-
-    await expectStatus(listAccessPolicies, { token: member.token }, 403);
-    await expectStatus(listAccessPolicies, { apiKey: member.apiKey }, 401);
-  });
+      await expectStatus(listAccessPolicies, { token: member.token }, 403);
+      await expectKeyKept(listAccessPolicies, owner, member);
+    });
+  }
 });
 
 test.describe("losing membership", () => {
-  test("removing a member ends their token and revokes their API keys", async ({
+  test("removing a member ends their token but not the API keys they created", async ({
     page,
   }) => {
-    const team = await createTeamWithMemberKey();
-    const { owner, member, tenant } = team;
+    const { owner, member, tenant } = await createTeamWithMemberKey();
     await expectMemberStatus(listMembers(tenant), member, 200);
 
     await removeMember(page, owner, member);
 
-    await expectMemberStatus(listMembers(tenant), member, 401);
-    await rejoinAndExpectKeyRevoked(team);
+    await expectStatus(listMembers(tenant), { token: member.token }, 401);
+    await expectKeyKept(listMembers(tenant), owner, member);
   });
 
-  test("leaving ends the session and the membership, and revokes API keys", async ({
+  test("leaving ends the session and the membership but not the API keys they created", async ({
     page,
   }) => {
-    const team = await createTeamWithMemberKey();
-    const { owner, member, tenant } = team;
+    const { owner, member, tenant } = await createTeamWithMemberKey();
     await expectMemberStatus(listMembers(tenant), member, 200);
 
     await leaveNamespace(page, member);
 
-    await expectMemberStatus(listMembers(tenant), member, 401);
+    await expectStatus(listMembers(tenant), { token: member.token }, 401);
+    await expectKeyKept(listMembers(tenant), owner, member);
 
     const { data: members } = await listNamespaceMembers({
       ...buildRequestContext({ token: owner.token }),
       path: { tenant },
     });
     expect(members.map((m) => m.username)).toEqual([owner.username]);
-
-    await rejoinAndExpectKeyRevoked(team);
   });
 });
 

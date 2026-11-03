@@ -101,7 +101,6 @@ var Groups = []Group{
 		(*Suite).TestAPIKeyList,
 		(*Suite).TestAPIKeyUpdate,
 		(*Suite).TestAPIKeyDelete,
-		(*Suite).TestAPIKeyDeleteAllByCreator,
 	}},
 	{Name: "InstanceAPIKeyStore", Tests: []TestFunc{
 		(*Suite).TestInstanceAPIKeyCreate,

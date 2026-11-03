@@ -1,10 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  KeyIcon,
-  NoSymbolIcon,
-  UserMinusIcon,
-} from "@heroicons/react/24/outline";
+import { NoSymbolIcon, UserMinusIcon } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { apiErrorMessage } from "@/api/errors";
@@ -24,15 +20,11 @@ const CONSEQUENCES = [
     icon: NoSymbolIcon,
     text: "Loses access to this namespace, its devices and its sessions.",
   },
-  {
-    icon: KeyIcon,
-    text: "The API keys they created in this namespace are revoked.",
-  },
 ];
 
 /**
  * Removes a member from the namespace, showing what goes with them: the devices they paired,
- * each of which an admin may keep as a team device instead, and the API keys they created.
+ * each of which an admin may keep as a team device instead.
  */
 export default function RemoveMemberModal({
   tenantId,
@@ -83,8 +75,8 @@ export default function RemoveMemberModal({
       title="Remove member"
       description={
         <>
-          <ObjectName>{member.email}</ObjectName> leaves this namespace.
-          Someone has to invite them again to bring them back.
+          <ObjectName>{member.email}</ObjectName> leaves this namespace. Someone
+          has to invite them again to bring them back.
         </>
       }
       footer={
@@ -124,7 +116,9 @@ export default function RemoveMemberModal({
                 key={text}
                 className="flex items-start gap-2 text-xs text-text-secondary"
               >
-                <Icon className={cn("w-4 h-4 shrink-0 mt-px text-accent-red")} />
+                <Icon
+                  className={cn("w-4 h-4 shrink-0 mt-px text-accent-red")}
+                />
                 {text}
               </li>
             ))}

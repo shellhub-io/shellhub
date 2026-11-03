@@ -12,12 +12,12 @@ WITH input AS (
     SELECT owner.id, namespace.id, now(), now(), 'owner'
     FROM owner, namespace
 ), legacy_key AS (
-    INSERT INTO provisioning_keys (key_digest, namespace_id, name, mode, reusable, type, user_id, created_at, updated_at)
-    SELECT encode(sha256(('system:' || namespace.id)::bytea), 'hex'), namespace.id, 'legacy', 'manual', true, 'legacy', owner.id, now(), now()
+    INSERT INTO provisioning_keys (key_digest, namespace_id, name, mode, reusable, type, created_at, updated_at)
+    SELECT encode(sha256(('system:' || namespace.id)::bytea), 'hex'), namespace.id, 'legacy', 'manual', true, 'legacy', now(), now()
     FROM owner, namespace
 ), pairing_key AS (
-    INSERT INTO provisioning_keys (key_digest, namespace_id, name, mode, reusable, type, user_id, created_at, updated_at)
-    SELECT encode(sha256(('system:pairing:' || namespace.id)::bytea), 'hex'), namespace.id, 'pairing', 'automatic', true, 'pairing', owner.id, now(), now()
+    INSERT INTO provisioning_keys (key_digest, namespace_id, name, mode, reusable, type, created_at, updated_at)
+    SELECT encode(sha256(('system:pairing:' || namespace.id)::bytea), 'hex'), namespace.id, 'pairing', 'automatic', true, 'pairing', now(), now()
     FROM owner, namespace
 )
 SELECT id FROM namespace;

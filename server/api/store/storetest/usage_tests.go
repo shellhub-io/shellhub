@@ -132,7 +132,7 @@ func (s *Suite) TestInstanceUsage(t *testing.T) {
 		tag := s.CreateTag(t, WithTagTenant(legacy))
 		exec(`INSERT INTO device_tags (device_id, tag_id, created_at) VALUES (?, ?, now())`, docker, tag)
 		s.CreatePublicKey(t, WithPublicKeyTenant(legacy))
-		s.CreateAPIKey(t, WithAPIKeyTenant(legacy), WithAPIKeyCreatedBy(active))
+		s.CreateAPIKey(t, WithAPIKeyTenant(legacy))
 		s.CreateInstanceAPIKey(t, WithInstanceAPIKeyCreatedBy(active))
 
 		_, err := st.AccessPolicyCreate(ctx, &models.AccessPolicy{

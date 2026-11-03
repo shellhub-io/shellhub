@@ -2927,7 +2927,7 @@ func TestAuthAPIKey(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when the creator is no longer a namespace member",
+			description: "succeeds at the key's own role with no member behind it",
 			key:         testKeyPlaintext,
 			requiredMocks: func(ctx context.Context) {
 				cacheMock.
@@ -2940,86 +2940,6 @@ func TestAuthAPIKey(t *testing.T) {
 						&models.APIKey{
 							Name:      "dev",
 							TenantID:  "00000000-0000-4000-0000-000000000000",
-							CreatedBy: "creator-id",
-							Role:      authorizer.RoleAdministrator,
-							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
-						},
-						nil,
-					).
-					Once()
-				cacheMock.
-					On("Set", ctx, testKeyCacheEntry, testifymock.Anything, apiKeyCacheTTL).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
-					Once()
-			},
-			expected: Expected{
-				apiKey: nil,
-				err:    NewErrAPIKeyInvalid("dev"),
-			},
-		},
-		{
-			description: "keeps the stored role when the creator was demoted",
-			key:         testKeyPlaintext,
-			requiredMocks: func(ctx context.Context) {
-				cacheMock.
-					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
-					Return(
-						&models.APIKey{
-							Name:      "dev",
-							TenantID:  "00000000-0000-4000-0000-000000000000",
-							CreatedBy: "creator-id",
-							Role:      authorizer.RoleAdministrator,
-							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
-						},
-						nil,
-					).
-					Once()
-				cacheMock.
-					On("Set", ctx, testKeyCacheEntry, testifymock.Anything, apiKeyCacheTTL).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{
-						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOperator}},
-					}, nil).
-					Once()
-			},
-			expected: Expected{
-				apiKey: &models.APIKey{
-					Name:      "dev",
-					TenantID:  "00000000-0000-4000-0000-000000000000",
-					CreatedBy: "creator-id",
-					Role:      authorizer.RoleAdministrator,
-					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
-				},
-				err: nil,
-			},
-		},
-		{
-			description: "succeeds and keeps the key role when the creator still outranks it",
-			key:         testKeyPlaintext,
-			requiredMocks: func(ctx context.Context) {
-				cacheMock.
-					On("Get", ctx, testKeyCacheEntry, testifymock.Anything).
-					Return(nil).
-					Once()
-				storeMock.
-					On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
-					Return(
-						&models.APIKey{
-							Name:      "dev",
-							TenantID:  "00000000-0000-4000-0000-000000000000",
-							CreatedBy: "creator-id",
 							Role:      authorizer.RoleObserver,
 							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
@@ -3034,7 +2954,6 @@ func TestAuthAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
 					}, nil).
 					Once()
 			},
@@ -3042,7 +2961,6 @@ func TestAuthAPIKey(t *testing.T) {
 				apiKey: &models.APIKey{
 					Name:      "dev",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
-					CreatedBy: "creator-id",
 					Role:      authorizer.RoleObserver,
 					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 				},
@@ -3063,7 +2981,6 @@ func TestAuthAPIKey(t *testing.T) {
 						&models.APIKey{
 							Name:      "dev",
 							TenantID:  "00000000-0000-4000-0000-000000000000",
-							CreatedBy: "creator-id",
 							Role:      authorizer.RoleOwner,
 							ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 						},
@@ -3078,7 +2995,6 @@ func TestAuthAPIKey(t *testing.T) {
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{
 						TenantID: "00000000-0000-4000-0000-000000000000",
-						Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
 					}, nil).
 					Once()
 			},
@@ -3086,7 +3002,6 @@ func TestAuthAPIKey(t *testing.T) {
 				apiKey: &models.APIKey{
 					Name:      "dev",
 					TenantID:  "00000000-0000-4000-0000-000000000000",
-					CreatedBy: "creator-id",
 					Role:      authorizer.RoleAdministrator,
 					ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 				},
@@ -3185,7 +3100,6 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 		Digest:    testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
-		CreatedBy: "creator-id",
 		Role:      authorizer.RoleAdministrator,
 		ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 	}
@@ -3198,7 +3112,6 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 		Return(&models.Namespace{
 			TenantID: "00000000-0000-4000-0000-000000000000",
-			Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
 		}, nil).
 		Twice()
 
@@ -3234,6 +3147,39 @@ func TestAuthAPIKey_RevocationTakesEffectOnTheNextRequest(t *testing.T) {
 	require.Equal(t, NewErrAPIKeyNotFound("", store.ErrNoDocuments), err)
 }
 
+func TestAuthAPIKey_DeletedNamespaceRejectsACachedKey(t *testing.T) {
+	ctx := context.Background()
+	cache := newFakeAPIKeyCache()
+	storeMock, service := newAPIKeyAuthFixture(t, cache)
+
+	storeMock.
+		On("APIKeyResolve", ctx, testifymock.Anything, store.APIKeyDigestResolver, testKeyDigest).
+		Return(&models.APIKey{
+			Digest:    testKeyDigest,
+			Name:      "dev",
+			TenantID:  "00000000-0000-4000-0000-000000000000",
+			Role:      authorizer.RoleAdministrator,
+			ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
+		}, nil).
+		Once()
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+		Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+		Once()
+
+	_, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.NoError(t, err)
+
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+		Return(nil, store.ErrNoDocuments).
+		Once()
+
+	rejected, err := service.AuthAPIKey(ctx, testKeyPlaintext)
+	require.Nil(t, rejected)
+	require.Equal(t, NewErrAPIKeyInvalid("dev"), err)
+}
+
 func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 	ctx := context.Background()
 	cache := newFakeAPIKeyCache()
@@ -3243,14 +3189,13 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 		Digest:    testKeyDigest,
 		Name:      "dev",
 		TenantID:  "00000000-0000-4000-0000-000000000000",
-		CreatedBy: "creator-id",
 		Role:      authorizer.RoleAdministrator,
 		ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 	}
 
 	namespace := &models.Namespace{
 		TenantID: "00000000-0000-4000-0000-000000000000",
-		Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
+		Members:  []models.Member{{ID: "editor-id", Role: authorizer.RoleOwner}},
 	}
 
 	storeMock.
@@ -3277,7 +3222,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 
 	require.NoError(t, service.UpdateAPIKey(ctx, &requests.UpdateAPIKey{
 		TenantID:    "00000000-0000-4000-0000-000000000000",
-		UserID:      "creator-id",
+		UserID:      "editor-id",
 		CurrentName: "dev",
 		Name:        "dev",
 		Role:        authorizer.RoleObserver,
@@ -3305,7 +3250,6 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 				Digest:    testKeyDigest,
 				Name:      "dev",
 				TenantID:  "00000000-0000-4000-0000-000000000000",
-				CreatedBy: "creator-id",
 				Role:      authorizer.RoleObserver,
 				ExpiresIn: time.Date(3000, 0o1, 0o1, 12, 0o0, 0o0, 0o0, time.UTC).Unix(),
 			},
@@ -3316,7 +3260,6 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
 		Return(&models.Namespace{
 			TenantID: "00000000-0000-4000-0000-000000000000",
-			Members:  []models.Member{{ID: "creator-id", Role: authorizer.RoleOwner}},
 		}, nil).
 		Times(4)
 

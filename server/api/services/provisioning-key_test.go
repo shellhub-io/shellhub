@@ -101,7 +101,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "creates a key that never expires when expires_in is omitted",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci"},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -110,7 +110,6 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
-					CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()
@@ -158,7 +157,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "fails when the created key cannot be resolved back",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci"},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -167,7 +166,6 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
-					CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(nil, errors.New("resolve error")).Once()
@@ -176,7 +174,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "derives a reusable key from a usage limit above one",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", UsageLimit: 10, Tags: []string{"prod"}},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", UsageLimit: 10, Tags: []string{"prod"}},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -187,19 +185,19 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return(&models.Tag{ID: "prod-id", Name: "prod", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true, UsageLimit: 10,
-					Tags: []string{"prod"}, TagIDs: []string{"prod-id"}, CreatedBy: "000000000000000000000000",
+					Tags: []string{"prod"}, TagIDs: []string{"prod-id"},
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{
 						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true, UsageLimit: 10,
-						Tags: []string{"prod"}, CreatedBy: "000000000000000000000000",
+						Tags: []string{"prod"},
 					}, nil).Once()
 			},
 			expectedKey: plain,
 		},
 		{
 			description: "creates a tag the key names that the namespace lacks",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -212,19 +210,19 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return("edge-id", nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
-					Tags: []string{"edge"}, TagIDs: []string{"edge-id"}, CreatedBy: "000000000000000000000000",
+					Tags: []string{"edge"}, TagIDs: []string{"edge-id"},
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{
 						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
-						Tags: []string{"edge"}, TagIDs: []string{"edge-id"}, CreatedBy: "000000000000000000000000",
+						Tags: []string{"edge"}, TagIDs: []string{"edge-id"},
 					}, nil).Once()
 			},
 			expectedKey: plain,
 		},
 		{
 			description: "fails without creating the key when a tag it names cannot be resolved",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -238,7 +236,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "creates a single-use key when the usage limit is one",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", UsageLimit: 1},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", UsageLimit: 1},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -247,19 +245,17 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: false, UsageLimit: 1,
-					CreatedBy: "000000000000000000000000",
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{
 						ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: false, UsageLimit: 1,
-						CreatedBy: "000000000000000000000000",
 					}, nil).Once()
 			},
 			expectedKey: plain,
 		},
 		{
 			description: "converts expires_in days to an absolute expiry",
-			req:         &requests.CreateProvisioningKey{UserID: "000000000000000000000000", TenantID: tenant, Name: "ci", ExpiresIn: &days30},
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", ExpiresIn: &days30},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
@@ -268,7 +264,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 					Return([]string{}, false, nil).Once()
 				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
 					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
-					ExpiresAt: &future, CreatedBy: "000000000000000000000000",
+					ExpiresAt: &future,
 				})).Return(hashedKey, nil).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, hashedKey).
 					Return(&models.ProvisioningKey{ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()

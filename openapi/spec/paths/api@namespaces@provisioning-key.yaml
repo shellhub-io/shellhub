@@ -2,8 +2,8 @@ post:
   operationId: provisioningKeyCreate
   summary: Creates a provisioning key.
   description: |
-    The `created_by` and `tenant_id` values are obtained from the JWT token. The
-    plaintext key is returned only once, in the response.
+    The `tenant_id` value is obtained from the JWT token. The plaintext key is
+    returned only once, in the response.
   tags:
     - provisioning-keys
     - community

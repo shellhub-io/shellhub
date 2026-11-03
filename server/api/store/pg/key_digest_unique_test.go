@@ -71,7 +71,7 @@ func seedKeyDigest(t *testing.T, ctx context.Context, provider *pgprovider.Provi
 func (f *keyDigestFixture) apiKey(tenant, name string) *models.APIKey {
 	return &models.APIKey{
 		Digest: collidingDigest, Name: name, TenantID: tenant,
-		Role: authorizer.RoleOwner, CreatedBy: f.users[tenant],
+		Role:      authorizer.RoleOwner,
 		CreatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC), UpdatedAt: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC), ExpiresIn: -1,
 	}
 }
@@ -100,7 +100,7 @@ func TestProvisioningKeyDigestIsGloballyUnique(t *testing.T) {
 		return &models.ProvisioningKey{
 			ID: collidingDigest, Name: name, TenantID: tenant,
 			Mode: models.ProvisioningKeyModeAutomatic, Type: models.ProvisioningKeyTypeUser,
-			Reusable: true, Tags: []string{}, CreatedBy: f.users[tenant],
+			Reusable: true, Tags: []string{},
 		}
 	}
 

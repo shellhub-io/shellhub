@@ -103,10 +103,6 @@ func (pg *Pg) NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberI
 
 		departed.RemovedDevices = removed
 
-		if departed.APIKeyDigests, err = pg.APIKeyDeleteAllByCreator(ctx, tenantID, memberID); err != nil {
-			return err
-		}
-
 		if departure.KeepMembership {
 			return nil
 		}

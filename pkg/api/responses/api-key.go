@@ -15,7 +15,6 @@ type CreateAPIKey struct {
 	ID        string          `json:"id"`
 	Key       string          `json:"key"`
 	Name      string          `json:"name"`
-	CreatedBy string          `json:"created_by"`
 	TenantID  string          `json:"tenant_id"`
 	Role      authorizer.Role `json:"role" validate:"required,oneof=administrator operator observer"`
 	CreatedAt time.Time       `json:"created_at"`
@@ -32,7 +31,6 @@ func CreateAPIKeyFromModel(m *models.APIKey, plaintext string) *CreateAPIKey {
 		ID:        m.ID,
 		Key:       plaintext,
 		Name:      m.Name,
-		CreatedBy: m.CreatedBy,
 		TenantID:  m.TenantID,
 		Role:      m.Role,
 		CreatedAt: m.CreatedAt,

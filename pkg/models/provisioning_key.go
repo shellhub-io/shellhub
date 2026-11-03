@@ -139,8 +139,6 @@ type ProvisioningKey struct {
 	// KeyHint is a short, non-secret prefix of the plaintext key, used to render a recognizable
 	// masked fingerprint in the list without exposing the secret.
 	KeyHint string `json:"key_hint"`
-	// CreatedBy is the ID of the user who created the key.
-	CreatedBy string `json:"created_by"`
 	// CreatedAt is the creation date of the key.
 	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt is the last update date of the key.

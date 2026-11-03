@@ -27,10 +27,9 @@ func (o *OptionalInt) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &o.Value)
 }
 
-// CreateProvisioningKey is the request to mint a provisioning key. UserID and TenantID come from the
-// caller's headers rather than the body, so a key cannot be minted into another namespace.
+// CreateProvisioningKey is the request to mint a provisioning key. TenantID comes from the caller's
+// headers rather than the body, so a key cannot be minted into another namespace.
 type CreateProvisioningKey struct {
-	UserID   string `header:"X-ID"`
 	TenantID string `header:"X-Tenant-ID"`
 	Name     string `json:"name" validate:"required,api-key_name"`
 	// Mode is the enrollment policy. Omitted defaults to "automatic". Mode-specific fields

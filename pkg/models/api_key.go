@@ -24,10 +24,9 @@ type APIKey struct {
 	Name string `json:"name"`
 	// TenantID is the API key's namespace ID.
 	TenantID string `json:"tenant_id"`
-	// Role defines the permissions of the API key. It must be equal to or less than the creator's role.
+	// Role defines the permissions of the API key. Creating or editing a key cannot set it above the role
+	// of whoever does it.
 	Role authorizer.Role `json:"role" validate:"required,oneof=administrator operator observer"`
-	// CreatedBy is the ID of the user who created the API key.
-	CreatedBy string `json:"created_by"`
 	// CreatedAt is the creation date of the API key.
 	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt is the last update date of the API key.

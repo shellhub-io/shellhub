@@ -23,11 +23,11 @@ const (
 )
 
 // TestRemoveMemberThroughTheAdminCLI removes a member with the admin CLI, a process apart from the
-// server that caches the member's API keys and holds the tunnels of the devices they paired.
+// server that caches the member's token and holds the tunnels of the devices they paired.
 func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 	t.Parallel()
 
-	t.Run("refuses their token and API keys at once", func(t *testing.T) {
+	t.Run("refuses their token at once and keeps the API keys they created", func(t *testing.T) {
 		compose := newSSHEnvironment(t, t.Context(), newNamespace)
 		member := signInDepartingMember(t, compose)
 
@@ -50,11 +50,13 @@ func TestRemoveMemberThroughTheAdminCLI(t *testing.T) {
 
 		compose.RemoveMember(t, departingUsername, ShellHubNamespaceName)
 
-		for _, request := range []func() *resty.Request{withToken, withKey} {
-			resp, err := request().Get("/api/devices")
-			require.NoError(t, err)
-			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
-		}
+		resp, err = withToken().Get("/api/devices")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
+
+		resp, err = withKey().Get("/api/devices")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 	})
 
 	t.Run("closes their paired devices' tunnels within a heartbeat", func(t *testing.T) {

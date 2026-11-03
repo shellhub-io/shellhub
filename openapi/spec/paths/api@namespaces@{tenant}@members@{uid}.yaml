@@ -5,7 +5,7 @@ delete:
     Remove a member from a namespace. The devices the member paired are removed
     with them and their agents go back to pairing, except the ones named in
     `keep_devices`, which stay as team devices. The API keys the member created
-    are revoked.
+    stay, since an API key belongs to the namespace.
   tags:
     - community
     - namespaces

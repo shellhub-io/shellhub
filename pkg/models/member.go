@@ -60,6 +60,4 @@ type MemberDeparted struct {
 	MemberID string
 	// RemovedDevices are the UIDs of the devices that left with the member.
 	RemovedDevices []string
-	// APIKeyDigests are the digests of the API keys the member had created in the namespace.
-	APIKeyDigests []string
 }

@@ -5,12 +5,11 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 )
 
-// CreateAPIKey is the request to mint an API key. UserID, TenantID and Role come from the
-// authenticated caller's headers, not from the body: a caller cannot mint a key more powerful than
-// itself. The key's plaintext is not a field: the server generates it, so no caller can name a
-// secret that another namespace may already hold.
+// CreateAPIKey is the request to mint an API key. TenantID and Role come from the authenticated
+// caller's headers, not from the body: a caller cannot mint a key more powerful than itself. The
+// key's plaintext is not a field: the server generates it, so no caller can name a secret that
+// another namespace may already hold.
 type CreateAPIKey struct {
-	UserID    string          `header:"X-ID"`
 	TenantID  string          `header:"X-Tenant-ID"`
 	Role      authorizer.Role `header:"X-Role"`
 	Name      string          `json:"name" validate:"required,api-key_name"`

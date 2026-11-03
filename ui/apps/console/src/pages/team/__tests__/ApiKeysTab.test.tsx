@@ -25,7 +25,6 @@ function mockApiKey(overrides: Partial<ApiKey> = {}): ApiKey {
   return {
     id: "key-1",
     tenant_id: "tenant-456",
-    created_by: "user-123",
     role: "administrator",
     name: "prod-key",
     expires_in: Math.floor(Date.now() / 1000) + 3600 * 24 * 30,
@@ -91,7 +90,7 @@ describe("ApiKeysTab — pagination count display", () => {
 
   it("renders Prev/Next navigation buttons when there are more than PER_PAGE keys", async () => {
     const keys = Array.from({ length: 10 }, (_, i) =>
-      mockApiKey({ name: `key-${i}`, created_by: `user-${i}` }),
+      mockApiKey({ name: `key-${i}` }),
     );
     setApiKeys(keys, 25);
 
@@ -120,20 +119,21 @@ describe("ApiKeysTab — delete error handling", () => {
   it("shows the mutation error message inside the dialog when deletion fails", async () => {
     server.use(
       http.delete("*/api/namespaces/api-key/:key", () =>
-        HttpResponse.json(
-          { message: "Key is protected" },
-          { status: 403 },
-        ),
+        HttpResponse.json({ message: "Key is protected" }, { status: 403 }),
       ),
     );
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
+    await user.click(
+      within(dialog).getByRole("button", { name: /^delete key$/i }),
+    );
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete API key. You do not have permission to do this."),
+        within(dialog).getByText(
+          "Failed to delete API key. You do not have permission to do this.",
+        ),
       ).toBeInTheDocument(),
     );
     expect(dialog).toBeInTheDocument();
@@ -148,11 +148,15 @@ describe("ApiKeysTab — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
+    await user.click(
+      within(dialog).getByRole("button", { name: /^delete key$/i }),
+    );
 
     await waitFor(() =>
       expect(
-        within(dialog).getByText("Failed to delete API key. Something went wrong on our side. Try again."),
+        within(dialog).getByText(
+          "Failed to delete API key. Something went wrong on our side. Try again.",
+        ),
       ).toBeInTheDocument(),
     );
   });
@@ -161,7 +165,9 @@ describe("ApiKeysTab — delete error handling", () => {
     const user = await openDeleteDialog();
     const dialog = await getDialog();
 
-    await user.click(within(dialog).getByRole("button", { name: /^delete key$/i }));
+    await user.click(
+      within(dialog).getByRole("button", { name: /^delete key$/i }),
+    );
 
     await waitFor(() =>
       expect(

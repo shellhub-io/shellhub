@@ -78,9 +78,9 @@ creates it**. An operator cannot mint an administrator key. Changing a key's rol
 same authority from whoever edits it.
 
 A key never acts as an owner. The highest role it acts with is administrator, so an owner's key is
-an administrator key. A key keeps its role when its creator's role changes, except that demoting
-the creator to observer deletes their keys. A key stops working when its creator leaves the
-namespace.
+an administrator key. A key belongs to the namespace, not to whoever created it: it keeps working,
+at its own role, when its creator is demoted, removed, or leaves the namespace. Revoke the keys a
+departing member knew about from the API keys list.
 
 See [API keys](/api#creating-a-key).
 

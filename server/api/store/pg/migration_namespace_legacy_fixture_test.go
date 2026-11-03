@@ -68,7 +68,7 @@ func TestLegacyNamespaceFixtureMatchesAMigratedNamespace(t *testing.T) {
 			SELECT encode(sha256((CASE k.type WHEN 'legacy' THEN 'system:' ELSE 'system:pairing:' END || k.namespace_id)::bytea), 'hex') = k.key_digest AS digest_derived_from_tenant,
 			       k.name, k.mode, k.webhook_url, k.webhook_secret, k.allowed_identities, k.webhook_timeout, k.webhook_callback_ttl,
 			       k.reusable, k.usage_limit, k.used_times, k.last_used_at, k.ephemeral, k.ephemeral_timeout, k.revoked, k.disabled,
-			       k.type, k.key_encrypted, k.key_hint, k.user_id, k.expires_at,
+			       k.type, k.key_encrypted, k.key_hint, k.expires_at,
 			       (SELECT count(*) FROM provisioning_key_tags t
 			        WHERE t.provisioning_key_digest = k.key_digest AND t.provisioning_key_namespace_id = k.namespace_id) AS tags
 			FROM provisioning_keys k WHERE k.namespace_id = ? ORDER BY k.type

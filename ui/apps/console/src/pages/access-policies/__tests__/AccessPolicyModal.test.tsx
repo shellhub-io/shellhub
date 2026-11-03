@@ -99,7 +99,6 @@ describe("AccessPolicyModal", () => {
             id: "c629572a-b643-4301-90fe-4572b00d007e",
             name: "ci-deploy",
             tenant_id: "00000000-0000-4000-0000-000000000000",
-            created_by: "user-1",
             role: "administrator",
             expires_in: -1,
             created_at: "2024-01-01T00:00:00Z",

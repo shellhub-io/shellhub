@@ -155,7 +155,8 @@ func (s *Suite) TestDeviceOwnerMustBeAMember(t *testing.T) {
 }
 
 // TestNamespaceDepartMember shows a departure removes only the member's own devices in that
-// namespace, revokes their keys, keeps what it is told to keep, and changes nothing when it fails.
+// namespace, leaves the namespace's API keys alone, keeps what it is told to keep, and changes
+// nothing when it fails.
 func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -169,7 +170,7 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		return ns.DevicesAcceptedCount, ns.DevicesRemovedCount
 	}
 
-	t.Run("removes the member's devices, keys and membership", func(t *testing.T) {
+	t.Run("removes the member's devices and membership, not the namespace's API keys", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		tenantID, memberID := s.ownedDeviceFixture(t)
@@ -185,12 +186,14 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		elsewhere := s.CreateDevice(t, WithTenantID(otherTenantID), WithDeviceOwner(memberID))
 		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusAccepted, 3))
 
-		digest := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID), WithAPIKeyCreatedBy(memberID))
+		digest := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID))
 
 		departed, err := st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{})
 		require.NoError(t, err)
 		assert.Equal(t, []string{string(owned)}, departed.RemovedDevices)
-		assert.Equal(t, []string{digest}, departed.APIKeyDigests)
+
+		_, err = st.APIKeyResolve(ctx, sc, store.APIKeyDigestResolver, digest)
+		require.NoError(t, err)
 
 		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(owned))
 		require.NoError(t, err)

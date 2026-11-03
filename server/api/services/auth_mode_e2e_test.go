@@ -174,7 +174,7 @@ func TestProvisioningKeysInLegacyNamespace(t *testing.T) {
 	e := setupLegacyEnrollmentE2E(t)
 
 	t.Run("create refuses", func(t *testing.T) {
-		_, err := e.svc.CreateProvisioningKey(ctx, &requests.CreateProvisioningKey{TenantID: e.tenantID, Name: "fleet", Mode: string(models.ProvisioningKeyModeManual), UserID: "00000000-0000-4000-0000-000000000009"})
+		_, err := e.svc.CreateProvisioningKey(ctx, &requests.CreateProvisioningKey{TenantID: e.tenantID, Name: "fleet", Mode: string(models.ProvisioningKeyModeManual)})
 		require.ErrorIs(t, err, ErrNamespaceLegacy)
 	})
 
