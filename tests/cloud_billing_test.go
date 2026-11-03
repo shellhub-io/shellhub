@@ -25,6 +25,7 @@ import (
 
 const (
 	freeTierDevices            = 3
+	signUpNamespaceLimit       = 1
 	unlimitedDevices           = -1
 	acceptedTestCard           = "pm_card_visa"
 	decliningTestCard          = "pm_card_chargeCustomerFail"
@@ -91,6 +92,7 @@ func newBillingOwner(t *testing.T, compose *environment.DockerCompose, name stri
 	owner := billingOwner{username: name, tenant: uuid.Generate()}
 
 	compose.NewUser(t, name, name+stripeTestEmailDomain, ShellHubPassword)
+	compose.LimitOwnedNamespaces(t, name, signUpNamespaceLimit)
 	compose.NewNamespace(t, name, name, owner.tenant)
 	compose.JWT(compose.AuthUser(t, name, ShellHubPassword).Token)
 	owner.key = compose.CreateProvisioningKey(t, &requests.CreateProvisioningKey{Name: name, Mode: string(models.ProvisioningKeyModeManual)}).Key

@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,17 @@ func (dc *DockerCompose) SetUserPasswordDigest(t *testing.T, username, digest st
 	dc.updateOne(t,
 		"UPDATE users SET password_digest = :'digest' WHERE username = :'username'",
 		map[string]string{"username": username, "digest": digest})
+}
+
+// LimitOwnedNamespaces sets how many namespaces the user username may own. The admin CLI creates
+// users with no limit, which a negative limit stands for, while a sign-up gets 1. It fails t unless
+// exactly that user changed.
+func (dc *DockerCompose) LimitOwnedNamespaces(t *testing.T, username string, limit int) {
+	t.Helper()
+
+	dc.updateOne(t,
+		"UPDATE users SET namespace_ownership_limit = :'limit' WHERE username = :'username'",
+		map[string]string{"username": username, "limit": strconv.Itoa(limit)})
 }
 
 // UserPasswordDigest returns the stored password digest of the user username, reading the row
