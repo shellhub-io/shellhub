@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -468,4 +473,52 @@ func collect(node any, matches func(map[string]any) bool) []map[string]any {
 	}
 
 	return found
+}
+
+func TestAnInfoQueryEscapedIntoThePathReachesTheAPI(t *testing.T) {
+	requested := make(chan string, 1)
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requested <- r.URL.RequestURI()
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(api.Close)
+
+	cfg := configurations()["community"]
+	cfg.APIBackend = strings.TrimPrefix(api.URL, "http://")
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+	require.NoError(t, err)
+
+	free, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	address := free.Addr().String()
+	require.NoError(t, free.Close())
+
+	adapted = bytes.ReplaceAll(adapted, []byte(`":80"`), []byte(`"`+address+`"`))
+	adapted = bytes.ReplaceAll(adapted, []byte(`"/data"`), []byte(`"`+t.TempDir()+`"`))
+
+	require.NoError(t, caddy.Load(adapted, true))
+	t.Cleanup(func() { _ = caddy.Stop() })
+
+	for _, uri := range []string{"/info%3Fagent_version=v0.8.2", "/info?agent_version=v0.8.2"} {
+		t.Run(uri, func(t *testing.T) {
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://"+address+uri, nil)
+			require.NoError(t, err)
+			req.Host = cfg.Domain
+
+			res, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
+			require.NoError(t, res.Body.Close())
+
+			select {
+			case got := <-requested:
+				assert.Equal(t, "/info?agent_version=v0.8.2", got)
+			default:
+				t.Fatalf("%s did not reach the API, the gateway answered %d", uri, res.StatusCode)
+			}
+		})
+	}
 }

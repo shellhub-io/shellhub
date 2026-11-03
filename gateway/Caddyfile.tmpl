@@ -144,6 +144,14 @@
 			}
 		}
 
+		@infoQueryInPath path_regexp infoQuery ^/info\?agent_version=(.*)$
+		handle @infoQueryInPath {
+			rewrite * /info?agent_version={re.infoQuery.1}
+			reverse_proxy {{ $cfg.APIBackend }} {
+				import forwarded
+			}
+		}
+
 		@install path /install.sh /kickstart.sh
 		handle @install {
 			# The script embeds request-derived defaults (SERVER_ADDRESS from the
