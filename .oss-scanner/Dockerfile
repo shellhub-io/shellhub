@@ -1,6 +1,6 @@
 FROM golang:1.26.10-trixie AS go-toolchain
 
-FROM node:24.21.0-trixie
+FROM node:24.22.1-trixie
 COPY --from=go-toolchain /usr/local/go /usr/local/go
 ENV PATH="/root/go/bin:/usr/local/go/bin:${PATH}" \
     GOPATH=/root/go \
