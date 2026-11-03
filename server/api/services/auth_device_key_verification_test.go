@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
@@ -470,7 +471,8 @@ func TestAuthDeviceToken(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
 			storeMock := mocks.NewMockStore(t)
-			storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(tc.device, tc.resolveErr).Once()
+			bounded := testifymock.MatchedBy(func(sc scope.Scope) bool { return sc.Kind() == scope.KindBounded && sc.TenantID() == tenantID })
+			storeMock.On("DeviceResolve", ctx, bounded, store.DeviceUIDResolver, uid).Return(tc.device, tc.resolveErr).Once()
 			if tc.namespace != nil || tc.resolveNs != nil {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).Return(tc.namespace, tc.resolveNs).Once()
 			}
@@ -482,10 +484,16 @@ func TestAuthDeviceToken(t *testing.T) {
 		})
 	}
 
-	t.Run("refuses claims without a tenant", func(t *testing.T) {
-		service := NewService(mocks.NewMockStore(t), privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t), WithIssuer(testIssuer))
+	t.Run("resolves a tenant-less token's device across namespaces and reads its namespace off the device", func(t *testing.T) {
+		ctx := context.TODO()
+		unbounded := testifymock.MatchedBy(func(sc scope.Scope) bool { return sc.Kind() == scope.KindUnbounded })
 
-		err := service.AuthDeviceToken(context.TODO(), &authorizer.DeviceClaims{UID: uid})
-		assert.ErrorIs(t, err, ErrAuthUnathorized)
+		storeMock := mocks.NewMockStore(t)
+		storeMock.On("DeviceResolve", ctx, unbounded, store.DeviceUIDResolver, uid).Return(&models.Device{UID: uid, TenantID: tenantID}, nil).Once()
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).Return(&models.Namespace{TenantID: tenantID, Settings: &models.NamespaceSettings{}}, nil).Once()
+
+		service := NewService(storeMock, privateKey, &privateKey.PublicKey, mockcache.NewMockCache(t))
+
+		assert.NoError(t, service.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: uid}))
 	})
 }
