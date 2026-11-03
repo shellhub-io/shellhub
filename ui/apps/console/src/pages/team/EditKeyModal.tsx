@@ -7,6 +7,7 @@ import { apiKeyUpdateMutation, type ApiKey } from "@/client";
 import FormModal from "@/components/common/FormModal";
 import { FormInputField } from "@/components/common/fields/rhf";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { KEY_NAME_MAX_LENGTH } from "@/utils/validation";
 import { FormRoleSelector } from "./constants";
 import {
   editKeySchema,
@@ -71,7 +72,7 @@ function EditKeyModal({
         control={control}
         id="edit-key-name"
         label="Name"
-        maxLength={20}
+        maxLength={KEY_NAME_MAX_LENGTH}
       />
       <FormRoleSelector name="role" control={control} />
     </FormModal>

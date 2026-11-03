@@ -74,15 +74,6 @@ export function parseAllowedIdentities(text: string): string[] {
   return [...seen];
 }
 
-/** Client-side name validation for a provisioning key: 3-20 chars, alphanumerics plus - and _. */
-export function validateName(value: string): string {
-  if (value.length < 3) return "Name must be at least 3 characters.";
-  if (value.length > 20) return "Name must be at most 20 characters.";
-  if (!/^[a-zA-Z0-9_-]+$/.test(value))
-    return "Name can only contain letters, numbers, - and _.";
-  return "";
-}
-
 /**
  * Shortest webhook timeout, in minutes.
  */

@@ -159,3 +159,31 @@ export function isMaxNamespacesValid(
 ): boolean {
   return !limitEnabled || limitDisabled || parseInt(maxNamespaces, 10) >= 1;
 }
+
+const KEY_NAME_MIN_LENGTH = 3;
+/**
+ * Longest accepted API or provisioning key name.
+ */
+export const KEY_NAME_MAX_LENGTH = 20;
+/**
+ * The key-name rule as one sentence, for a rejection the server reports without naming the part
+ * that failed.
+ */
+export const KEY_NAME_HINT = `Name must be ${KEY_NAME_MIN_LENGTH}–${KEY_NAME_MAX_LENGTH} characters: letters, numbers, - and _ only.`;
+
+/**
+ * Checks an API or provisioning key name, returning the message to show or null. Length is
+ * reported separately from shape so the error names the rule that was actually broken.
+ */
+export function validateKeyName(value: string): string | null {
+  if (value.length < KEY_NAME_MIN_LENGTH) {
+    return `Name must be at least ${KEY_NAME_MIN_LENGTH} characters.`;
+  }
+  if (value.length > KEY_NAME_MAX_LENGTH) {
+    return `Name must be at most ${KEY_NAME_MAX_LENGTH} characters.`;
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+    return "Name can only contain letters, numbers, - and _.";
+  }
+  return null;
+}

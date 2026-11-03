@@ -3,6 +3,7 @@ import {
   suggestNamespaceName,
   validateEmail,
   validateIdentifier,
+  validateKeyName,
   validateName,
   validateNamespaceName,
   validatePassword,
@@ -103,6 +104,24 @@ describe("validateName", () => {
     expect(validateName("a".repeat(65))).toBe(
       "Name must be at most 64 characters",
     );
+  });
+});
+
+describe("validateKeyName", () => {
+  it.each(["ci-runners", "edge_01", "abc", "a".repeat(20)])(
+    "accepts %p",
+    (value) => {
+      expect(validateKeyName(value)).toBeNull();
+    },
+  );
+
+  it.each([
+    ["ab", "Name must be at least 3 characters."],
+    ["a".repeat(21), "Name must be at most 20 characters."],
+    ["has space", "Name can only contain letters, numbers, - and _."],
+    ["bang!", "Name can only contain letters, numbers, - and _."],
+  ])("rejects %p", (value, message) => {
+    expect(validateKeyName(value)).toBe(message);
   });
 });
 

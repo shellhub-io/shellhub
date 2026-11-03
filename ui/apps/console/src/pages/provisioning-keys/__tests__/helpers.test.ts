@@ -11,7 +11,6 @@ import {
   parseAllowedIdentities,
   resolveEnrollmentSource,
   validateModeConfig,
-  validateName,
 } from "../helpers";
 
 // The status/blocker/expiry helpers read Date.now(); pin it so "expired" is deterministic.
@@ -180,20 +179,6 @@ describe("validateModeConfig", () => {
     expect(
       validateModeConfig("webhook", "bad", "", [], { secretOptional: true }),
     ).not.toBe("");
-  });
-});
-
-describe("validateName", () => {
-  it("accepts a valid name", () => {
-    expect(validateName("ci-runners")).toBe("");
-    expect(validateName("edge_01")).toBe("");
-  });
-
-  it("rejects too short, too long, and illegal characters", () => {
-    expect(validateName("ab")).not.toBe("");
-    expect(validateName("a".repeat(21))).not.toBe("");
-    expect(validateName("has space")).not.toBe("");
-    expect(validateName("bang!")).not.toBe("");
   });
 });
 

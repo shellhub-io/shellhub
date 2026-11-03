@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateKeyName } from "@/utils/validation";
 
 /**
  * The expiry choices for an instance API key. There is no "never": an instance-wide credential
@@ -16,12 +17,10 @@ export const INSTANCE_KEY_EXPIRY_OPTIONS = [
  * Validates the generate-instance-key form.
  */
 export const generateInstanceKeySchema = z.object({
-  name: z
-    .string()
-    .regex(
-      /^[a-zA-Z0-9_-]{3,20}$/,
-      "Name must be 3-20 characters: letters, numbers, - and _ only.",
-    ),
+  name: z.string().superRefine((value, ctx) => {
+    const nameError = validateKeyName(value);
+    if (nameError) ctx.addIssue({ code: "custom", message: nameError });
+  }),
   expiresAt: z.enum(["30", "60", "90", "365"]),
 });
 

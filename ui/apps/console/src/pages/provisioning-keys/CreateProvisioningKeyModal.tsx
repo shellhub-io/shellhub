@@ -14,6 +14,12 @@ import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
 import { provisioningKeyCreateMutation } from "@/client";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { LABEL } from "@/utils/styles";
+import {
+  KEY_NAME_HINT,
+  KEY_NAME_MAX_LENGTH,
+  validateKeyName,
+} from "@/utils/validation";
 import EphemeralField from "./EphemeralField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
@@ -22,9 +28,7 @@ import {
   keyExpiryPayload,
   parseAllowedIdentities,
   validateModeConfig,
-  validateName,
 } from "./helpers";
-import { LABEL } from "@/utils/styles";
 
 /**
  * Creates a provisioning key. onCreated receives the key itself, which is returned once and cannot
@@ -57,7 +61,7 @@ function CreateProvisioningKeyModal({
   const [tags, setTags] = useState<string[]>([]);
   const [expiresIn, setExpiresIn] = useState("30");
   const [submitting, setSubmitting] = useState(false);
-  const [nameError, setNameError] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [generatedKey, setGeneratedKey] = useState("");
 
@@ -83,23 +87,23 @@ function CreateProvisioningKeyModal({
     setEphemeralTimeout(10);
     setTags([]);
     setExpiresIn("30");
-    setNameError("");
+    setNameError(null);
     setError("");
     setGeneratedKey("");
   });
 
   const handleNameChange = (value: string) => {
     setName(value);
-    if (nameError) setNameError(validateName(value.trim()));
+    if (nameError) setNameError(validateKeyName(value.trim()));
   };
 
   const handleNameBlur = () => {
-    if (name) setNameError(validateName(name.trim()));
+    if (name) setNameError(validateKeyName(name.trim()));
   };
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
-    const validationError = validateName(name.trim());
+    const validationError = validateKeyName(name.trim());
     if (validationError) {
       setNameError(validationError);
       return;
@@ -109,7 +113,7 @@ function CreateProvisioningKeyModal({
       return;
     }
     setSubmitting(true);
-    setNameError("");
+    setNameError(null);
     setError("");
     try {
       const result = await createKey.mutateAsync({
@@ -138,9 +142,7 @@ function CreateProvisioningKeyModal({
       if (isSdkError(err) && err.status === 409) {
         setNameError("A key with that name already exists.");
       } else if (isSdkError(err) && err.status === 400) {
-        setNameError(
-          "Name must be 3–20 characters: letters, numbers, - and _ only.",
-        );
+        setNameError(KEY_NAME_HINT);
       } else {
         setError(
           "Couldn't create the Provisioning Key. Please review the values and try again.",
@@ -239,7 +241,7 @@ function CreateProvisioningKeyModal({
             onBlur={handleNameBlur}
             placeholder="e.g. fleet-provisioning"
             error={nameError || undefined}
-            maxLength={20}
+            maxLength={KEY_NAME_MAX_LENGTH}
           />
           <ModeField
             idPrefix="create-provisioning-key"

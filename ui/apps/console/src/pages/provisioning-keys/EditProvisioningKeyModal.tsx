@@ -9,6 +9,7 @@ import { getRemainingDays, keyExpiryUpdatePayload } from "./helpers";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
+import { KEY_NAME_MAX_LENGTH, validateKeyName } from "@/utils/validation";
 import EphemeralField from "./EphemeralField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
@@ -16,7 +17,6 @@ import UsageLimitField from "./UsageLimitField";
 import {
   parseAllowedIdentities,
   validateModeConfig,
-  validateName,
 } from "./helpers";
 
 /**
@@ -46,7 +46,7 @@ function EditProvisioningKeyModal({
   const [isExpired, setIsExpired] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [nameError, setNameError] = useState("");
+  const [nameError, setNameError] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const identityList = parseAllowedIdentities(allowedIdentities);
@@ -87,7 +87,7 @@ function EditProvisioningKeyModal({
     setExpiryTouched(false);
     setIsExpired(expired);
     setTags(provisioningKey?.tags ?? []);
-    setNameError("");
+    setNameError(null);
     setError("");
   });
 
@@ -99,17 +99,17 @@ function EditProvisioningKeyModal({
 
   const handleNameChange = (value: string) => {
     setName(value);
-    if (nameError) setNameError(validateName(value.trim()));
+    if (nameError) setNameError(validateKeyName(value.trim()));
   };
 
   const handleNameBlur = () => {
-    if (name) setNameError(validateName(name.trim()));
+    if (name) setNameError(validateKeyName(name.trim()));
   };
 
   const handleSubmit = async (e?: FormEvent) => {
     e?.preventDefault();
     if (!provisioningKey) return;
-    const validationError = validateName(name.trim());
+    const validationError = validateKeyName(name.trim());
     if (validationError) {
       setNameError(validationError);
       return;
@@ -122,7 +122,7 @@ function EditProvisioningKeyModal({
       return;
     }
     setSubmitting(true);
-    setNameError("");
+    setNameError(null);
     setError("");
     try {
       const modeBody: ProvisioningKeyUpdate = {
@@ -204,7 +204,7 @@ function EditProvisioningKeyModal({
           onBlur={handleNameBlur}
           placeholder="e.g. fleet-provisioning"
           error={nameError || undefined}
-          maxLength={20}
+          maxLength={KEY_NAME_MAX_LENGTH}
         />
         <ModeField
           idPrefix="edit-provisioning-key"
