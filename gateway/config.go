@@ -60,6 +60,7 @@ type GatewayConfig struct {
 	TLSKeyFile       string `env:"SHELLHUB_TLS_KEY_FILE" validate:"required_with=TLSCertFile"`
 	EnableAccessLogs bool   `env:"SHELLHUB_GATEWAY_ACCESS_LOGS,default=true"`
 	StreamBufferSize string `env:"SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE"`
+	APIMaxConns      int    `env:"SHELLHUB_GATEWAY_API_MAX_CONNS" validate:"gte=0"`
 
 	EnableEnterprise bool
 	APIBackend       string

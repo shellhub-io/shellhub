@@ -103,6 +103,13 @@
 		handle /api* {
 			reverse_proxy {{ $cfg.APIBackend }} {
 				import forwarded
+{{- if $cfg.APIMaxConns }}
+
+				transport http {
+					keepalive_idle_conns_per_host {{ $cfg.APIMaxConns }}
+					max_conns_per_host {{ $cfg.APIMaxConns }}
+				}
+{{- end }}
 			}
 		}
 {{- if $cfg.EnableEnterprise }}

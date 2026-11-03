@@ -569,3 +569,44 @@ func matchesPath(path string) func(map[string]any) bool {
 		})
 	}
 }
+
+func TestAPIUpstreamPoolFollowsTheVariable(t *testing.T) {
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			for _, server := range adaptedServers(t, cfg) {
+				for _, proxy := range reverseProxies(server) {
+					transport, _ := proxy["transport"].(map[string]any)
+					assert.NotContains(t, transport, "max_conns_per_host")
+				}
+			}
+
+			cfg.APIMaxConns = 1000
+
+			apiProxies, capped := 0, 0
+
+			for name, server := range adaptedServers(t, cfg) {
+				for _, route := range collect(server["routes"], matchesPath("/api*")) {
+					for _, proxy := range reverseProxies(route) {
+						apiProxies++
+
+						transport, _ := proxy["transport"].(map[string]any)
+						assert.InDelta(t, 1000, transport["max_conns_per_host"], 0, "the /api proxy of %s", name)
+
+						keepAlive, _ := transport["keep_alive"].(map[string]any)
+						assert.InDelta(t, 1000, keepAlive["max_idle_conns_per_host"], 0, "the /api proxy of %s", name)
+					}
+				}
+
+				for _, proxy := range reverseProxies(server) {
+					transport, _ := proxy["transport"].(map[string]any)
+					if _, ok := transport["max_conns_per_host"]; ok {
+						capped++
+					}
+				}
+			}
+
+			assert.Equal(t, 1, apiProxies, "one proxy serves /api")
+			assert.Equal(t, apiProxies, capped, "a proxy outside /api caps its upstream connections")
+		})
+	}
+}
