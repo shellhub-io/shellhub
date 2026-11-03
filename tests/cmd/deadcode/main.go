@@ -127,7 +127,7 @@ func analyze(ctx context.Context, shellhubRoot, cloudRoot string, tagSets []stri
 	shellhub := repository{
 		name:    "shellhub",
 		root:    shellhubRoot,
-		modules: []string{".", "server", "agent", "gateway", "openapi", "tests"},
+		modules: []string{".", "server", "agent", "openapi", "tests"},
 	}
 	cloud := repository{
 		name:    "cloud",

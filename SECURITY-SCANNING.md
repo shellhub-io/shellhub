@@ -34,8 +34,8 @@ schedule and release tags.
 
 | Workflow file | Tool | What it scans | Runs on |
 |---|---|---|---|
-| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `gateway`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PRs changing dependencies or Dockerfiles + tags + daily |
-| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `gateway`, `ui`, `agent`) | PRs changing dependencies or Dockerfiles + tags + daily |
+| `.github/workflows/security.yml` | **govulncheck** | Known Go CVEs in all modules (`.`, `server`, `agent`, `openapi`, `tests`); SARIF uploaded to GitHub Security tab | PRs changing dependencies or Dockerfiles + tags + daily |
+| `.github/workflows/security.yml` | **Trivy (image)** | OS/library CVEs in service images (`server`, `ui`, `agent`) | PRs changing dependencies or Dockerfiles + tags + daily |
 | `.github/workflows/security.yml` | **Semgrep** | Static analysis via `p/golang`, `p/dockerfile`, `p/ci`; PR mode uses `--baseline-commit` so only _new_ findings block | PR + tags + daily |
 | `.github/workflows/codeql.yml` | **CodeQL** | Semantic Go analysis across all modules; SARIF uploaded to GitHub Security tab | Tags + daily |
 | `.github/workflows/build-agent.yml` | **Trivy (image, amd64)** | Agent image CVEs as part of the agent build pipeline | Push to master + tags |
@@ -135,7 +135,7 @@ Before this work, `.golangci.yaml` blanket-excluded four gosec rules: G104, G301
 | G302 | File created with permissions > 0600 | `agent/server/utmp/utmp.go` (`OpenFile 0o644`) | Kept at `0o644` — utmp/wtmp files are conventionally world-readable per POSIX; tighter permissions break system accounting tools. Annotated |
 | G304 | File path from variable (potential traversal) | `agent/pkg/keygen/keygen.go` (`Create`, `ReadFile`), `agent/pkg/sysinfo/network.go` (`ReadFile`), `api/store/pg/` tests (`Open`, `ReadFile`) | keygen: path comes from a configured env var, not user input — annotated. sysinfo: path rooted under `/sys/class/net` (read-only kernel VFS) — annotated. agent: added `cleanKeyPath` guard rejecting raw `..` sequences before `generatePrivateKey`/`readPublicKey`. Tests: paths from `runtime.Caller`, not user input — annotated |
 
-The exclusion lives in the repository's single `.golangci.yaml`. `gateway` and the other
+The exclusion lives in the repository's single `.golangci.yaml`. `server` and the other
 submodules symlink to it, so there is one file to edit rather than one per module.
 golangci-lint resolves a single config instead of merging several, so a module that ever
 needs its own rules replaces the symlink with a real file and restates everything it keeps.

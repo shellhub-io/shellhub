@@ -12,13 +12,15 @@ const stackArtifactsDir = ".stack"
 // Service names a container in the test stack.
 type Service string
 
-// The services a test may reach through [DockerCompose.Service]. ServiceObjectStorage, the
-// S3-compatible store session recordings are kept in, runs in enterprise and cloud stacks only.
-// ServiceTelemetryCollector runs only in a stack started with
+// The services a test may reach through [DockerCompose.Service]. ServiceRelay forwards port 80
+// of its network namespace to the server's, so an agent that joins that namespace reaches the
+// gateway at http://localhost and keeps its route while the server restarts.
+// ServiceObjectStorage, the S3-compatible store session recordings are kept in, runs in
+// enterprise and cloud stacks only. ServiceTelemetryCollector runs only in a stack started with
 // [DockerComposeConfigurator.WithTelemetryCollector].
 const (
-	ServiceGateway            Service = "gateway"
 	ServiceServer             Service = "server"
+	ServiceRelay              Service = "relay"
 	ServicePostgres           Service = "postgres"
 	ServiceRedis              Service = "redis"
 	ServiceObjectStorage      Service = "minio"

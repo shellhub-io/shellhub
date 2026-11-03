@@ -43,7 +43,6 @@ jobs:
               - 'server/**'
               - 'agent/**'
               - 'pkg/**'
-              - 'gateway/**'
               - 'tests/**'
               - 'openapi/**'
               - 'devscripts/prepare-release'
@@ -124,16 +123,6 @@ jobs:
           verify: false
           skip-cache: true
 
-      - name: Lint gateway
-        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
-        with:
-          working-directory: gateway
-          version: ${{ steps.versions.outputs.golangci-lint }}
-          args: --timeout 2m ./...
-          verify: false
-          skip-cache: true
-
       - name: Lint agent
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
@@ -181,11 +170,6 @@ jobs:
         working-directory: server
         run: go test -race -shuffle=on -timeout 40m ./...
 
-      - name: Test gateway
-        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
-        working-directory: gateway
-        run: go test -race -timeout 25m ./...
-
       - name: Test agent
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
         working-directory: agent
@@ -196,7 +180,6 @@ jobs:
         run: |
           (cd pkg && go build ./...)
           (cd server && go build ./...)
-          (cd gateway && go build ./...)
           (cd agent && go build -tags docker ./...)
 
       - name: Build and vet the agent for FreeBSD

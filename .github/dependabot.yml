@@ -48,7 +48,6 @@ updates:
   directories:
     - "/"
     - "/agent"
-    - "/gateway"
     - "/openapi"
     - "/server"
     - "/tests"

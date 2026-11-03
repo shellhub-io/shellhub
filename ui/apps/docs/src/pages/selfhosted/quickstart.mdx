@@ -123,14 +123,14 @@ $ ./bin/docker-compose logs -f
 
 ## What you just deployed
 
-- A **gateway**, terminating TLS and fronting web traffic
-- A **server**, carrying the API and the SSH endpoint in one process
+- A **server**, carrying the gateway that terminates TLS, the API and the SSH endpoint in one
+  process
 - The **web console**
 - **PostgreSQL**, holding everything that matters
 - A cache and task queue
 
-The SSH port is published by the server, not the gateway. That matters if you put a load balancer
-in front. See [Ports and Connectivity](/about/ports-and-connectivity).
+The server publishes the HTTP, HTTPS and SSH ports, but only HTTP and HTTPS go through the
+gateway. That matters if you put a load balancer in front. See [Ports and Connectivity](/about/ports-and-connectivity).
 
 ## Before you depend on it
 

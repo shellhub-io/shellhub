@@ -1,4 +1,4 @@
-package main
+package gateway
 
 import (
 	"bytes"
@@ -16,6 +16,9 @@ var caddyfileTemplate string
 
 type caddyfileData struct {
 	Config *GatewayConfig
+
+	HTTPPort int
+	DataDir  string
 
 	Development bool
 	TLS         bool
@@ -62,8 +65,20 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 
 	domain := webendpoints.Domain(cfg.WebEndpointsDomain, cfg.Domain)
 
+	httpPort := cfg.httpPort
+	if httpPort == 0 {
+		httpPort = 80
+	}
+
+	dataDir := cfg.dataDir
+	if dataDir == "" {
+		dataDir = "/data"
+	}
+
 	return &caddyfileData{
 		Config:      cfg,
+		HTTPPort:    httpPort,
+		DataDir:     dataDir,
 		Development: development,
 		TLS:         cfg.EnableAutoSSL,
 
@@ -82,8 +97,8 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 	}
 }
 
-// Caddyfile builds the configuration this proxy serves, from the environment
-// and nothing else. It is called once, when the process starts.
+// Caddyfile renders the Caddyfile for cfg. It returns an error when the template does not parse
+// or does not execute against cfg; it does not check that Caddy can adapt the result.
 func Caddyfile(cfg *GatewayConfig) ([]byte, error) {
 	data := newCaddyfileData(cfg)
 

@@ -31,6 +31,7 @@ services:
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
       - SHELLHUB_TELEMETRY=false
+      - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
   ui:
     image: ui:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:
@@ -50,29 +51,6 @@ services:
     volumes:
       - ./ui:/src
       - ./openapi:/openapi:ro
-  gateway:
-    image: gateway:${SHELLHUB_DEV_IMAGE_TAG:-latest}
-    build:
-      context: .
-      dockerfile: gateway/Dockerfile
-      target: development
-      args:
-        DOCKERHUB_MIRROR: ${DOCKERHUB_MIRROR:-}
-        GOLANG_VERSION: ${GOLANG_VERSION}
-        ALPINE_VERSION: ${ALPINE_VERSION}
-        AIR_VERSION: ${AIR_VERSION}
-        GOLANGCI_LINT_VERSION: ${GOLANGCI_LINT_VERSION}
-    volumes:
-      - ./gateway:/go/src/github.com/shellhub-io/shellhub/gateway
-      - ./pkg:/go/src/github.com/shellhub-io/shellhub/pkg
-      - ./.golangci.yaml:/.golangci.yaml
-    environment:
-      - SHELLHUB_VERSION=latest
-      - SHELLHUB_ENV=${SHELLHUB_ENV}
-      - SHELLHUB_GATEWAY_ACCESS_LOGS=${SHELLHUB_GATEWAY_ACCESS_LOGS}
-      - SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE=${SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE-}
-      - SHELLHUB_GATEWAY_API_MAX_CONNS=${SHELLHUB_GATEWAY_API_MAX_CONNS-}
-      - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
   openapi:
     image: openapi:${SHELLHUB_DEV_IMAGE_TAG:-latest}
     build:

@@ -48,7 +48,6 @@ jobs:
               - '.github/workflows/ui-e2e-run.yml'
             images:
               - 'server/**'
-              - 'gateway/**'
               - 'agent/**'
               - 'pkg/**'
               - 'go.mod'

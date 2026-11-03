@@ -16,7 +16,7 @@ services:
         - SHELLHUB_VERSION=latest
         - USERNAME=${SHELLHUB_DEV_AGENT_USERNAME:-shellhub}
         - PASSWORD=${SHELLHUB_DEV_AGENT_PASSWORD:-shellhub}
-    network_mode: service:gateway
+    network_mode: service:server
     environment:
       - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
@@ -35,9 +35,7 @@ services:
     depends_on:
       server:
         condition: service_started
-      gateway:
-        condition: service_started
         restart: true
-  gateway:
+  server:
     extra_hosts:
       - "${SHELLHUB_DOMAIN}:127.0.0.1"

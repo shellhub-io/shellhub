@@ -1,16 +1,11 @@
-package main
+package gateway
 
 import (
-	"bytes"
 	"encoding/json"
-	"net"
 	"net/http"
-	"net/http/httptest"
 	"slices"
-	"strings"
 	"testing"
 
-	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +15,6 @@ func configurations() map[string]*GatewayConfig {
 	base := func() *GatewayConfig {
 		return &GatewayConfig{ //nolint:exhaustruct
 			Domain:          "shellhub.example",
-			APIBackend:      "server:8080",
 			ProxyTrustedIPs: "0.0.0.0/0 ::/0",
 		}
 	}
@@ -63,11 +57,6 @@ func configurations() map[string]*GatewayConfig {
 	}
 }
 
-// TestCaddyfileAdapts is the guard the previous configuration never had: every
-// shape the environment can produce is handed to the real adapter, which parses
-// the file and resolves every directive against the modules compiled in. A typo,
-// a directive that does not exist, a snippet used before it is defined -- all of
-// it fails here rather than at a customer's boot.
 func TestCaddyfileAdapts(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
@@ -81,9 +70,6 @@ func TestCaddyfileAdapts(t *testing.T) {
 	}
 }
 
-// TestCaddyfileServesTheEditionsRoutes pins the two blocks that are not always
-// there, because both are edition-gated and a mistake in either is invisible
-// until someone runs that edition.
 func TestCaddyfileServesTheEditionsRoutes(t *testing.T) {
 	configs := configurations()
 
@@ -102,9 +88,6 @@ func TestCaddyfileServesTheEditionsRoutes(t *testing.T) {
 	assert.Contains(t, string(endpoints), "/admin/api")
 }
 
-// TestCaddyfileServesTheDevelopmentMailInbox pins the Mailpit vhost to the one
-// stack that has a Mailpit to reach: the mail code lives in the cloud repository,
-// so a community stack has nothing behind the hostname even in development.
 func TestCaddyfileServesTheDevelopmentMailInbox(t *testing.T) {
 	configs := configurations()
 
@@ -174,9 +157,6 @@ func reverseProxies(node any) []map[string]any {
 	return proxies
 }
 
-// TestCaddyfileTLSFollowsTheFlagAlone pins that development is not a special
-// case: the previous configuration refused TLS there, which meant the setting
-// silently did nothing and the certificate path could not be rehearsed.
 func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 	cfg := configurations()["development"]
 	cfg.EnableAutoSSL = true
@@ -188,10 +168,6 @@ func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 	assert.NotContains(t, string(rendered), "auto_https off")
 }
 
-// TestCaddyfileServesTheSuppliedCertificate pins both halves of the conditional,
-// because a mistake in either is silent: the directive missing means an ACME
-// request nobody asked for, and the directive appearing when no certificate was
-// supplied means a site that cannot serve at all.
 func TestCaddyfileServesTheSuppliedCertificate(t *testing.T) {
 	cfg := configurations()["supplied certificate"]
 
@@ -207,10 +183,6 @@ func TestCaddyfileServesTheSuppliedCertificate(t *testing.T) {
 		"automatic issuance is the default and must stay untouched when no certificate is supplied")
 }
 
-// TestHealthcheckAnswersOnEveryConfiguration asserts every shape rather than one,
-// because the bug it replaces was a healthcheck that passed under one setting and
-// failed under another -- and passed by accident, on Caddy's reply to a name it
-// did not serve, so nobody had reason to look at it.
 func TestHealthcheckAnswersOnEveryConfiguration(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
@@ -223,10 +195,6 @@ func TestHealthcheckAnswersOnEveryConfiguration(t *testing.T) {
 	}
 }
 
-// TestCaddyfileRefusesAHostItDoesNotServe pins the fallback site. Without it a
-// request arriving with any other Host reaches Caddy's own default, which
-// answers 200 with an empty body -- indistinguishable from a healthy ShellHub
-// until whatever asked tries to read the reply.
 func TestCaddyfileRefusesAHostItDoesNotServe(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
@@ -239,11 +207,6 @@ func TestCaddyfileRefusesAHostItDoesNotServe(t *testing.T) {
 	}
 }
 
-// TestTheFallbackIsTheLastRouteOnPortEighty is the other half of that fallback:
-// it matches every Host, so anything ordered after it is unreachable. Automatic
-// HTTPS appends its redirect for a name it holds no certificate for -- a supplied
-// certificate is exactly that name -- and the site would answer 404 on port 80
-// instead of redirecting.
 func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
@@ -272,10 +235,6 @@ func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
 	}
 }
 
-// TestCaddyfileRedirectsItsOwnNameToHTTPS pins the redirect the fallback would
-// otherwise shadow. Caddy writes one per name it manages a certificate for and a
-// single blanket one for the rest, and the blanket one is what a deployment
-// serving a supplied certificate has.
 func TestCaddyfileRedirectsItsOwnNameToHTTPS(t *testing.T) {
 	rendered, err := Caddyfile(configurations()["supplied certificate"])
 	require.NoError(t, err)
@@ -327,10 +286,6 @@ func hosts(route httpRoute) []string {
 	return names
 }
 
-// TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount guards the account the
-// acme-dns provider writes the challenge through. The module resolves no
-// placeholder but the password's, so any other field left as one reaches the
-// acme-dns server as the placeholder's own text.
 func TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount(t *testing.T) {
 	cfg := configurations()["dns acmedns"]
 
@@ -353,9 +308,6 @@ func TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount(t *testing.T) {
 		"the password stays out of the rendered configuration; the module resolves it")
 }
 
-// TestCaddyfileStoresCertificatesOnTheVolume guards a mistake that is invisible
-// until a container is recreated and the CA is asked for everything again:
-// Caddy's default storage is a directory under $HOME, which no volume covers.
 func TestCaddyfileStoresCertificatesOnTheVolume(t *testing.T) {
 	rendered, err := Caddyfile(configurations()["auto ssl"])
 	require.NoError(t, err)
@@ -363,12 +315,6 @@ func TestCaddyfileStoresCertificatesOnTheVolume(t *testing.T) {
 	assert.Contains(t, string(rendered), "storage file_system /data")
 }
 
-// TestTrustedProxiesSurvivesAnEmptyVariable covers the upgrade path, not the
-// fresh install: compose passes SHELLHUB_PROXY_TRUSTED_IPS through, so an .env
-// from before this key existed sends it set-but-empty, and an env default only
-// fires when a variable is absent. Empty renders `trusted_proxies static` with
-// no arguments, which adapts without complaint and trusts nobody -- so the
-// balancer's own address ends up keying the login lockout.
 func TestTrustedProxiesSurvivesAnEmptyVariable(t *testing.T) {
 	cfg := configurations()["proxy protocol"]
 	cfg.ProxyTrustedIPs = ""
@@ -381,9 +327,6 @@ func TestTrustedProxiesSurvivesAnEmptyVariable(t *testing.T) {
 	assert.NotContains(t, string(rendered), "trusted_proxies static\n")
 }
 
-// TestCaddyfileTrustsOnlyTheConfiguredProxies guards the value the login lockout
-// and the GeoIP rules are keyed on: under the PROXY protocol, a peer that is
-// allowed to send the preamble is a peer that chooses the client's address.
 func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 	cfg := configurations()["proxy protocol"]
 	cfg.ProxyTrustedIPs = "10.0.0.0/8"
@@ -404,32 +347,15 @@ func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 func TestCaddyfileLeavesAnIdleWebTerminalOpen(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
-			proxied := false
-
 			for name, server := range adaptedServers(t, cfg) {
-				routes := collect(server["routes"], matchesPath("/ws*"))
-				if len(routes) == 0 {
+				if len(collect(server["routes"], matchesPath("/ws*"))) == 0 {
 					continue
 				}
 
 				for _, timeout := range []string{"read_timeout", "write_timeout"} {
 					assert.Nil(t, server[timeout], "%s serves /ws with a %s", name, timeout)
 				}
-
-				proxies := collect(routes, func(node map[string]any) bool { return node["handler"] == "reverse_proxy" })
-				for _, proxy := range proxies {
-					proxied = true
-
-					assert.Nil(t, proxy["stream_timeout"], "the /ws proxy of %s closes upgraded streams", name)
-
-					transport, _ := proxy["transport"].(map[string]any)
-					for _, timeout := range []string{"read_timeout", "write_timeout", "response_header_timeout"} {
-						assert.Nil(t, transport[timeout], "the /ws proxy of %s has a transport %s", name, timeout)
-					}
-				}
 			}
-
-			assert.True(t, proxied, "no server proxies /ws")
 		})
 	}
 }
@@ -461,31 +387,13 @@ func collect(node any, matches func(map[string]any) bool) []map[string]any {
 
 func TestAnInfoQueryEscapedIntoThePathReachesTheAPI(t *testing.T) {
 	requested := make(chan string, 1)
-	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requested <- r.URL.RequestURI()
 		w.WriteHeader(http.StatusOK)
-	}))
-	t.Cleanup(api.Close)
+	})
 
 	cfg := configurations()["community"]
-	cfg.APIBackend = strings.TrimPrefix(api.URL, "http://")
-
-	rendered, err := Caddyfile(cfg)
-	require.NoError(t, err)
-
-	adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
-	require.NoError(t, err)
-
-	free, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	address := free.Addr().String()
-	require.NoError(t, free.Close())
-
-	adapted = bytes.ReplaceAll(adapted, []byte(`":80"`), []byte(`"`+address+`"`))
-	adapted = bytes.ReplaceAll(adapted, []byte(`"/data"`), []byte(`"`+t.TempDir()+`"`))
-
-	require.NoError(t, caddy.Load(adapted, true))
-	t.Cleanup(func() { _ = caddy.Stop() })
+	address := startServing(t, cfg, handler)
 
 	for _, uri := range []string{"/info%3Fagent_version=v0.8.2", "/info?agent_version=v0.8.2"} {
 		t.Run(uri, func(t *testing.T) {
@@ -503,45 +411,6 @@ func TestAnInfoQueryEscapedIntoThePathReachesTheAPI(t *testing.T) {
 			default:
 				t.Fatalf("%s did not reach the API, the gateway answered %d", uri, res.StatusCode)
 			}
-		})
-	}
-}
-
-func TestTunnelStreamBufferFollowsTheVariable(t *testing.T) {
-	tunnels := []string{"/ssh/*", "/agent/*", "/ws*"}
-
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			for _, server := range adaptedServers(t, cfg) {
-				for _, proxy := range reverseProxies(server) {
-					assert.NotContains(t, proxy, "stream_buffer_size")
-				}
-			}
-
-			cfg.StreamBufferSize = "4KiB"
-
-			tunnelProxies, configured := 0, 0
-
-			for name, server := range adaptedServers(t, cfg) {
-				for _, path := range tunnels {
-					for _, route := range collect(server["routes"], matchesPath(path)) {
-						for _, proxy := range reverseProxies(route) {
-							tunnelProxies++
-
-							assert.InDelta(t, 4096, proxy["stream_buffer_size"], 0, "the %s proxy of %s", path, name)
-						}
-					}
-				}
-
-				for _, proxy := range reverseProxies(server) {
-					if _, ok := proxy["stream_buffer_size"]; ok {
-						configured++
-					}
-				}
-			}
-
-			assert.Equal(t, len(tunnels), tunnelProxies, "one proxy per tunnel route")
-			assert.Equal(t, tunnelProxies, configured, "a proxy outside the tunnel routes sets stream_buffer_size")
 		})
 	}
 }
@@ -566,47 +435,6 @@ func matchesPath(path string) func(map[string]any) bool {
 			paths, _ := matcher.(map[string]any)["path"].([]any)
 
 			return slices.Contains(paths, any(path))
-		})
-	}
-}
-
-func TestAPIUpstreamPoolFollowsTheVariable(t *testing.T) {
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			for _, server := range adaptedServers(t, cfg) {
-				for _, proxy := range reverseProxies(server) {
-					transport, _ := proxy["transport"].(map[string]any)
-					assert.NotContains(t, transport, "max_conns_per_host")
-				}
-			}
-
-			cfg.APIMaxConns = 1000
-
-			apiProxies, capped := 0, 0
-
-			for name, server := range adaptedServers(t, cfg) {
-				for _, route := range collect(server["routes"], matchesPath("/api*")) {
-					for _, proxy := range reverseProxies(route) {
-						apiProxies++
-
-						transport, _ := proxy["transport"].(map[string]any)
-						assert.InDelta(t, 1000, transport["max_conns_per_host"], 0, "the /api proxy of %s", name)
-
-						keepAlive, _ := transport["keep_alive"].(map[string]any)
-						assert.InDelta(t, 1000, keepAlive["max_idle_conns_per_host"], 0, "the /api proxy of %s", name)
-					}
-				}
-
-				for _, proxy := range reverseProxies(server) {
-					transport, _ := proxy["transport"].(map[string]any)
-					if _, ok := transport["max_conns_per_host"]; ok {
-						capped++
-					}
-				}
-			}
-
-			assert.Equal(t, 1, apiProxies, "one proxy serves /api")
-			assert.Equal(t, apiProxies, capped, "a proxy outside /api caps its upstream connections")
 		})
 	}
 }

@@ -54,6 +54,31 @@ $ make stop
 $ make start
 ```
 
+## Moving the certificates into the server
+
+From 0.29 to the release that runs the gateway inside the server, the certificates and the ACME
+account move from the gateway container's volume to the server's `gateway_data` volume, which
+starts empty. With `SHELLHUB_AUTO_SSL=true`, carry them over, or the server asks the CA for every
+certificate again and can hit Let's Encrypt's rate limits.
+
+Before the checkout, while the old gateway is still defined, copy its store out:
+
+```bash
+$ ./bin/docker-compose cp gateway:/data ./gateway-data
+```
+
+After the checkout and the pull, put it in the server's volume before the server first starts:
+
+```bash
+$ make stop
+$ ./bin/docker-compose create server
+$ ./bin/docker-compose cp ./gateway-data/. server:/data
+$ make start
+```
+
+Once HTTPS answers on the new release, remove the old gateway container with
+`./bin/docker-compose up -d --remove-orphans`.
+
 ## Afterwards
 
 Check the services are up and the logs are clean:

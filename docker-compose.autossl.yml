@@ -1,4 +1,4 @@
 services:
-  gateway:
+  server:
     ports:
       - ${SHELLHUB_HTTPS_PORT}:443

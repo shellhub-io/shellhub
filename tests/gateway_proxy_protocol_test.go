@@ -28,7 +28,7 @@ func TestGatewayProxyProtocol(t *testing.T) {
 		mark := compose.ServerLogMark(t)
 		path := probePath()
 
-		response := execInGateway(t, compose, `{ printf '`+proxyPreamble(declaredAddress)+`GET `+path+` HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n'; sleep 5; } | nc 127.0.0.1 80`)
+		response := execInServer(t, compose, `{ printf '`+proxyPreamble(declaredAddress)+`GET `+path+` HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n'; sleep 5; } | nc 127.0.0.1 80`)
 		assert.Contains(t, response, "HTTP/1.1 401 ", "the API did not answer the request after the preamble")
 
 		assert.Equal(t, declaredAddress, requestLogged(t, compose, mark, path)["remote_ip"])

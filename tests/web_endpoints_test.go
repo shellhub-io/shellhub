@@ -721,11 +721,11 @@ func testWebEndpointConnector(t *testing.T, ctx context.Context, compose *enviro
 func startDeviceService(t *testing.T, compose *environment.DockerCompose, service deviceService) deviceService {
 	t.Helper()
 
-	gateway := compose.Service(environment.ServiceGateway).GetContainerID()
+	relay := compose.Service(environment.ServiceRelay).GetContainerID()
 
 	startDeviceHTTP(t, service, deviceServiceHost, func(req *testcontainers.ContainerRequest) {
 		req.HostConfigModifier = func(hc *container.HostConfig) {
-			hc.NetworkMode = container.NetworkMode("container:" + gateway)
+			hc.NetworkMode = container.NetworkMode("container:" + relay)
 		}
 	})
 
@@ -791,7 +791,7 @@ func gatewayAuthority(t *testing.T, compose *environment.DockerCompose) *x509.Ce
 	var data []byte
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
-		reader, err := compose.Service(environment.ServiceGateway).CopyFileFromContainer(t.Context(), gatewayRootCertificate)
+		reader, err := compose.Service(environment.ServiceServer).CopyFileFromContainer(t.Context(), gatewayRootCertificate)
 		if !assert.NoError(tt, err) {
 			return
 		}

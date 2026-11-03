@@ -138,7 +138,7 @@ jobs:
           govulncheck="$(go env GOPATH)/bin/govulncheck"
 
           failed=0
-          for module in root:. server:server agent:agent gateway:gateway openapi:openapi tests:tests; do
+          for module in root:. server:server agent:agent openapi:openapi tests:tests; do
               name=${module%%:*}
               dir=${module#*:}
               sarif="$GITHUB_WORKSPACE/govulncheck-$name.sarif"
@@ -177,13 +177,6 @@ jobs:
           sarif_file: govulncheck-agent.sarif
           category: govulncheck-agent
 
-      - name: Upload the govulncheck SARIF report (gateway)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-gateway.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
-        with:
-          sarif_file: govulncheck-gateway.sarif
-          category: govulncheck-gateway
-
       - name: Upload the govulncheck SARIF report (openapi)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-openapi.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
@@ -219,17 +212,6 @@ jobs:
           context: .
           file: server/Dockerfile
           tags: shellhub/server:scan
-          push: false
-          load: true
-          build-args: ${{ steps.versions.outputs.build-args }}
-
-      - name: Build the gateway image
-        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: .
-          file: gateway/Dockerfile
-          tags: shellhub/gateway:scan
           push: false
           load: true
           build-args: ${{ steps.versions.outputs.build-args }}
@@ -275,7 +257,7 @@ jobs:
           }
 
           failed=0
-          for image in server gateway ui agent; do
+          for image in server ui agent; do
               if ! docker image inspect "shellhub/$image:scan" >/dev/null 2>&1; then
                   echo "::error title=trivy ($image)::the image did not build"
                   failed=1
@@ -300,13 +282,6 @@ jobs:
         with:
           sarif_file: trivy-server.sarif
           category: trivy-server
-
-      - name: Upload the Trivy SARIF report (gateway)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-gateway.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
-        with:
-          sarif_file: trivy-gateway.sarif
-          category: trivy-gateway
 
       - name: Upload the Trivy SARIF report (ui)
         if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-ui.sarif') != '' }}

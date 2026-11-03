@@ -31,9 +31,9 @@ export function composeLogs(service: string) {
   });
 }
 
-export function runInGateway(args: string[], command: string[] = []) {
-  const gateway = compose(["ps", "-q", "gateway"]).trim();
-  if (!gateway) throw new Error(`expected a running gateway in ${stackName}`);
+export function runInServer(args: string[], command: string[] = []) {
+  const server = compose(["ps", "-q", "server"]).trim();
+  if (!server) throw new Error(`expected a running server in ${stackName}`);
   return execFileSync(
     "docker",
     [
@@ -42,7 +42,7 @@ export function runInGateway(args: string[], command: string[] = []) {
       `--label=com.docker.compose.project=${stackName}`,
       "--label=com.docker.compose.service=agent",
       `--label=io.shellhub.e2e.run=${stackName}`,
-      `--network=container:${gateway}`,
+      `--network=container:${server}`,
       ...args,
       agentImage,
       ...command,
@@ -60,7 +60,7 @@ function credentialEnv({ tenant, provisioningKey }: NamespaceCredential) {
 }
 
 export function startAgent(credential: NamespaceCredential, hostname: string) {
-  return runInGateway([
+  return runInServer([
     "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
     credentialEnv(credential),
     `--env=SHELLHUB_PREFERRED_HOSTNAME=${hostname}`,

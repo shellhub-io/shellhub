@@ -33,7 +33,7 @@ import {
   createManualProvisioningKey,
 } from "./helpers";
 import { enableMFA, fillDigits, mfaSecret, signInWithMFA, totp } from "./mfa";
-import { buildShortId, password, runInGateway, startAgent } from "./seed";
+import { buildShortId, password, runInServer, startAgent } from "./seed";
 import {
   type AnswerOptions,
   type SamlOptions,
@@ -137,7 +137,7 @@ async function createDevice(team: Team) {
 
 function startConnector(team: Team, label: string) {
   const socket = process.env.E2E_DOCKER_SOCKET ?? "/var/run/docker.sock";
-  return runInGateway(
+  return runInServer(
     [
       `--volume=${socket}:/var/run/docker.sock`,
       "--env=SHELLHUB_SERVER_ADDRESS=http://localhost",
@@ -152,7 +152,7 @@ function startConnector(team: Team, label: string) {
 }
 
 function startContainer(name: string, label: string) {
-  return runInGateway(
+  return runInServer(
     [`--name=${name}`, `--label=${label}`, "--entrypoint=sleep"],
     ["infinity"],
   );

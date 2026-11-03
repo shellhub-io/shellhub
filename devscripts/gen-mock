@@ -12,8 +12,5 @@ REPO=/go/src/github.com/shellhub-io/shellhub
 "$DC" exec server \
     sh -c "cd $REPO/server && GOWORK=off mockery"
 
-"$DC" exec gateway \
-    sh -c "cd $REPO/gateway && GOWORK=off mockery"
-
 "$DC" exec agent \
     sh -c "cd $REPO/agent && GOWORK=off mockery"

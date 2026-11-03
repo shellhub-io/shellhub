@@ -30,6 +30,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg"
 	pgoptions "github.com/shellhub-io/shellhub/server/api/store/pg/options"
+	"github.com/shellhub-io/shellhub/server/gateway"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
@@ -83,6 +84,13 @@ type Env struct {
 	// PublicURL is the URL users reach the console at, set when TLS ends before the gateway so
 	// AutoSSL cannot tell the scheme. Empty derives it from Domain and AutoSSL.
 	PublicURL string `env:"SHELLHUB_PUBLIC_URL"`
+
+	// Gateway runs ShellHub's gateway in this process: Caddy terminates the public HTTP and HTTPS
+	// listeners, obtains the certificates, and serves the server's routes from the router
+	// directly, with no proxied connection per request or per agent tunnel. It reads the
+	// gateway's SHELLHUB_* configuration. Leave it off when something else fronts the server, a
+	// load balancer or a Kubernetes ingress, which then reaches the router on :8080.
+	Gateway bool `env:"SHELLHUB_GATEWAY,default=false"`
 
 	// SessionRetentionDays is how long a session and its events are kept after the session
 	// started; 0, the default, keeps them indefinitely.
@@ -205,18 +213,19 @@ func (i *tunnelPingInterval) UnmarshalText(text []byte) error {
 // Server owns the process: the HTTP router, the background worker, and the stores and
 // services they share. One [Server] serves both the REST API and the admin surface.
 type Server struct {
-	env         *Env
-	sshEnv      *sshEnv
-	router      *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
-	http        *http.Server
-	authn       *middleware.Authenticator
-	worker      worker.Server
-	ssh         *sshserver.Server
-	heartbeater *services.DeviceHeartbeater
-	tunnels     *dialer.Manager
-	telemetry   *telemetry.Client
-	clock       clock.Clock
-	publicURL   string
+	env           *Env
+	sshEnv        *sshEnv
+	router        *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
+	http          *http.Server
+	authn         *middleware.Authenticator
+	worker        worker.Server
+	ssh           *sshserver.Server
+	heartbeater   *services.DeviceHeartbeater
+	tunnels       *dialer.Manager
+	telemetry     *telemetry.Client
+	clock         clock.Clock
+	publicURL     string
+	gatewayConfig *gateway.GatewayConfig
 }
 
 const (
@@ -244,6 +253,13 @@ func (s *Server) Setup(ctx context.Context) error {
 	}
 
 	s.publicURL = publicURL.String()
+
+	if s.env.Gateway {
+		s.gatewayConfig, err = gateway.LoadGatewayConfig(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to load the gateway's configuration: %w", err)
+		}
+	}
 
 	cache, err := cache.NewRedisCache(s.env.RedisURI, s.env.RedisCachePoolSize, s.env.Cache, s.clock)
 	if err != nil {
@@ -474,8 +490,10 @@ func (s *Server) setupSSH(service services.Service) error {
 	return err
 }
 
-// Start begins serving API requests and processing background tasks. It blocks the current goroutine until the server stops
-// or encounters an error.
+// Start begins serving API requests and processing background tasks, and with the gateway enabled
+// serves the public listeners too. It blocks the current goroutine until the server stops, and
+// returns the worker's, the :8080 listener's or the gateway's start error, or whichever of the
+// HTTP and SSH servers fails first.
 func (s *Server) Start() error {
 	log.Info("Starting server components")
 
@@ -485,7 +503,20 @@ func (s *Server) Start() error {
 
 	listener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", httpAddress)
 	if err != nil {
+		s.worker.Shutdown()
+
 		return err
+	}
+
+	if s.gatewayConfig != nil {
+		if err := gateway.Start(s.gatewayConfig, s.router); err != nil {
+			listener.Close() //nolint:errcheck // the start error is the one worth returning
+			s.worker.Shutdown()
+
+			return fmt.Errorf("failed to start the gateway: %w", err)
+		}
+
+		log.WithFields(log.Fields{"domain": s.gatewayConfig.Domain, "auto_ssl": s.gatewayConfig.EnableAutoSSL}).Info("gateway started")
 	}
 
 	s.http = newHTTPServer(s.router, readHeaderTimeout)
@@ -498,13 +529,26 @@ func (s *Server) Start() error {
 	return <-errs
 }
 
-// Shutdown stops the worker and the HTTP and SSH servers, then closes every device tunnel without
-// reporting the devices offline. It waits up to heartbeaterDrainTimeout for pending heartbeats,
-// flushes telemetry, and logs each failure instead of returning it.
+func (s *Server) stopGateway() {
+	if s.gatewayConfig == nil {
+		return
+	}
+
+	if err := gateway.Stop(); err != nil {
+		log.WithError(err).Warn("the gateway did not stop cleanly")
+	}
+}
+
+// Shutdown stops the worker, the in-process gateway when it runs, and the HTTP and SSH servers,
+// then closes every device tunnel without reporting the devices offline. It waits up to
+// heartbeaterDrainTimeout for pending heartbeats, flushes telemetry, and logs each failure
+// instead of returning it.
 func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
 	s.worker.Shutdown()
+
+	s.stopGateway()
 
 	if s.http != nil {
 		s.http.Close() //nolint:errcheck

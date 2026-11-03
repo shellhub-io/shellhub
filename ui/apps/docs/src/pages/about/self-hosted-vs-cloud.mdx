@@ -21,8 +21,8 @@ public addresses, opening ports, maintaining a jump host and chasing SSH keys ac
 and instead installs one agent and gets on with the job. As is usually the case with things that
 feel simple from the outside, a fair amount happens behind them.
 
-Self-hosting means you own all of it. A ShellHub server is not one process: there is a gateway
-terminating TLS, a server process carrying both the API and the SSH endpoint, a web console, a
+Self-hosting means you own all of it. A ShellHub server is not one process: there is a server
+process terminating TLS and carrying both the API and the SSH endpoint, a web console, a
 PostgreSQL database holding everything that matters, and a cache and task queue. You are
 responsible for keeping those running, for the certificates, for the backups, and for being the
 person who gets paged when a fleet cannot connect.

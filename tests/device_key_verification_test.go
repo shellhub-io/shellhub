@@ -99,7 +99,7 @@ func startReleasedAgent(t *testing.T, ctx context.Context, compose *environment.
 	image, err := buildReleasedAgentImage(ctx)
 	require.NoError(t, err)
 
-	agent, err := newAgentContainer(ctx, compose.Service(environment.ServiceGateway).GetContainerID(), image, opts...)
+	agent, err := newAgentContainer(ctx, compose.Service(environment.ServiceRelay).GetContainerID(), image, opts...)
 	require.NoError(t, err)
 
 	return runAgent(t, ctx, agent)

@@ -35,7 +35,7 @@ func TestAgentUpdateCheck(t *testing.T) {
 	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("a versioned agent checks the server's version as it starts", func(t *testing.T) {
-		agent, err := NewAgentContainerAtVersion(t.Context(), compose.Service(environment.ServiceGateway).GetContainerID(), "0.20.0")
+		agent, err := NewAgentContainerAtVersion(t.Context(), compose.Service(environment.ServiceRelay).GetContainerID(), "0.20.0")
 		require.NoError(t, err)
 		runAgent(t, t.Context(), agent)
 

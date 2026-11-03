@@ -1,4 +1,4 @@
-package main
+package gateway
 
 import (
 	"context"
@@ -14,16 +14,15 @@ const defaultProxyTrustedIPs = "0.0.0.0/0 ::/0"
 // the only way to prove a wildcard domain.
 type DNSProvider string
 
+// The DNS providers SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER accepts.
 const (
-	// DigitalOceanDNSProvider represents the DigitalOcean DNS provider.
 	DigitalOceanDNSProvider DNSProvider = "digitalocean"
-	// CloudflareDNSProvider represents the Cloudflare DNS provider.
-	CloudflareDNSProvider DNSProvider = "cloudflare"
-	// AcmeDNSProvider represents the acme-dns provider.
-	AcmeDNSProvider DNSProvider = "acmedns"
+	CloudflareDNSProvider   DNSProvider = "cloudflare"
+	AcmeDNSProvider         DNSProvider = "acmedns"
 )
 
-// GatewayConfig holds the configuration settings for the gateway.
+// GatewayConfig is what the gateway reads from the environment: the names it serves, how it gets
+// their certificates, and whom it trusts to name the client.
 type GatewayConfig struct {
 	Env                     string       `env:"SHELLHUB_ENV"`
 	Edition                 envs.Edition `env:"SHELLHUB_EDITION"`
@@ -38,39 +37,29 @@ type GatewayConfig struct {
 	WebEndpointsACMEDNSUsername  string `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_USERNAME" validate:"required_if=WebEndpointsDNSProvider acmedns WebEndpoints true EnableAutoSSL true"`
 	WebEndpointsACMEDNSSubdomain string `env:"SHELLHUB_WEB_ENDPOINTS_ACME_DNS_SUBDOMAIN" validate:"required_if=WebEndpointsDNSProvider acmedns WebEndpoints true EnableAutoSSL true"`
 
-	// ProxyTrustedIPs names the peers allowed to declare the client's address,
-	// through the PROXY protocol preamble and the X-Forwarded-* headers. The
-	// default trusts anyone, which is what the previous configuration did; a
-	// deployment that knows its load balancer's range should narrow it, because
-	// this is the value the login lockout and the GeoIP rules are keyed on.
 	ProxyTrustedIPs string `env:"SHELLHUB_PROXY_TRUSTED_IPS"`
-	// ACMECAServer is the directory a certificate is asked for. Empty means the
-	// default, which is Let's Encrypt's production endpoint; point it at their
-	// staging endpoint to rehearse without spending the real rate limit.
-	ACMECAServer string `env:"SHELLHUB_ACME_CA_SERVER"`
+	ACMECAServer    string `env:"SHELLHUB_ACME_CA_SERVER"`
 
-	// TLSCertFile and TLSKeyFile name a certificate to serve instead of obtaining
-	// one, which is the only way to run TLS on a name no public authority will
-	// sign.
-	//
-	// Both or neither, checked even with TLS off: a half-set pair is a typo in
-	// every case, and the alternative to refusing it is quietly asking a public
-	// CA instead of serving what the operator supplied.
 	TLSCertFile      string `env:"SHELLHUB_TLS_CERT_FILE" validate:"required_with=TLSKeyFile"`
 	TLSKeyFile       string `env:"SHELLHUB_TLS_KEY_FILE" validate:"required_with=TLSCertFile"`
 	EnableAccessLogs bool   `env:"SHELLHUB_GATEWAY_ACCESS_LOGS,default=true"`
-	StreamBufferSize string `env:"SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE"`
-	APIMaxConns      int    `env:"SHELLHUB_GATEWAY_API_MAX_CONNS" validate:"gte=0"`
 
 	EnableEnterprise bool
-	APIBackend       string
+
+	httpPort int
+	dataDir  string
 }
 
 var validate = validator.New()
 
-func loadGatewayConfig() (*GatewayConfig, error) {
+// LoadGatewayConfig reads the gateway's configuration from the environment, fills in the
+// defaults and validates it. It returns an error wrapping envconfig.ErrMissingRequired when
+// SHELLHUB_DOMAIN is unset, the envconfig error for a variable that does not parse, the edition's
+// error for an unknown SHELLHUB_EDITION, and validator.ValidationErrors for a value that parses
+// but is not allowed.
+func LoadGatewayConfig(ctx context.Context) (*GatewayConfig, error) {
 	var config GatewayConfig
-	if err := envconfig.Process(context.Background(), &config); err != nil {
+	if err := envconfig.Process(ctx, &config); err != nil {
 		return nil, err
 	}
 
@@ -89,6 +78,4 @@ func (gc *GatewayConfig) applyDefaults() {
 	if gc.ProxyTrustedIPs == "" {
 		gc.ProxyTrustedIPs = defaultProxyTrustedIPs
 	}
-
-	gc.APIBackend = "server:8080"
 }

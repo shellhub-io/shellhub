@@ -164,7 +164,7 @@ func startConnectorWithEnv(t *testing.T, ctx context.Context, compose *environme
 	image, err := buildAgentImage(ctx, "")
 	require.NoError(t, err)
 
-	gateway := compose.Service(environment.ServiceGateway).GetContainerID()
+	relay := compose.Service(environment.ServiceRelay).GetContainerID()
 
 	c, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
@@ -173,7 +173,7 @@ func startConnectorWithEnv(t *testing.T, ctx context.Context, compose *environme
 			Env:    env,
 			Labels: run.Labels(),
 			HostConfigModifier: func(hc *container.HostConfig) {
-				hc.NetworkMode = container.NetworkMode("container:" + gateway)
+				hc.NetworkMode = container.NetworkMode("container:" + relay)
 				hc.Mounts = append(hc.Mounts, mount.Mount{
 					Type:   mount.TypeBind,
 					Source: testcontainers.MustExtractDockerSocket(ctx),

@@ -1,0 +1,221 @@
+{{- $cfg := .Config -}}
+{
+	admin off
+
+	order shellhub_server before reverse_proxy
+
+	http_port {{ .HTTPPort }}
+
+	storage file_system {{ .DataDir }}
+
+{{- if not .TLS }}
+
+	auto_https off
+{{- end }}
+{{- if .ACMECAServer }}
+
+	acme_ca {{ .ACMECAServer }}
+{{- end }}
+
+{{- if not $cfg.EnableAccessLogs }}
+
+	log {
+		output discard
+	}
+{{- end }}
+
+	grace_period 10s
+
+	servers {
+		protocols h1 h2
+{{- if $cfg.EnableProxyProtocol }}
+
+		trusted_proxies static {{ .TrustedProxies }}
+
+		listener_wrappers {
+			proxy_protocol {
+				allow {{ .TrustedProxies }}
+			}
+{{- if .TLS }}
+			tls
+{{- end }}
+		}
+{{- end }}
+	}
+}
+
+(forwarded) {
+	header_up Host {host}
+	header_up X-Forwarded-Port {x_forwarded_port}
+	header_up X-Request-ID {http.request.uuid}
+	header_up X-Real-IP {remote_host}
+}
+
+{{ .SiteAddress }} {
+{{- if and .TLS .TLSCertFile .TLSKeyFile }}
+	tls {{ .TLSCertFile }} {{ .TLSKeyFile }}
+{{- end }}
+	encode gzip zstd
+
+	map {http.request.port} {x_forwarded_port} {
+		"" {http.request.local.port}
+	}
+
+	route {
+		handle /internal* {
+			respond 404
+		}
+
+		handle /api* {
+			{{- template "server" $ }}
+		}
+{{- if $cfg.EnableEnterprise }}
+
+		handle /admin/api* {
+			{{- template "server" $ }}
+		}
+{{- end }}
+
+		handle /mcp* {
+			{{- template "server" $ }}
+		}
+
+		handle /ssh/* {
+			{{- template "server" $ }}
+		}
+
+		handle /agent/* {
+			{{- template "server" $ }}
+		}
+
+		handle /ws* {
+			{{- template "server" $ }}
+		}
+
+		@root path /healthcheck /healthcheck/* /info /info/*
+		handle @root {
+			{{- template "server" $ }}
+		}
+
+		@infoQueryInPath path_regexp infoQuery ^/info\?agent_version=(.*)$
+		handle @infoQueryInPath {
+			rewrite * /info?agent_version={re.infoQuery.1}
+			{{- template "server" $ }}
+		}
+
+		@install path /install.sh /kickstart.sh
+		handle @install {
+			header Cache-Control "no-store"
+
+			{{- template "server" $ }}
+		}
+{{- if .Development }}
+
+		handle_path /openapi/mock/* {
+			reverse_proxy openapi:4010 {
+				import forwarded
+			}
+		}
+
+		handle_path /openapi/proxy/* {
+			reverse_proxy openapi:4020 {
+				import forwarded
+			}
+		}
+
+		handle /openapi* {
+			reverse_proxy openapi:8080 {
+				import forwarded
+			}
+		}
+{{- end }}
+
+		handle {
+			reverse_proxy ui:8080 {
+				import forwarded
+			}
+		}
+	}
+}
+
+{{- if .TLS }}
+http://{{ $cfg.Domain }} {
+	redir https://{host}{uri} 308
+}
+
+{{ end }}
+http:// {
+	respond 404
+}
+
+http://healthcheck.internal {
+	handle /healthz {
+		respond "ok" 200
+	}
+}
+{{- if $cfg.WebEndpoints }}
+
+{{ .WebEndpointsAddress }} {
+{{- if and .TLS .WebEndpointsInternalTLS }}
+
+	tls internal
+{{- else if .TLS }}
+
+	tls {
+		dns {{ .DNSProvider }}
+	}
+{{- end }}
+
+	@address vars_regexp {http.request.host} (?i)^[0-9a-f]{32}\.
+
+	handle @address {
+		{{- template "endpoint" $ }}
+	}
+
+	handle {
+		respond 404
+	}
+}
+{{- end }}
+{{- if .Development }}
+
+http://website.{{ $cfg.Domain }} {
+	reverse_proxy ui:8082 {
+		import forwarded
+	}
+}
+
+http://docs.{{ $cfg.Domain }} {
+	reverse_proxy ui:8083 {
+		import forwarded
+	}
+}
+{{- if $cfg.EnableEnterprise }}
+
+http://idp.{{ $cfg.Domain }} {
+	reverse_proxy saml-idp:8080 {
+		import forwarded
+	}
+}
+
+http://mail.{{ $cfg.Domain }} {
+	reverse_proxy mailpit:8025 {
+		import forwarded
+	}
+}
+{{- end }}
+{{- end }}
+
+{{- define "server" }}
+request_header X-Forwarded-Port {x_forwarded_port}
+{{- template "endpoint" }}
+{{- end }}
+
+{{- define "endpoint" }}
+request_header X-Request-ID {http.request.uuid}
+request_header X-Real-IP {remote_host}
+request_header X-Forwarded-For {remote_host}
+request_header X-Forwarded-Host {hostport}
+request_header X-Forwarded-Proto {scheme}
+shellhub_server
+{{- end }}

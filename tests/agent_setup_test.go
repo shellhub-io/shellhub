@@ -157,9 +157,9 @@ func encodeDevicePublicKey(key *rsa.PublicKey) string {
 func stackNetwork(t *testing.T, compose *environment.DockerCompose) string {
 	t.Helper()
 
-	networks, err := compose.Service(environment.ServiceGateway).Networks(t.Context())
+	networks, err := compose.Service(environment.ServiceRelay).Networks(t.Context())
 	require.NoError(t, err)
-	require.Len(t, networks, 1, "the gateway is on more than the stack's network")
+	require.Len(t, networks, 1, "the relay is on more than the stack's network")
 
 	return networks[0]
 }
@@ -172,7 +172,7 @@ func onStackNetworkWithKey(t *testing.T, compose *environment.DockerCompose, mac
 
 	stack := stackNetwork(t, compose)
 
-	gatewayIP, err := compose.Service(environment.ServiceGateway).ContainerIP(t.Context())
+	relayIP, err := compose.Service(environment.ServiceRelay).ContainerIP(t.Context())
 	require.NoError(t, err)
 
 	return func(req *testcontainers.ContainerRequest) {
@@ -181,7 +181,7 @@ func onStackNetworkWithKey(t *testing.T, compose *environment.DockerCompose, mac
 		req.EndpointSettingsModifier = func(settings map[string]*network.EndpointSettings) {
 			settings[stack].MacAddress = network.HardwareAddr(hardware)
 		}
-		req.Entrypoint = []string{"sh", "-c", `echo "$0 localhost" > /etc/hosts && exec ./agent`, gatewayIP}
+		req.Entrypoint = []string{"sh", "-c", `echo "$0 localhost" > /etc/hosts && exec ./agent`, relayIP}
 		withAgentPrivateKey(key)(req)
 	}
 }
