@@ -74,4 +74,4 @@ require (
 
 replace github.com/shellhub-io/shellhub => ../
 
-replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac
+replace github.com/gliderlabs/ssh => github.com/shellhub-io/ssh v0.0.0-20261103210007-9815c880a04b
