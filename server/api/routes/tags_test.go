@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -21,6 +23,102 @@ import (
 	gomock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGetLegacyTagsTenantScope(t *testing.T) {
+	const (
+		tenant      = "00000000-0000-4000-0000-000000000000"
+		otherTenant = "7e7389a9-55be-4e14-8c47-817a1552774f"
+		userID      = "000000000000000000000000"
+	)
+
+	cases := []struct {
+		description string
+		tokenTenant string
+		path        string
+		admin       bool
+		anonymous   bool
+		expected    int
+	}{
+		{
+			description: "refuses the tenantless token issued after leaving",
+			path:        "/api/namespaces/" + tenant + "/tags",
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "refuses a token scoped to another namespace",
+			tokenTenant: otherTenant,
+			path:        "/api/namespaces/" + tenant + "/tags",
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "refuses an admin on the regular API without tenant scope",
+			path:        "/api/namespaces/" + tenant + "/tags",
+			admin:       true,
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "allows an observer in the selected namespace",
+			tokenTenant: tenant,
+			path:        "/api/namespaces/" + tenant + "/tags",
+			expected:    http.StatusOK,
+		},
+		{
+			description: "modern route still refuses a tenantless token",
+			path:        "/api/tags",
+			expected:    http.StatusBadRequest,
+		},
+		{
+			description: "refuses an unauthenticated request",
+			path:        "/api/namespaces/" + tenant + "/tags",
+			anonymous:   true,
+			expected:    http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			router, _, service := authenticatedRouter(t)
+			if !tc.anonymous {
+				service.On("AuthUserClaims", gomock.Anything, gomock.MatchedBy(func(claims *authorizer.UserClaims) bool {
+					return claims.ID == userID
+				})).Return(&models.User{ID: userID, Admin: tc.admin}, nil).Once()
+				if tc.tokenTenant != "" {
+					service.On("ResolveNamespaceRole", gomock.Anything, tc.tokenTenant, userID).
+						Return(&models.Namespace{TenantID: tc.tokenTenant}, "observer", nil).Once()
+				}
+			}
+
+			if tc.expected == http.StatusOK {
+				service.On("ListTags", gomock.Anything, gomock.MatchedBy(func(req *requests.ListTags) bool {
+					return req.TenantID == tenant
+				})).Return([]models.Tag{{TenantID: tenant, Name: "CvdSecretTag"}}, int64(1), nil).Once()
+			}
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path, nil)
+			if !tc.anonymous {
+				privateKey, err := testSigningKey()
+				require.NoError(t, err)
+				bearer, err := jwttoken.EncodeUserClaims(authorizer.UserClaims{
+					ID: userID, TenantID: tc.tokenTenant,
+				}, "http://localhost", privateKey, clock.New().Now())
+				require.NoError(t, err)
+				req.Header.Set("Authorization", "Bearer "+bearer)
+			}
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expected, rec.Code)
+			if tc.expected == http.StatusOK {
+				assert.Contains(t, rec.Body.String(), "CvdSecretTag")
+				assert.Equal(t, "1", rec.Header().Get("X-Total-Count"))
+			} else {
+				assert.NotContains(t, rec.Body.String(), "CvdSecretTag")
+				service.AssertNotCalled(t, "ListTags", gomock.Anything, gomock.Anything)
+			}
+		})
+	}
+}
 
 func TestGetTags(t *testing.T) {
 	svcMock := mocks.NewMockService(t)
