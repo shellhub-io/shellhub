@@ -16,7 +16,7 @@ require (
 	github.com/labstack/echo/v5 v5.4.1
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
-	github.com/posthog/posthog-go v1.35.1
+	github.com/posthog/posthog-go v1.38.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/sethvargo/go-envconfig v1.4.3
 	github.com/sirupsen/logrus v1.10.2
