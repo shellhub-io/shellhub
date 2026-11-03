@@ -41,6 +41,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
 | `SHELLHUB_NETWORK_EXTERNAL` | `false` | Join `SHELLHUB_NETWORK` as an existing network instead of creating it. It must exist before the stack starts, and `down` leaves it in place |
 | `SHELLHUB_GATEWAY_STREAM_BUFFER_SIZE` | *(empty)* | Size of the copy buffers the gateway allocates for every agent and web terminal connection (`/ssh/*`, `/agent/*`, `/ws*`), as a byte size such as `16KiB`. Empty keeps Caddy's 32 KiB. Gateway memory grows with this value times the number of connected devices |
+| `SHELLHUB_GATEWAY_API_MAX_CONNS` | *(empty)* | Most connections the gateway opens to the server for `/api/*`, and how many it keeps idle for reuse. Requests beyond it wait for a free connection instead of dialing a new one. Empty keeps Caddy's defaults: no cap, 32 idle |
 
 ## TLS
 
