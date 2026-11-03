@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type Plugin } from "vite";
-import react from "@vitejs/plugin-react";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import * as path from "node:path";
 
@@ -18,11 +19,8 @@ function healthcheck(): Plugin {
 
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: ["babel-plugin-react-compiler"],
-      },
-    }),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
     nodePolyfills({
       include: ["buffer", "crypto", "stream"],
     }),
@@ -35,20 +33,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       input: {
-        main: path.resolve(__dirname, "index.html"),
-        migrate: path.resolve(__dirname, "migrate.html"),
+        main: path.resolve(import.meta.dirname, "index.html"),
+        migrate: path.resolve(import.meta.dirname, "migrate.html"),
       },
     },
   },
   test: {
     environment: "jsdom",
-    setupFiles: [path.resolve(__dirname, "./src/tests/setup.ts")],
+    setupFiles: [path.resolve(import.meta.dirname, "./src/tests/setup.ts")],
     include: ["src/**/*.test.{ts,tsx}"],
   },
 });

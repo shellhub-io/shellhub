@@ -11,6 +11,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
+    "types": ["node"],
     "allowJs": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

@@ -2,7 +2,7 @@ import type { BrowserContext, Page, Request } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { inflateRawSync } from "node:zlib";
 import sshpk from "sshpk";
-import { DOMParser } from "@xmldom/xmldom";
+import { DOMParser, type Element } from "@xmldom/xmldom";
 import { SignedXml } from "xml-crypto";
 import { configureSamlAuthentication, getSamlAuthUrl } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
@@ -196,9 +196,11 @@ function buildSignOnRequest(
   xml: string,
   relayState: string | null,
 ): SignOnRequest {
+  const document = new DOMParser().parseFromString(xml, "text/xml").documentElement;
+  if (!document) throw new Error("expected a root element in the SAML request");
   return {
     url,
-    document: new DOMParser().parseFromString(xml, "text/xml").documentElement,
+    document,
     relayState: relayState ?? "",
   };
 }

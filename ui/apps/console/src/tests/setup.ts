@@ -5,7 +5,7 @@ import { server } from "./msw";
 
 beforeAll(async () => {
   await import("@/api/fetchInterceptors");
-  server.listen({ onUnhandledRequest: "error" });
+  server.listen({ onUnhandledFrame: "error" });
 });
 afterEach(() => {
   server.resetHandlers();
@@ -37,6 +37,7 @@ global.ResizeObserver = class {
 global.IntersectionObserver = class {
   root = null;
   rootMargin = "";
+  scrollMargin = "";
   thresholds = [];
   observe() {}
   unobserve() {}

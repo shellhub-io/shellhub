@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 vi.unmock("@/hooks/useFocusTrap");
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { createRef } from "react";
 import BaseDialog from "../BaseDialog";
 function renderDialog(
@@ -197,15 +197,7 @@ describe("BaseDialog", () => {
   describe("focus on open", () => {
     const narrow = (matches: boolean) => vi.fn().mockReturnValue({ matches });
 
-    beforeEach(() => {
-      vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
-        cb(0);
-        return 0;
-      });
-    });
-
     afterEach(() => {
-      vi.restoreAllMocks();
       Reflect.deleteProperty(window, "matchMedia");
       Reflect.deleteProperty(window, "__TAURI__");
     });
@@ -218,19 +210,19 @@ describe("BaseDialog", () => {
       );
     }
 
-    it("moves focus to the first field on a wide screen", () => {
+    it("moves focus to the first field on a wide screen", async () => {
       window.matchMedia = narrow(false);
       renderForm();
-      expect(screen.getByLabelText("Name")).toHaveFocus();
+      await waitFor(() => expect(screen.getByLabelText("Name")).toHaveFocus());
     });
 
-    it("focuses the dialog itself on a phone, so the keyboard does not cover it", () => {
+    it("focuses the dialog itself on a phone, so the keyboard does not cover it", async () => {
       window.matchMedia = narrow(true);
       renderForm();
-      expect(screen.getByRole("dialog")).toHaveFocus();
+      await waitFor(() => expect(screen.getByRole("dialog")).toHaveFocus());
     });
 
-    it("keeps focusing the first field in a narrow desktop app window", () => {
+    it("keeps focusing the first field in a narrow desktop app window", async () => {
       window.matchMedia = narrow(true);
       window.__TAURI__ = {
         window: {
@@ -242,7 +234,7 @@ describe("BaseDialog", () => {
         },
       };
       renderForm();
-      expect(screen.getByLabelText("Name")).toHaveFocus();
+      await waitFor(() => expect(screen.getByLabelText("Name")).toHaveFocus());
     });
   });
 });

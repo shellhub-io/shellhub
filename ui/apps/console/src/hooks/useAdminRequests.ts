@@ -10,8 +10,10 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
  */
 export const adminQueryDefaults = {
   staleTime: 5 * 60 * 1000,
-  retry: (count: number, err: unknown) =>
-    isSdkError(err) && err.status === 401 ? false : count < 1,
+  retry: /** Retries an admin query once unless the session has expired. */ (
+    count: number,
+    err: unknown,
+  ) => isSdkError(err) && err.status === 401 ? false : count < 1,
   refetchOnWindowFocus: false,
 };
 

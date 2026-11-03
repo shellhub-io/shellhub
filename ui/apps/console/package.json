@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc -b && vite build",
+    "build": "node ../../node_modules/@typescript/native/bin/tsc -b && vite build",
     "preview": "vite preview --host",
     "lint": "eslint src e2e playwright.config.ts",
     "test": "vitest run",
@@ -39,12 +39,12 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
-    "@playwright/test": "1.62.1",
+    "@playwright/test": "1.64.1",
     "@tanstack/react-query-devtools": "^5.105.0",
     "@types/node-rsa": "^1.1.4",
     "@types/sshpk": "^1.17.5",
-    "@xmldom/xmldom": "^0.8.15",
-    "msw": "^2.15.0",
+    "@xmldom/xmldom": "^0.9.12",
+    "msw": "^3.0.3",
     "xml-crypto": "^6.4.0"
   }
 }

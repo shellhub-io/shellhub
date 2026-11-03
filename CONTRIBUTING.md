@@ -60,3 +60,25 @@ on your machine. [devscripts](devscripts) has helpers for adding more devices an
 * Open a pull request.
 * We try to merge and deploy changes as soon as possible, or at least
   leave some feedback.
+
+## UI tooling
+
+The UI uses TypeScript 7 for builds. The `@typescript/native` dependency is an
+npm alias for TypeScript 7 and supplies the `tsc` command. The `typescript`
+dependency is an alias for `@typescript/typescript6`, which supplies the compiler
+API required by typescript-eslint and other tools. Keep both aliases when updating
+dependencies, as described in the [TypeScript migration guidance](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/).
+
+Build scripts call the TypeScript 7 entry point directly because npm can also
+link `tsc` from the TypeScript 6 compatibility package. Use `npm ci` after this
+upgrade to replace existing compiler links.
+
+Node type declarations follow the Node 24 runtime used by Docker and CI.
+
+ESLint stays on version 9 until eslint-plugin-react and eslint-plugin-jsx-a11y
+support version 10. Tailwind CSS stays on version 3 to support the shared
+design-system preset.
+
+Docs bundle their OpenAPI files with the `@redocly/cli` version in
+`ui/apps/docs/package.json`. Updating it can change the generated docs bundles.
+The console SDK bundle uses `REDOCLY_VERSION` from `versions.env`.

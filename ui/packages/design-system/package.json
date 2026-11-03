@@ -13,7 +13,7 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "tsc --noEmit && vitest run",
+    "test": "node ../../node_modules/@typescript/native/bin/tsc --noEmit && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {

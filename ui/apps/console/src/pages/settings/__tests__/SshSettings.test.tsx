@@ -342,11 +342,12 @@ describe("SshSettings", () => {
       renderSsh();
 
       await findSwitch();
-      await waitFor(() => expect(queries).toHaveLength(2));
-      expect(queries.map((query) => query.get("status")).sort()).toEqual([
-        "accepted",
-        "pending",
-      ]);
+      await waitFor(() =>
+        expect(queries.map((query) => query.get("status")).sort()).toEqual([
+          "accepted",
+          "pending",
+        ]),
+      );
       for (const query of queries) {
         expect(JSON.parse(atob(query.get("filter") ?? ""))).toEqual([
           {
@@ -537,9 +538,11 @@ describe("SshSettings", () => {
       expect(bodies).toEqual([
         { settings: { connection_announcement: "Authorized use only" } },
       ]);
-      expect(
-        screen.queryByRole("dialog", { name: "Login banner" }),
-      ).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("dialog", { name: "Login banner" }),
+        ).not.toBeInTheDocument(),
+      );
     });
 
     it("lets a role that may not edit it read the banner", async () => {

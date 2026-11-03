@@ -61,9 +61,9 @@ export async function signDeviceAuth<T extends SignableDeviceAuth>(body: T) {
 export function buildDeviceAuthRequest() {
   const { publicKey, privateKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
-    publicKeyEncoding: { type: "spki", format: "pem" },
   });
-  devicePrivateKeys.set(publicKey, privateKey);
+  const publicKeyPem = publicKey.export({ type: "spki", format: "pem" }).toString();
+  devicePrivateKeys.set(publicKeyPem, privateKey);
   return {
     hostname: `e2e-device-${buildShortId()}`,
     identity: {
@@ -78,7 +78,7 @@ export function buildDeviceAuthRequest() {
       arch: "x86_64",
       platform: "native" as const,
     },
-    public_key: publicKey,
+    public_key: publicKeyPem,
   };
 }
 
