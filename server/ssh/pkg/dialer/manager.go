@@ -36,6 +36,7 @@ type Manager struct {
 
 	displaced atomic.Uint64
 	evicted   atomic.Uint64
+	closing   atomic.Bool
 }
 
 // Stats is a snapshot of what a [Manager] holds.
@@ -96,9 +97,7 @@ func (m *Manager) Set(key string, conn *wsconnadapter.Adapter, connPath string) 
 
 				continue
 			case <-dialer.Done():
-				if m.Connections.Delete(key, dialer) == 0 {
-					m.DialerDoneCallback(key)
-				}
+				m.release(key, dialer)
 
 				return
 			}
@@ -140,6 +139,25 @@ func (m *Manager) Evict(tenant, uid string) {
 	}).Info("Closing the tunnels of a removed device.")
 
 	go closeConnections(key, evicted)
+}
+
+// Close closes every tunnel the manager holds and returns once they are closed, for a server
+// shutting down. The devices are not reported offline: each reconnects to the next process, and
+// one write per device at shutdown would only race the exit. Close assumes nothing calls Set or
+// Bind afterwards: a tunnel stored after Close is never closed by the manager, and its device is
+// never reported offline.
+func (m *Manager) Close() {
+	m.closing.Store(true)
+
+	for key, conns := range m.Connections.DrainAll() {
+		closeConnections(key.(string), conns) //nolint:forcetypeassert // Set and Bind store only string keys
+	}
+}
+
+func (m *Manager) release(key string, conn any) {
+	if m.Connections.Delete(key, conn) == 0 && !m.closing.Load() {
+		m.DialerDoneCallback(key)
+	}
 }
 
 func closeConnections(key string, conns []any) {
@@ -203,10 +221,7 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 						"key": key,
 					}).WithError(err).Error("failed to ping yamux session")
 
-					if m.Connections.Delete(key, session) == 0 {
-						m.DialerDoneCallback(key)
-					}
-
+					m.release(key, session)
 					closeConnections(key, []any{session})
 
 					return
@@ -216,9 +231,7 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 
 				continue
 			case <-session.CloseChan():
-				if m.Connections.Delete(key, session) == 0 {
-					m.DialerDoneCallback(key)
-				}
+				m.release(key, session)
 
 				return
 			}
