@@ -17,6 +17,7 @@ import RadioPill from "@/components/common/fields/RadioPill";
 import { useDiscardGuard } from "@/hooks/useDiscardGuard";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { LABEL } from "@/utils/styles";
+import { KEY_NAME_MAX_LENGTH } from "@/utils/validation";
 import {
   generateInstanceKeySchema,
   GENERATE_INSTANCE_KEY_DEFAULTS,
@@ -155,7 +156,7 @@ function GenerateInstanceKeyModal({
               id="generate-instance-key-name"
               label="Name"
               placeholder="e.g. billing-export"
-              maxLength={20}
+              maxLength={KEY_NAME_MAX_LENGTH}
             />
             <FormRadioGroupField
               name="expiresAt"

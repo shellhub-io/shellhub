@@ -25,6 +25,7 @@ import {
 } from "./schemas";
 import { EXPIRY_OPTIONS } from "./helpers";
 import { LABEL } from "@/utils/styles";
+import { KEY_NAME_HINT, KEY_NAME_MAX_LENGTH } from "@/utils/validation";
 
 /**
  * Creates an API key and shows it. This is the only time the secret is readable, so the modal
@@ -64,10 +65,7 @@ function GenerateKeyModal({
       setGeneratedKey(result.key);
     } catch (err) {
       if (isSdkError(err) && err.status === 400) {
-        setError("name", {
-          message:
-            "Name must be 3–20 characters: letters, numbers, - and _ only.",
-        });
+        setError("name", { message: KEY_NAME_HINT });
       } else {
         setError("root", {
           message: "Failed to generate API key. The name may already exist.",
@@ -152,7 +150,7 @@ function GenerateKeyModal({
               id="generate-key-name"
               label="Name"
               placeholder="e.g. ci-pipeline"
-              maxLength={20}
+              maxLength={KEY_NAME_MAX_LENGTH}
             />
             <FormRoleSelector name="role" control={control} />
             <FormRadioGroupField

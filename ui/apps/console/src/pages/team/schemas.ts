@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EMAIL_REGEX } from "@/utils/validation";
+import { EMAIL_REGEX, validateKeyName } from "@/utils/validation";
 import type { ApiKey, ApiKeyCreate } from "@/client";
 import { ROLES, assignableRoleOr } from "./helpers";
 
@@ -40,22 +40,8 @@ export function buildAddMemberBody(values: AddMemberFormValues) {
 }
 
 const keyNameField = z.string().superRefine((value, ctx) => {
-  if (value.length < 3) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Name must be at least 3 characters.",
-    });
-  } else if (value.length > 20) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Name must be at most 20 characters.",
-    });
-  } else if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Name can only contain letters, numbers, - and _.",
-    });
-  }
+  const nameError = validateKeyName(value);
+  if (nameError) ctx.addIssue({ code: "custom", message: nameError });
 });
 
 /**
