@@ -29,8 +29,8 @@ import {
 } from "./helpers";
 
 /**
- * Creates a provisioning key. onCreated receives the key itself, which is returned once and cannot
- * be read again, so the caller has to show it before this closes.
+ * Creates a provisioning key and shows it with its install command. onCreated receives the new
+ * key's trimmed name, so the caller can select it in its list.
  */
 function CreateProvisioningKeyModal({
   open,
