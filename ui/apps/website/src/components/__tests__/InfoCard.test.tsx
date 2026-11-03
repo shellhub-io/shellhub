@@ -44,7 +44,7 @@ describe("InfoCard", () => {
 
       const iconContainer = container.querySelector(".w-10.h-10");
       expect(iconContainer).toHaveStyle({
-        background: `${color}15`,
+        backgroundColor: `${color}15`,
         borderColor: `${color}25`,
       });
     });
@@ -82,7 +82,7 @@ describe("InfoCard", () => {
 
       const dot = container.querySelector(".w-2.h-2.rounded-full");
       expect(dot).not.toBeNull();
-      expect(dot).toHaveStyle({ background: color });
+      expect(dot).toHaveStyle({ backgroundColor: color });
       expect(container.querySelector(".w-10.h-10")).toBeNull();
     });
 

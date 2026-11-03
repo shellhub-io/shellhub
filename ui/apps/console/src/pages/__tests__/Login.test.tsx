@@ -160,8 +160,10 @@ describe("Login", () => {
       expect(button).toBeDisabled();
       expect(button).toHaveAttribute("aria-busy", "true");
 
+      await waitFor(() => expect(resolveHandler).toBeTypeOf("function"));
       resolveHandler();
       await clickPromise;
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard"));
     });
   });
 
@@ -173,7 +175,7 @@ describe("Login", () => {
       await fillAndSubmit();
 
       expect(
-        screen.getByText(/invalid login credentials/i),
+        await screen.findByText(/invalid login credentials/i),
       ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -198,7 +200,7 @@ describe("Login", () => {
       await fillAndSubmit();
 
       expect(
-        screen.getByText(/too many failed login attempts/i),
+        await screen.findByText(/too many failed login attempts/i),
       ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -210,7 +212,7 @@ describe("Login", () => {
       await fillAndSubmit();
 
       expect(
-        screen.getByText(/something went wrong on our end/i),
+        await screen.findByText(/something went wrong on our end/i),
       ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -221,7 +223,7 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit();
 
-      expect(screen.getByText(/something went wrong\./i)).toBeInTheDocument();
+      expect(await screen.findByText(/something went wrong\./i)).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -242,7 +244,7 @@ describe("Login", () => {
 
       await fillAndSubmit("admin", "wrong", user);
       expect(
-        screen.getByText(/invalid login credentials/i),
+        await screen.findByText(/invalid login credentials/i),
       ).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: /sign in/i }));
@@ -260,11 +262,9 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit();
 
-      await waitFor(() =>
-        expect(
-          screen.getByText(/too many failed login attempts/i),
-        ).toBeInTheDocument(),
-      );
+      expect(
+        await screen.findByText(/too many failed login attempts/i),
+      ).toBeInTheDocument();
 
       await waitFor(
         () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),

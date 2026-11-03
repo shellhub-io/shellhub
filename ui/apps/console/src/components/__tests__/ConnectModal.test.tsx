@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.unmock("@/hooks/useFocusTrap");
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -68,20 +68,12 @@ describe("ConnectModal", () => {
     setEdition("community");
     seedAuthStore({ name: "gustavo", email: "gustavo@shellhub.io" });
     serveConnectApi(true);
-    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
-      cb(0);
-      return 0;
-    });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("opens with focus on the login field", () => {
+  it("opens with focus on the login field", async () => {
     renderModal();
 
-    expect(screen.getByLabelText("Login")).toHaveFocus();
+    await waitFor(() => expect(screen.getByLabelText("Login")).toHaveFocus());
   });
 
   describe("external terminal", () => {

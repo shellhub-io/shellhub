@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, setTags } from "@/tests/msw";
@@ -84,8 +84,10 @@ describe("ManageTagsModal", () => {
     await vi.waitFor(() =>
       expect(onTagDeleted).toHaveBeenCalledWith("production"),
     );
-    expect(
-      screen.queryByRole("dialog", { name: "Delete tag" }),
-    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Delete tag" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 });

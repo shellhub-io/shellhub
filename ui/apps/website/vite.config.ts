@@ -1,15 +1,13 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
 import * as path from "node:path";
 
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: ["babel-plugin-react-compiler"],
-      },
-    }),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
   ],
   base: "/",
   envPrefix: ["VITE_", "PUBLIC_"],
@@ -19,11 +17,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
     },
   },
   test: {
     environment: "jsdom",
-    setupFiles: [path.resolve(__dirname, "./src/test/setup.ts")],
+    setupFiles: [path.resolve(import.meta.dirname, "./src/test/setup.ts")],
   },
 });

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 vi.unmock("@/hooks/useFocusTrap");
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Modal from "@/components/common/Modal";
 
@@ -86,18 +86,7 @@ describe("Modal", () => {
   });
 
   describe("focus on open", () => {
-    beforeEach(() => {
-      vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
-        cb(0);
-        return 0;
-      });
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    it("lands on the first field, not the close button", () => {
+    it("lands on the first field, not the close button", async () => {
       render(
         <Modal
           open
@@ -110,10 +99,10 @@ describe("Modal", () => {
         </Modal>,
       );
 
-      expect(screen.getByLabelText("Name")).toHaveFocus();
+      await waitFor(() => expect(screen.getByLabelText("Name")).toHaveFocus());
     });
 
-    it("lands on the close button when there is nothing else to focus", () => {
+    it("lands on the close button when there is nothing else to focus", async () => {
       render(
         <Modal
           open
@@ -126,7 +115,7 @@ describe("Modal", () => {
         </Modal>,
       );
 
-      expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
+      await waitFor(() => expect(screen.getByRole("button", { name: "Close" })).toHaveFocus());
     });
   });
 });
