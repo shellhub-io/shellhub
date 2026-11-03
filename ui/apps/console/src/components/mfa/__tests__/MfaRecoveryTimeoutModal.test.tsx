@@ -279,11 +279,22 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Error Handling", () => {
-    it("tells the user when disabling fails", async () => {
+    it.each([
+      [new Error("Failed to disable"), "Something went wrong. Please try again."],
+      [
+        { status: 401 },
+        "This recovery session has expired or was already used. Sign in with another recovery code or contact support.",
+      ],
+      [
+        { status: 403 },
+        "This recovery session has expired or was already used. Sign in with another recovery code or contact support.",
+      ],
+      [{ status: 429 }, "Too many attempts. Wait a moment and try again."],
+    ] as const)("reports failure %j and permits retry", async (error, message) => {
       const user = userEvent.setup();
       const expiresAt = Math.floor(Date.now() / 1000) + 10 * 60;
 
-      onDisable.mockRejectedValue(new Error("Failed to disable"));
+      onDisable.mockRejectedValueOnce(error);
 
       render(
         <MfaRecoveryTimeoutModal
@@ -300,10 +311,16 @@ describe("MfaRecoveryTimeoutModal", () => {
       await user.click(disableButton);
 
       expect(await screen.findByRole("alert")).toHaveTextContent(
-        "Failed to disable MFA. Sign in with another recovery code or contact support.",
+        message,
       );
       expect(disableButton).toBeEnabled();
+      expect(onDisable).toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
+
+      await user.click(disableButton);
+
+      await waitFor(() => expect(onDisable).toHaveBeenCalledTimes(2));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 
