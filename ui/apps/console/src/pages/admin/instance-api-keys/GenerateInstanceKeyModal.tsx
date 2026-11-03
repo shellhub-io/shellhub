@@ -62,10 +62,7 @@ function GenerateInstanceKeyModal({
     clearErrors("root");
     try {
       const result = await createKey.mutateAsync({
-        body: buildGenerateInstanceKeyBody({
-          name: values.name,
-          expiresAt: values.expiresAt,
-        }),
+        body: buildGenerateInstanceKeyBody(values),
       });
       setGeneratedKey(result.id);
     } catch (err) {
