@@ -1,0 +1,15 @@
+extends: plumber:default
+version: '2.0'
+
+github:
+  controls:
+    githubActionMustComeFromAuthorizedSources:
+      includePlumberDefaults: true
+      trustedGithubActions:
+        - BetaHuhn/do-spaces-action
+        - bats-core/bats-action
+        - dorny/paths-filter
+        - gsactions/commit-message-checker
+        - lycheeverse/lychee-action
+        - softprops/action-gh-release
+        - stefanzweifel/git-auto-commit-action
