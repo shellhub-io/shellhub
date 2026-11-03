@@ -64,6 +64,7 @@ jobs:
       - name: Checkout trusted actions
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           ref: master
           sparse-checkout: .github/actions
           sparse-checkout-cone-mode: false
@@ -84,6 +85,7 @@ jobs:
       - name: Checkout cloud (context)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           repository: shellhub-io/cloud
           token: ${{ steps.app-token.outputs.token }}
           ref: ${{ steps.cloud-branch.outputs.ref || 'master' }}
