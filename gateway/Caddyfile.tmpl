@@ -69,6 +69,12 @@
 	header_up X-Real-IP {remote_host}
 }
 
+(tunnel) {
+{{- if $cfg.StreamBufferSize }}
+	stream_buffer_size {{ $cfg.StreamBufferSize }}
+{{- end }}
+}
+
 {{ .SiteAddress }} {
 {{- if and .TLS .TLSCertFile .TLSKeyFile }}
 	# Also what keeps Caddy off ACME: with no tls directive the default applies,
@@ -120,18 +126,21 @@
 		handle /ssh/* {
 			reverse_proxy {{ $cfg.APIBackend }} {
 				import forwarded
+				import tunnel
 			}
 		}
 
 		handle /agent/* {
 			reverse_proxy {{ $cfg.APIBackend }} {
 				import forwarded
+				import tunnel
 			}
 		}
 
 		handle /ws* {
 			reverse_proxy {{ $cfg.APIBackend }} {
 				import forwarded
+				import tunnel
 			}
 		}
 
