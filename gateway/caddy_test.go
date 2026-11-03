@@ -404,24 +404,10 @@ func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 func TestCaddyfileLeavesAnIdleWebTerminalOpen(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
-			rendered, err := Caddyfile(cfg)
-			require.NoError(t, err)
-
-			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
-			require.NoError(t, err)
-
 			proxied := false
 
-			for name, server := range httpServers[map[string]any](t, adapted) {
-				routes := collect(server["routes"], func(node map[string]any) bool {
-					matchers, _ := node["match"].([]any)
-
-					return slices.ContainsFunc(matchers, func(matcher any) bool {
-						paths, _ := matcher.(map[string]any)["path"].([]any)
-
-						return slices.Contains(paths, any("/ws*"))
-					})
-				})
+			for name, server := range adaptedServers(t, cfg) {
+				routes := collect(server["routes"], matchesPath("/ws*"))
 				if len(routes) == 0 {
 					continue
 				}
@@ -517,6 +503,69 @@ func TestAnInfoQueryEscapedIntoThePathReachesTheAPI(t *testing.T) {
 			default:
 				t.Fatalf("%s did not reach the API, the gateway answered %d", uri, res.StatusCode)
 			}
+		})
+	}
+}
+
+func TestTunnelStreamBufferFollowsTheVariable(t *testing.T) {
+	tunnels := []string{"/ssh/*", "/agent/*", "/ws*"}
+
+	for description, cfg := range configurations() {
+		t.Run(description, func(t *testing.T) {
+			for _, server := range adaptedServers(t, cfg) {
+				for _, proxy := range reverseProxies(server) {
+					assert.NotContains(t, proxy, "stream_buffer_size")
+				}
+			}
+
+			cfg.StreamBufferSize = "4KiB"
+
+			tunnelProxies, configured := 0, 0
+
+			for name, server := range adaptedServers(t, cfg) {
+				for _, path := range tunnels {
+					for _, route := range collect(server["routes"], matchesPath(path)) {
+						for _, proxy := range reverseProxies(route) {
+							tunnelProxies++
+
+							assert.InDelta(t, 4096, proxy["stream_buffer_size"], 0, "the %s proxy of %s", path, name)
+						}
+					}
+				}
+
+				for _, proxy := range reverseProxies(server) {
+					if _, ok := proxy["stream_buffer_size"]; ok {
+						configured++
+					}
+				}
+			}
+
+			assert.Equal(t, len(tunnels), tunnelProxies, "one proxy per tunnel route")
+			assert.Equal(t, tunnelProxies, configured, "a proxy outside the tunnel routes sets stream_buffer_size")
+		})
+	}
+}
+
+func adaptedServers(t *testing.T, cfg *GatewayConfig) map[string]map[string]any {
+	t.Helper()
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+	require.NoError(t, err)
+
+	return httpServers[map[string]any](t, adapted)
+}
+
+func matchesPath(path string) func(map[string]any) bool {
+	return func(node map[string]any) bool {
+		matchers, _ := node["match"].([]any)
+
+		return slices.ContainsFunc(matchers, func(matcher any) bool {
+			paths, _ := matcher.(map[string]any)["path"].([]any)
+
+			return slices.Contains(paths, any(path))
 		})
 	}
 }
