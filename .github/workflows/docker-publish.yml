@@ -25,6 +25,7 @@ jobs:
       - name: Checkout shellhub source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           path: shellhub
 
       - name: Generate cloud repo token (server-enterprise only)
@@ -41,6 +42,7 @@ jobs:
         if: matrix.project == 'server-enterprise'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           repository: shellhub-io/cloud
           token: ${{ steps.cloud-token.outputs.token }}
           ref: ${{ github.ref_name }}
