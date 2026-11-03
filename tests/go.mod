@@ -7,7 +7,7 @@ require (
 	github.com/compose-spec/compose-go/v2 v2.16.1
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/cli v29.8.2+incompatible
-	github.com/docker/compose/v5 v5.6.0
+	github.com/docker/compose/v5 v5.6.1
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/hibiken/asynq v0.26.0
