@@ -95,6 +95,17 @@ func TestDeviceKeyVerificationE2E(t *testing.T) {
 		assert.Equal(t, models.DeviceStatusPending, stored(t, again.UID).Status, "the operator accepts it again")
 	})
 
+	t.Run("a tenant-less token of a device that never verified its key is honoured", func(t *testing.T) {
+		key, err := rsa.GenerateKey(rand.Reader, 2048)
+		require.NoError(t, err)
+
+		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:06", false))
+		require.NoError(t, err)
+
+		assert.NoError(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: res.UID}))
+		assert.ErrorIs(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: "unknown"}), ErrAuthUnathorized)
+	})
+
 	deviceClaims := func(t *testing.T, token string) *authorizer.DeviceClaims {
 		t.Helper()
 

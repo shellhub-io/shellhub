@@ -67,13 +67,15 @@ type AuthService interface {
 	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
 	// or legacy key, or its counters cannot be read or written.
 	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
-	// AuthDeviceToken reports whether a device token may still be used. It returns
-	// [ErrAuthUnathorized] for claims without a valid tenant, for a token of a device the store no
-	// longer has, since device tokens never expire and a purged device's token would otherwise
-	// outlive it, for a token issued without a signature to a device that has verified its key, and
-	// for any token of a device that never verified it while its namespace requires verification,
-	// or whose namespace is gone. ctx bounds the store reads, and the store's error is returned when
-	// the device or its namespace cannot be read.
+	// AuthDeviceToken reports whether a device token may still be used. Claims without a tenant,
+	// which servers before 0.15 minted and agents of that era reuse for the life of their process,
+	// resolve the device by UID across namespaces and read its namespace off the device. It returns
+	// [ErrAuthUnathorized] for a token of a device the store no longer has, since device tokens
+	// never expire and a purged device's token would otherwise outlive it, for a token issued
+	// without a signature to a device that has verified its key, and for any token of a device that
+	// never verified it while its namespace requires verification, or whose namespace is gone. ctx
+	// bounds the store reads, and the store's error is returned when the device or its namespace
+	// cannot be read.
 	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
 	// AuthLocalUser attempts to authenticate a user with origin [github.com/shellhub-io/shellhub/pkg/models.UserOriginLocal]
 	// using the provided credentials. Users can be blocked from authentications when they makes 3 password mistakes or when
@@ -307,10 +309,12 @@ func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*mod
 	return s.authDevice(ctx, req, enrollmentOptions{verification: verification})
 }
 
+const reasonTenantlessDeviceToken = "a device token minted before tokens carried a tenant names the device by UID alone, the devices table's primary key, and the server's signature vouches for that UID"
+
 func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error {
-	sc, err := scope.NewBounded(claims.TenantID)
-	if err != nil {
-		return NewErrAuthUnathorized(err)
+	sc := scope.NewUnbounded(reasonTenantlessDeviceToken)
+	if claims.TenantID != "" {
+		sc = scope.MustBounded(claims.TenantID)
 	}
 
 	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, claims.UID)
@@ -322,7 +326,7 @@ func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.Device
 	}
 
 	if device.KeyVerifiedAt == nil {
-		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, claims.TenantID)
+		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, device.TenantID)
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
 			return NewErrAuthUnathorized(nil)
