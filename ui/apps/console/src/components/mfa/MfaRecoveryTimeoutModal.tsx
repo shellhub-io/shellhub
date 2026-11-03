@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { useCountdown } from "@/hooks/useCountdown";
-import CheckboxField from "@/components/common/fields/CheckboxField";
 import { Button, Callout } from "@shellhub/design-system/primitives";
+import { apiErrorMessage, isSdkError } from "@/api/errors";
+import CheckboxField from "@/components/common/fields/CheckboxField";
 import Modal from "@/components/common/Modal";
+import { useCountdown } from "@/hooks/useCountdown";
+
+const RECOVERY_SESSION_ENDED_MESSAGE =
+  "This recovery session has expired or was already used. Sign in with another recovery code or contact support.";
 
 interface MfaRecoveryTimeoutModalProps {
   open: boolean;
@@ -27,15 +31,18 @@ export default function MfaRecoveryTimeoutModal({
   const [error, setError] = useState("");
   const { timeLeft, isExpired } = useCountdown(expiresAt);
 
+  const disableErrorMessage = (err: unknown) =>
+    isSdkError(err) && (err.status === 401 || err.status === 403)
+      ? RECOVERY_SESSION_ENDED_MESSAGE
+      : apiErrorMessage(err);
+
   const handleDisable = async () => {
     setDisabling(true);
     setError("");
     try {
       await onDisable();
-    } catch {
-      setError(
-        "Failed to disable MFA. Sign in with another recovery code or contact support.",
-      );
+    } catch (err) {
+      setError(disableErrorMessage(err));
     } finally {
       setDisabling(false);
     }
