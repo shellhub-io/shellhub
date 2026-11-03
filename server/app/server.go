@@ -213,6 +213,7 @@ type Server struct {
 	worker      worker.Server
 	ssh         *sshserver.Server
 	heartbeater *services.DeviceHeartbeater
+	tunnels     *dialer.Manager
 	telemetry   *telemetry.Client
 	clock       clock.Clock
 	publicURL   string
@@ -428,6 +429,7 @@ func (s *Server) setupSSH(service services.Service) error {
 	env := s.sshEnv
 
 	d := dialer.NewDialer(service, s.heartbeater, s.clock)
+	s.tunnels = d.Manager
 	d.Manager.PingInterval = time.Duration(env.TunnelPingInterval)
 	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
 		d.Manager.Evict(tenantID, uid)
@@ -496,7 +498,9 @@ func (s *Server) Start() error {
 	return <-errs
 }
 
-// Shutdown gracefully terminates all server components.
+// Shutdown stops the worker and the HTTP and SSH servers, then closes every device tunnel without
+// reporting the devices offline. It waits up to heartbeaterDrainTimeout for pending heartbeats,
+// flushes telemetry, and logs each failure instead of returning it.
 func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
@@ -507,6 +511,10 @@ func (s *Server) Shutdown() {
 	}
 
 	s.ssh.Close() //nolint:errcheck
+
+	if s.tunnels != nil {
+		s.tunnels.Close()
+	}
 
 	if s.heartbeater != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), heartbeaterDrainTimeout)

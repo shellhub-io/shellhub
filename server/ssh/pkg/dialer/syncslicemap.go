@@ -96,6 +96,18 @@ func (ssm *SyncSliceMap) Drain(key any) []any {
 	return drained
 }
 
+// DrainAll empties the map and returns every value it held, by key.
+func (ssm *SyncSliceMap) DrainAll() map[any][]any {
+	ssm.mu.Lock()
+	defer ssm.mu.Unlock()
+
+	drained := ssm.values
+	ssm.values = nil
+	ssm.total = 0
+
+	return drained
+}
+
 // Size returns the current size of the slice associated with the key.
 func (ssm *SyncSliceMap) Size(key any) int {
 	ssm.mu.RLock()

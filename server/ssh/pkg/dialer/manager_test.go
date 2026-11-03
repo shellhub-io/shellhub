@@ -164,3 +164,37 @@ func TestManagerEvictOfADeviceWithoutATunnelDoesNothing(t *testing.T) {
 
 	assert.Zero(t, m.Stats().Evicted)
 }
+
+func TestManagerCloseClosesEveryTunnelWithoutReportingThemOffline(t *testing.T) {
+	offline := make(chan string, 2)
+
+	m := NewManager(clock.New())
+	m.DialerDoneCallback = func(key string) { offline <- key }
+
+	require.NoError(t, m.Bind("tenant", "uid", newAgentConn(t)))
+	require.NoError(t, m.Bind("other", "uid", newAgentConn(t)))
+
+	var sessions []*yamux.Session
+
+	for _, key := range []string{NewKey("tenant", "uid"), NewKey("other", "uid")} {
+		stored, ok := m.Connections.Load(key)
+		require.True(t, ok)
+		session, ok := stored.(*yamux.Session)
+		require.True(t, ok)
+		sessions = append(sessions, session)
+	}
+
+	m.Close()
+
+	for _, session := range sessions {
+		assert.True(t, session.IsClosed(), "a tunnel outlived Close")
+	}
+
+	assert.Equal(t, Stats{}, m.Stats())
+
+	select {
+	case key := <-offline:
+		t.Fatalf("closing the manager reported %s offline", key)
+	case <-time.After(200 * time.Millisecond):
+	}
+}
