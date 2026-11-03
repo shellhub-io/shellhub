@@ -17,6 +17,9 @@ on:
     - 'versions.env'
     - '.github/workflows/build-agent.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-24.04
