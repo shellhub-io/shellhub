@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { isSdkError } from "@/api/errors";
-import { KeyIcon, CheckIcon } from "@heroicons/react/24/outline";
-import { Card, Button } from "@shellhub/design-system/primitives";
+import { KeyIcon } from "@heroicons/react/24/outline";
+import { Button } from "@shellhub/design-system/primitives";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { apiKeyCreateMutation } from "@/client";
-import CopyButton from "@/components/common/CopyButton";
+import SecretReveal from "@/components/common/SecretReveal";
 import Modal from "@/components/common/Modal";
 import {
   FormInputField,
@@ -16,6 +16,7 @@ import FormRootError from "@/components/common/fields/FormRootError";
 import RadioPill from "@/components/common/fields/RadioPill";
 import { useDiscardGuard } from "@/hooks/useDiscardGuard";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
+import { KEY_NAME_HINT, KEY_NAME_MAX_LENGTH } from "@/utils/validation";
 import { FormRoleSelector } from "./constants";
 import {
   generateKeySchema,
@@ -24,8 +25,6 @@ import {
   type GenerateKeyFormValues,
 } from "./schemas";
 import { EXPIRY_OPTIONS } from "./helpers";
-import { LABEL } from "@/utils/styles";
-import { KEY_NAME_HINT, KEY_NAME_MAX_LENGTH } from "@/utils/validation";
 
 /**
  * Creates an API key and shows it. This is the only time the secret is readable, so the modal
@@ -113,31 +112,12 @@ function GenerateKeyModal({
       >
         {generatedKey ? (
           <div className="space-y-5">
-            <div className="flex items-start gap-3 bg-accent-green/[0.06] border border-accent-green/20 rounded-xl px-4 py-3.5">
-              <CheckIcon className="w-5 h-5 text-accent-green shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-text-primary">
-                  API Key Generated
-                </p>
-                <p className="text-2xs text-text-muted mt-0.5">
-                  Copy this key now. You won't be able to see it again.
-                </p>
-              </div>
-            </div>
-            <div>
-              <span id="generated-api-key-label" className={LABEL}>
-                Your API Key
-              </span>
-              <Card
-                aria-labelledby="generated-api-key-label"
-                className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
-              >
-                <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
-                  {generatedKey}
-                </code>
-                <CopyButton text={generatedKey} size="md" />
-              </Card>
-            </div>
+            <SecretReveal
+              title="API Key Generated"
+              note="Copy this key now. You won't be able to see it again."
+              label="Your API Key"
+              value={generatedKey}
+            />
           </div>
         ) : (
           <form
