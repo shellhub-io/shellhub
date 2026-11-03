@@ -27,7 +27,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.1.4",
-    "@vitest/eslint-plugin": "^1.1.44",
+    "@vitest/eslint-plugin": "1.6.27",
     "autoprefixer": "^10.4.20",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.22.0",
