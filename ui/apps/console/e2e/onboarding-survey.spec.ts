@@ -8,7 +8,7 @@ import {
 } from "@/tests/onboardingSurvey";
 import { buildRequestContext, loginAs } from "./api";
 import { isEnterprise } from "./env";
-import { createTeam, signIn, signOut } from "./helpers";
+import { chooseRadio, createTeam, signIn, signOut } from "./helpers";
 import { password } from "./seed";
 
 const surveyApi = "https://forms.e2e.test/api/v1/client/workspace";
@@ -96,8 +96,7 @@ test.describe("the onboarding survey", () => {
 
     await expect(surveyHeading(page)).toBeVisible();
     await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("radio", { name: "Developer" }).press("Space");
-    await expect(page.getByRole("radio", { name: "Developer" })).toBeChecked();
+    await chooseRadio(page, "Developer");
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(firstRunStep(page)).toBeVisible();
     await expect

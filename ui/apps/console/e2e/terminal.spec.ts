@@ -22,6 +22,7 @@ import {
 import { buildRequestContext } from "./api";
 import { isCommunity, isEnterprise } from "./env";
 import {
+  chooseRadio,
   createTeam,
   createTeamWithOwnerInAnother,
   findRow,
@@ -277,7 +278,7 @@ async function openInBrowser(dialog: Locator, passphrase = "") {
 }
 
 async function choosePassword(dialog: Locator) {
-  await dialog.getByRole("radio", { name: "Password" }).press("Space");
+  await chooseRadio(dialog, "Password");
   await dialog.getByLabel("Device password").fill(devicePassword);
 }
 
@@ -294,7 +295,7 @@ async function connectWithPastedKey(
   passphrase = "",
 ) {
   const dialog = await openConnect(page, device);
-  await dialog.getByRole("radio", { name: "Private key" }).press("Space");
+  await chooseRadio(dialog, "Private key");
   await dialog.getByRole("textbox", { name: "Private key" }).fill(privateKey);
   await openInBrowser(dialog, passphrase);
 }
@@ -306,8 +307,8 @@ async function connectWithVaultKey(
   passphrase = "",
 ) {
   const dialog = await openConnect(page, device);
-  await dialog.getByRole("radio", { name: "Private key" }).press("Space");
-  await dialog.getByRole("radio", { name: "Vault" }).press("Space");
+  await chooseRadio(dialog, "Private key");
+  await chooseRadio(dialog, "Vault");
   await dialog.getByRole("combobox", { name: "Key" }).selectOption(key);
   await openInBrowser(dialog, passphrase);
 }
@@ -782,15 +783,11 @@ test.describe("Public Keys", () => {
     await dialog
       .getByRole("textbox", { name: "Name", exact: true })
       .fill(`e2e-native-${buildShortId()}`);
-    await dialog
-      .getByRole("radio", { name: "Restrict by username" })
-      .press("Space");
+    await chooseRadio(dialog, "Restrict by username");
     await dialog
       .getByRole("textbox", { name: "Username pattern" })
       .fill(deviceLogin);
-    await dialog
-      .getByRole("radio", { name: "Filter by hostname" })
-      .press("Space");
+    await chooseRadio(dialog, "Filter by hostname");
     await dialog
       .getByRole("textbox", { name: "Hostname pattern" })
       .fill(device.name);
@@ -833,17 +830,15 @@ test.describe("Firewall Rules", () => {
     await page.getByRole("button", { name: "Add your first rule" }).click();
     const dialog = page.getByRole("dialog", { name: "New firewall rule" });
     await dialog.getByRole("textbox", { name: "Priority" }).fill("1");
-    await dialog.getByRole("radio", { name: "Deny" }).press("Space");
-    await dialog
-      .getByRole("radiogroup", { name: "Username" })
-      .getByRole("radio", { name: "Restrict with regexp" })
-      .press("Space");
+    await chooseRadio(dialog, "Deny");
+    await chooseRadio(
+      dialog.getByRole("radiogroup", { name: "Username" }),
+      "Restrict with regexp",
+    );
     await dialog
       .getByRole("textbox", { name: "Username pattern" })
       .fill(deviceLogin);
-    await dialog
-      .getByRole("radio", { name: "Filter by hostname" })
-      .press("Space");
+    await chooseRadio(dialog, "Filter by hostname");
     await dialog
       .getByRole("textbox", { name: "Hostname pattern" })
       .fill(device.name);
