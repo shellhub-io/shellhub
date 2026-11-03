@@ -1,14 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState, FormEvent } from "react";
-import {
-  CheckIcon,
-  TicketIcon,
-} from "@heroicons/react/24/outline";
-import { Button, Card, WindowChrome } from "@shellhub/design-system/primitives";
+import { TicketIcon } from "@heroicons/react/24/outline";
+import { Button, WindowChrome } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { buildInstallCommand } from "@/utils/installCommand";
 import CopyButton from "@/components/common/CopyButton";
+import SecretReveal from "@/components/common/SecretReveal";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
@@ -192,31 +190,12 @@ function CreateProvisioningKeyModal({
     >
       {generatedKey ? (
         <div className="space-y-5">
-          <div className="flex items-start gap-3 bg-accent-green/[0.06] border border-accent-green/20 rounded-xl px-4 py-3.5">
-            <CheckIcon className="w-5 h-5 text-accent-green shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                Provisioning Key Created
-              </p>
-              <p className="text-2xs text-text-muted mt-0.5">
-                Copy it now. You can also reveal it again later from the list.
-              </p>
-            </div>
-          </div>
-          <div>
-            <span id="generated-provisioning-key-label" className={LABEL}>
-              Your Provisioning Key
-            </span>
-            <Card
-              aria-labelledby="generated-provisioning-key-label"
-              className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
-            >
-              <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
-                {generatedKey}
-              </code>
-              <CopyButton text={generatedKey} size="md" />
-            </Card>
-          </div>
+          <SecretReveal
+            title="Provisioning Key Created"
+            note="Copy it now. You can also reveal it again later from the list."
+            label="Your Provisioning Key"
+            value={generatedKey}
+          />
           <div>
             <span className={LABEL}>Install with this key</span>
             <WindowChrome

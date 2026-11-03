@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
 import Modal from "@/components/common/Modal";
-import CopyButton from "@/components/common/CopyButton";
+import CopyableValue from "@/components/common/CopyableValue";
 import { FormInputField } from "@/components/common/fields/rhf";
 import FormRootError from "@/components/common/fields/FormRootError";
 import { useDiscardGuard } from "@/hooks/useDiscardGuard";
@@ -22,7 +22,6 @@ import {
   buildAddMemberBody,
   type AddMemberFormValues,
 } from "./schemas";
-import { LABEL } from "@/utils/styles";
 import ObjectName from "@/components/common/ObjectName";
 
 interface AddMemberModalProps {
@@ -159,20 +158,11 @@ function AddMemberModal({ open, onClose, tenantId }: AddMemberModalProps) {
           </Card>
         ) : done ? (
           <div className="space-y-3">
-            <div>
-              <span id="add-member-link-label" className={LABEL}>
-                Invitation link
-              </span>
-              <Card
-                aria-labelledby="add-member-link-label"
-                className="rounded-lg px-3.5 py-2.5 flex items-center gap-2"
-              >
-                <code className="flex-1 text-xs font-mono text-accent-cyan break-all select-all">
-                  {generatedLink}
-                </code>
-                <CopyButton text={generatedLink} size="md" showLabel />
-              </Card>
-            </div>
+            <CopyableValue
+              label="Invitation link"
+              value={generatedLink}
+              showLabel
+            />
             <p className="text-2xs text-text-muted leading-relaxed">
               {emailDelivery ? (
                 <>
