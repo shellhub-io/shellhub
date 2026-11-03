@@ -211,7 +211,7 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	publicAPI.POST(URLPushTagToDevice, gateway.Handler(handler.PushTagToDevice), routesmiddleware.RequiresPermission(authorizer.TagCreate))
 	publicAPI.DELETE(URLPullTagFromDevice, gateway.Handler(handler.PullTagFromDevice), routesmiddleware.RequiresPermission(authorizer.TagDelete))
 
-	publicAPI.GET(URLOldGetTags, gateway.Handler(handler.GetTags))
+	publicAPI.GET(URLOldGetTags, gateway.Handler(handler.GetTags), routesmiddleware.RequiresTenant(ParamNamespaceTenant))
 	publicAPI.POST(URLOldCreateTag, gateway.Handler(handler.CreateTag), routesmiddleware.RequiresPermission(authorizer.TagCreate))
 	publicAPI.PATCH(URLOldUpdateTag, gateway.Handler(handler.UpdateTag), routesmiddleware.RequiresPermission(authorizer.TagUpdate))
 	publicAPI.DELETE(URLOldDeleteTag, gateway.Handler(handler.DeleteTag), routesmiddleware.RequiresPermission(authorizer.TagDelete))
