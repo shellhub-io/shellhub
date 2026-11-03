@@ -4,7 +4,7 @@ go 1.26.10
 
 require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
-	github.com/compose-spec/compose-go/v2 v2.16.1
+	github.com/compose-spec/compose-go/v2 v2.16.2
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/cli v29.8.2+incompatible
 	github.com/docker/compose/v5 v5.6.1
