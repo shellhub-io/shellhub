@@ -137,10 +137,6 @@ export async function createTeamWithOwnerInAnother(
   return { ...team, other };
 }
 
-/**
- * Selects the radio named `name` inside `scope` by clicking its label card, then waits for it to
- * be checked. The console renders every radio as a hidden input inside a visible `<label>`.
- */
 export async function chooseRadio(scope: Page | Locator, name: string) {
   const radio = scope.getByRole("radio", { name });
   await radio.locator("xpath=ancestor::label[1]").click();
