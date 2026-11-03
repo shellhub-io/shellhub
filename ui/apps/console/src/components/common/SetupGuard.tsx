@@ -19,10 +19,19 @@ export default function SetupGuard() {
   useEffect(() => {
     if (isCloudEdition) return;
 
-    getInfo({ throwOnError: true })
-      .then(({ data }) => setSetupDone(data.setup))
-      .catch(() => setSetupDone(true))
-      .finally(() => setLoading(false));
+    const controller = new AbortController();
+    getInfo({ throwOnError: true, signal: controller.signal })
+      .then(({ data }) => {
+        if (!controller.signal.aborted) setSetupDone(data.setup);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSetupDone(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+
+    return () => controller.abort();
   }, [isCloudEdition, location.pathname]);
 
   const authed = !!token;
