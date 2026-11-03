@@ -279,8 +279,8 @@ github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 h1:1EYB5IzjZawrrnELUi78f9fPu57Hu
 github.com/santhosh-tekuri/jsonschema/v6 v6.0.3/go.mod h1:JXeL+ps8p7/KNMjDQk3TCwPpBy0wYklyWTfbkIzdIFU=
 github.com/sethvargo/go-envconfig v1.4.3 h1:9RJrW9aiy3SJVRJ1svntpZvBw3ghj941u/BseS/TokY=
 github.com/sethvargo/go-envconfig v1.4.3/go.mod h1:ebe6rgj7KzrRZPzDXU4W6WZWDEirQwvcgmS0bmC3Sjg=
-github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac h1:FoFcRe6uMUZ4ctoJ0VVViLMiZ0+kc4BtMLzCwWw6Qxk=
-github.com/shellhub-io/ssh v0.0.0-20260802071412-17dd3955caac/go.mod h1:x9I554T2Lmh78Qai8VN4wnVyxXjkLAEYpJMBVchsG6A=
+github.com/shellhub-io/ssh v0.0.0-20261103210007-9815c880a04b h1:eqnKr2TnlJiU/HoK/mMTYvMzu3YfwNPCkv3t9hhYa64=
+github.com/shellhub-io/ssh v0.0.0-20261103210007-9815c880a04b/go.mod h1:x9I554T2Lmh78Qai8VN4wnVyxXjkLAEYpJMBVchsG6A=
 github.com/shirou/gopsutil/v4 v4.26.6 h1:Mzr/npDtQC/xpeEuQKHZt8Zo9CmPvhTj8nkR8w5TLDs=
 github.com/shirou/gopsutil/v4 v4.26.6/go.mod h1:LZ6ewCSkBqUpvSOf+LsTGnRinC6iaNUNMGBtDkJBaLQ=
 github.com/sirupsen/logrus v1.10.2 h1:G2SED73/qrAu6YwbdxOD6peLkCBI3z7L+ykJFTXJBBo=
