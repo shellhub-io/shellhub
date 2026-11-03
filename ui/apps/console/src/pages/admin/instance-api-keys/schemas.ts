@@ -41,18 +41,12 @@ export const GENERATE_INSTANCE_KEY_DEFAULTS: GenerateInstanceKeyFormValues = {
 };
 
 /**
- * A chosen expiry, once the form has been validated.
- */
-export type InstanceKeyExpiry = GenerateInstanceKeyFormValues["expiresAt"];
-
-/**
  * Builds the create request body, converting the radio group's string back into the number the
  * API expects.
  */
-export function buildGenerateInstanceKeyBody(values: {
-  name: string;
-  expiresAt: InstanceKeyExpiry;
-}) {
+export function buildGenerateInstanceKeyBody(
+  values: GenerateInstanceKeyFormValues,
+) {
   return {
     name: values.name.trim(),
     expires_at: Number(values.expiresAt) as 30 | 60 | 90 | 365,
