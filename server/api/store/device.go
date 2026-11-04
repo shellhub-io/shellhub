@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -58,6 +59,17 @@ type DeviceStore interface {
 	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
 
 	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int64, error)
+
+	// DeviceListAfter reads up to size devices ordered by creation time, then id, ascending,
+	// starting after the after cursor, or from the first device when after is nil. A size below
+	// one reads one. It applies sc, acceptable and opts as DeviceList does, takes no Sort or
+	// Paginate option, counts nothing, and reads within the transaction ctx carries, if any. next
+	// is the cursor of the last device returned when more devices follow, and nil on the last
+	// page, so a page holding devices may be the last one but no empty page follows a non-nil
+	// next. It returns ErrInvalidScope for a scope of no known kind, ErrNoDocuments for a bounded
+	// scope whose tenant is not a UUID, an option's own error, an error wrapping ctx's error when
+	// ctx ends, and an error wrapping [ErrInternal] for any other database failure.
+	DeviceListAfter(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, after *query.Cursor, size int64, opts ...QueryOption) (devices []models.Device, next *query.Cursor, err error)
 
 	// DeviceResolve fetches a device using a specific resolver within the given namespace scope.
 	//

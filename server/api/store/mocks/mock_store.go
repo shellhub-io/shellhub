@@ -8,6 +8,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -1749,6 +1750,115 @@ func (_c *MockStore_DeviceList_Call) Return(devices []models.Device, n int64, er
 }
 
 func (_c *MockStore_DeviceList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int64, error)) *MockStore_DeviceList_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeviceListAfter provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceListAfter(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, after *query.Cursor, size int64, opts ...store.QueryOption) ([]models.Device, *query.Cursor, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, sc, acceptable, after, size, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, sc, acceptable, after, size)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceListAfter")
+	}
+
+	var r0 []models.Device
+	var r1 *query.Cursor
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceAcceptable, *query.Cursor, int64, ...store.QueryOption) ([]models.Device, *query.Cursor, error)); ok {
+		return returnFunc(ctx, sc, acceptable, after, size, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, store.DeviceAcceptable, *query.Cursor, int64, ...store.QueryOption) []models.Device); ok {
+		r0 = returnFunc(ctx, sc, acceptable, after, size, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Device)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, store.DeviceAcceptable, *query.Cursor, int64, ...store.QueryOption) *query.Cursor); ok {
+		r1 = returnFunc(ctx, sc, acceptable, after, size, opts...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*query.Cursor)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, store.DeviceAcceptable, *query.Cursor, int64, ...store.QueryOption) error); ok {
+		r2 = returnFunc(ctx, sc, acceptable, after, size, opts...)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockStore_DeviceListAfter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceListAfter'
+type MockStore_DeviceListAfter_Call struct {
+	*mock.Call
+}
+
+// DeviceListAfter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - acceptable store.DeviceAcceptable
+//   - after *query.Cursor
+//   - size int64
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) DeviceListAfter(ctx any, sc any, acceptable any, after any, size any, opts ...any) *MockStore_DeviceListAfter_Call {
+	return &MockStore_DeviceListAfter_Call{Call: _e.mock.On("DeviceListAfter",
+		append([]any{ctx, sc, acceptable, after, size}, opts...)...)}
+}
+
+func (_c *MockStore_DeviceListAfter_Call) Run(run func(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, after *query.Cursor, size int64, opts ...store.QueryOption)) *MockStore_DeviceListAfter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 store.DeviceAcceptable
+		if args[2] != nil {
+			arg2 = args[2].(store.DeviceAcceptable)
+		}
+		var arg3 *query.Cursor
+		if args[3] != nil {
+			arg3 = args[3].(*query.Cursor)
+		}
+		var arg4 int64
+		if args[4] != nil {
+			arg4 = args[4].(int64)
+		}
+		var arg5 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 5 {
+			variadicArgs = args[5].([]store.QueryOption)
+		}
+		arg5 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceListAfter_Call) Return(devices []models.Device, next *query.Cursor, err error) *MockStore_DeviceListAfter_Call {
+	_c.Call.Return(devices, next, err)
+	return _c
+}
+
+func (_c *MockStore_DeviceListAfter_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, after *query.Cursor, size int64, opts ...store.QueryOption) ([]models.Device, *query.Cursor, error)) *MockStore_DeviceListAfter_Call {
 	_c.Call.Return(run)
 	return _c
 }
