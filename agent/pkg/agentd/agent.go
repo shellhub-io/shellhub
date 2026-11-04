@@ -815,6 +815,7 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 
 	go func() {
 		tunnelServer := connectivity.NewTracker(logger)
+		backoff := newReconnectBackoff()
 
 		for {
 			if a.isClosed() || ctx.Err() != nil {
@@ -833,7 +834,7 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 				}
 
 				tunnelServer.Lost(err)
-				waitToReconnect(ctx)
+				waitToReconnect(ctx, backoff.next())
 
 				continue
 			}
@@ -841,7 +842,7 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 			listener, err := dial(ctx)
 			if err != nil {
 				tunnelServer.Lost(err)
-				waitToReconnect(ctx)
+				waitToReconnect(ctx, backoff.next())
 
 				continue
 			}
@@ -853,11 +854,21 @@ func (a *Agent) serveTunnel(parent context.Context, dial func(context.Context) (
 
 			a.signalListening(ctx, true)
 
+			stable := time.After(reconnectStableAfter)
+
 			if err := serve(ctx, listener); err != nil {
 				logger.WithError(err).Error("Tunnel listener exited with error")
 			}
 
 			a.signalListening(ctx, false)
+
+			select {
+			case <-stable:
+				backoff.reset()
+			default:
+			}
+
+			waitToReconnect(ctx, backoff.next())
 		}
 	}()
 
@@ -878,9 +889,9 @@ func (a *Agent) signalListening(ctx context.Context, listening bool) {
 	}
 }
 
-func waitToReconnect(ctx context.Context) {
+func waitToReconnect(ctx context.Context, delay time.Duration) {
 	select {
-	case <-time.After(tunnelReconnectInterval):
+	case <-time.After(delay):
 	case <-ctx.Done():
 	}
 }
@@ -888,7 +899,39 @@ func waitToReconnect(ctx context.Context) {
 // AgentPingDefaultInterval is the default time interval between ping on agent.
 const AgentPingDefaultInterval = 10 * time.Minute
 
-const tunnelReconnectInterval = 10 * time.Second
+const (
+	reconnectBackoffBase = 10 * time.Second
+	reconnectBackoffMax  = 2 * time.Minute
+	reconnectStableAfter = 2 * time.Minute
+)
+
+type reconnectBackoff struct {
+	window time.Duration
+	random func(n int64) int64
+}
+
+func newReconnectBackoff() *reconnectBackoff {
+	return &reconnectBackoff{
+		window: reconnectBackoffBase,
+		random: func(n int64) int64 {
+			offset, _ := rand.Int(rand.Reader, big.NewInt(n))
+
+			return offset.Int64()
+		},
+	}
+}
+
+func (b *reconnectBackoff) next() time.Duration {
+	delay := time.Duration(b.random(int64(b.window)))
+
+	b.window = min(2*b.window, reconnectBackoffMax)
+
+	return delay
+}
+
+func (b *reconnectBackoff) reset() {
+	b.window = reconnectBackoffBase
+}
 
 func nextPingInterval(base time.Duration) time.Duration {
 	spread := base / 5
