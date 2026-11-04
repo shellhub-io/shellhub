@@ -5,6 +5,7 @@
 	order shellhub_server before reverse_proxy
 
 	http_port {{ .HTTPPort }}
+	https_port {{ .HTTPSPort }}
 
 	storage file_system {{ .DataDir }}
 
@@ -112,26 +113,26 @@
 {{- if .Development }}
 
 		handle_path /openapi/mock/* {
-			reverse_proxy openapi:4010 {
+			reverse_proxy {{ index .Upstreams "openapi-mock" }} {
 				import forwarded
 			}
 		}
 
 		handle_path /openapi/proxy/* {
-			reverse_proxy openapi:4020 {
+			reverse_proxy {{ index .Upstreams "openapi-proxy" }} {
 				import forwarded
 			}
 		}
 
 		handle /openapi* {
-			reverse_proxy openapi:8080 {
+			reverse_proxy {{ index .Upstreams "openapi" }} {
 				import forwarded
 			}
 		}
 {{- end }}
 
 		handle {
-			reverse_proxy ui:8080 {
+			reverse_proxy {{ index .Upstreams "console" }} {
 				import forwarded
 			}
 		}
@@ -180,26 +181,26 @@ http://healthcheck.internal {
 {{- if .Development }}
 
 http://website.{{ $cfg.Domain }} {
-	reverse_proxy ui:8082 {
+	reverse_proxy {{ index .Upstreams "website" }} {
 		import forwarded
 	}
 }
 
 http://docs.{{ $cfg.Domain }} {
-	reverse_proxy ui:8083 {
+	reverse_proxy {{ index .Upstreams "docs" }} {
 		import forwarded
 	}
 }
 {{- if $cfg.EnableEnterprise }}
 
 http://idp.{{ $cfg.Domain }} {
-	reverse_proxy saml-idp:8080 {
+	reverse_proxy {{ index .Upstreams "idp" }} {
 		import forwarded
 	}
 }
 
 http://mail.{{ $cfg.Domain }} {
-	reverse_proxy mailpit:8025 {
+	reverse_proxy {{ index .Upstreams "mail" }} {
 		import forwarded
 	}
 }

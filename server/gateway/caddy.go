@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"maps"
 	"text/template"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -14,11 +15,24 @@ import (
 //go:embed Caddyfile.tmpl
 var caddyfileTemplate string
 
+var defaultUpstreams = map[string]string{
+	"openapi-mock":  "openapi:4010",
+	"openapi-proxy": "openapi:4020",
+	"openapi":       "openapi:8080",
+	"console":       "ui:8080",
+	"website":       "ui:8082",
+	"docs":          "ui:8083",
+	"idp":           "saml-idp:8080",
+	"mail":          "mailpit:8025",
+}
+
 type caddyfileData struct {
 	Config *GatewayConfig
 
-	HTTPPort int
-	DataDir  string
+	HTTPPort  int
+	HTTPSPort int
+	DataDir   string
+	Upstreams map[string]string
 
 	Development bool
 	TLS         bool
@@ -70,14 +84,24 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 		httpPort = 80
 	}
 
+	httpsPort := cfg.httpsPort
+	if httpsPort == 0 {
+		httpsPort = 443
+	}
+
 	dataDir := cfg.dataDir
 	if dataDir == "" {
 		dataDir = "/data"
 	}
 
+	upstreams := maps.Clone(defaultUpstreams)
+	maps.Copy(upstreams, cfg.upstreams)
+
 	return &caddyfileData{
 		Config:      cfg,
+		Upstreams:   upstreams,
 		HTTPPort:    httpPort,
+		HTTPSPort:   httpsPort,
 		DataDir:     dataDir,
 		Development: development,
 		TLS:         cfg.EnableAutoSSL,

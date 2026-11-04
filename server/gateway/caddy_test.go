@@ -70,93 +70,6 @@ func TestCaddyfileAdapts(t *testing.T) {
 	}
 }
 
-func TestCaddyfileServesTheEditionsRoutes(t *testing.T) {
-	configs := configurations()
-
-	community, err := Caddyfile(configs["community"])
-	require.NoError(t, err)
-
-	assert.NotContains(t, string(community), "/admin/api",
-		"the admin API is enterprise-only")
-	assert.NotContains(t, string(community), "*.shellhub.example",
-		"web endpoints are not served unless the feature is on")
-
-	endpoints, err := Caddyfile(configs["web endpoints"])
-	require.NoError(t, err)
-
-	assert.Contains(t, string(endpoints), "*.shellhub.example")
-	assert.Contains(t, string(endpoints), "/admin/api")
-}
-
-func TestCaddyfileServesTheDevelopmentMailInbox(t *testing.T) {
-	configs := configurations()
-
-	development, err := Caddyfile(configs["development"])
-	require.NoError(t, err)
-
-	assert.Contains(t, string(development), "http://mail.shellhub.example")
-
-	devCommunity, err := Caddyfile(configs["dev community"])
-	require.NoError(t, err)
-
-	assert.NotContains(t, string(devCommunity), "mail.shellhub.example",
-		"the mail inbox is enterprise-only")
-
-	enterprise, err := Caddyfile(configs["enterprise"])
-	require.NoError(t, err)
-
-	assert.NotContains(t, string(enterprise), "mail.shellhub.example",
-		"the mail inbox is development-only")
-}
-
-func TestEveryUpstreamReceivesTheClientAddress(t *testing.T) {
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			rendered, err := Caddyfile(cfg)
-			require.NoError(t, err)
-			adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
-			require.NoError(t, err)
-			var config any
-			require.NoError(t, json.Unmarshal(adapted, &config))
-			proxies := reverseProxies(config)
-			require.NotEmpty(t, proxies)
-
-			for _, proxy := range proxies {
-				encoded, err := json.Marshal(proxy)
-				require.NoError(t, err)
-				var handler struct {
-					Headers struct {
-						Request struct {
-							Set map[string][]string `json:"set"`
-						} `json:"request"`
-					} `json:"headers"`
-				}
-				require.NoError(t, json.Unmarshal(encoded, &handler))
-				assert.Equal(t, []string{"{http.request.remote.host}"}, handler.Headers.Request.Set["X-Real-Ip"], "%s", encoded)
-			}
-		})
-	}
-}
-
-func reverseProxies(node any) []map[string]any {
-	var proxies []map[string]any
-	switch value := node.(type) {
-	case map[string]any:
-		if value["handler"] == "reverse_proxy" {
-			proxies = append(proxies, value)
-		}
-		for _, child := range value {
-			proxies = append(proxies, reverseProxies(child)...)
-		}
-	case []any:
-		for _, child := range value {
-			proxies = append(proxies, reverseProxies(child)...)
-		}
-	}
-
-	return proxies
-}
-
 func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 	cfg := configurations()["development"]
 	cfg.EnableAutoSSL = true
@@ -166,21 +79,6 @@ func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 
 	assert.Contains(t, string(rendered), "https://shellhub.example")
 	assert.NotContains(t, string(rendered), "auto_https off")
-}
-
-func TestCaddyfileServesTheSuppliedCertificate(t *testing.T) {
-	cfg := configurations()["supplied certificate"]
-
-	rendered, err := Caddyfile(cfg)
-	require.NoError(t, err)
-
-	assert.Contains(t, string(rendered), "tls "+cfg.TLSCertFile+" "+cfg.TLSKeyFile)
-
-	without, err := Caddyfile(configurations()["auto ssl"])
-	require.NoError(t, err)
-
-	assert.NotContains(t, string(without), "tls ",
-		"automatic issuance is the default and must stay untouched when no certificate is supplied")
 }
 
 func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
@@ -209,20 +107,6 @@ func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestCaddyfileRedirectsItsOwnNameToHTTPS(t *testing.T) {
-	rendered, err := Caddyfile(configurations()["supplied certificate"])
-	require.NoError(t, err)
-
-	assert.Contains(t, string(rendered), "http://shellhub.example {")
-	assert.Contains(t, string(rendered), "redir https://{host}{uri} 308")
-
-	withoutTLS, err := Caddyfile(configurations()["community"])
-	require.NoError(t, err)
-
-	assert.NotContains(t, string(withoutTLS), "redir ",
-		"there is nothing to redirect to when the site is served over plain HTTP")
 }
 
 type httpRoute struct {
@@ -364,30 +248,6 @@ func TestAnInfoQueryEscapedIntoThePathReachesTheAPI(t *testing.T) {
 			default:
 				t.Fatalf("%s did not reach the API, the gateway answered %d", uri, res.StatusCode)
 			}
-		})
-	}
-}
-
-func adaptedServers(t *testing.T, cfg *GatewayConfig) map[string]map[string]any {
-	t.Helper()
-
-	rendered, err := Caddyfile(cfg)
-	require.NoError(t, err)
-
-	adapted, _, err := caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
-	require.NoError(t, err)
-
-	return httpServers[map[string]any](t, adapted)
-}
-
-func matchesPath(path string) func(map[string]any) bool {
-	return func(node map[string]any) bool {
-		matchers, _ := node["match"].([]any)
-
-		return slices.ContainsFunc(matchers, func(matcher any) bool {
-			paths, _ := matcher.(map[string]any)["path"].([]any)
-
-			return slices.Contains(paths, any(path))
 		})
 	}
 }

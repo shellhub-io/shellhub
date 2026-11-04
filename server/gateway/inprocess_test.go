@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -13,42 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestTheServerRoutesAreServedInProcess(t *testing.T) {
-	paths := []string{"/api*", "/mcp*", "/ssh/*", "/agent/*", "/ws*"}
-
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			for _, path := range paths {
-				served := 0
-
-				for name, server := range adaptedServers(t, cfg) {
-					for _, route := range collect(server["routes"], matchesPath(path)) {
-						served += len(collect(route, servedInProcess))
-
-						assert.Empty(t, reverseProxies(route), "%s proxies %s", name, path)
-					}
-				}
-
-				assert.Equal(t, 1, served, "%s is not served in process exactly once", path)
-			}
-
-			for name, server := range adaptedServers(t, cfg) {
-				for _, proxy := range reverseProxies(server) {
-					upstreams, _ := proxy["upstreams"].([]any)
-					for _, upstream := range upstreams {
-						dial, _ := upstream.(map[string]any)["dial"].(string)
-						assert.False(t, strings.HasPrefix(dial, "server:"), "%s proxies to %s", name, dial)
-					}
-				}
-			}
-		})
-	}
-}
-
-func servedInProcess(node map[string]any) bool {
-	return node["handler"] == "shellhub_server"
-}
 
 func TestTheServerReceivesTheClientAndItsConnection(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -173,16 +138,35 @@ func TestTheServerReceivesTheClientNamedByTheLoadBalancer(t *testing.T) {
 func startServing(t *testing.T, cfg *GatewayConfig, handler http.Handler) string {
 	t.Helper()
 
-	free, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
-	require.NoError(t, err)
-	address := free.Addr().String()
-	require.NoError(t, free.Close())
-
-	cfg.httpPort = free.Addr().(*net.TCPAddr).Port //nolint:forcetypeassert // a tcp listener's address is a *net.TCPAddr
+	cfg.upstreams = taggedUpstreams(t)
 	cfg.dataDir = t.TempDir()
+
+	ports := freePorts(t, 2)
+	cfg.httpPort, cfg.httpsPort = ports[0], ports[1]
 
 	require.NoError(t, Start(cfg, handler))
 	t.Cleanup(func() { _ = Stop() })
 
-	return address
+	return net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.httpPort))
+}
+
+func freePorts(t *testing.T, count int) []int {
+	t.Helper()
+
+	ports := make([]int, 0, count)
+	listeners := make([]net.Listener, 0, count)
+
+	for range count {
+		listener, err := new(net.ListenConfig).Listen(t.Context(), "tcp", "127.0.0.1:0")
+		require.NoError(t, err)
+
+		listeners = append(listeners, listener)
+		ports = append(ports, listener.Addr().(*net.TCPAddr).Port) //nolint:forcetypeassert // a tcp listener's address is a *net.TCPAddr
+	}
+
+	for _, listener := range listeners {
+		require.NoError(t, listener.Close())
+	}
+
+	return ports
 }

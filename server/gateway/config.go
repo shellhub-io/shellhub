@@ -46,8 +46,10 @@ type GatewayConfig struct {
 
 	EnableEnterprise bool
 
-	httpPort int
-	dataDir  string
+	httpPort  int
+	httpsPort int
+	dataDir   string
+	upstreams map[string]string
 }
 
 var validate = validator.New()
