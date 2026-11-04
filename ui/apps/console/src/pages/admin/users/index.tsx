@@ -8,7 +8,7 @@ import {
   CheckIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import FilterTabs, { type FilterTab } from "@/components/common/FilterTabs";
+import SegmentedTabs, { type SegmentedTab } from "@/components/common/SegmentedTabs";
 import { isEnterprise } from "@/env";
 import {
   adminUsersQueryOptions,
@@ -39,7 +39,7 @@ import {
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE } from "@/utils/pagination";
 
-const subsetTabs: FilterTab<AdminUserSubset>[] = [
+const subsetTabs: SegmentedTab<AdminUserSubset>[] = [
   { label: "All", value: "" },
   { label: "Awaiting approval", value: "awaiting_approval" },
   { label: "Admins", value: "admin" },
@@ -236,7 +236,7 @@ export default function AdminUsers() {
       </PageHeader>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
-        <FilterTabs
+        <SegmentedTabs
           tabs={tabs}
           value={subset}
           onChange={(next) => setFilter("subset", next)}

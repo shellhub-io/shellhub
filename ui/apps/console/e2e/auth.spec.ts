@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { listNamespaceMembers, removeNamespaceMember } from "@/client";
 import { accountLockoutBaseMs, adminUser, isEnterprise } from "./env";
 import {
+  activeViewTab,
   signIn,
   fillLoginForm,
   directMembershipReason,
@@ -135,7 +136,7 @@ test.describe("accept invitation", () => {
 
     await page.getByRole("button", { name: "Go to Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard$/, { timeout: 15000 });
-    await expect(page.getByRole("tab", { selected: true })).toHaveAttribute(
+    await expect(activeViewTab(page)).toHaveAttribute(
       "title",
       adminUser.namespace,
     );
