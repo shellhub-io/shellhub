@@ -99,7 +99,7 @@ export default function TagsPopover({
     <>
       <div className="flex items-center gap-1 min-h-[28px] group/tags">
         {tags.length > 0 ? (
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             {tags.map((tag) => (
               <button
                 type="button"
