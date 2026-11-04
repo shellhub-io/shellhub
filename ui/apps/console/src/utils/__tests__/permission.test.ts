@@ -25,6 +25,7 @@ const OPERATOR_ACTIONS: Action[] = [
   "tag:update",
   "notification:view",
   "sshIdentity:add",
+  "provisioningKey:list",
 ];
 
 const ADMINISTRATOR_ACTIONS: Action[] = [
@@ -54,6 +55,11 @@ const ADMINISTRATOR_ACTIONS: Action[] = [
   "apiKey:create",
   "apiKey:edit",
   "apiKey:delete",
+  "provisioningKey:create",
+  "provisioningKey:reveal",
+  "provisioningKey:edit",
+  "provisioningKey:disable",
+  "provisioningKey:revoke",
 ];
 
 const OWNER_ACTIONS: Action[] = [

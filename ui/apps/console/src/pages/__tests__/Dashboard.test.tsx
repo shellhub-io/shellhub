@@ -95,7 +95,7 @@ describe("Dashboard", () => {
     },
   );
 
-  it("sends an operator, who cannot list provisioning keys, to the tenant ID queue", async () => {
+  it("sends an operator in a new namespace whose queue does not hold every pending device to Fleet", async () => {
     seedAuthStore({ role: "operator" });
     serveDashboard(false, ["accepted"]);
     const queryClient = createTestQueryClient();
@@ -105,7 +105,7 @@ describe("Dashboard", () => {
 
     expect(
       screen.getByRole("link", { name: /review pending/i }),
-    ).toHaveAttribute("href", "/devices/pending");
+    ).toHaveAttribute("href", "/devices/add/fleet");
   });
 
   it("offers no review to a member who may not accept devices", async () => {

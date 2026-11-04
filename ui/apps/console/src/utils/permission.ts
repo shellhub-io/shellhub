@@ -89,7 +89,7 @@ const permissions = {
   "apiKey:edit": RoleLevel.ADMINISTRATOR,
   "apiKey:delete": RoleLevel.ADMINISTRATOR,
 
-  "provisioningKey:list": RoleLevel.ADMINISTRATOR,
+  "provisioningKey:list": RoleLevel.OPERATOR,
   "provisioningKey:create": RoleLevel.ADMINISTRATOR,
   "provisioningKey:reveal": RoleLevel.ADMINISTRATOR,
   "provisioningKey:edit": RoleLevel.ADMINISTRATOR,
