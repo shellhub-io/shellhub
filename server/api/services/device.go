@@ -61,6 +61,18 @@ var DeviceSortFields = query.NewFieldSet(
 type DeviceService interface {
 	ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error)
 
+	// ListDevicesAfter reads up to req.Size devices in creation order, starting after the cursor
+	// after, or from the first device when after is nil. A req.Size below one reads one, and the
+	// caller bounds the maximum. It selects devices by status, filters and connector, and computes
+	// acceptable, exactly as ListDevices does. It ignores req's Paginator, Sorter and After: the
+	// after argument alone sets where the read starts, so the caller parses req.After into it. It
+	// runs every read under ctx. next is nil on the last page. When sc is bounded and
+	// req.DeviceStatus is not removed, it returns ErrNamespaceNotFound when reading the
+	// namespace's device limit fails for any reason, a missing namespace, a store failure or a
+	// cancelled ctx alike. Any other failure is an error [store.DeviceStore.DeviceListAfter]
+	// documents.
+	ListDevicesAfter(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) (devices []models.Device, next *query.Cursor, err error)
+
 	// GetDevice fetches a device within the given namespace scope. The scope is an explicit
 	// parameter rather than something recovered from the request context, so a caller cannot
 	// receive a cross-namespace read by omission.
@@ -155,6 +167,15 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 	}
 
 	return s.store.DeviceList(ctx, sc, acceptable, append(opts, order...)...)
+}
+
+func (s *service) ListDevicesAfter(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) ([]models.Device, *query.Cursor, error) {
+	acceptable, opts, err := s.deviceListSelection(ctx, sc, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return s.store.DeviceListAfter(ctx, sc, acceptable, after, req.Size, opts...)
 }
 
 func (s *service) deviceListSelection(ctx context.Context, sc scope.Scope, req *requests.DeviceList) (store.DeviceAcceptable, []store.QueryOption, error) {

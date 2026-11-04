@@ -101,22 +101,7 @@ func buildInstallOverrides(req *requests.SystemInstallScript) string {
 	var b strings.Builder
 	b.WriteString("\n")
 
-	host, hostPort := req.Host, ""
-	if h, p, err := net.SplitHostPort(req.Host); err == nil {
-		host, hostPort = h, p
-	}
-
-	if host != "" {
-		port := req.ForwardedPort
-		if port == "" {
-			port = hostPort
-		}
-
-		address := host
-		if port != "" && !isDefaultPort(scheme, port) {
-			address = net.JoinHostPort(host, port)
-		}
-
+	if address := ClientFacingAddress(scheme, req.Host, req.ForwardedPort); address != "" {
 		writeInstallOverride(&b, "SERVER_ADDRESS", scheme+"://"+address)
 	}
 
@@ -139,6 +124,35 @@ func singleQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", `'\''`) + "'"
 }
 
-func isDefaultPort(scheme, port string) bool {
-	return (scheme == "https" && port == "443") || (scheme == "http" && port == "80")
+// ClientFacingAddress returns the host, and port when it matters, that a client reached the server
+// on, for an absolute URL handed back to it. The port is forwardedPort, the X-Forwarded-Port the
+// gateway sets because it forwards Host without one, or else the port carried on host. It is left
+// out when it is scheme's default. An IPv6 host comes back in brackets, and an empty host returns
+// an empty string.
+func ClientFacingAddress(scheme, host, forwardedPort string) string {
+	if host == "" {
+		return ""
+	}
+
+	name, port := host, ""
+	if h, p, err := net.SplitHostPort(host); err == nil {
+		name, port = h, p
+	}
+
+	if forwardedPort != "" {
+		port = forwardedPort
+	}
+
+	name = strings.Trim(name, "[]")
+
+	defaultPort := (scheme == "https" && port == "443") || (scheme == "http" && port == "80")
+
+	switch {
+	case port != "" && !defaultPort:
+		return net.JoinHostPort(name, port)
+	case strings.Contains(name, ":"):
+		return "[" + name + "]"
+	default:
+		return name
+	}
 }

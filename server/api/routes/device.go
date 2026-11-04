@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"maps"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -27,7 +29,24 @@ const (
 	MakeTeamDeviceURL          = "/devices/:uid/owner"
 )
 
-// GetDeviceList serves the namespace's devices, filtered, sorted and paginated as requested.
+const (
+	pageSizeParam  = "page[size]"
+	pageAfterParam = "page[after]"
+)
+
+var deviceListPageModeParams = []string{"page", "per_page", "sort_by", "order_by"}
+
+// GetDeviceList serves the namespace's devices, filtered by status, connector and filter. In page
+// mode it serves the numbered page sorted as requested, with the total in X-Total-Count. A
+// page[size] or page[after] parameter selects cursor mode, which serves the devices in creation
+// order after the cursor and hands back the next page in Link and X-Next-Cursor, leaving both out
+// on the last page. Both modes answer 422 to a page, per_page, page[size] or connector that does
+// not parse, 403 when the request carries no namespace outside the admin console, 400 to a status
+// or filter they cannot read, and 404 when the status is not removed and reading the namespace's
+// device limit fails, whether the namespace is gone or the store failed. Page mode also answers
+// 400 to a sort_by it cannot sort by. Cursor mode answers 400 to page, per_page, sort_by or
+// order_by in the same request, to a page[after] the server did not issue, and on the admin
+// cross-namespace list. Any other store failure is a 500.
 func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	req := new(requests.DeviceList)
 
@@ -35,6 +54,15 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 		return err
 	}
 
+	params := c.QueryParams()
+	if params.Has(pageSizeParam) || params.Has(pageAfterParam) {
+		return h.listDevicesAfter(c, req, params)
+	}
+
+	return h.listDevicesByPage(c, req)
+}
+
+func (h *Handler) listDevicesByPage(c *gateway.Context, req *requests.DeviceList) error {
 	req.Paginator.Normalize()
 	req.Sorter.Normalize()
 
@@ -42,17 +70,7 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
-	if err := req.Filters.Unmarshal(); err != nil {
-		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode device list filter")
-
-		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
-	}
-
-	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
-		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
-	}
-
-	if err := c.Validate(req); err != nil {
+	if err := validateDeviceListRequest(c, req); err != nil {
 		return err
 	}
 
@@ -69,6 +87,96 @@ func (h *Handler) GetDeviceList(c *gateway.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *Handler) listDevicesAfter(c *gateway.Context, req *requests.DeviceList, params url.Values) error {
+	if fields := cursorModeConflicts(params); len(fields) > 0 {
+		return errs.NewErrInvalidEntity(fields)
+	}
+
+	var after *query.Cursor
+	if params.Has(pageAfterParam) {
+		cursor, err := query.ParseCursor(req.After)
+		if err != nil {
+			return errs.NewErrInvalidEntity(map[string]string{pageAfterParam: err.Error()})
+		}
+
+		after = &cursor
+	}
+
+	if err := validateDeviceListRequest(c, req); err != nil {
+		return err
+	}
+
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	if !sc.IsBounded() {
+		sent := pageSizeParam
+		if !params.Has(pageSizeParam) {
+			sent = pageAfterParam
+		}
+
+		return errs.NewErrInvalidEntity(map[string]string{sent: "cursor pagination is only available on a namespace's device list"})
+	}
+
+	req.CursorPaginator.Normalize(h.deviceListMaxPageSize)
+
+	devices, next, err := h.service.ListDevicesAfter(c.Ctx(), sc, req, after)
+	if err != nil {
+		return err
+	}
+
+	if next != nil {
+		cursor := next.String()
+		c.Response().Header().Set("Link", "<"+nextDevicePageURL(c, params, req.Size, cursor)+`>; rel="next"`)
+		c.Response().Header().Set("X-Next-Cursor", cursor)
+	}
+
+	return c.JSON(http.StatusOK, devices)
+}
+
+func validateDeviceListRequest(c *gateway.Context, req *requests.DeviceList) error {
+	if err := req.Filters.Unmarshal(); err != nil {
+		log.WithError(err).WithField("filter", req.Filters.Raw).Warn("failed to decode device list filter")
+
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
+	}
+
+	return c.Validate(req)
+}
+
+func cursorModeConflicts(params url.Values) map[string]string {
+	fields := map[string]string{}
+	for _, name := range deviceListPageModeParams {
+		if params.Has(name) {
+			fields[name] = "cannot be combined with " + pageSizeParam + " or " + pageAfterParam
+		}
+	}
+
+	return fields
+}
+
+func nextDevicePageURL(c *gateway.Context, params url.Values, size int64, cursor string) string {
+	values := maps.Clone(params)
+	values.Set(pageSizeParam, strconv.FormatInt(size, 10))
+	values.Set(pageAfterParam, cursor)
+
+	scheme := c.Scheme()
+	next := url.URL{
+		Scheme:   scheme,
+		Host:     services.ClientFacingAddress(scheme, c.Request().Host, c.Request().Header.Get("X-Forwarded-Port")),
+		Path:     c.Request().URL.Path,
+		RawQuery: values.Encode(),
+	}
+
+	return next.String()
 }
 
 // GetDevice serves a single device by UID.

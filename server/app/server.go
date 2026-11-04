@@ -138,6 +138,11 @@ type Env struct {
 	// webhook may reach although they are private.
 	EnrollmentWebhookAllowedCIDRs string `env:"SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS"`
 
+	// DeviceListMaxPageSize is the largest page a cursor read of the device list returns, which
+	// trades the number of requests a full read takes against the memory one request holds. A
+	// value below one means the default.
+	DeviceListMaxPageSize int64 `env:"SHELLHUB_DEVICE_LIST_MAX_PAGE_SIZE,default=1000"`
+
 	// PrivateKey and PublicKey are the paths of the RSA key pair the API signs its tokens with.
 	PrivateKey string `env:"PRIVATE_KEY"`
 	PublicKey  string `env:"PUBLIC_KEY"`
@@ -678,7 +683,10 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 }
 
 func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
-	opts := []routes.Option{routes.WithEdition(s.env.Edition)}
+	opts := []routes.Option{
+		routes.WithEdition(s.env.Edition),
+		routes.WithDeviceListMaxPageSize(s.env.DeviceListMaxPageSize),
+	}
 
 	if s.env.SentryDSN != "" {
 		log.Info("Initializing Sentry error reporting")

@@ -9,6 +9,7 @@ import (
 	"crypto/rsa"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -4673,6 +4674,94 @@ func (_c *MockService_ListDevices_Call) Return(devices []models.Device, n int64,
 }
 
 func (_c *MockService_ListDevices_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error)) *MockService_ListDevices_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDevicesAfter provides a mock function for the type MockService
+func (_mock *MockService) ListDevicesAfter(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) ([]models.Device, *query.Cursor, error) {
+	ret := _mock.Called(ctx, sc, req, after)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDevicesAfter")
+	}
+
+	var r0 []models.Device
+	var r1 *query.Cursor
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList, *query.Cursor) ([]models.Device, *query.Cursor, error)); ok {
+		return returnFunc(ctx, sc, req, after)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceList, *query.Cursor) []models.Device); ok {
+		r0 = returnFunc(ctx, sc, req, after)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Device)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.DeviceList, *query.Cursor) *query.Cursor); ok {
+		r1 = returnFunc(ctx, sc, req, after)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*query.Cursor)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.DeviceList, *query.Cursor) error); ok {
+		r2 = returnFunc(ctx, sc, req, after)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListDevicesAfter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDevicesAfter'
+type MockService_ListDevicesAfter_Call struct {
+	*mock.Call
+}
+
+// ListDevicesAfter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - req *requests.DeviceList
+//   - after *query.Cursor
+func (_e *MockService_Expecter) ListDevicesAfter(ctx any, sc any, req any, after any) *MockService_ListDevicesAfter_Call {
+	return &MockService_ListDevicesAfter_Call{Call: _e.mock.On("ListDevicesAfter", ctx, sc, req, after)}
+}
+
+func (_c *MockService_ListDevicesAfter_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor)) *MockService_ListDevicesAfter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.DeviceList
+		if args[2] != nil {
+			arg2 = args[2].(*requests.DeviceList)
+		}
+		var arg3 *query.Cursor
+		if args[3] != nil {
+			arg3 = args[3].(*query.Cursor)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListDevicesAfter_Call) Return(devices []models.Device, next *query.Cursor, err error) *MockService_ListDevicesAfter_Call {
+	_c.Call.Return(devices, next, err)
+	return _c
+}
+
+func (_c *MockService_ListDevicesAfter_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) ([]models.Device, *query.Cursor, error)) *MockService_ListDevicesAfter_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -8,12 +8,15 @@ import (
 // DeviceList is the request to page through a namespace's devices. An empty DeviceStatus means
 // every status, not none. A true Connector selects the devices whose platform is connector, and
 // false selects those whose platform is not; no Filters widen the selection past it. Connector
-// binds only from the query, never the body.
+// binds only from the query, never the body. Paginator and Sorter serve page mode and
+// CursorPaginator serves cursor mode; which one a request is in is decided by which query
+// parameters it carries, since a zero value cannot tell an absent parameter from a zero one.
 type DeviceList struct {
 	TenantID     string              `header:"X-Tenant-ID"`
 	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`
 	Connector    bool                `query:"connector" json:"-" xml:"-"`
 	query.Paginator
+	query.CursorPaginator
 	query.Sorter
 	query.Filters
 }
