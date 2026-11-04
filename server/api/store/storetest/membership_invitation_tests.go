@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,6 +43,87 @@ func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 		assert.NotEmpty(t, invitation.ID)
 	})
 
+	validUntil := s.Clock().Now().Add(7 * 24 * time.Hour)
+	pendingFor := func(tenantID, userID, invitedBy string) *models.MembershipInvitation {
+		return newMembershipInvitation(tenantID, userID, invitedBy, models.MembershipInvitationStatusPending, &validUntil)
+	}
+
+	t.Run("refuses a second pending invitation for the same user in the same namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		require.NoError(t, st.MembershipInvitationCreate(ctx, pendingFor(tenantID, invitedUser, invitedBy)))
+
+		err := st.MembershipInvitationCreate(ctx, pendingFor(tenantID, invitedUser, invitedBy))
+		require.ErrorIs(t, err, store.ErrDuplicate)
+	})
+
+	t.Run("creates a pending invitation once the previous one is cancelled", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		first := pendingFor(tenantID, invitedUser, invitedBy)
+		require.NoError(t, st.MembershipInvitationCreate(ctx, first))
+
+		first.Status = models.MembershipInvitationStatusCancelled
+		require.NoError(t, st.MembershipInvitationUpdate(ctx, first))
+
+		require.NoError(t, st.MembershipInvitationCreate(ctx, pendingFor(tenantID, invitedUser, invitedBy)))
+	})
+
+	t.Run("allows one pending invitation per namespace for the same user", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		otherTenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		require.NoError(t, st.MembershipInvitationCreate(ctx, pendingFor(tenantID, invitedUser, invitedBy)))
+		require.NoError(t, st.MembershipInvitationCreate(ctx, pendingFor(otherTenantID, invitedUser, invitedBy)))
+	})
+
+	t.Run("keeps one pending invitation when invites for the same user arrive together", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		const attempts = 32
+
+		var wg sync.WaitGroup
+		errs := make(chan error, attempts)
+		for range attempts {
+			wg.Go(func() {
+				errs <- st.MembershipInvitationCreate(ctx, pendingFor(tenantID, invitedUser, invitedBy))
+			})
+		}
+		wg.Wait()
+		close(errs)
+
+		created := 0
+		for err := range errs {
+			if err == nil {
+				created++
+
+				continue
+			}
+
+			require.ErrorIs(t, err, store.ErrDuplicate)
+		}
+		assert.Equal(t, 1, created)
+
+		_, count, err := st.NamespaceMembershipInvitationList(ctx, scope.MustBounded(tenantID))
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+	})
 }
 
 // TestMembershipInvitationResolve exercises MembershipInvitationResolve against the store under test.

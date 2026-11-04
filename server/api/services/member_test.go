@@ -193,6 +193,49 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when a concurrent invite created the pending invitation first",
+			req: &requests.NamespaceAddMember{
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+					}, nil).
+					Once()
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("UserInvitationsUpsert", ctx, "john.doe@test.com").
+					Return("placeholder-id", nil).
+					Once()
+				storeMock.
+					On("MembershipInvitationResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "placeholder-id").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrNamespaceMemberDuplicated("placeholder-id", store.ErrDuplicate),
+			},
+		},
+		{
 			description: "fails when the expired invitation stops being pending before it is resent",
 			req: &requests.NamespaceAddMember{
 				ForwardedHost: "localhost",

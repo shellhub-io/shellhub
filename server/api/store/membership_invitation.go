@@ -10,7 +10,9 @@ import (
 // MembershipInvitationStore persists invitations to join a namespace, including those issued
 // to an email that has no account yet.
 type MembershipInvitationStore interface {
-	// MembershipInvitationCreate creates a new membership invitation.
+	// MembershipInvitationCreate creates a new membership invitation. A namespace holds at most one
+	// pending invitation per user, so it returns store.ErrDuplicate when invitation is pending and
+	// that user already has a pending one in that namespace, or when its sig is already taken.
 	MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error
 
 	// MembershipInvitationResolve retrieves the most recent membership invitation for the specified user
