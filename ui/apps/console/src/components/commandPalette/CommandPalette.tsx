@@ -7,9 +7,11 @@ import CommandRow from "./CommandRow";
 import PaletteFooter from "./PaletteFooter";
 
 /**
- * Cmd/Ctrl+K command palette. A thin presentational shell over
- * `useCommandPalette()` — opens anything by default: a terminal, a device, a namespace or the admin console, with a per-device action
- * menu (drill-in) and a ">"-prefixed command mode for navigation.
+ * The device palette. A thin presentational shell over `useCommandPalette()`.
+ * Cmd/Ctrl+K opens it on terminals and devices, with a per-device action menu
+ * (drill-in) and a ">"-prefixed command mode for navigation. The new-tab
+ * picker's "Connect to a device" opens it on the current namespace's devices
+ * alone, with a way back to the picker.
  */
 export default function CommandPalette() {
   const {
@@ -18,6 +20,8 @@ export default function CommandPalette() {
     listRef,
     query,
     drillDevice,
+    connect,
+    nsName,
     commandMode,
     adminContext,
     sections,
@@ -31,7 +35,9 @@ export default function CommandPalette() {
     setActiveIndex,
     handleKeyDown,
     handleDismiss,
+    handleBackdropClose,
     exitDrillIn,
+    backToPicker,
   } = useCommandPalette();
 
   if (!open) return null;
@@ -40,14 +46,17 @@ export default function CommandPalette() {
     <BaseDialog
       open={open}
       onClose={handleDismiss}
+      onBackdropClose={handleBackdropClose}
       size="md"
-      aria-label="Command palette"
+      aria-label={connect ? "Connect to a device" : "Command palette"}
       className="overflow-hidden"
     >
       <PaletteHeader
         inputRef={inputRef}
         query={query}
         drillDevice={drillDevice}
+        connect={connect}
+        nsName={nsName}
         commandMode={commandMode}
         adminContext={adminContext}
         hasResults={hasResults}
@@ -55,6 +64,7 @@ export default function CommandPalette() {
         onQueryChange={onQueryChange}
         onKeyDown={handleKeyDown}
         onBack={exitDrillIn}
+        onBackToPicker={backToPicker}
       />
 
       <FeedbackBanner key={feedback?.text} feedback={feedback} />
@@ -70,14 +80,18 @@ export default function CommandPalette() {
                 ? "No actions match"
                 : commandMode
                   ? "No commands match"
-                  : "Nothing matches"}
+                  : connect
+                    ? `No device in ${nsName} matches`
+                    : "Nothing matches"}
             </p>
             <p className="text-2xs text-text-muted/50 mt-1">
               {drillDevice
                 ? "Try a different action"
                 : commandMode
                   ? "Try a different command"
-                  : "Type > for commands"}
+                  : connect
+                    ? "Try a different name"
+                    : "Type > for commands"}
             </p>
           </div>
         ) : (
@@ -107,7 +121,11 @@ export default function CommandPalette() {
         )}
       </div>
 
-      <PaletteFooter drillDevice={drillDevice} commandMode={commandMode} />
+      <PaletteFooter
+        drillDevice={drillDevice}
+        connect={connect}
+        commandMode={commandMode}
+      />
     </BaseDialog>
   );
 }

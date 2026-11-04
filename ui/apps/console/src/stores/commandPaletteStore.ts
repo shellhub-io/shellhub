@@ -1,21 +1,20 @@
 import { create } from "zustand";
 
+type PaletteView = "picker" | "palette" | "connect";
+
 interface CommandPaletteState {
-  open: boolean;
-  openPalette: () => void;
-  closePalette: () => void;
+  view: PaletteView | null;
+  show: (view: PaletteView) => void;
+  close: () => void;
 }
 
 /**
- * Shared open-state for the command palette so both the Cmd/Ctrl+K shortcut
- * (in CommandPalette) and the tab strip's "+" button can drive it. Ephemeral
- * by design — the palette resets on every open, so there is nothing to persist.
- *
- * Only `open` lives here; the palette's query/highlight stay local to the
- * component and are cleared by its own `close()` so every dismissal resets.
+ * Shared open-state for the palette surfaces, so the Cmd/Ctrl+K shortcut, the tab strip's "+"
+ * and the picker's actions can move between them. Only one surface is open at a time. Ephemeral
+ * by design: each surface resets on every open, so there is nothing to persist.
  */
 export const useCommandPaletteStore = create<CommandPaletteState>((set) => ({
-  open: false,
-  openPalette: () => set({ open: true }),
-  closePalette: () => set({ open: false }),
+  view: null,
+  show: (view) => set({ view }),
+  close: () => set({ view: null }),
 }));
