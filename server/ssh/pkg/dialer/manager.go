@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -186,17 +187,26 @@ func (m *Manager) pingInterval() time.Duration {
 	return m.PingInterval
 }
 
+const pendingStreamOpens = 32
+
 // Bind stores conn as a reverse tunnel for the device and returns. It closes the tunnel when a
-// ping fails and reports the device offline when no other tunnel is left. It returns an error
-// when the yamux session cannot be created.
+// ping fails and reports the device offline when no other tunnel is left, which includes a conn
+// already closed when Bind is called. It returns an error when the yamux session cannot be
+// created.
 func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) error {
 	key := NewKey(tenant, uid)
-	interval := m.pingInterval()
 
-	session, err := yamux.Client(conn, &yamux.Config{
-		AcceptBacklog:          256,
+	tunnel := &boundTunnel{
+		Adapter:  conn,
+		manager:  m,
+		key:      key,
+		interval: m.pingInterval(),
+	}
+
+	session, err := yamux.Client(tunnel, &yamux.Config{
+		AcceptBacklog:          pendingStreamOpens,
 		EnableKeepAlive:        false,
-		KeepAliveInterval:      interval,
+		KeepAliveInterval:      tunnel.interval,
 		ConnectionWriteTimeout: connectionWriteTimeout,
 		MaxStreamWindowSize:    256 * 1024,
 		StreamCloseTimeout:     5 * time.Minute,
@@ -212,33 +222,83 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 	m.evict(key, m.Connections.Store(key, session))
 	m.DialerKeepAliveCallback(key)
 
-	go func() {
-		for {
-			select {
-			case <-time.After(interval):
-				if _, err := session.Ping(); err != nil {
-					log.WithFields(log.Fields{
-						"key": key,
-					}).WithError(err).Error("failed to ping yamux session")
-
-					m.release(key, session)
-					closeConnections(key, []any{session})
-
-					return
-				}
-
-				m.DialerKeepAliveCallback(key)
-
-				continue
-			case <-session.CloseChan():
-				m.release(key, session)
-
-				return
-			}
-		}
-	}()
+	tunnel.bind(session)
 
 	return nil
+}
+
+type boundTunnel struct {
+	*wsconnadapter.Adapter
+
+	manager  *Manager
+	key      string
+	interval time.Duration
+
+	mu      sync.Mutex
+	session *yamux.Session
+	pinger  *time.Timer
+	closed  bool
+}
+
+func (t *boundTunnel) bind(session *yamux.Session) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.session = session
+
+	if t.closed {
+		go t.manager.release(t.key, session)
+
+		return
+	}
+
+	t.pinger = time.AfterFunc(t.interval, t.ping)
+}
+
+func (t *boundTunnel) Close() error {
+	err := t.Adapter.Close()
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.closed {
+		return err
+	}
+
+	t.closed = true
+
+	if t.session != nil {
+		t.pinger.Stop()
+
+		go t.manager.release(t.key, t.session)
+	}
+
+	return err
+}
+
+func (t *boundTunnel) ping() {
+	t.mu.Lock()
+	session := t.session
+	t.mu.Unlock()
+
+	if _, err := session.Ping(); err != nil {
+		log.WithFields(log.Fields{
+			"key": t.key,
+		}).WithError(err).Error("failed to ping yamux session")
+
+		closeConnections(t.key, []any{session})
+
+		return
+	}
+
+	t.manager.DialerKeepAliveCallback(t.key)
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if !t.closed {
+		t.pinger.Reset(t.interval)
+	}
 }
 
 // TransportVersion protocol version identifiers used when dialing a device.
