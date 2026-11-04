@@ -280,3 +280,49 @@ func TestLoadOpenAPIValidatorFailsWithoutASchema(t *testing.T) {
 	_, err := LoadOpenAPIValidator(context.Background(), &OpenAPIValidatorConfig{SchemaPath: missing, Strict: true})
 	require.Error(t, err)
 }
+
+func TestStrictValidatorLoadsBracketedQueryParametersAndChecksTheCursorHeaders(t *testing.T) {
+	spec := `{
+  "openapi": "3.0.3",
+  "info": {"title": "things", "version": "1"},
+  "paths": {
+    "/api/things": {
+      "get": {
+        "parameters": [
+          {"name": "page[size]", "in": "query", "style": "form", "schema": {"type": "integer"}},
+          {"name": "page[after]", "in": "query", "style": "form", "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "things",
+            "headers": {
+              "X-Total-Count": {"schema": {"type": "integer", "minimum": 0, "readOnly": true}},
+              "Link": {"schema": {"type": "string", "readOnly": true}},
+              "X-Next-Cursor": {"schema": {"type": "string", "readOnly": true}}
+            },
+            "content": {"application/json": {"schema": {"type": "array", "items": {"type": "string"}}}}
+          }
+        }
+      }
+    }
+  }
+}`
+
+	cursorPage := func(c *echo.Context) error {
+		c.Response().Header().Set("Link", `<http://localhost/api/things?page%5Bafter%5D=eyJjIjoxfQ&page%5Bsize%5D=5>; rel="next"`)
+		c.Response().Header().Set("X-Next-Cursor", "eyJjIjoxfQ")
+
+		return c.JSON(http.StatusOK, []string{})
+	}
+
+	rec := serveSpec(t, spec, true, "/api/things", cursorPage)
+	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+	require.Equal(t, "eyJjIjoxfQ", rec.Header().Get("X-Next-Cursor"))
+
+	rec = serveSpec(t, spec, true, "/api/things", func(c *echo.Context) error {
+		c.Response().Header().Set("X-Total-Count", "-1")
+
+		return c.JSON(http.StatusOK, []string{})
+	})
+	requireRejected(t, rec, "X-Total-Count")
+}

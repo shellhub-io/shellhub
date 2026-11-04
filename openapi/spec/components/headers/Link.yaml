@@ -1,0 +1,7 @@
+description: |-
+  The URL of the next page, as `<url>; rel="next"`. It repeats the request's
+  filters with `page[size]` and the next `page[after]`. The last page carries no
+  `Link`.
+schema:
+  type: string
+  readOnly: true
