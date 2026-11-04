@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { cn } from "@shellhub/design-system/cn";
 import { devicesQueryOptions, type NormalizedDevice } from "@/hooks/useDevices";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePagedList } from "@/hooks/usePagedList";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
 import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
@@ -19,7 +17,6 @@ import LastSeenCell from "@/components/common/LastSeenCell";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import { buildSshid } from "@/utils/sshid";
-import TagFilterDropdown from "@/components/common/TagFilterDropdown";
 import TagsPopover from "@/components/common/TagsPopover";
 import {
   useAddDeviceTag,
@@ -29,11 +26,9 @@ import {
 import { useHasPermission } from "@/hooks/useHasPermission";
 import {
   PlusIcon,
-  TagIcon,
   XMarkIcon,
   CpuChipIcon,
   ChevronDoubleRightIcon,
-  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -45,6 +40,8 @@ import RenameableName from "@/components/common/RenameableName";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
+import WaitingForApproval from "./WaitingForApproval";
+import DeviceFilters from "./DeviceFilters";
 
 type DevicesParams = {
   page: number;
@@ -66,15 +63,22 @@ type SortField = "name" | "last_seen";
  */
 export default function Devices() {
   const sectionTitle = useNavSectionTitle("/devices");
-  const { waiting: pendingCount, reachable: showPending } = useTenantRegistrationQueue();
-  const hasWaiting = pendingCount > 0;
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
     defaultField: "last_seen",
     onSortChange: () => setPage(1),
   });
   const {
-    params, appliedSearch: searchTerm, setPage, setSearch, mapArrayFilter, rows: devices, isLoading,
-    error, refetch, setFilter, pagination,
+    params,
+    appliedSearch: searchTerm,
+    setPage,
+    setSearch,
+    mapArrayFilter,
+    rows: devices,
+    isLoading,
+    error,
+    refetch,
+    setFilter,
+    pagination,
   } = usePagedList({
     defaults: DEFAULTS,
     query: ({ page, search, tags }: DevicesParams) =>
@@ -90,9 +94,7 @@ export default function Devices() {
   });
 
   const firstRunOpen =
-    useFirstRunEligible() === true &&
-    !searchTerm &&
-    params.tags.length === 0;
+    useFirstRunEligible() === true && !searchTerm && params.tags.length === 0;
 
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
@@ -257,41 +259,21 @@ export default function Devices() {
         overline={sectionTitle}
         title="Devices"
         description="Manage and monitor all devices connected to your namespace"
-      >
-        <RestrictedAction action="device:add">
-          <Button
-            as={Link}
-            to="/devices/add"
-            icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
-          >
-            Add Device
-          </Button>
-        </RestrictedAction>
-      </PageHeader>
+      />
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <div className="flex items-center gap-2">
-          <span className="h-8 inline-flex items-center px-3.5 text-xs font-medium rounded-md bg-primary/15 text-primary border border-primary/25">
-            Accepted
-          </span>
-          {showPending && (
-            <Link
-              to="/devices/pending"
-              className={cn(
-                "h-8 inline-flex items-center gap-1.5 px-3.5 text-xs font-medium rounded-md border transition-colors",
-                hasWaiting
-                  ? "border-accent-yellow/25 bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/15"
-                  : "border-border text-text-secondary hover:bg-hover-subtle hover:text-text-primary",
-              )}
-            >
-              {hasWaiting ? `${pendingCount} pending` : "Registrations"}
-              <ArrowRightIcon className="w-3.5 h-3.5" />
-            </Link>
-          )}
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-5 animate-fade-in">
+        <SearchField
+          full
+          toolbar
+          className="flex-1 min-w-0"
+          value={params.search}
+          onChange={(next) => setSearch(next)}
+          placeholder="Search by hostname..."
+          aria-label="Search devices by hostname"
+        />
 
         <div className="flex items-center gap-2">
-          <TagFilterDropdown
+          <DeviceFilters
             filterTags={params.tags}
             onAdd={addFilterTag}
             onRemove={removeFilterTag}
@@ -299,42 +281,43 @@ export default function Devices() {
             onManageTags={() => setManageTagsOpen(true)}
           />
 
-          <SearchField
-            value={params.search}
-            onChange={(next) => setSearch(next)}
-            placeholder="Search by hostname..."
-            aria-label="Search devices by hostname"
-          />
+          <WaitingForApproval />
+
+          <RestrictedAction action="device:add">
+            <Button
+              as={Link}
+              to="/devices/add"
+              size="sm"
+              className="h-9"
+              icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
+            >
+              Add Device
+            </Button>
+          </RestrictedAction>
         </div>
       </div>
 
       {params.tags.length > 0 && (
-        <div className="flex items-center gap-2 mb-4 animate-fade-in">
-          <span className="text-2xs font-mono text-text-muted uppercase tracking-wider shrink-0">
-            Filtering by:
-          </span>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {params.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/15 text-primary text-2xs rounded-md font-medium border border-primary/20"
+        <div className="flex items-center gap-1.5 flex-wrap -mt-2 mb-4 animate-fade-in">
+          {params.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 text-xs rounded-md border border-primary/25 bg-primary/10 text-primary"
+            >
+              <span className="text-text-secondary">Tag:</span>
+              {tag}
+              <IconButton
+                size="sm"
+                aria-label={`Remove the ${tag} filter`}
+                onClick={() => removeFilterTag(tag)}
               >
-                <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                {tag}
-                <IconButton
-                  size="sm"
-                  aria-label="Remove tag filter"
-                  className="ml-0.5"
-                  onClick={() => removeFilterTag(tag)}
-                >
-                  <XMarkIcon className="w-2.5 h-2.5" strokeWidth={2.5} />
-                </IconButton>
-              </span>
-            ))}
-            <Button variant="ghost" size="sm" onClick={clearFilterTags}>
-              Clear all
-            </Button>
-          </div>
+                <XMarkIcon className="w-3 h-3" strokeWidth={2.5} />
+              </IconButton>
+            </span>
+          ))}
+          <Button variant="ghost" size="sm" onClick={clearFilterTags}>
+            Clear all
+          </Button>
         </div>
       )}
 

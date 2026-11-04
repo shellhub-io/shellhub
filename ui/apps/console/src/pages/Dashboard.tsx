@@ -25,9 +25,7 @@ export default function Dashboard() {
     ? undefined
     : {
         label: "Review pending",
-        to: queue.holds(stats?.pending_devices ?? 0)
-          ? "/devices/pending"
-          : "/devices/add/fleet",
+        to: queue.reachable ? "/devices/pending" : "/devices/add/fleet",
       };
 
   if (statsLoading) return null;

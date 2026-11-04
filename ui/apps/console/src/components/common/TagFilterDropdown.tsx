@@ -10,6 +10,125 @@ import { Dropdown } from "@shellhub/design-system/primitives";
 import { useTags } from "@/hooks/useTagRequests";
 
 /**
+ * The tag filter's body: a search over the namespace's tags, each one toggled on or off, then
+ * Clear all while any is active and Manage tags when onManageTags is given. close is called after
+ * Clear all and before Manage tags, so a dropdown hosting it can shut.
+ */
+export function TagFilterList({
+  filterTags,
+  onAdd,
+  onRemove,
+  onClearAll,
+  onManageTags,
+  close,
+}: {
+  filterTags: string[];
+  onAdd: (tag: string) => void;
+  onRemove: (tag: string) => void;
+  onClearAll: () => void;
+  onManageTags?: () => void;
+  close: () => void;
+}) {
+  const { tags: tagObjects } = useTags();
+  const allTags = tagObjects.map((t) => t.name);
+  const [search, setSearch] = useState("");
+
+  const filtered = allTags.filter((t) =>
+    t.toLowerCase().includes(search.toLowerCase()),
+  );
+  const hasActive = filterTags.length > 0;
+
+  return (
+    <>
+      <div className="p-2 border-b border-border">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search tags..."
+          className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+        />
+      </div>
+
+      <div className="max-h-[200px] overflow-y-auto p-1">
+        {filtered.length === 0 ? (
+          <p className="px-2.5 py-3 text-2xs text-text-muted text-center">
+            No tags found
+          </p>
+        ) : (
+          filtered.map((tag) => {
+            const active = filterTags.includes(tag);
+            return (
+              <button
+                type="button"
+                key={tag}
+                onClick={() => {
+                  if (active) onRemove(tag);
+                  else onAdd(tag);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-md hover:bg-hover-medium transition-colors"
+              >
+                <span
+                  className={cn(
+                    "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
+                    active
+                      ? "bg-primary border-primary"
+                      : "border-text-muted/30",
+                  )}
+                >
+                  {active && (
+                    <CheckIcon
+                      className="w-2.5 h-2.5 text-white"
+                      strokeWidth={3}
+                    />
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "truncate",
+                    active ? "text-primary font-medium" : "text-text-secondary",
+                  )}
+                >
+                  {tag}
+                </span>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <div className="p-2 border-t border-border space-y-1">
+        {hasActive && (
+          <button
+            type="button"
+            onClick={() => {
+              onClearAll();
+              close();
+            }}
+            className="w-full text-left px-2.5 py-1.5 text-2xs text-text-muted hover:text-text-primary hover:bg-hover-medium rounded-md transition-colors"
+          >
+            Clear all
+          </button>
+        )}
+        {onManageTags && (
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              onManageTags();
+            }}
+            className="w-full text-left px-2.5 py-1.5 text-2xs text-primary hover:text-primary/80 hover:bg-hover-medium rounded-md transition-colors font-medium flex items-center gap-1"
+          >
+            <Cog6ToothIcon className="w-3 h-3" strokeWidth={2} />
+            Manage tags
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+/**
  * The tag filter above a list. Selecting several narrows to devices carrying all of them, which
  * is why removal is offered inline rather than by reopening the menu.
  */
@@ -26,31 +145,16 @@ function TagFilterDropdown({
   onClearAll: () => void;
   onManageTags?: () => void;
 }) {
-  const { tags: tagObjects } = useTags();
-  const allTags = tagObjects.map((t) => t.name);
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filtered = allTags.filter((t) =>
-    t.toLowerCase().includes(search.toLowerCase()),
-  );
   const hasActive = filterTags.length > 0;
 
   return (
-    <Dropdown
-      mode="content"
-      portal
-      open={open}
-      onOpenChange={(v) => {
-        setOpen(v);
-        if (v) setSearch("");
-      }}
-    >
+    <Dropdown mode="content" portal open={open} onOpenChange={setOpen}>
       <Dropdown.Trigger>
         <button
           type="button"
           className={cn(
-            "flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md border transition-all duration-150",
+            "flex items-center gap-1.5 h-9 px-3 text-xs font-medium rounded-md border transition-all duration-150",
             hasActive
               ? "bg-primary/15 text-primary border-primary/25"
               : "bg-card text-text-muted border-border hover:text-text-secondary hover:border-border",
@@ -71,87 +175,14 @@ function TagFilterDropdown({
       </Dropdown.Trigger>
 
       <Dropdown.Panel aria-label="Filter by tags" className="w-[240px]">
-        <div className="p-2 border-b border-border">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tags..."
-            className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-          />
-        </div>
-
-        <div className="max-h-[200px] overflow-y-auto p-1">
-          {filtered.length === 0 ? (
-            <p className="px-2.5 py-3 text-2xs text-text-muted text-center">
-              No tags found
-            </p>
-          ) : (
-            filtered.map((tag) => {
-              const active = filterTags.includes(tag);
-              return (
-                <button
-                  type="button"
-                  key={tag}
-                  onClick={() => {
-                    if (active) onRemove(tag);
-                    else onAdd(tag);
-                  }}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-md hover:bg-hover-medium transition-colors"
-                >
-                  <span
-                    className={cn(
-                      "w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-all",
-                      active
-                        ? "bg-primary border-primary"
-                        : "border-text-muted/30",
-                    )}
-                  >
-                    {active && (
-                      <CheckIcon
-                        className="w-2.5 h-2.5 text-white"
-                        strokeWidth={3}
-                      />
-                    )}
-                  </span>
-                  <span
-                    className={cn("truncate", active ? "text-primary font-medium" : "text-text-secondary")}
-                  >
-                    {tag}
-                  </span>
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        <div className="p-2 border-t border-border space-y-1">
-          {hasActive && (
-            <button
-              type="button"
-              onClick={() => {
-                onClearAll();
-                setOpen(false);
-              }}
-              className="w-full text-left px-2.5 py-1.5 text-2xs text-text-muted hover:text-text-primary hover:bg-hover-medium rounded-md transition-colors"
-            >
-              Clear all
-            </button>
-          )}
-          {onManageTags && (
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                onManageTags();
-              }}
-              className="w-full text-left px-2.5 py-1.5 text-2xs text-primary hover:text-primary/80 hover:bg-hover-medium rounded-md transition-colors font-medium flex items-center gap-1"
-            >
-              <Cog6ToothIcon className="w-3 h-3" strokeWidth={2} />
-              Manage tags
-            </button>
-          )}
-        </div>
+        <TagFilterList
+          filterTags={filterTags}
+          onAdd={onAdd}
+          onRemove={onRemove}
+          onClearAll={onClearAll}
+          onManageTags={onManageTags}
+          close={() => setOpen(false)}
+        />
       </Dropdown.Panel>
     </Dropdown>
   );

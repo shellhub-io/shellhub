@@ -9,8 +9,10 @@ import {
   mockDevice,
   mockLegacyNamespace,
   mockNamespace,
+  mockProvisioningKey,
   mockProvisioningKeyEvent,
   mockStats,
+  mockTag,
 } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
@@ -55,10 +57,6 @@ vi.mock("@/utils/date", () => ({
 
 vi.mock("@/utils/sshid", () => ({
   buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
-}));
-
-vi.mock("@/components/common/TagFilterDropdown", () => ({
-  default: () => <div />,
 }));
 
 vi.mock("@/components/ManageTagsModal", () => ({
@@ -111,17 +109,82 @@ function setDevices(devices: ReturnType<typeof mockDevice>[], total?: number) {
   );
 }
 
+function serveLegacyNamespace() {
+  server.use(
+    http.get("*/api/namespaces/:tenant", () =>
+      HttpResponse.json(mockLegacyNamespace()),
+    ),
+  );
+}
+
+function serveRegistrations(statuses: ("pending" | "rejected")[]) {
+  server.use(
+    http.get("*/api/devices/tenant-registrations", () =>
+      jsonWithTotal(
+        statuses.map((status, i) =>
+          mockProvisioningKeyEvent({
+            id: `registration-${i}`,
+            device_uid: `uid-${i}`,
+            device_status: status,
+          }),
+        ),
+      ),
+    ),
+  );
+}
+
+function servePendingDevices(count: number) {
+  server.use(
+    http.get("*/api/stats", () =>
+      HttpResponse.json(mockStats({ pending_devices: count })),
+    ),
+  );
+}
+
+function serveKeys(keys: ReturnType<typeof mockProvisioningKey>[]) {
+  server.use(
+    http.get("*/api/namespaces/provisioning-key", () => jsonWithTotal(keys)),
+  );
+}
+
+function requestedTags(): string[] {
+  const filter = lastDevicesUrl?.searchParams.get("filter");
+  if (!filter) return [];
+  const parsed = JSON.parse(atob(filter)) as {
+    params: { name: string; value?: unknown };
+  }[];
+  const tagFilter = parsed.find((f) => f.params.name === "tags.name");
+  return (tagFilter?.params.value as string[] | undefined) ?? [];
+}
+
+function linkTargets() {
+  return screen.queryAllByRole("link").map((link) => link.getAttribute("href"));
+}
+
+async function settle(
+  queryClient: ReturnType<typeof createTestQueryClient>,
+  mode: string,
+) {
+  await screen.findByText(`mode: ${mode}`);
+  await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   lastDevicesUrl = null;
   seedAuthStore();
   setDevices([]);
   server.use(
+    http.get("*/api/namespaces/provisioning-key", () => jsonWithTotal([])),
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(mockNamespace()),
     ),
     http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
     http.get("*/api/stats", () => HttpResponse.json(mockStats())),
+    http.get("*/api/devices/tenant-registrations", () => jsonWithTotal([])),
+    http.get("*/api/tags", () =>
+      jsonWithTotal([mockTag({ name: "edge" }), mockTag({ name: "prod" })]),
+    ),
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
@@ -139,11 +202,21 @@ beforeEach(() => {
 });
 
 describe("Devices list", () => {
-  it("shows the accepted label, not the pending/rejected tabs", async () => {
-    renderPage();
-    expect(await screen.findByText("Accepted")).toBeInTheDocument();
-    expect(screen.queryByText("Pending")).not.toBeInTheDocument();
-    expect(screen.queryByText("Rejected")).not.toBeInTheDocument();
+  it("labels no status tab in a new namespace", async () => {
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await settle(queryClient, "new");
+    expect(screen.queryByText("Accepted")).not.toBeInTheDocument();
+  });
+
+  it("labels no status tab in a legacy namespace", async () => {
+    serveLegacyNamespace();
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await settle(queryClient, "legacy");
+    expect(screen.queryByText("Accepted")).not.toBeInTheDocument();
   });
 
   it("navigates to device detail on row click", async () => {
@@ -219,91 +292,181 @@ describe("Devices empty state", () => {
   });
 });
 
-describe("Devices pending queue", () => {
-  function serveRegistrations(statuses: ("pending" | "rejected")[]) {
-    server.use(
-      http.get("*/api/devices/tenant-registrations", () =>
-        jsonWithTotal(
-          statuses.map((status, i) =>
-            mockProvisioningKeyEvent({
-              id: `registration-${i}`,
-              device_uid: `uid-${i}`,
-              device_status: status,
-            }),
-          ),
-        ),
-      ),
-    );
-  }
+describe("Devices waiting for approval in a new namespace", () => {
+  it("counts the keys' waiting devices and opens onto each key holding one", async () => {
+    const user = userEvent.setup();
+    servePendingDevices(9);
+    serveKeys([
+      mockProvisioningKey({
+        id: "tenant-only",
+        type: "legacy",
+        name: "legacy",
+        pending_devices: 1,
+      }),
+      mockProvisioningKey({
+        id: "rollout",
+        name: "rollout-lab",
+        pending_devices: 3,
+      }),
+      mockProvisioningKey({ id: "idle", name: "idle-key", pending_devices: 0 }),
+    ]);
+    renderPage();
 
-  function serveLegacyNamespace() {
-    server.use(
-      http.get("*/api/namespaces/:tenant", () =>
-        HttpResponse.json(mockLegacyNamespace()),
-      ),
+    await user.click(
+      await screen.findByRole("button", { name: /waiting for approval 4/i }),
     );
-  }
 
-  it("is not offered by a new namespace no device registered with the tenant ID", async () => {
-    serveRegistrations([]);
+    expect(
+      screen.getByRole("link", { name: /rollout-lab.*3 waiting/i }),
+    ).toHaveAttribute("href", "/devices/add/fleet/rollout/activity");
+    expect(
+      screen.getByRole("link", {
+        name: /tenant-only registration.*1 waiting/i,
+      }),
+    ).toHaveAttribute("href", "/devices/add/fleet/tenant-only/activity");
+    expect(screen.queryByText("idle-key")).not.toBeInTheDocument();
+  });
+
+  it("never links the tenant ID queue", async () => {
+    servePendingDevices(2);
+    serveRegistrations(["pending", "pending"]);
+    serveKeys([
+      mockProvisioningKey({
+        id: "tenant-only",
+        type: "legacy",
+        name: "legacy",
+        pending_devices: 2,
+      }),
+    ]);
     const queryClient = createTestQueryClient();
     renderPage(["/"], queryClient);
 
-    await screen.findByText("mode: new");
-    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
-    expect(
-      screen.queryAllByRole("link").map((link) => link.getAttribute("href")),
-    ).not.toContain("/devices/pending");
+    await settle(queryClient, "new");
+    expect(linkTargets()).not.toContain("/devices/pending");
   });
 
-  it("is linked from a new namespace with the count of devices waiting", async () => {
-    serveRegistrations(["pending", "pending", "rejected"]);
+  it("offers nothing while no device waits", async () => {
+    servePendingDevices(0);
+    serveKeys([mockProvisioningKey({ pending_devices: 0 })]);
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await settle(queryClient, "new");
+    expect(
+      screen.queryByRole("button", { name: /waiting for approval/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers nothing to a member who may not accept devices", async () => {
+    seedAuthStore({ role: "observer" });
+    servePendingDevices(3);
+    serveKeys([mockProvisioningKey({ pending_devices: 3 })]);
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
+
+    await settle(queryClient, "new");
+    expect(
+      screen.queryByRole("button", { name: /waiting for approval/i }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("Devices waiting for approval in a legacy namespace", () => {
+  it("links the tenant ID queue with its count", async () => {
+    serveLegacyNamespace();
+    serveRegistrations(["pending", "pending", "pending", "rejected"]);
     renderPage();
 
     expect(
-      await screen.findByRole("link", { name: "2 pending" }),
+      await screen.findByRole("link", { name: /waiting for approval 3/i }),
     ).toHaveAttribute("href", "/devices/pending");
   });
 
-  it("stays linked while only a rejected registration remains to reconsider", async () => {
+  it("offers nothing while no registration waits", async () => {
+    serveLegacyNamespace();
     serveRegistrations(["rejected"]);
-    renderPage();
+    const queryClient = createTestQueryClient();
+    renderPage(["/"], queryClient);
 
-    expect(
-      await screen.findByRole("link", { name: "Registrations" }),
-    ).toHaveAttribute("href", "/devices/pending");
+    await settle(queryClient, "legacy");
+    expect(linkTargets()).not.toContain("/devices/pending");
   });
 
-  it("is linked from a legacy namespace with nothing waiting", async () => {
-    serveLegacyNamespace();
-    serveRegistrations([]);
-    renderPage();
-
-    expect(
-      await screen.findByRole("link", { name: "Registrations" }),
-    ).toHaveAttribute("href", "/devices/pending");
-  });
-
-  it("is linked from a legacy namespace with its count", async () => {
-    serveLegacyNamespace();
-    serveRegistrations(["pending", "pending", "pending"]);
-    renderPage();
-
-    expect(
-      await screen.findByRole("link", { name: "3 pending" }),
-    ).toHaveAttribute("href", "/devices/pending");
-  });
-
-  it("is not offered to a member who may not accept devices", async () => {
+  it("offers nothing to a member who may not accept devices", async () => {
     seedAuthStore({ role: "observer" });
     serveLegacyNamespace();
+    serveRegistrations(["pending"]);
     const queryClient = createTestQueryClient();
     renderPage(["/"], queryClient);
 
-    await screen.findByText("mode: legacy");
-    await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+    await settle(queryClient, "legacy");
+    expect(linkTargets()).not.toContain("/devices/pending");
+  });
+});
+
+describe("Devices toolbar", () => {
+  it("shows each tag filter from the URL as a chip and counts them on Filters", async () => {
+    renderPage(["/?tags=prod&tags=edge"]);
+
     expect(
-      screen.queryAllByRole("link").map((link) => link.getAttribute("href")),
-    ).not.toContain("/devices/pending");
+      await screen.findByRole("button", { name: "Remove the prod filter" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove the edge filter" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /filters 2/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("filters by a tag chosen in Filters", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: /^filters/i }));
+    await user.click(await screen.findByRole("button", { name: "prod" }));
+
+    await waitFor(() => {
+      expect(requestedTags()).toEqual(["prod"]);
+    });
+    await user.keyboard("{Escape}");
+    expect(
+      screen.getByRole("button", { name: "Remove the prod filter" }),
+    ).toBeInTheDocument();
+  });
+
+  it("drops a tag from the request when its chip is removed", async () => {
+    const user = userEvent.setup();
+    renderPage(["/?tags=prod&tags=edge"]);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Remove the prod filter" }),
+    );
+
+    await waitFor(() => {
+      expect(requestedTags()).toEqual(["edge"]);
+    });
+    expect(
+      screen.queryByRole("button", { name: "Remove the prod filter" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("drops every tag when Clear all is chosen", async () => {
+    const user = userEvent.setup();
+    renderPage(["/?tags=prod&tags=edge"]);
+
+    await user.click(await screen.findByRole("button", { name: "Clear all" }));
+
+    await waitFor(() => {
+      expect(requestedTags()).toEqual([]);
+    });
+  });
+
+  it("links Add Device to the install page", async () => {
+    renderPage();
+
+    expect(
+      await screen.findByRole("link", { name: /add device/i }),
+    ).toHaveAttribute("href", "/devices/add");
   });
 });

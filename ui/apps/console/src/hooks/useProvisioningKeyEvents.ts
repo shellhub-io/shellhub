@@ -86,31 +86,22 @@ export function useProvisioningKeyEvents({
 }
 
 /**
- * What the pending queue holds for the current member: whether they may work it at all, whether
- * it is worth linking (always in a legacy namespace, in a new one once a device registered with
- * the tenant ID), how many of the newest hundred still wait for a decision, and whether it lists
- * every one of a count of pending devices. In a new namespace a device enrolled by a provisioning
- * key also waits pending and the queue does not list it, so `holds` is false whenever the count
- * exceeds what the queue has waiting. A member who may not accept devices gets none of it and
- * nothing is asked.
+ * The tenant ID queue as the current member sees it: whether they may accept devices, whether the
+ * queue is reachable, which is only in a legacy namespace and only for a member who may accept
+ * devices, and how many of its newest hundred registrations still wait for a decision. A new
+ * namespace sends members to the provisioning keys instead, so it asks for no registrations.
  */
 export function useTenantRegistrationQueue() {
   const allowed = useHasPermission("device:accept");
   const legacy = useNamespaceLegacy() === true;
-  const { events, totalCount } = useTenantRegistrations({ enabled: allowed });
+  const reachable = allowed && legacy;
+  const { events } = useTenantRegistrations({ enabled: reachable });
 
-  const reachable = allowed && (legacy || totalCount > 0);
   const waiting = events.filter(
     (event) => event.is_current && event.device_status === "pending",
   ).length;
 
-  return {
-    allowed,
-    reachable,
-    waiting,
-    holds: (pendingDevices: number) =>
-      reachable && (legacy || pendingDevices <= waiting),
-  };
+  return { allowed, reachable, waiting };
 }
 
 /**

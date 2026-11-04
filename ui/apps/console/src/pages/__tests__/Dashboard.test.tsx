@@ -71,7 +71,7 @@ describe("Dashboard", () => {
       mode: "new",
       legacy: false,
       statuses: ["pending", "pending"],
-      to: "/devices/pending",
+      to: "/devices/add/fleet",
     },
     {
       mode: "new",
@@ -95,7 +95,7 @@ describe("Dashboard", () => {
     },
   );
 
-  it("sends an operator in a new namespace whose queue does not hold every pending device to Fleet", async () => {
+  it("sends an operator in a new namespace to Fleet", async () => {
     seedAuthStore({ role: "operator" });
     serveDashboard(false, ["accepted"]);
     const queryClient = createTestQueryClient();

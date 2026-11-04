@@ -11,10 +11,12 @@ interface SearchFieldProps {
   className?: string;
   id?: string;
   full?: boolean;
+  toolbar?: boolean;
 }
 
 /**
- * The search box above a list, with its clear button.
+ * The search box above a list, with its clear button. It is monospaced and as tall as a form field;
+ * toolbar renders it in the regular font at the 36px height of the toolbar controls beside it.
  */
 export default function SearchField({
   value,
@@ -24,6 +26,7 @@ export default function SearchField({
   className,
   id,
   full = false,
+  toolbar = false,
 }: SearchFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
@@ -36,7 +39,8 @@ export default function SearchField({
         id={inputId}
         label={ariaLabel}
         hideLabel
-        variant="mono"
+        variant={toolbar ? "default" : "mono"}
+        className={toolbar ? "h-9 py-0 text-xs rounded-md" : undefined}
         type="search"
         value={value}
         onChange={onChange}

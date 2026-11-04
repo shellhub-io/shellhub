@@ -10,14 +10,22 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 
 /**
  * The namespace's first hundred provisioning keys, newest first, for finding a key by its id.
- * Empty while loading and when the request fails.
+ * Empty while loading, when the request fails, and while enabled is false, which asks for nothing.
  */
-export function useProvisioningKeys() {
-  const { data, isLoading } = useQuery(
-    paginatedQueryOptions(provisioningKeyList, provisioningKeyListQueryKey, {
-      query: { page: 1, per_page: 100, sort_by: "created_at", order_by: "desc" },
+export function useProvisioningKeys({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
+  const { data, isLoading } = useQuery({
+    ...paginatedQueryOptions(provisioningKeyList, provisioningKeyListQueryKey, {
+      query: {
+        page: 1,
+        per_page: 100,
+        sort_by: "created_at",
+        order_by: "desc",
+      },
     }),
-  );
+    enabled,
+  });
 
   return { provisioningKeys: data?.data ?? [], isLoading };
 }
