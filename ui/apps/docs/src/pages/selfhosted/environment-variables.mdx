@@ -125,6 +125,7 @@ value that is not a positive duration under one minute.
 | `SHELLHUB_ASYNQ_UNIQUENESS_TIMEOUT` | `24` | Hours; 0 or less disables uniqueness |
 | `SHELLHUB_ONBOARDING_URL` | the ShellHub survey workspace | Client API root of the survey workspace (`https://<host>/api/v1/client/<workspaceId>`); empty disables the survey |
 | `SHELLHUB_PROVISIONING_KEY_WEBHOOK_ALLOWED_CIDRS` | *(empty)* | Empty blocks all private, loopback and metadata addresses |
+| `SHELLHUB_DEVICE_LIST_MAX_PAGE_SIZE` | `1000` | Largest page a cursor read of `GET /api/devices` returns; a larger `page[size]` is lowered to it |
 | `SHELLHUB_ALLOW_PUBLIC_KEY_ACCESS_BELLOW_0_6_0` | `false` | Permit public-key auth from agents older than 0.6.0 |
 | `SHELLHUB_NAMESPACE_REQUIRE_VERIFIED_DEVICE_KEY` | `true` | Whether a namespace created from now on starts with [Device signature enforcement](/manage/settings#device-signature-enforcement) on. Namespaces that already exist keep their own setting |
 | `SHELLHUB_TELEMETRY` | `true` | `false` turns [telemetry](/selfhosted/telemetry) off and overrides the admin console setting. The server then opens no connection to the collector |
