@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { createDeviceLoginCode, getDevice, updateDeviceStatus } from "@/client";
 import { isCloud, isCommunity } from "./env";
 import {
+  activeViewTab,
   createTeam,
   createTeamWithOwnerInAnother,
   signInAndOpen,
@@ -30,7 +31,7 @@ test.describe("accepting a device by its login code", () => {
     const device = await requestLoginCode(other);
 
     await signInAndOpen(page, owner.username, "/dashboard");
-    await expect(page.getByRole("tab", { selected: true })).toHaveText(
+    await expect(activeViewTab(page)).toHaveText(
       new RegExp(`${namespace}$`),
     );
 
@@ -50,7 +51,7 @@ test.describe("accepting a device by its login code", () => {
     await expect(
       page.getByRole("heading", { name: device.name }),
     ).toBeVisible();
-    await expect(page.getByRole("tab", { selected: true })).toHaveText(
+    await expect(activeViewTab(page)).toHaveText(
       new RegExp(`${other.namespace}$`),
     );
     const { data } = await getDevice({

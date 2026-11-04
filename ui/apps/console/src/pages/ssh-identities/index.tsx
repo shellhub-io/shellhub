@@ -30,6 +30,9 @@ import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
+import SegmentedTabs, {
+  type SegmentedTab,
+} from "@/components/common/SegmentedTabs";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -90,9 +93,9 @@ export default function SSHIdentities() {
     scope === "mine"
       ? identities.filter((i) => i.principal_id === userId)
       : identities;
-  const scopeTabs = [
-    { value: "mine" as const, label: "Mine" },
-    { value: "all" as const, label: "Everyone" },
+  const scopeTabs: SegmentedTab<"mine" | "all">[] = [
+    { value: "mine", label: "Mine" },
+    { value: "all", label: "Everyone" },
   ];
   const revokeIdentityMutation = useDeleteSSHIdentity();
   const revokeIdentity = useRowAction({
@@ -350,29 +353,12 @@ export default function SSHIdentities() {
 
           {othersCount > 0 && (
             <div className="flex items-center gap-3 mb-5 animate-fade-in">
-              <div
-                className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
-                role="tablist"
-                aria-label="SSH identity owner filter"
-              >
-                {scopeTabs.map((tab) => (
-                  <button
-                    type="button"
-                    key={tab.value}
-                    role="tab"
-                    aria-selected={scope === tab.value}
-                    onClick={() => setScope(tab.value)}
-                    className={cn(
-                      "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
-                      scope === tab.value
-                        ? "bg-primary/15 text-primary border border-primary/25"
-                        : "text-text-muted hover:text-text-secondary border border-transparent",
-                    )}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+              <SegmentedTabs
+                tabs={scopeTabs}
+                value={scope}
+                onChange={setScope}
+                label="SSH identity owner filter"
+              />
             </div>
           )}
 

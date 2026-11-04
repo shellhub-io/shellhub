@@ -43,8 +43,10 @@ import {
   Callout,
   IconButton,
 } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import SegmentedTabs, {
+  type SegmentedTab,
+} from "@/components/common/SegmentedTabs";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
@@ -55,7 +57,7 @@ const CONSTRAINTS = { status: VALID_STATUSES } as const;
 
 type ValidStatus = (typeof VALID_STATUSES)[number];
 
-const statusTabs: { label: string; value: ValidStatus }[] = [
+const statusTabs: SegmentedTab<ValidStatus>[] = [
   { label: "Accepted", value: "accepted" },
   { label: "Pending", value: "pending" },
   { label: "Rejected", value: "rejected" },
@@ -396,29 +398,12 @@ export default function Containers() {
       </PageHeader>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 animate-fade-in">
-        <div
-          className="flex items-center h-8 bg-card border border-border rounded-md p-0.5"
-          role="tablist"
-          aria-label="Container status filter"
-        >
-          {statusTabs.map((tab) => (
-            <button
-              type="button"
-              key={tab.value}
-              role="tab"
-              aria-selected={params.status === tab.value}
-              onClick={() => handleStatusChange(tab.value)}
-              className={cn(
-                "h-full px-3.5 text-xs font-medium rounded transition-all duration-150",
-                params.status === tab.value
-                  ? "bg-primary/15 text-primary border border-primary/25"
-                  : "text-text-muted hover:text-text-secondary border border-transparent",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          tabs={statusTabs}
+          value={params.status}
+          onChange={handleStatusChange}
+          label="Container status filter"
+        />
 
         <div className="flex items-center gap-2">
           <TagFilterDropdown

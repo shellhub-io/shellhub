@@ -51,7 +51,7 @@ test.describe("Namespaces", () => {
     const otherKey = await createApiKey(other.owner.token);
 
     await signInAndOpen(page, owner.username, "/team");
-    await page.getByRole("button", { name: "API Keys" }).click();
+    await page.getByRole("tab", { name: "API Keys" }).click();
     await expect(findRow(page, ownKey.name)).toBeVisible();
 
     const releaseApiKeyList = await holdApiKeyList(page);
@@ -60,7 +60,7 @@ test.describe("Namespaces", () => {
     );
     await switchNamespace(page, other.namespace);
     await page.getByRole("link", { name: "Team" }).click();
-    await page.getByRole("button", { name: "API Keys" }).click();
+    await page.getByRole("tab", { name: "API Keys" }).click();
     await apiKeyList;
 
     await expect(findRow(page, ownKey.name)).toHaveCount(0);

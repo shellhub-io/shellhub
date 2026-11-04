@@ -22,7 +22,7 @@ test.describe("API key plaintext", () => {
     const { owner, tenant } = await createTeam();
 
     await signInAndOpen(page, owner.username, "/team");
-    await page.getByRole("button", { name: "API Keys" }).click();
+    await page.getByRole("tab", { name: "API Keys" }).click();
     const { name, key } = await generateKey(page, {
       dialog: "Generate API key",
       submit: "Generate Key",

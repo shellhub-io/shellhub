@@ -18,6 +18,7 @@ import {
 import type { AssignableRole } from "@/pages/team/helpers";
 import { isCloud, isCommunity, isEnterprise } from "./env";
 import {
+  activeViewTab,
   chooseRadio,
   createTeam,
   consoleAccountDeletionReason,
@@ -304,7 +305,7 @@ test.describe("namespace switching", () => {
     addMember(member.username, otherTeam.namespace, "observer");
 
     await signInAndOpen(page, member.username, "/dashboard");
-    const activeTab = page.getByRole("tab", { selected: true });
+    const activeTab = activeViewTab(page);
     await expect(activeTab).toHaveText(new RegExp(`${namespace}$`));
 
     await switchNamespace(page, otherTeam.namespace);

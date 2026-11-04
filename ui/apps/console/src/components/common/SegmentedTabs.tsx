@@ -2,26 +2,30 @@ import type { KeyboardEvent } from "react";
 import { cn } from "@shellhub/design-system/cn";
 
 /**
- * One choice in a FilterTabs row. value must be unique within the row: it is both the React key
- * and how the selected tab is recognised.
+ * One choice in a SegmentedTabs row. value must be unique within the row: it is both the React key
+ * and how the selected tab is recognised. A tab that switches a panel sets panel, and the caller
+ * renders that panel with role="tabpanel", id={panel.panelId} and aria-labelledby={panel.tabId}
+ * whenever the tab is selected; a tab that only filters a list leaves panel unset.
  */
-export interface FilterTab<T extends string> {
+export interface SegmentedTab<T extends string> {
   label: string;
   value: T;
+  panel?: { tabId: string; panelId: string };
 }
 
 /**
- * A segmented row of mutually exclusive filters over a list, announced as a tablist. Only the
- * selected tab is in the tab order; the arrow keys, Home and End move to another tab and select
- * it at once. A value matching no tab leaves the first one focusable.
+ * A segmented row of mutually exclusive choices, announced as a tablist: a filter over a list or
+ * a switch between panels. Only the selected tab is in the tab order; the arrow keys, Home and End
+ * move to another tab and select it at once. A value matching no tab leaves the first one
+ * focusable.
  */
-export default function FilterTabs<T extends string>({
+export default function SegmentedTabs<T extends string>({
   tabs,
   value,
   onChange,
   label,
 }: {
-  tabs: FilterTab<T>[];
+  tabs: SegmentedTab<T>[];
   value: T;
   onChange: (value: T) => void;
   label: string;
@@ -63,6 +67,8 @@ export default function FilterTabs<T extends string>({
           type="button"
           key={tab.value}
           role="tab"
+          id={tab.panel?.tabId}
+          aria-controls={tab.panel?.panelId}
           aria-selected={value === tab.value}
           tabIndex={index === selected ? 0 : -1}
           onClick={() => onChange(tab.value)}

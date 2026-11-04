@@ -216,14 +216,22 @@ export async function signOut(page: Page, username: string) {
   await expect(page).toHaveURL(/\/login$/);
 }
 
+/**
+ * The selected tab in the console's open-views strip, which names the current namespace. Scoped
+ * to that strip because pages such as team render tablists of their own.
+ */
+export function activeViewTab(page: Page) {
+  return page
+    .getByRole("tablist", { name: "Open views" })
+    .getByRole("tab", { selected: true });
+}
+
 export async function switchNamespace(page: Page, namespace: string) {
   await page.getByRole("button", { name: "New tab" }).click();
   const picker = page.getByRole("dialog", { name: "New tab" });
   await picker.getByRole("combobox").fill(namespace);
   await picker.getByRole("option", { name: namespace }).click();
-  await expect(page.getByRole("tab", { selected: true })).toHaveText(
-    new RegExp(`${namespace}$`),
-  );
+  await expect(activeViewTab(page)).toHaveText(new RegExp(`${namespace}$`));
 }
 
 export async function signUpFromInvite(
