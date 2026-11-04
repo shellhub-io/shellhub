@@ -97,6 +97,8 @@ var operatorPermissions = []Permission{
 	SessionDetails,
 	SessionApprove,
 
+	ProvisioningKeyList,
+
 	SSHIdentityAdd,
 }
 

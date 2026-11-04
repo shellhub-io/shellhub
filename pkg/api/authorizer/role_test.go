@@ -221,6 +221,7 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.TagDelete,
 				authorizer.SessionDetails,
 				authorizer.SessionApprove,
+				authorizer.ProvisioningKeyList,
 				authorizer.SSHIdentityAdd,
 			},
 		},

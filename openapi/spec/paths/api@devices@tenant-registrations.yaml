@@ -3,8 +3,8 @@ get:
   description: |
     Returns the registration history of the namespace's tenant-only key, the one a device that
     presents only the tenant ID enrolls under: one row per registration, newest first, with how it
-    was decided. Open to every member who may accept devices, so the queue can be worked without
-    listing provisioning keys. A namespace without that key answers an empty list.
+    was decided. It reads the device API, so any member who may accept devices works the queue,
+    an API key with that permission included. A namespace without that key answers an empty list.
   operationId: listTenantRegistrations
   tags:
     - community
