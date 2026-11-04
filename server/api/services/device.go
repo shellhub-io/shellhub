@@ -138,43 +138,55 @@ func (s *service) deviceLimit(ctx context.Context, tenantID string) (models.Name
 }
 
 func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error) {
-	opts := []store.QueryOption{}
-
-	if req.DeviceStatus != "" {
-		opts = append(opts, s.store.Options().WithDeviceStatus(req.DeviceStatus))
-	}
-
 	if req.Sorter.By == "" {
 		req.Sorter.By = "last_seen"
 	}
 
 	req.Sorter.Tiebreak = "id"
 
+	order := []store.QueryOption{
+		s.store.Options().Sort(&req.Sorter),
+		s.store.Options().Paginate(&req.Paginator),
+	}
+
+	acceptable, opts, err := s.deviceListSelection(ctx, sc, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return s.store.DeviceList(ctx, sc, acceptable, append(opts, order...)...)
+}
+
+func (s *service) deviceListSelection(ctx context.Context, sc scope.Scope, req *requests.DeviceList) (store.DeviceAcceptable, []store.QueryOption, error) {
+	opts := []store.QueryOption{}
+
+	if req.DeviceStatus != "" {
+		opts = append(opts, s.store.Options().WithDeviceStatus(req.DeviceStatus))
+	}
+
 	opts = append(opts,
 		s.store.Options().Match(&req.Filters),
 		s.store.Options().Match(platformFilter(req.Connector)),
-		s.store.Options().Sort(&req.Sorter),
-		s.store.Options().Paginate(&req.Paginator),
 	)
 
 	if req.DeviceStatus == models.DeviceStatusRemoved {
-		return s.store.DeviceList(ctx, sc, store.DeviceAcceptableFromRemoved, opts...)
+		return store.DeviceAcceptableFromRemoved, opts, nil
 	}
 
-	acceptable := store.DeviceAcceptableIfNotAccepted
-
-	if sc.IsBounded() {
-		limit, err := s.deviceLimit(ctx, req.TenantID)
-		if err != nil {
-			return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
-		}
-
-		if limit.HasMax() && limit.IsReached() {
-			acceptable = store.DeviceAcceptableAsFalse
-		}
+	if !sc.IsBounded() {
+		return store.DeviceAcceptableIfNotAccepted, opts, nil
 	}
 
-	return s.store.DeviceList(ctx, sc, acceptable, opts...)
+	limit, err := s.deviceLimit(ctx, req.TenantID)
+	if err != nil {
+		return 0, nil, NewErrNamespaceNotFound(req.TenantID, err)
+	}
+
+	if limit.HasMax() && limit.IsReached() {
+		return store.DeviceAcceptableAsFalse, opts, nil
+	}
+
+	return store.DeviceAcceptableIfNotAccepted, opts, nil
 }
 
 func platformFilter(connector bool) *query.Filters {
