@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS membership_invitations_pending_unique;

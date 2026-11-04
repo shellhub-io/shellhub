@@ -211,7 +211,12 @@ func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invi
 		Sig:             sig,
 	}
 
-	if err := s.store.MembershipInvitationCreate(ctx, invitation); err != nil {
+	err := s.store.MembershipInvitationCreate(ctx, invitation)
+	if errors.Is(err, store.ErrDuplicate) {
+		return nil, NewErrNamespaceMemberDuplicated(userID, err)
+	}
+
+	if err != nil {
 		return nil, fmt.Errorf("failed to create membership invitation: %w", err)
 	}
 
