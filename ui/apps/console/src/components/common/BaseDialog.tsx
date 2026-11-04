@@ -34,12 +34,16 @@ function fillsPhoneScreen() {
 
 /**
  * Props of BaseDialog. canClose is what a step mid-flow uses to refuse dismissal — a dialog that
- * has already charged a card must not be closeable by Escape.
+ * has already charged a card must not be closeable by Escape. onBackdropClose replaces onClose
+ * for a click on the backdrop alone, for a dialog whose Escape steps back rather than closing;
+ * canClose guards it the same way.
  */
 export interface BaseDialogProps {
   open: boolean;
 
   onClose: () => void;
+
+  onBackdropClose?: () => void;
 
   canClose?: () => boolean;
 
@@ -71,6 +75,7 @@ export interface BaseDialogProps {
 export default function BaseDialog({
   open,
   onClose,
+  onBackdropClose,
   canClose: canCloseProp,
   focusOnOpen = true,
   size = "sm",
@@ -86,7 +91,11 @@ export default function BaseDialog({
 
   const canClose = () => (canCloseProp ? canCloseProp() : true);
 
-  const backdropHandlers = useBackdropClose(ref, onClose, canClose);
+  const backdropHandlers = useBackdropClose(
+    ref,
+    onBackdropClose ?? onClose,
+    canClose,
+  );
   const isFull = size === "full";
   useFocusTrap(
     ref,

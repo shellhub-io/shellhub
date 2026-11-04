@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 vi.unmock("@/hooks/useFocusTrap");
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import BaseDialog from "../BaseDialog";
 function renderDialog(
   open: boolean,
   {
     onClose = vi.fn(),
+    onBackdropClose,
     canClose,
     size,
     ariaLabelledBy,
@@ -15,6 +17,7 @@ function renderDialog(
     className,
   }: {
     onClose?: () => void;
+    onBackdropClose?: () => void;
     canClose?: () => boolean;
     size?: "sm" | "md" | "lg" | "xl" | "full";
     ariaLabelledBy?: string;
@@ -29,6 +32,7 @@ function renderDialog(
       <BaseDialog
         open={open}
         onClose={onClose}
+        onBackdropClose={onBackdropClose}
         canClose={canClose}
         size={size}
         aria-labelledby={ariaLabelledBy}
@@ -155,6 +159,17 @@ describe("BaseDialog", () => {
       fireEvent.click(dialog);
 
       expect(onClose).toHaveBeenCalledOnce();
+    });
+
+    it("calls onBackdropClose instead of onClose when one is given", async () => {
+      const user = userEvent.setup();
+      const onBackdropClose = vi.fn();
+      const { onClose } = renderDialog(true, { onBackdropClose });
+
+      await user.click(screen.getByRole("dialog"));
+
+      expect(onBackdropClose).toHaveBeenCalledOnce();
+      expect(onClose).not.toHaveBeenCalled();
     });
 
     it("does NOT call onClose when backdrop is clicked with canClose=false", () => {
