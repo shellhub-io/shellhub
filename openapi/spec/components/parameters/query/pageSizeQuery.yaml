@@ -1,0 +1,13 @@
+name: page[size]
+description: |-
+  Devices per page in cursor mode. Sending it, or `page[after]`, selects cursor
+  mode. A missing or zero value takes 100, a negative one becomes 1, and one
+  above the server's maximum (`SHELLHUB_DEVICE_LIST_MAX_PAGE_SIZE`, 1000 by
+  default) becomes that maximum. The literal name carries the brackets; send it
+  plain or percent-encoded as `page%5Bsize%5D`.
+schema:
+  type: integer
+  default: 100
+in: query
+style: form
+required: false

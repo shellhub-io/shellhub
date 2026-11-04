@@ -1,0 +1,10 @@
+name: page[after]
+description: |-
+  The opaque cursor a previous cursor mode response returned in `X-Next-Cursor`
+  or inside its `Link` header. Send it back unchanged; its format may change. A
+  value the server did not issue is a bad request.
+schema:
+  type: string
+in: query
+style: form
+required: false

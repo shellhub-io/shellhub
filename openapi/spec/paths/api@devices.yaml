@@ -17,6 +17,16 @@ get:
     duplicates of `platform` and `mac` respectively. These aliases are kept for
     backward compatibility and will be removed in the next major API version.
     Update integrations to use the flat names (`platform`, `mac`).
+
+    **Cursor mode.** Sending `page[size]` or `page[after]` reads the devices in
+    creation order, oldest first, instead of by page number. A full read returns
+    every device that existed when it started exactly once, even while devices
+    change. Follow the `Link` header, or send `X-Next-Cursor` back as
+    `page[after]`, until a response carries neither: that is the only signal the
+    read is complete, since a page may hold fewer devices than `page[size]` and
+    still have a next one. Cursor mode responses leave out `X-Total-Count`.
+    Combining cursor mode with `page`, `per_page`, `sort_by` or `order_by` is a
+    bad request.
   tags:
     - community
     - devices
@@ -27,6 +37,8 @@ get:
     - $ref: ../components/parameters/query/filterQuery.yaml
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
+    - $ref: ../components/parameters/query/pageSizeQuery.yaml
+    - $ref: ../components/parameters/query/pageAfterQuery.yaml
     - name: status
       description: Device's status. Omit it to list devices of every status.
       schema:
@@ -58,6 +70,10 @@ get:
       headers:
         X-Total-Count:
           $ref: ../components/headers/XTotalCount.yaml
+        Link:
+          $ref: ../components/headers/Link.yaml
+        X-Next-Cursor:
+          $ref: ../components/headers/XNextCursor.yaml
       content:
         application/json:
           schema:

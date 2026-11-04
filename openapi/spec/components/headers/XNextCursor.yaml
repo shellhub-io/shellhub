@@ -1,0 +1,6 @@
+description: |-
+  The cursor of the next page, alone, to send as `page[after]`. The last page
+  carries no `X-Next-Cursor`.
+schema:
+  type: string
+  readOnly: true
