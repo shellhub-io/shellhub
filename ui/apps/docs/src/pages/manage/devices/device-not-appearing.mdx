@@ -13,11 +13,12 @@ goes from most to least common.
 
 ## Is it waiting to be accepted?
 
-Check the **pending** link on the Devices page before anything else. It opens **Pending devices**,
-the history of every device that registered with the tenant ID, where anyone who may accept
-devices accepts or rejects one that waits and accepts one rejected before. A device enrolled with a
-provisioning key waits on that key's row in **Add Device** → **Fleet** instead. It is not broken; it
-is queued.
+Check the Devices page before anything else. While devices wait, its toolbar shows **Waiting for
+approval** with how many. It opens the provisioning keys holding them, the tenant-only one
+included, and each key's activity accepts or rejects them. In a legacy namespace it links
+**Pending devices** instead, the history of every device that registered with the tenant ID, where
+anyone who may accept devices accepts or rejects one that waits and accepts one rejected before. It
+is not broken; it is queued.
 
 Accept it and it comes online. To stop needing to, use a
 [provisioning key](/manage/devices/provisioning-keys). See
