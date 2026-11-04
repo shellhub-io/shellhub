@@ -60,6 +60,7 @@
 
 	map {http.request.port} {x_forwarded_port} {
 		"" {http.request.local.port}
+		default {http.request.port}
 	}
 
 	route {

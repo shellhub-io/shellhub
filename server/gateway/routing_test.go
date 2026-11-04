@@ -218,6 +218,9 @@ func TestTheServerRoutesReceiveThePortTheClientReached(t *testing.T) {
 	res := send(t, noRedirects(), "http://"+address, cfg.Domain, "/api/namespaces")
 	assert.Equal(t, strconv.Itoa(cfg.httpPort), res.Header.Get("X-Seen-Forwarded-Port"))
 
+	res = send(t, noRedirects(), "http://"+address, cfg.Domain+":8443", "/api/namespaces")
+	assert.Equal(t, "8443", res.Header.Get("X-Seen-Forwarded-Port"))
+
 	res = send(t, noRedirects(), "http://"+address, endpointAddress+"."+cfg.Domain, "/")
 	assert.Empty(t, res.Header.Get("X-Seen-Forwarded-Port"), "a web endpoint request names no ShellHub port")
 }
