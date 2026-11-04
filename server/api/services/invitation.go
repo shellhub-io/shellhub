@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"net/url"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -134,6 +135,10 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 
 		return s.admitMember(ctx, scope.MustBounded(n.TenantID), member, invitation)
 	})
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrNamespaceMemberNotFound(req.UserID, err)
+	}
+
 	if err != nil {
 		log.WithError(err).WithField("tenant-id", req.TenantID).WithField("user-id", req.UserID).
 			Error("unable to accept invitation")
@@ -253,7 +258,12 @@ func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.
 	invitation.UpdatedAt = s.clock.Now()
 	invitation.Status = models.MembershipInvitationStatusCancelled
 	invitation.StatusUpdatedAt = s.clock.Now()
-	if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
+	err = s.store.MembershipInvitationUpdate(ctx, invitation)
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrNamespaceMemberNotFound(req.InvitedUserID, err)
+	}
+
+	if err != nil {
 		log.WithError(err).WithField("tenant-id", req.TenantID).WithField("invited-user-id", req.InvitedUserID).
 			Error("unable to cancel membership invitation")
 

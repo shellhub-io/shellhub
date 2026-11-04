@@ -90,7 +90,11 @@ func (pg *Pg) MembershipInvitationUpdate(ctx context.Context, invitation *models
 
 	e := entity.MembershipInvitationFromModel(invitation)
 
-	r, err := db.NewUpdate().Model(e).WherePK().Exec(ctx)
+	r, err := db.NewUpdate().
+		Model(e).
+		WherePK().
+		Where("status = ?", models.MembershipInvitationStatusPending).
+		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -108,7 +112,12 @@ func (pg *Pg) MembershipInvitationDelete(ctx context.Context, invitation *models
 
 	e := entity.MembershipInvitationFromModel(invitation)
 
-	r, err := db.NewDelete().Model(e).WherePK().Exec(ctx)
+	r, err := db.NewDelete().
+		Model(e).
+		WherePK().
+		Where("status = ?", models.MembershipInvitationStatusPending).
+		Where("expires_at IS NULL OR expires_at >= ?", pg.clock.Now()).
+		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
