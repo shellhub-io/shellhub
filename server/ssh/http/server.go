@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -55,6 +56,7 @@ var ErrDeviceTunnelDial = errors.New("failed to connect to device")
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	WriteBufferPool: new(sync.Pool),
 	Subprotocols:    []string{"binary"},
 	CheckOrigin: func(_ *http.Request) bool {
 		return true

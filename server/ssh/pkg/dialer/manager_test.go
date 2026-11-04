@@ -198,3 +198,43 @@ func TestManagerCloseClosesEveryTunnelWithoutReportingThemOffline(t *testing.T) 
 	case <-time.After(200 * time.Millisecond):
 	}
 }
+
+func TestManagerBindOfATunnelAlreadyClosedLeavesTheDeviceOffline(t *testing.T) {
+	key := NewKey("tenant", "uid")
+
+	offline := make(chan string, 1)
+
+	m := NewManager(clock.New())
+	m.DialerDoneCallback = func(key string) { offline <- key }
+
+	conn := newAgentConn(t)
+	require.NoError(t, conn.Close())
+
+	require.NoError(t, m.Bind("tenant", "uid", conn))
+
+	select {
+	case reported := <-offline:
+		assert.Equal(t, key, reported)
+	case <-time.After(time.Second):
+		t.Fatal("a tunnel closed before it was bound never reported its device offline")
+	}
+
+	assert.Eventually(t, func() bool { return m.Connections.Size(key) == 0 },
+		time.Second, 10*time.Millisecond, "a closed tunnel stayed registered")
+}
+
+func TestManagerBindKeepsTheAgentAddressOnTheSession(t *testing.T) {
+	m := NewManager(clock.New())
+
+	conn := newAgentConn(t)
+	require.NoError(t, m.Bind("tenant", "uid", conn))
+	t.Cleanup(m.Close)
+
+	stored, ok := m.Connections.Load(NewKey("tenant", "uid"))
+	require.True(t, ok)
+	session, ok := stored.(*yamux.Session)
+	require.True(t, ok)
+
+	assert.Equal(t, conn.RemoteAddr(), session.RemoteAddr())
+	assert.Equal(t, conn.LocalAddr(), session.LocalAddr())
+}
