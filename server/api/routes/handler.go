@@ -14,6 +14,8 @@ type Handler struct {
 	authn *routesmiddleware.Authenticator
 
 	edition envs.Edition
+
+	deviceListMaxPageSize int64
 }
 
 // NewHandler returns a handler over s with no authenticator. Until WithAuthenticator sets one,

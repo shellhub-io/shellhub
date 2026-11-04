@@ -123,6 +123,16 @@ func WithEdition(edition envs.Edition) Option {
 	}
 }
 
+// WithDeviceListMaxPageSize sets the largest page a cursor read of the device list returns. A
+// larger page[size] is lowered to it, and a size below one means query.DefaultMaxPageSize.
+func WithDeviceListMaxPageSize(size int64) Option {
+	return func(_ *echo.Echo, handler *Handler) error {
+		handler.deviceListMaxPageSize = size
+
+		return nil
+	}
+}
+
 // NewRouter builds the API router over service, applying each option in turn.
 // It returns a nil router and an error wrapping the option's own error when an
 // option fails, or an error when [DefaultHTTPHandler] does not build an

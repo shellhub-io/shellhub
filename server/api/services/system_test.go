@@ -79,6 +79,16 @@ func TestBuildInstallOverrides(t *testing.T) {
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://localhost:443'"},
 		},
 		{
+			description: "keeps the brackets of an IPv6 host on the default port",
+			req:         &requests.SystemInstallScript{Host: "[::1]:443", Scheme: "https"},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://[::1]'"},
+		},
+		{
+			description: "brackets an IPv6 host once with a forwarded port",
+			req:         &requests.SystemInstallScript{Host: "[::1]", ForwardedPort: "8080", Scheme: "http"},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://[::1]:8080'"},
+		},
+		{
 			description: "injects the optional query overrides when present",
 			req: &requests.SystemInstallScript{
 				Host:              "cloud.example.com",
