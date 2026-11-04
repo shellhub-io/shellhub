@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -68,39 +69,77 @@ func (pg *Pg) DeviceConflicts(ctx context.Context, sc scope.Scope, target *model
 
 // DeviceList implements [store.DeviceStore].
 func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, opts ...store.QueryOption) ([]models.Device, int64, error) {
-	db := pg.GetConnection(ctx)
-
 	entities := make([]entity.Device, 0)
 
+	ctx = context.WithValue(ctx, CtxTableAlias, "device")
+
+	selection, err := applyScopedOptions(ctx, pg.deviceListSelect(ctx, &entities, acceptable), sc, opts...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := ScanThenCount(ctx, selection)
+	if err != nil {
+		return nil, 0, fromSQLError(err)
+	}
+
+	return devicesToModels(entities), count, nil
+}
+
+// DeviceListAfter implements [store.DeviceStore].
+func (pg *Pg) DeviceListAfter(ctx context.Context, sc scope.Scope, acceptable store.DeviceAcceptable, after *query.Cursor, size int64, opts ...store.QueryOption) ([]models.Device, *query.Cursor, error) {
+	size = max(size, query.MinPageSize)
+	entities := make([]entity.Device, 0, size+1)
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "device")
+
+	selection := pg.deviceListSelect(ctx, &entities, acceptable).
+		OrderExpr("device.created_at ASC, device.id ASC").
+		Limit(size + 1)
+
+	if after != nil {
+		selection = selection.Where("(device.created_at, device.id) > (?, ?)", after.CreatedAt, after.ID)
+	}
+
+	selection, err := applyScopedOptions(ctx, selection, sc, opts...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if err := selection.Scan(ctx); err != nil {
+		return nil, nil, fromSQLError(err)
+	}
+
+	var next *query.Cursor
+	if int64(len(entities)) > size {
+		entities = entities[:size]
+		last := entities[size-1]
+		next = &query.Cursor{CreatedAt: last.CreatedAt, ID: last.ID}
+	}
+
+	return devicesToModels(entities), next, nil
+}
+
+func (pg *Pg) deviceListSelect(ctx context.Context, entities *[]entity.Device, acceptable store.DeviceAcceptable) *bun.SelectQuery {
 	onlineExpr, onlineThreshold := deviceExprOnline(OnlineCutoff(pg.clock))
-	query := db.
+
+	return pg.GetConnection(ctx).
 		NewSelect().
-		Model(&entities).
+		Model(entities).
 		Column("device.*").
 		Relation("Namespace").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold).
 		ColumnExpr(deviceExprAcceptable(acceptable))
+}
 
-	ctx = context.WithValue(ctx, CtxTableAlias, "device")
-
-	var err error
-	query, err = applyScopedOptions(ctx, query, sc, opts...)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	count, err := ScanThenCount(ctx, query)
-	if err != nil {
-		return nil, 0, fromSQLError(err)
-	}
-
+func devicesToModels(entities []entity.Device) []models.Device {
 	devices := make([]models.Device, len(entities))
 	for i, e := range entities {
 		devices[i] = *entity.DeviceToModel(&e)
 	}
 
-	return devices, count, nil
+	return devices
 }
 
 // DeviceListExpiredEphemeral implements [store.DeviceStore].

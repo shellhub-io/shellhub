@@ -243,6 +243,13 @@ func WithDeviceEphemeral(timeout int) DeviceOption {
 	}
 }
 
+// WithDevicePlatform sets the platform the device reports, such as "connector".
+func WithDevicePlatform(platform string) DeviceOption {
+	return func(d *models.Device) {
+		d.Info.Platform = platform
+	}
+}
+
 var deviceSeq atomic.Uint64
 
 func nextDeviceUID() string {

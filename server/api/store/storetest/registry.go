@@ -49,6 +49,7 @@ var Groups = []Group{
 	}},
 	{Name: "DeviceStore", Tests: []TestFunc{
 		(*Suite).TestDeviceList,
+		(*Suite).TestDeviceListAfter,
 		(*Suite).TestDeviceResolve,
 		(*Suite).TestDeviceCreate,
 		(*Suite).TestDeviceConflicts,
