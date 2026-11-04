@@ -8,7 +8,7 @@ import { RegistrationTimeline } from "@/pages/provisioning-keys/ProvisioningKeyT
  * Every device that registered with the namespace's tenant ID, newest first, with the ones still
  * waiting ready to accept or reject and a rejected one ready to accept instead. It is the same
  * page in a legacy and a new namespace, and it reads the device API, so any member who may accept
- * devices works the queue without listing provisioning keys.
+ * devices works the queue.
  */
 export default function PendingDevices() {
   const sectionTitle = useNavSectionTitle("/devices");

@@ -7,7 +7,6 @@ import {
 import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
-import { useHasPermission } from "@/hooks/useHasPermission";
 import PageHeader from "@/components/common/PageHeader";
 import StatCard from "@/components/common/StatCard";
 import CopyButton from "@/components/common/CopyButton";
@@ -22,16 +21,13 @@ export default function Dashboard() {
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading } = useStats();
   const queue = useTenantRegistrationQueue();
-  const canListKeys = useHasPermission("provisioningKey:list");
   const pendingAction = !queue.allowed
     ? undefined
     : {
         label: "Review pending",
-        to:
-          queue.holds(stats?.pending_devices ?? 0) ||
-          (queue.reachable && !canListKeys)
-            ? "/devices/pending"
-            : "/devices/add/fleet",
+        to: queue.holds(stats?.pending_devices ?? 0)
+          ? "/devices/pending"
+          : "/devices/add/fleet",
       };
 
   if (statsLoading) return null;

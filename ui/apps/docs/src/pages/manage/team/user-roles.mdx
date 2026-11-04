@@ -14,7 +14,7 @@ itself.
 | Role | Can |
 |---|---|
 | **Observer** | View device and session details. Nothing else. An observer cannot connect to a device, except by native SSH in a legacy namespace |
-| **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details |
+| **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details. Sees provisioning keys and their registrations and accepts or rejects the devices waiting under them, but cannot reveal a key |
 | **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
 | **Owner** | Everything |
 
