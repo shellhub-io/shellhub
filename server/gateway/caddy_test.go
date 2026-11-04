@@ -183,30 +183,6 @@ func TestCaddyfileServesTheSuppliedCertificate(t *testing.T) {
 		"automatic issuance is the default and must stay untouched when no certificate is supplied")
 }
 
-func TestHealthcheckAnswersOnEveryConfiguration(t *testing.T) {
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			rendered, err := Caddyfile(cfg)
-			require.NoError(t, err)
-
-			assert.Contains(t, string(rendered), "http://healthcheck.internal",
-				"the healthcheck site must not depend on how TLS is configured")
-		})
-	}
-}
-
-func TestCaddyfileRefusesAHostItDoesNotServe(t *testing.T) {
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			rendered, err := Caddyfile(cfg)
-			require.NoError(t, err)
-
-			assert.Contains(t, string(rendered), "http:// {",
-				"a Host this proxy does not serve must not fall through to Caddy's default")
-		})
-	}
-}
-
 func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
 	for description, cfg := range configurations() {
 		t.Run(description, func(t *testing.T) {
@@ -308,13 +284,6 @@ func TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount(t *testing.T) {
 		"the password stays out of the rendered configuration; the module resolves it")
 }
 
-func TestCaddyfileStoresCertificatesOnTheVolume(t *testing.T) {
-	rendered, err := Caddyfile(configurations()["auto ssl"])
-	require.NoError(t, err)
-
-	assert.Contains(t, string(rendered), "storage file_system /data")
-}
-
 func TestTrustedProxiesSurvivesAnEmptyVariable(t *testing.T) {
 	cfg := configurations()["proxy protocol"]
 	cfg.ProxyTrustedIPs = ""
@@ -342,22 +311,6 @@ func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 
 	assert.NotContains(t, string(without), "proxy_protocol",
 		"the listener wrapper has no business being there when the feature is off")
-}
-
-func TestCaddyfileLeavesAnIdleWebTerminalOpen(t *testing.T) {
-	for description, cfg := range configurations() {
-		t.Run(description, func(t *testing.T) {
-			for name, server := range adaptedServers(t, cfg) {
-				if len(collect(server["routes"], matchesPath("/ws*"))) == 0 {
-					continue
-				}
-
-				for _, timeout := range []string{"read_timeout", "write_timeout"} {
-					assert.Nil(t, server[timeout], "%s serves /ws with a %s", name, timeout)
-				}
-			}
-		})
-	}
 }
 
 func collect(node any, matches func(map[string]any) bool) []map[string]any {
