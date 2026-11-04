@@ -172,10 +172,11 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 }
 
 // TenantRegistrations lists the registration history of the namespace's tenant-only key, newest
-// first unless sort_by and order_by say otherwise, so anyone who may accept devices can work that
-// queue without listing provisioning keys. It returns the bind or validation error for a malformed
-// query, an invalid-entity error for a sort_by outside ProvisioningKeyEventSortFields, ErrForbidden
-// when the request carries no tenant, and the store's error otherwise.
+// first unless sort_by and order_by say otherwise. It needs only the permission to accept devices,
+// so any member or API key that may accept devices works the queue. It returns the bind or
+// validation error for a malformed query, an invalid-entity error for a sort_by outside
+// ProvisioningKeyEventSortFields, ErrForbidden when the request carries no tenant, and the store's
+// error otherwise.
 func (h *Handler) TenantRegistrations(c *gateway.Context) error {
 	req := new(requests.ListTenantRegistrations)
 
