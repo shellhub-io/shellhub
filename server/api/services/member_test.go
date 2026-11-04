@@ -192,6 +192,56 @@ func TestService_AddNamespaceMember(t *testing.T) {
 				err: nil,
 			},
 		},
+		{
+			description: "fails when the expired invitation stops being pending before it is resent",
+			req: &requests.NamespaceAddMember{
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				expired := now.Add(-time.Hour)
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members:  []models.Member{{ID: "000000000000000000000000", Role: authorizer.RoleOwner}},
+					}, nil).
+					Once()
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
+					On("UserResolve", ctx, store.UserEmailResolver, "john.doe@test.com").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+				storeMock.
+					On("UserInvitationsUpsert", ctx, "john.doe@test.com").
+					Return("placeholder-id", nil).
+					Once()
+				storeMock.
+					On("MembershipInvitationResolve", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "placeholder-id").
+					Return(&models.MembershipInvitation{
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						UserID:    "placeholder-id",
+						Status:    models.MembershipInvitationStatusPending,
+						ExpiresAt: &expired,
+					}, nil).
+					Once()
+				storeMock.
+					On("MembershipInvitationUpdate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrNamespaceMemberDuplicated("placeholder-id", store.ErrNoDocuments),
+			},
+		},
 	}
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))

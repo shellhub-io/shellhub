@@ -232,7 +232,12 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 	invitation.Invitations++
 	invitation.Sig = sig
 
-	if err := s.store.MembershipInvitationUpdate(ctx, invitation); err != nil {
+	err := s.store.MembershipInvitationUpdate(ctx, invitation)
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrNamespaceMemberDuplicated(invitation.UserID, err)
+	}
+
+	if err != nil {
 		return fmt.Errorf("failed to update membership invitation: %w", err)
 	}
 

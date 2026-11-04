@@ -41,6 +41,7 @@ func (s *Suite) TestMembershipInvitationCreate(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, invitation.ID)
 	})
+
 }
 
 // TestMembershipInvitationResolve exercises MembershipInvitationResolve against the store under test.
@@ -304,6 +305,26 @@ func (s *Suite) TestMembershipInvitationUpdate(t *testing.T) {
 		err = st.MembershipInvitationUpdate(ctx, invitation)
 		assert.NoError(t, err)
 	})
+
+	t.Run("refuses an invitation that is no longer pending", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
+		invitation := newMembershipInvitation(tenantID, invitedUser, invitedBy, models.MembershipInvitationStatusCancelled, &expiresAt)
+		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
+
+		invitation.Status = models.MembershipInvitationStatusPending
+		err := st.MembershipInvitationUpdate(ctx, invitation)
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+
+		resolved, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
+		require.NoError(t, err)
+		assert.Equal(t, models.MembershipInvitationStatusCancelled, resolved.Status)
+	})
 }
 
 // TestMembershipInvitationDelete exercises MembershipInvitationDelete against the store under test.
@@ -350,6 +371,66 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 		require.ErrorIs(t, err, store.ErrNoDocuments)
 		assert.Nil(t, resolved)
 	})
+
+	t.Run("deletes a pending invitation without an expiry", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		invitedBy := s.CreateUser(t)
+		invitedUser := s.CreateUser(t)
+
+		invitation := newMembershipInvitation(tenantID, invitedUser, invitedBy, models.MembershipInvitationStatusPending, nil)
+		require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
+
+		require.NoError(t, st.MembershipInvitationDelete(ctx, invitation))
+	})
+
+	t.Run("refuses an invitation that is no longer pending or has expired", func(t *testing.T) {
+		now := s.Clock().Now()
+		expired := now.Add(-time.Hour)
+		valid := now.Add(7 * 24 * time.Hour)
+
+		cases := []struct {
+			description string
+			status      models.MembershipInvitationStatus
+			expiresAt   *time.Time
+		}{
+			{description: "cancelled", status: models.MembershipInvitationStatusCancelled, expiresAt: &valid},
+			{description: "pending but expired", status: models.MembershipInvitationStatusPending, expiresAt: &expired},
+		}
+
+		for _, tc := range cases {
+			t.Run(tc.description, func(t *testing.T) {
+				require.NoError(t, s.provider.CleanDatabase(t))
+
+				tenantID := s.CreateNamespace(t)
+				invitedBy := s.CreateUser(t)
+				invitedUser := s.CreateUser(t)
+
+				invitation := newMembershipInvitation(tenantID, invitedUser, invitedBy, tc.status, tc.expiresAt)
+				require.NoError(t, st.MembershipInvitationCreate(ctx, invitation))
+
+				err := st.MembershipInvitationDelete(ctx, invitation)
+				require.ErrorIs(t, err, store.ErrNoDocuments)
+
+				resolved, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tenantID), invitedUser)
+				require.NoError(t, err)
+				assert.Equal(t, tc.status, resolved.Status)
+			})
+		}
+	})
+}
+
+func newMembershipInvitation(tenantID, userID, invitedBy string, status models.MembershipInvitationStatus, expiresAt *time.Time) *models.MembershipInvitation {
+	return &models.MembershipInvitation{
+		TenantID:    tenantID,
+		UserID:      userID,
+		InvitedBy:   invitedBy,
+		Role:        authorizer.RoleObserver,
+		Status:      status,
+		ExpiresAt:   expiresAt,
+		Invitations: 1,
+	}
 }
 
 // TestUserMembershipInvitationList exercises UserMembershipInvitationList against the store under test.

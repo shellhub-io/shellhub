@@ -188,6 +188,33 @@ func TestService_AcceptInvite(t *testing.T) {
 			expected: NewErrNamespaceMemberNotFound("user", nil),
 		},
 		{
+			description: "fails when the invitation stops being pending before it is consumed",
+			requiredMocks: func() {
+				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
+					Return(&models.User{ID: "user"}, nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
+				invitation := &models.MembershipInvitation{
+					TenantID:  "tenant",
+					UserID:    "user",
+					Status:    models.MembershipInvitationStatusPending,
+					Role:      authorizer.RoleOperator,
+					ExpiresAt: &future,
+				}
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
+					Return(invitation, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{
+					ID:      "user",
+					AddedAt: now,
+					Role:    authorizer.RoleOperator,
+				}).Return(nil).Once()
+				storeMock.On("MembershipInvitationDelete", ctx, invitation).Return(store.ErrNoDocuments).Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("user", store.ErrNoDocuments),
+		},
+		{
 			description: "succeeds joining the namespace and consuming the invitation",
 			requiredMocks: func() {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
@@ -661,6 +688,21 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 					}, nil).Once()
 			},
 			expected: NewErrRoleForbidden(),
+		},
+		{
+			description: "fails when the invitation stops being pending before it is cancelled",
+			requiredMocks: func() {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(adminNamespace, nil).Once()
+				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
+					Return(&models.MembershipInvitation{
+						Status: models.MembershipInvitationStatusPending,
+						Role:   authorizer.RoleOperator,
+					}, nil).Once()
+				storeMock.On("MembershipInvitationUpdate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).
+					Return(store.ErrNoDocuments).Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("invitee", store.ErrNoDocuments),
 		},
 		{
 			description: "succeeds cancelling the invitation",

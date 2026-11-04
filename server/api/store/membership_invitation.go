@@ -18,18 +18,22 @@ type MembershipInvitationStore interface {
 	MembershipInvitationResolve(ctx context.Context, sc scope.Scope, userID string) (*models.MembershipInvitation, error)
 
 	// MembershipInvitationResolveBySig retrieves the invitation whose one-time signature matches sig and
-	// that is still pending and unexpired. It replaces the former Redis "invite={sig}" lookup. The pending
-	// filter is the single chokepoint that stops a cancelled (or otherwise non-pending) invitation from
-	// being consumed by any caller. Returns store.ErrNoDocuments when no such invitation carries that
-	// signature.
+	// that is still pending and unexpired. It replaces the former Redis "invite={sig}" lookup. Returns
+	// store.ErrNoDocuments when no such invitation carries that signature.
 	MembershipInvitationResolveBySig(ctx context.Context, sig string) (*models.MembershipInvitation, error)
 
-	// MembershipInvitationUpdate updates an existing membership invitation.
+	// MembershipInvitationUpdate writes invitation over the stored row, but only while the stored row
+	// is still pending, so a cancel or resend never overwrites an invitation another request has
+	// already answered. Unlike MembershipInvitationDelete it ignores expiry, so a resend can renew
+	// an expired pending invitation. Returns store.ErrNoDocuments when no pending invitation has
+	// that ID, and store.ErrDuplicate when its new sig is already taken.
 	MembershipInvitationUpdate(ctx context.Context, invitation *models.MembershipInvitation) error
 
-	// MembershipInvitationDelete removes a membership invitation. It is called when the invitation
-	// is consumed (the invitee joins the namespace), so the table only ever holds live pending
-	// invitations — never a historical "accepted" row that would outlive the membership.
+	// MembershipInvitationDelete consumes a membership invitation when the invitee joins the
+	// namespace, so accepted invitations leave no row behind. It deletes only while the stored row
+	// is pending and unexpired (a nil expiry never expires), so an invitation cancelled after the
+	// caller read it is never consumed. Returns store.ErrNoDocuments when no such invitation has
+	// that ID.
 	MembershipInvitationDelete(ctx context.Context, invitation *models.MembershipInvitation) error
 
 	// UserMembershipInvitationList returns all membership invitations for a given user.
