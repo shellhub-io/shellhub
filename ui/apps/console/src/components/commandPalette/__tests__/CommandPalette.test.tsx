@@ -1,14 +1,13 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { getUserInfoOptions, type Device } from "@/client";
+import type { Device } from "@/client";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
   mockNamespace,
-  mockUserAuth,
 } from "@/tests/factories";
 import { setEdition } from "@/tests/edition";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
@@ -97,7 +96,7 @@ describe("CommandPalette", () => {
     copyMock.mockClear();
     useTerminalStore.setState({ sessions: [], reconnectTarget: null });
     useRecentDevicesStore.setState({ byTenant: {} });
-    useCommandPaletteStore.setState({ open: true });
+    useCommandPaletteStore.setState({ view: "palette" });
   });
 
   it("leaves the admin licence alone outside the admin console", async () => {
@@ -113,35 +112,6 @@ describe("CommandPalette", () => {
 
     expect(await screen.findByText("web-01")).toBeInTheDocument();
     expect(licenceRequested).not.toHaveBeenCalled();
-  });
-
-  it("offers Create namespace on cloud to an account with an allowance", async () => {
-    setEdition("cloud");
-    server.use(
-      http.get("*/api/auth/user", () => HttpResponse.json(mockUserAuth())),
-    );
-    renderPalette();
-
-    expect(await screen.findByText("Create namespace")).toBeInTheDocument();
-  });
-
-  it("hides Create namespace on cloud from an account with no allowance", async () => {
-    setEdition("cloud");
-    server.use(
-      http.get("*/api/auth/user", () =>
-        HttpResponse.json(mockUserAuth({ max_namespaces: 0 })),
-      ),
-    );
-    const queryClient = createTestQueryClient();
-    renderPalette(queryClient);
-
-    expect(await screen.findByText("dev")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(
-        queryClient.getQueryState(getUserInfoOptions().queryKey)?.status,
-      ).toBe("success"),
-    );
-    expect(screen.queryByText("Create namespace")).not.toBeInTheDocument();
   });
 
   it("shows devices and hides navigation by default", async () => {
@@ -183,7 +153,7 @@ describe("CommandPalette", () => {
       deviceUid: "dev-1",
       deviceName: "web-01",
     });
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("restores an existing session instead of connecting", async () => {
@@ -208,7 +178,7 @@ describe("CommandPalette", () => {
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("connects rather than restoring a session for a different device", async () => {
@@ -245,7 +215,7 @@ describe("CommandPalette", () => {
     await user.type(await screen.findByRole("combobox"), ">");
     await user.click(screen.getByText("Logout"));
 
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("rejects connecting to an offline device and keeps the palette open", async () => {
@@ -256,7 +226,7 @@ describe("CommandPalette", () => {
     await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
     expect(screen.getByRole("alert")).toHaveTextContent(/offline/i);
   });
 
@@ -284,7 +254,7 @@ describe("CommandPalette", () => {
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("rejects connecting without the device:connect permission", async () => {
@@ -295,7 +265,7 @@ describe("CommandPalette", () => {
     await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
     expect(screen.getByRole("alert")).toHaveTextContent(/permission/i);
   });
 
@@ -321,7 +291,7 @@ describe("CommandPalette", () => {
     await user.click(await screen.findByText("web-01"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("minimized");
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
     expect(screen.getByRole("alert")).toHaveTextContent(/permission/i);
   });
 
@@ -344,7 +314,7 @@ describe("CommandPalette", () => {
     await user.click(await screen.findByText("root@web-01"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("restores the leading session on Enter by default", async () => {
@@ -355,7 +325,7 @@ describe("CommandPalette", () => {
     await user.type(await screen.findByRole("combobox"), "{Enter}");
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("lists recent devices between sessions and the full device list", async () => {
@@ -423,10 +393,24 @@ describe("CommandPalette", () => {
       deviceUid: "dev-2",
       deviceName: "db-01",
     });
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
-  it("shakes the clicked recent row, not its device duplicate, when offline", async () => {
+  it("lists a recent device once, not again under Devices", async () => {
+    setDevices([device, device2]);
+    useRecentDevicesStore.setState({
+      byTenant: {
+        "tenant-456": [{ uid: "dev-2", name: "db-01", connectedAt: HOUR_AGO }],
+      },
+    });
+    renderPalette();
+
+    expect(await screen.findByText(/1 hour ago/)).toBeInTheDocument();
+    expect(screen.getAllByText("db-01")).toHaveLength(1);
+    expect(screen.queryByText("aa:bb:cc:dd:ee:ff")).not.toBeInTheDocument();
+  });
+
+  it("shakes an offline recent row it can't connect to", async () => {
     const user = userEvent.setup();
     setDevices([device, { ...device2, online: false }]);
     useRecentDevicesStore.setState({
@@ -436,17 +420,42 @@ describe("CommandPalette", () => {
     });
     renderPalette();
 
-    const recentRow = (await screen.findByText(/1 hour ago/)).closest(
-      '[role="option"]',
-    );
-    await user.click(recentRow as HTMLElement);
+    const recentRow = await screen.findByRole("option", { name: /db-01/ });
+    await user.click(recentRow);
 
-    expect(recentRow?.className).toContain("animate-shake");
-    const deviceRow = screen
-      .getByText("aa:bb:cc:dd:ee:ff")
-      .closest('[role="option"]');
-    expect(deviceRow?.className).not.toContain("animate-shake");
+    expect(recentRow.className).toContain("animate-shake");
     expect(screen.getByRole("alert")).toHaveTextContent(/offline/i);
+  });
+
+  it("leaves a device's actions, not the palette, on a click outside", async () => {
+    const user = userEvent.setup();
+    renderPalette();
+
+    await screen.findByText("web-01");
+    await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+    expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
+    await user.click(screen.getByRole("dialog", { name: "Command palette" }));
+
+    expect(screen.queryByText("Copy SSHID")).not.toBeInTheDocument();
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
+  });
+
+  it("lists devices A to Z", async () => {
+    setDevices([device, device2]);
+    renderPalette();
+
+    await screen.findByText("web-01");
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveTextContent("db-01");
+    expect(options[1]).toHaveTextContent("web-01");
+  });
+
+  it("lists no namespaces", async () => {
+    renderPalette();
+
+    expect(await screen.findByText("web-01")).toBeInTheDocument();
+    expect(screen.queryByText("dev")).not.toBeInTheDocument();
+    expect(screen.queryByText("Namespaces")).not.toBeInTheDocument();
   });
 
   it("moves the highlight down across sections, tracking aria-activedescendant", async () => {
@@ -483,18 +492,18 @@ describe("CommandPalette", () => {
     await waitFor(() => {
       expect(input).toHaveAttribute(
         "aria-activedescendant",
-        "cmdk-opt-device-dev-1",
+        "cmdk-opt-device-dev-2",
       );
     });
     await user.type(input, "{ArrowUp}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-ns-tenant-456",
+      "cmdk-opt-device-dev-1",
     );
     await user.type(input, "{ArrowDown}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-device-dev-1",
+      "cmdk-opt-device-dev-2",
     );
   });
 
@@ -507,18 +516,18 @@ describe("CommandPalette", () => {
     await waitFor(() => {
       expect(input).toHaveAttribute(
         "aria-activedescendant",
-        "cmdk-opt-device-dev-1",
+        "cmdk-opt-device-dev-2",
       );
     });
     await user.type(input, "{End}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-ns-tenant-456",
+      "cmdk-opt-device-dev-1",
     );
     await user.type(input, "{Home}");
     expect(input).toHaveAttribute(
       "aria-activedescendant",
-      "cmdk-opt-device-dev-1",
+      "cmdk-opt-device-dev-2",
     );
   });
 
@@ -531,17 +540,17 @@ describe("CommandPalette", () => {
     await waitFor(() => {
       expect(input).toHaveAttribute(
         "aria-activedescendant",
-        "cmdk-opt-device-dev-1",
+        "cmdk-opt-device-dev-2",
       );
     });
     await user.type(input, "{ArrowDown}");
     await user.type(input, "{Enter}");
 
     expect(useTerminalStore.getState().reconnectTarget).toEqual({
-      deviceUid: "dev-2",
-      deviceName: "db-01",
+      deviceUid: "dev-1",
+      deviceName: "web-01",
     });
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("opens the device action menu on ArrowRight without connecting", async () => {
@@ -620,7 +629,7 @@ describe("CommandPalette", () => {
 
     expect(copyMock).toHaveBeenCalledWith("dev.web-01@localhost");
     expect(screen.getByText("Copied SSHID to clipboard")).toBeInTheDocument();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
   });
 
   it("copies the ssh command", async () => {
@@ -641,7 +650,7 @@ describe("CommandPalette", () => {
     await user.click(screen.getByText("View details"));
 
     expect(screen.getByTestId("location")).toHaveTextContent("/devices/dev-1");
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("connects from the action menu", async () => {
@@ -655,7 +664,7 @@ describe("CommandPalette", () => {
       deviceUid: "dev-1",
       deviceName: "web-01",
     });
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 
   it("disables the menu Connect action without permission", async () => {
@@ -673,7 +682,7 @@ describe("CommandPalette", () => {
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
   });
 
   it("disables the menu Connect action for an offline device with no session", async () => {
@@ -690,7 +699,7 @@ describe("CommandPalette", () => {
 
     expect(useTerminalStore.getState().reconnectTarget).toBeNull();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+    expect(useCommandPaletteStore.getState().view).toBe("palette");
   });
 
   it("keeps the menu Connect enabled for an offline device with an open session", async () => {
@@ -722,6 +731,107 @@ describe("CommandPalette", () => {
     await user.click(screen.getByText("Connect"));
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+    expect(useCommandPaletteStore.getState().view).toBeNull();
+  });
+
+  describe("opened from the new-tab picker", () => {
+    beforeEach(() => {
+      useCommandPaletteStore.setState({ view: "connect" });
+    });
+
+    it("searches the current namespace's devices, without terminals", async () => {
+      useTerminalStore.setState({ sessions: [session], reconnectTarget: null });
+      renderPalette();
+
+      expect(
+        await screen.findByRole("dialog", { name: "Connect to a device" }),
+      ).toBeInTheDocument();
+      expect(await screen.findByText("in dev")).toBeInTheDocument();
+      expect(screen.getByText("web-01")).toBeInTheDocument();
+      expect(screen.queryByText("root@web-01")).not.toBeInTheDocument();
+    });
+
+    it("treats > as a search term, not command mode", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await user.type(await screen.findByRole("combobox"), ">");
+
+      expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+      expect(screen.getByText("No device in dev matches")).toBeInTheDocument();
+    });
+
+    it("returns to the picker on Escape", async () => {
+      renderPalette();
+
+      await screen.findByText("web-01");
+      fireEvent(
+        screen.getByRole("dialog", { name: "Connect to a device" }),
+        new Event("cancel", { cancelable: true }),
+      );
+
+      expect(useCommandPaletteStore.getState().view).toBe("picker");
+    });
+
+    it("closes outright on a click outside", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await user.click(
+        await screen.findByRole("dialog", { name: "Connect to a device" }),
+      );
+
+      expect(useCommandPaletteStore.getState().view).toBeNull();
+    });
+
+    it("closes outright on a click outside a device's actions", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await screen.findByText("web-01");
+      await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+      expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
+      await user.click(
+        screen.getByRole("dialog", { name: "Connect to a device" }),
+      );
+
+      expect(useCommandPaletteStore.getState().view).toBeNull();
+    });
+
+    it("returns to the picker from the back button", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Back to new tab" }),
+      );
+
+      expect(useCommandPaletteStore.getState().view).toBe("picker");
+    });
+
+    it("returns to the picker on ArrowLeft with an empty query", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await user.type(await screen.findByRole("combobox"), "{ArrowLeft}");
+
+      expect(useCommandPaletteStore.getState().view).toBe("picker");
+    });
+
+    it("leaves a device's actions before returning to the picker", async () => {
+      const user = userEvent.setup();
+      renderPalette();
+
+      await screen.findByText("web-01");
+      await user.type(screen.getByRole("combobox"), "{ArrowRight}");
+      expect(screen.getByText("Copy SSHID")).toBeInTheDocument();
+      fireEvent(
+        screen.getByRole("dialog", { name: "Connect to a device" }),
+        new Event("cancel", { cancelable: true }),
+      );
+
+      expect(screen.queryByText("Copy SSHID")).not.toBeInTheDocument();
+      expect(useCommandPaletteStore.getState().view).toBe("connect");
+    });
   });
 });

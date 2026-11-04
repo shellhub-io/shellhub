@@ -8,6 +8,8 @@ interface PaletteHeaderProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
   query: string;
   drillDevice: NormalizedDevice | null;
+  connect: boolean;
+  nsName: string;
   commandMode: boolean;
   adminContext: boolean;
   hasResults: boolean;
@@ -15,14 +17,18 @@ interface PaletteHeaderProps {
   onQueryChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onBack: () => void;
+  onBackToPicker: () => void;
 }
 
-/** Mode-aware header: a back-button + device breadcrumb while drilled in, the
+/** Mode-aware header: a back-button + device breadcrumb while drilled in, a
+ *  back-to-picker button and the namespace searched in the connect view, the
  *  search/command glyph otherwise, plus the combobox input. */
 export default function PaletteHeader({
   inputRef,
   query,
   drillDevice,
+  connect,
+  nsName,
   commandMode,
   adminContext,
   hasResults,
@@ -30,6 +36,7 @@ export default function PaletteHeader({
   onQueryChange,
   onKeyDown,
   onBack,
+  onBackToPicker,
 }: PaletteHeaderProps) {
   return (
     <div className="flex items-center gap-3 px-4 border-b border-border shrink-0">
@@ -52,6 +59,15 @@ export default function PaletteHeader({
             </span>
           </div>
         </>
+      ) : connect ? (
+        <IconButton
+          size="sm"
+          onClick={onBackToPicker}
+          aria-label="Back to new tab"
+          className="-ml-1"
+        >
+          <ChevronLeftIcon className="w-5 h-5" />
+        </IconButton>
       ) : (
         <>
           <span
@@ -80,11 +96,13 @@ export default function PaletteHeader({
         aria-label={
           drillDevice
             ? `Search actions for ${drillDevice.name}`
-            : commandMode
-              ? "Search commands"
-              : adminContext
-                ? "Search sessions and namespaces, or type > for commands"
-                : "Search devices, sessions and namespaces, or type > for commands"
+            : connect
+              ? `Search devices in ${nsName}`
+              : commandMode
+                ? "Search commands"
+                : adminContext
+                  ? "Search sessions, or type > for commands"
+                  : "Search devices and sessions, or type > for commands"
         }
         aria-expanded
         aria-controls={hasResults ? LISTBOX_ID : undefined}
@@ -96,14 +114,21 @@ export default function PaletteHeader({
         placeholder={
           drillDevice
             ? "Search actions…"
-            : commandMode
-              ? "Search commands…"
-              : adminContext
-                ? "Search sessions, namespaces…"
-                : "Search devices, sessions, namespaces…"
+            : connect
+              ? "Search devices…"
+              : commandMode
+                ? "Search commands…"
+                : adminContext
+                  ? "Search sessions…"
+                  : "Search devices and sessions…"
         }
         className="flex-1 h-12 bg-transparent text-sm text-text-primary placeholder:text-text-secondary focus:outline-none"
       />
+      {connect && !drillDevice && (
+        <span className="shrink-0 px-2 py-0.5 text-2xs font-medium text-primary bg-primary/10 rounded-full truncate max-w-40">
+          in {nsName}
+        </span>
+      )}
       <kbd
         className="shrink-0 px-1.5 py-0.5 text-2xs font-mono font-semibold text-text-muted/50 bg-hover-medium border border-border rounded"
         aria-hidden="true"

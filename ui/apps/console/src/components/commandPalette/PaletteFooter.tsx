@@ -19,12 +19,14 @@ function KeyHint({ keys, label }: { keys: string[]; label: string }) {
 
 interface PaletteFooterProps {
   drillDevice: NormalizedDevice | null;
+  connect: boolean;
   commandMode: boolean;
 }
 
 /** Context-dependent keyboard hints at the bottom of the palette. */
 export default function PaletteFooter({
   drillDevice,
+  connect,
   commandMode,
 }: PaletteFooterProps) {
   return (
@@ -32,11 +34,13 @@ export default function PaletteFooter({
       <KeyHint keys={["↑", "↓"]} label="navigate" />
       <KeyHint
         keys={["↵"]}
-        label={drillDevice || commandMode ? "select" : "open"}
+        label={
+          drillDevice || commandMode ? "select" : connect ? "connect" : "open"
+        }
       />
       {!drillDevice && !commandMode && <KeyHint keys={["→"]} label="actions" />}
-      {drillDevice && <KeyHint keys={["←"]} label="back" />}
-      {!drillDevice && !commandMode && (
+      {(drillDevice || connect) && <KeyHint keys={["←"]} label="back" />}
+      {!drillDevice && !commandMode && !connect && (
         <KeyHint keys={[">"]} label="commands" />
       )}
       <div className="ml-auto">

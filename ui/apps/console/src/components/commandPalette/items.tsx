@@ -22,7 +22,8 @@ import { formatRelative } from "@/utils/date";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
-import type { JSX } from "react";
+import { useEffect } from "react";
+import type { Dispatch, JSX, RefObject, SetStateAction } from "react";
 import type { AdminNavLink } from "@/components/layout/adminNav";
 
 /**
@@ -112,9 +113,9 @@ export function fuzzyMatch(query: string, text: string): boolean {
 
 /**
  * The default, connection-first view. Open terminal sessions lead, so restoring one is the
- * shortest path; then recently connected devices; then everything else. A device or recent row
- * both connects and offers a drill-in to the action menu, which is why the two are one row rather
- * than two.
+ * shortest path; then recently connected devices; then every other device, A to Z, without
+ * repeating a recent one. A device or recent row both connects and offers
+ * a drill-in to the action menu, which is why the two are one row rather than two.
  */
 export function buildConnectionItems(deps: {
   devices: NormalizedDevice[];
@@ -208,7 +209,11 @@ export function buildConnectionItems(deps: {
     );
   });
 
-  devices.forEach((d) => {
+  const recentUids = new Set(recentDevices.map(({ device }) => device.uid));
+  const otherDevices = devices
+    .filter((d) => !recentUids.has(d.uid))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  otherDevices.forEach((d) => {
     list.push(
       deviceRow(d, {
         id: `device-${d.uid}`,
@@ -222,64 +227,90 @@ export function buildConnectionItems(deps: {
   return list;
 }
 
+function orderNamespaces<T extends { tenant_id: string; name: string }>(
+  namespaces: T[],
+  currentTenant: string | null,
+  openTabTenants: string[],
+): T[] {
+  const rank = (tenant: string) => {
+    if (tenant === currentTenant) return -1;
+    const tab = openTabTenants.indexOf(tenant);
+    return tab === -1 ? openTabTenants.length : tab;
+  };
+  return [...namespaces].sort(
+    (a, b) =>
+      rank(a.tenant_id) - rank(b.tenant_id) || a.name.localeCompare(b.name),
+  );
+}
+
 /**
- * The contexts that can be opened as tabs: every namespace, and the admin console for an admin.
- * Choosing one opens its tab, or activates it when it is already open.
+ * The new-tab picker's rows: the current namespace, labelled, then the others open as tabs in
+ * strip order, then the rest A to Z, then the actions. "Connect to a device" shows only when
+ * showConnect is set, "Create namespace" only when canCreateNamespace is, and "Admin Console"
+ * only when showAdmin is.
  */
-export function buildWorkspaceItems(deps: {
+export function buildNewTabItems(deps: {
   namespaces: { tenant_id: string; name: string }[];
   currentTenant: string | null;
+  openTabTenants: string[];
+  showConnect: boolean;
   showAdmin: boolean;
   canCreateNamespace: boolean;
   openNamespace: (tenant: string, name: string) => void;
+  connect: () => void;
   openAdmin: () => void;
   createNamespace: () => void;
-  close: () => void;
 }): CommandItem[] {
   const {
     namespaces,
     currentTenant,
+    openTabTenants,
+    showConnect,
     showAdmin,
     canCreateNamespace,
     openNamespace,
+    connect,
     openAdmin,
     createNamespace,
-    close,
   } = deps;
-  const list: CommandItem[] = namespaces.map((ns) => ({
+  const list: CommandItem[] = orderNamespaces(
+    namespaces,
+    currentTenant,
+    openTabTenants,
+  ).map((ns) => ({
     id: `ns-${ns.tenant_id}`,
     label: ns.name,
     sublabel: ns.tenant_id === currentTenant ? "Current" : undefined,
     section: "Namespaces",
     icon: icons.namespace,
-    onSelect: () => {
-      close();
-      openNamespace(ns.tenant_id, ns.name);
-    },
+    onSelect: () => openNamespace(ns.tenant_id, ns.name),
   }));
+  if (showConnect) {
+    list.push({
+      id: "tab-connect",
+      label: "Connect to a device",
+      section: "Actions",
+      icon: icons.connect,
+      onSelect: connect,
+    });
+  }
   if (canCreateNamespace) {
     list.push({
-      id: "ws-create-namespace",
+      id: "tab-create-namespace",
       label: "Create namespace",
-      section: "Namespaces",
+      section: "Actions",
       icon: icons.add,
-      onSelect: () => {
-        close();
-        createNamespace();
-      },
+      onSelect: createNamespace,
     });
   }
   if (showAdmin) {
     list.push({
-      id: "ws-admin",
+      id: "tab-admin",
       label: "Admin Console",
       sublabel: "Instance-wide",
-      section: "Namespaces",
+      section: "Actions",
       icon: icons.admin,
-      onSelect: () => {
-        close();
-        openAdmin();
-      },
+      onSelect: openAdmin,
     });
   }
   return list;
@@ -426,4 +457,70 @@ export function buildDeviceActionItems(deps: {
       onSelect: () => go(`/devices/${uid}`),
     },
   ];
+}
+
+/**
+ * Handles the keys every palette listbox shares while focus stays in its input: ArrowUp and
+ * ArrowDown wrap, Home and End jump to either end, and Enter runs the row at safeIndex unless it
+ * is disabled. safeIndex is the highlight already clamped to items, -1 when the list is empty.
+ * Returns whether it handled the key, so a caller can layer its own keys on top.
+ */
+export function handleListboxKey(
+  e: React.KeyboardEvent<HTMLInputElement>,
+  items: CommandItem[],
+  safeIndex: number,
+  setActiveIndex: Dispatch<SetStateAction<number>>,
+): boolean {
+  const { length: len } = items;
+  const move = (delta: number) =>
+    setActiveIndex((prev) => (Math.min(prev, len - 1) + delta + len) % len);
+  switch (e.key) {
+    case "ArrowDown":
+      e.preventDefault();
+      if (len) move(1);
+      return true;
+    case "ArrowUp":
+      e.preventDefault();
+      if (len) move(-1);
+      return true;
+    case "Home":
+      if (!len) return false;
+      e.preventDefault();
+      setActiveIndex(0);
+      return true;
+    case "End":
+      if (!len) return false;
+      e.preventDefault();
+      setActiveIndex(len - 1);
+      return true;
+    case "Enter": {
+      e.preventDefault();
+      const active = safeIndex >= 0 ? items[safeIndex] : undefined;
+      if (active && !active.disabled) active.onSelect();
+      return true;
+    }
+    default: return false;
+  }
+}
+
+/**
+ * The highlighted row of a palette listbox: activeIndex clamped to items, so a shrinking filter
+ * never leaves it past the end, and -1 with no activeItem when items is empty. The highlighted
+ * row, marked data-active, is scrolled into view inside listRef whenever the highlight moves.
+ */
+export function useListboxHighlight<T>(
+  items: T[],
+  activeIndex: number,
+  listRef: RefObject<HTMLElement | null>,
+) {
+  const safeIndex = items.length ? Math.min(activeIndex, items.length - 1) : -1;
+  useEffect(() => {
+    listRef.current
+      ?.querySelector("[data-active=true]")
+      ?.scrollIntoView({ block: "nearest" });
+  }, [safeIndex, listRef]);
+  return {
+    safeIndex,
+    activeItem: safeIndex >= 0 ? items[safeIndex] : undefined,
+  };
 }

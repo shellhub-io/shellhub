@@ -4,7 +4,6 @@ import {
   Cog6ToothIcon,
   CommandLineIcon,
   PlayCircleIcon,
-  PlusIcon,
   ShieldCheckIcon,
   XMarkIcon,
   AdjustmentsHorizontalIcon,
@@ -19,7 +18,7 @@ import {
 } from "@/stores/terminalStore";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { accountDisplayName, useAuthStore } from "@/stores/authStore";
-import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
+import NewTabPicker from "@/components/commandPalette/NewTabPicker";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import {
@@ -264,7 +263,6 @@ export default function TabStrip({
   const { namespaces } = useNamespaces();
   const sessions = useTerminalStore((s) => s.sessions);
   const closeSession = useTerminalStore((s) => s.close);
-  const openPalette = useCommandPaletteStore((s) => s.openPalette);
   const terminalColors = useTerminalThemeStore((s) => s.theme.colors);
   const recordings = useTerminalStore((s) => s.recordings);
   const showRecording = useTerminalStore((s) => s.showRecording);
@@ -385,15 +383,7 @@ export default function TabStrip({
         );
       })}
 
-      <button
-        type="button"
-        aria-label="Open a device, session or namespace"
-        title="Open… (⌘K)"
-        onClick={openPalette}
-        className="mb-[5px] ml-1 w-7 h-7 rounded-md flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-hover-subtle shrink-0"
-      >
-        <PlusIcon className="w-4 h-4" strokeWidth={2} />
-      </button>
+      <NewTabPicker />
 
       <div
         data-tauri-drag-region

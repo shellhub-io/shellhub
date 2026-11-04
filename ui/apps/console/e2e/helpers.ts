@@ -217,12 +217,10 @@ export async function signOut(page: Page, username: string) {
 }
 
 export async function switchNamespace(page: Page, namespace: string) {
-  await page
-    .getByRole("button", { name: "Open a device, session or namespace" })
-    .click();
-  const palette = page.getByRole("dialog", { name: "Command palette" });
-  await palette.getByRole("combobox").fill(namespace);
-  await palette.getByRole("option", { name: namespace }).click();
+  await page.getByRole("button", { name: "New tab" }).click();
+  const picker = page.getByRole("dialog", { name: "New tab" });
+  await picker.getByRole("combobox").fill(namespace);
+  await picker.getByRole("option", { name: namespace }).click();
   await expect(page.getByRole("tab", { selected: true })).toHaveText(
     new RegExp(`${namespace}$`),
   );

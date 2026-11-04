@@ -1,32 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDevices } from "@/hooks/useDevices";
 import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useOrderedWindows, useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
-import { useCreateNamespaceStore } from "@/stores/createNamespaceStore";
 import { adminNavLinks, useAdminNav } from "@/components/layout/adminNav";
 import {
   useRecentDevicesStore,
   type RecentDevice,
 } from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
+import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
-import { useUserInfo } from "@/hooks/useUserRequests";
-import { isEnterpriseOrCloud } from "@/env";
-import { canCreateNamespace } from "@/utils/namespaceCreation";
 import { useCopy } from "@/hooks/useCopy";
 import { isAdminPath } from "@/utils/adminRoute";
 import {
   buildConnectionItems,
-  buildWorkspaceItems,
   buildAdminItems,
   buildCommandItems,
   buildDeviceActionItems,
   fuzzyMatch,
+  handleListboxKey,
+  useListboxHighlight,
   NO_CONNECT_PERMISSION,
   type CommandItem,
   type Feedback,
@@ -46,6 +43,8 @@ export interface CommandPaletteViewModel {
   listRef: React.RefObject<HTMLDivElement | null>;
   query: string;
   drillDevice: NormalizedDevice | null;
+  connect: boolean;
+  nsName: string;
   commandMode: boolean;
   adminContext: boolean;
   sections: Map<string, CommandItem[]>;
@@ -59,18 +58,28 @@ export interface CommandPaletteViewModel {
   setActiveIndex: (index: number) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   handleDismiss: () => void;
+  handleBackdropClose: () => void;
   exitDrillIn: () => void;
+  backToPicker: () => void;
 }
 
 /**
- * Headless controller for the command palette: owns all state, derivation,
+ * Headless controller for the device palette: owns all state, derivation,
  * effects, and handlers, and returns a view-model. Keeps the rendering shell
- * and its parts free of logic.
+ * and its parts free of logic. It serves both the "palette" view Ctrl/Cmd+K
+ * opens and the "connect" view the new-tab picker opens; connect leaves out
+ * the terminal sessions and ">" commands. In either view Escape, or ArrowLeft
+ * at the start of the input, first leaves a device's actions; after that, in
+ * connect, Escape, or ArrowLeft on an empty query, returns to the picker
+ * rather than closing. A click outside closes connect outright, while in the palette
+ * view it acts as Escape does.
  */
 export function useCommandPalette(): CommandPaletteViewModel {
-  const open = useCommandPaletteStore((s) => s.open);
-  const closePalette = useCommandPaletteStore((s) => s.closePalette);
-  const openCreateNamespace = useCreateNamespaceStore((s) => s.openDialog);
+  const view = useCommandPaletteStore((s) => s.view);
+  const closeView = useCommandPaletteStore((s) => s.close);
+  const showView = useCommandPaletteStore((s) => s.show);
+  const open = view === "palette" || view === "connect";
+  const connect = view === "connect";
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [drillInUid, setDrillInUid] = useState<string | null>(null);
@@ -92,9 +101,6 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const canConnect = useHasPermission("device:connect");
   const { namespace } = useNamespace(tenant ?? "");
   const legacy = useNamespaceLegacy();
-  const { namespaces } = useNamespaces();
-  const isAdmin = useAuthStore((s) => s.isAdmin);
-  const { data: userInfo } = useUserInfo();
   const workspace = useWorkspaceTabs();
   const adminNav = useAdminNav({ active: adminContext });
   const nsName = namespace?.name ?? "";
@@ -110,7 +116,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [drillInUid]);
+  }, [drillInUid, view]);
 
   useEffect(() => {
     if (!shakeId) return undefined;
@@ -118,14 +124,15 @@ export function useCommandPalette(): CommandPaletteViewModel {
     return () => clearTimeout(timer);
   }, [shakeId]);
 
-  const close = useCallback(() => {
-    setQuery("");
-    setActiveIndex(0);
-    setFeedback(null);
-    setShakeId(null);
-    setDrillInUid(null);
-    closePalette();
-  }, [closePalette]);
+  const close = () => {
+    exitDrillIn();
+    closeView();
+  };
+
+  const backToPicker = () => {
+    exitDrillIn();
+    showView("picker");
+  };
 
   const go = (path: string) => {
     close();
@@ -148,26 +155,30 @@ export function useCommandPalette(): CommandPaletteViewModel {
     setFeedback({ kind: "success", text: `Copied ${label} to clipboard` });
   };
 
-  const enterDrillIn = (uid: string) => {
-    setDrillInUid(uid);
+  const resetSearch = () => {
     setQuery("");
     setActiveIndex(0);
     setFeedback(null);
     setShakeId(null);
   };
 
+  const enterDrillIn = (uid: string) => {
+    resetSearch();
+    setDrillInUid(uid);
+  };
+
   const exitDrillIn = () => {
+    resetSearch();
     setDrillInUid(null);
-    setQuery("");
-    setActiveIndex(0);
-    setFeedback(null);
-    setShakeId(null);
   };
 
   const handleDismiss = () => {
     if (isDrilledIn) exitDrillIn();
+    else if (connect) backToPicker();
     else close();
   };
+
+  const handleBackdropClose = connect ? close : handleDismiss;
 
   const connectOrRestore = (
     uid: string,
@@ -194,18 +205,21 @@ export function useCommandPalette(): CommandPaletteViewModel {
     store.requestConnect(uid, name);
   };
 
+  const toggleFromShortcut = useEffectEvent(() => {
+    if (view) close();
+    else showView("palette");
+  });
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        const store = useCommandPaletteStore.getState();
-        if (store.open) close();
-        else store.openPalette();
+        toggleFromShortcut();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [close]);
+  }, []);
 
   const openUids = new Set(terminalSessions.map((s) => s.deviceUid));
   const recentDevices: { device: NormalizedDevice; connectedAt: string }[] = [];
@@ -217,30 +231,17 @@ export function useCommandPalette(): CommandPaletteViewModel {
     if (recentDevices.length >= RECENT_LIMIT) break;
   }
 
-  const connectionItems = [
-    ...buildConnectionItems({
-      devices: adminContext ? [] : devices,
-      terminalSessions,
-      recentDevices: adminContext ? [] : recentDevices,
-      canConnect,
-      connectOrRestore,
-      restoreTerminal: (session) => void workspace.showTerminal(session),
-      rejectRow,
-      enterDrillIn,
-      close,
-    }),
-    ...buildWorkspaceItems({
-      namespaces,
-      currentTenant: tenant,
-      showAdmin: isEnterpriseOrCloud() && isAdmin,
-      canCreateNamespace: canCreateNamespace(userInfo),
-      openNamespace: (namespaceTenant, name) =>
-        void workspace.openNamespace(namespaceTenant, name),
-      openAdmin: () => void workspace.openAdmin(),
-      createNamespace: openCreateNamespace,
-      close,
-    }),
-  ];
+  const connectionItems = buildConnectionItems({
+    devices: adminContext ? [] : devices,
+    terminalSessions: connect ? [] : terminalSessions,
+    recentDevices: adminContext ? [] : recentDevices,
+    canConnect,
+    connectOrRestore,
+    restoreTerminal: (session) => void workspace.showTerminal(session),
+    rejectRow,
+    enterDrillIn,
+    close,
+  });
 
   const commandItems = buildCommandItems({
     go,
@@ -266,7 +267,8 @@ export function useCommandPalette(): CommandPaletteViewModel {
   });
 
   const trimmedQuery = query.trimStart();
-  const commandMode = !drillDevice && trimmedQuery.startsWith(">");
+  const commandMode =
+    !drillDevice && !connect && trimmedQuery.startsWith(">");
   const term = commandMode ? trimmedQuery.slice(1).trim() : query.trim();
   const activeItems = drillDevice
     ? deviceActionItems
@@ -293,21 +295,14 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const flatList = [...sections.values()].flat();
   const indexById = new Map(flatList.map((item, i) => [item.id, i]));
 
-  const safeIndex = flatList.length
-    ? Math.min(activeIndex, flatList.length - 1)
-    : -1;
-  const activeItem = safeIndex >= 0 ? flatList[safeIndex] : undefined;
-
-  useEffect(() => {
-    if (!listRef.current) return;
-    const active = listRef.current.querySelector("[data-active=true]");
-    active?.scrollIntoView({ block: "nearest" });
-  }, [safeIndex]);
+  const { safeIndex, activeItem } = useListboxHighlight(
+    flatList,
+    activeIndex,
+    listRef,
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const len = flatList.length;
-    const move = (delta: number) =>
-      setActiveIndex((prev) => (Math.min(prev, len - 1) + delta + len) % len);
+    if (handleListboxKey(e, flatList, safeIndex, setActiveIndex)) return;
     const input = e.currentTarget;
     const caretAtEnd =
       input.selectionStart === input.selectionEnd &&
@@ -315,44 +310,19 @@ export function useCommandPalette(): CommandPaletteViewModel {
     const caretAtStart =
       input.selectionStart === input.selectionEnd && input.selectionStart === 0;
 
-    switch (e.key) {
-      case "ArrowDown":
+    if (e.key === "ArrowRight") {
+      const item = flatList[safeIndex];
+      if (caretAtEnd && !isDrilledIn && item?.onDrillIn) {
         e.preventDefault();
-        if (len) move(1);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        if (len) move(-1);
-        break;
-      case "ArrowRight": {
-        const item = flatList[safeIndex];
-        if (caretAtEnd && !isDrilledIn && item?.onDrillIn) {
-          e.preventDefault();
-          item.onDrillIn();
-        }
-        break;
+        item.onDrillIn();
       }
-      case "ArrowLeft":
-        if (caretAtStart && isDrilledIn) {
-          e.preventDefault();
-          exitDrillIn();
-        }
-        break;
-      case "Home":
-        if (!len) break;
+    } else if (e.key === "ArrowLeft" && caretAtStart) {
+      if (isDrilledIn) {
         e.preventDefault();
-        setActiveIndex(0);
-        break;
-      case "End":
-        if (!len) break;
+        exitDrillIn();
+      } else if (connect && !query) {
         e.preventDefault();
-        setActiveIndex(len - 1);
-        break;
-      case "Enter": {
-        e.preventDefault();
-        const active = safeIndex >= 0 ? flatList[safeIndex] : undefined;
-        if (active && !active.disabled) active.onSelect();
-        break;
+        backToPicker();
       }
     }
   };
@@ -372,6 +342,8 @@ export function useCommandPalette(): CommandPaletteViewModel {
     listRef,
     query,
     drillDevice,
+    connect,
+    nsName,
     commandMode,
     adminContext,
     sections,
@@ -385,6 +357,8 @@ export function useCommandPalette(): CommandPaletteViewModel {
     setActiveIndex,
     handleKeyDown,
     handleDismiss,
+    handleBackdropClose,
     exitDrillIn,
+    backToPicker,
   };
 }

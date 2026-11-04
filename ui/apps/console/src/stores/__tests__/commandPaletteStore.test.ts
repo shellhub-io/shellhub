@@ -3,17 +3,17 @@ import { useCommandPaletteStore } from "../commandPaletteStore";
 
 describe("commandPaletteStore", () => {
   beforeEach(() => {
-    useCommandPaletteStore.setState({ open: false });
+    useCommandPaletteStore.setState({ view: null });
   });
 
-  it("openPalette opens it", () => {
-    useCommandPaletteStore.getState().openPalette();
-    expect(useCommandPaletteStore.getState().open).toBe(true);
+  it("show opens the given view", () => {
+    useCommandPaletteStore.getState().show("connect");
+    expect(useCommandPaletteStore.getState().view).toBe("connect");
   });
 
-  it("closePalette closes it", () => {
-    useCommandPaletteStore.setState({ open: true });
-    useCommandPaletteStore.getState().closePalette();
-    expect(useCommandPaletteStore.getState().open).toBe(false);
+  it("close closes whichever view is open", () => {
+    useCommandPaletteStore.setState({ view: "connect" });
+    useCommandPaletteStore.getState().close();
+    expect(useCommandPaletteStore.getState().view).toBeNull();
   });
 });
