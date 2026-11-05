@@ -5,7 +5,7 @@ import "github.com/shellhub-io/shellhub/pkg/models"
 
 // UpdateUser is the structure to represent the request body of the update user data endpoint.
 type UpdateUser struct {
-	UserID        string `identity:"id" validate:"required"`
+	UserID        string `identity:"id" json:"-" validate:"required"`
 	Name          string `json:"name" validate:"omitempty,name"`
 	Username      string `json:"username" validate:"omitempty,username"`
 	Email         string `json:"email" validate:"omitempty,email"`
@@ -17,19 +17,19 @@ type UpdateUser struct {
 
 // RevokeUserTokens is the request of the endpoint that revokes every token the caller holds.
 type RevokeUserTokens struct {
-	UserID string `identity:"id" validate:"required"`
+	UserID string `identity:"id" json:"-" validate:"required"`
 }
 
 // RecordOnboardingSurvey is the request of the endpoint that records what the caller did with the
 // onboarding survey.
 type RecordOnboardingSurvey struct {
-	UserID  string                      `identity:"id" validate:"required"`
+	UserID  string                      `identity:"id" json:"-" validate:"required"`
 	Outcome models.UserOnboardingSurvey `json:"outcome" validate:"required,oneof=answered skipped"`
 }
 
 // UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
 type UserPasswordUpdate struct {
-	UserID          string `identity:"id" validate:"required"`
+	UserID          string `identity:"id" json:"-" validate:"required"`
 	CurrentPassword string `json:"current_password" validate:"required,min=5,max=32,nefield=NewPassword"`
 	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
 }

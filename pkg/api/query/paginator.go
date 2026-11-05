@@ -12,10 +12,10 @@ const (
 // Paginator represents the paginator parameters in a query.
 type Paginator struct {
 	// Page represents the current page number.
-	Page int64 `query:"page"`
+	Page int64 `query:"page" json:"-"`
 
 	// PerPage represents the number of items per page.
-	PerPage int64 `query:"per_page"`
+	PerPage int64 `query:"per_page" json:"-"`
 }
 
 // NewPaginator creates and returns a new Paginator instance with MinPage and DefaultPerPage.

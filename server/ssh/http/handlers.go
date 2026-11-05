@@ -112,7 +112,7 @@ const (
 // have, so the dial succeeding says nothing about whether the session existed.
 func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 	var data struct {
-		UID    string `param:"uid"`
+		UID    string `param:"uid" json:"-"`
 		Device string `json:"device"`
 	}
 
@@ -253,9 +253,9 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 // the device token the agent authenticated with. They are validated here, so a request with no
 // device identity is refused.
 type HandleConnectionV2Data struct {
-	RequestID string `header:"x-request-id" validate:"required"`
-	UID       string `identity:"device" validate:"required,len=64"`
-	Tenant    string `identity:"tenant" validate:"required,uuid"`
+	RequestID string `header:"x-request-id" json:"-" validate:"required"`
+	UID       string `identity:"device" json:"-" validate:"required,len=64"`
+	Tenant    string `identity:"tenant" json:"-" validate:"required,uuid"`
 }
 
 // HandleConnectionV2 upgrades the HTTP connection to WebSocket and

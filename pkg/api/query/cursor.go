@@ -26,8 +26,8 @@ var ErrInvalidCursor = errors.New("invalid cursor")
 // Cursor is the position of a row in a read ordered by creation time, then id. A read continues
 // with the rows strictly after it.
 type Cursor struct {
-	CreatedAt time.Time
-	ID        string
+	CreatedAt time.Time `json:"-"`
+	ID        string    `json:"-"`
 }
 
 type encodedCursor struct {
@@ -74,8 +74,8 @@ func ParseCursor(s string) (Cursor, error) {
 // CursorPaginator is the cursor mode of a list request. After is the encoded cursor of the last
 // row the previous page returned, empty on the first page.
 type CursorPaginator struct {
-	Size  int64  `query:"page[size]"`
-	After string `query:"page[after]"`
+	Size  int64  `query:"page[size]" json:"-"`
+	After string `query:"page[after]" json:"-"`
 }
 
 // Normalize clamps Size into [MinPageSize, maxSize]. A zero Size takes DefaultPageSize, and a

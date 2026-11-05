@@ -22,16 +22,16 @@ func identityField(caller identity.Identity, name string) any {
 	case "admin_id":
 		return caller.AdminID
 	default:
-		panic("unknown identity tag " + strconv.Quote(name))
+		panic("identity tag " + strconv.Quote(name) + " names none of binding.IdentityClaims")
 	}
 }
 
-func bindIdentity(caller identity.Identity, target reflect.Value, pathValue func(string) string) {
+func bindIdentity(caller identity.Identity, target reflect.Value) {
 	for i := range target.NumField() {
 		field, value := target.Type().Field(i), target.Field(i)
 
 		if field.Anonymous && value.Kind() == reflect.Struct {
-			bindIdentity(caller, value, pathValue)
+			bindIdentity(caller, value)
 
 			continue
 		}
@@ -42,10 +42,6 @@ func bindIdentity(caller identity.Identity, target reflect.Value, pathValue func
 		}
 
 		bound := reflect.ValueOf(identityField(caller, name))
-		if param, fromPath := field.Tag.Lookup("param"); fromPath && bound.IsZero() {
-			bound = reflect.ValueOf(pathValue(param))
-		}
-
 		value.Set(bound.Convert(value.Type()))
 	}
 }

@@ -8,17 +8,17 @@ import (
 // ResolveInvitation resolves a pending invitation from its invite code alone —
 // the only thing the accept-invite link carries. Public: the code is the credential.
 type ResolveInvitation struct {
-	Invite string `query:"invite" validate:"required"`
+	Invite string `query:"invite" json:"-" validate:"required"`
 }
 
 // GenerateInvitationLink is the request to invite an email into a namespace and get back a link.
 // The forwarded headers are what the link's host is built from, so the link points at the address
 // the user reached the console on rather than at the server's own idea of itself.
 type GenerateInvitationLink struct {
-	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
-	ForwardedProto string          `header:"X-Forwarded-Proto"`
-	TenantID       string          `param:"tenant" validate:"required,uuid"`
-	UserID         string          `identity:"id" validate:"required"`
+	ForwardedHost  string          `header:"X-Forwarded-Host" json:"-" validate:"required"`
+	ForwardedProto string          `header:"X-Forwarded-Proto" json:"-"`
+	TenantID       string          `param:"tenant" json:"-" validate:"required,uuid"`
+	UserID         string          `identity:"id" json:"-" validate:"required"`
 	MemberEmail    string          `json:"email" validate:"required"`
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
 }
@@ -26,7 +26,7 @@ type GenerateInvitationLink struct {
 // UserMembershipInvitationList is the request to page through the invitations addressed to the
 // authenticated user, across every namespace.
 type UserMembershipInvitationList struct {
-	UserID string `identity:"id"`
+	UserID string `identity:"id" json:"-"`
 	query.Paginator
 	query.Sorter
 	query.Filters
@@ -37,10 +37,10 @@ type UserMembershipInvitationList struct {
 type NamespaceMembershipInvitationList struct {
 	// ForwardedHost is only used to build the copyable invite_url; it's optional so a missing
 	// header degrades to omitting the link rather than failing the whole listing.
-	ForwardedHost  string `header:"X-Forwarded-Host"`
-	ForwardedProto string `header:"X-Forwarded-Proto"`
-	TenantID       string `param:"tenant" validate:"required"`
-	UserID         string `identity:"id" validate:"required"`
+	ForwardedHost  string `header:"X-Forwarded-Host" json:"-"`
+	ForwardedProto string `header:"X-Forwarded-Proto" json:"-"`
+	TenantID       string `param:"tenant" json:"-" validate:"required"`
+	UserID         string `identity:"id" json:"-" validate:"required"`
 	query.Paginator
 	query.Sorter
 	query.Filters
@@ -49,14 +49,14 @@ type NamespaceMembershipInvitationList struct {
 // AcceptInvite is the request that turns an invitation into a membership. The invitee is the
 // authenticated caller, so the request carries no email of its own.
 type AcceptInvite struct {
-	TenantID string `param:"tenant" validate:"required"`
-	UserID   string `identity:"id" validate:"required"`
+	TenantID string `param:"tenant" json:"-" validate:"required"`
+	UserID   string `identity:"id" json:"-" validate:"required"`
 }
 
 // CancelMembershipInvitation is the request to withdraw an invitation the namespace sent. UserID
 // is the caller; InvitedUserID is whose invitation is being withdrawn.
 type CancelMembershipInvitation struct {
-	TenantID      string `param:"tenant" validate:"required"`
-	UserID        string `identity:"id" validate:"required"`
-	InvitedUserID string `param:"uid" validate:"required"`
+	TenantID      string `param:"tenant" json:"-" validate:"required"`
+	UserID        string `identity:"id" json:"-" validate:"required"`
+	InvitedUserID string `param:"uid" json:"-" validate:"required"`
 }

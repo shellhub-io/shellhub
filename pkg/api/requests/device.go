@@ -12,8 +12,8 @@ import (
 // CursorPaginator serves cursor mode; which one a request is in is decided by which query
 // parameters it carries, since a zero value cannot tell an absent parameter from a zero one.
 type DeviceList struct {
-	TenantID     string              `identity:"tenant"`
-	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`
+	TenantID     string              `identity:"tenant" json:"-"`
+	DeviceStatus models.DeviceStatus `query:"status" json:"-" validate:"omitempty,oneof=accepted pending rejected removed unused"`
 	Connector    bool                `query:"connector" json:"-" xml:"-"`
 	query.Paginator
 	query.CursorPaginator
@@ -30,30 +30,30 @@ type DeviceLocationList struct {
 // DeviceUpdate is the request to change a device's editable fields. An omitted field is left
 // alone, which is why Name is optional rather than required.
 type DeviceUpdate struct {
-	TenantID string `identity:"tenant"`
-	UID      string `param:"uid" validate:"required"`
+	TenantID string `identity:"tenant" json:"-"`
+	UID      string `param:"uid" json:"-" validate:"required"`
 	Name     string `json:"name" validate:"omitempty,device_name"`
 }
 
 // DeviceSetCustomField is the request to set one custom key/value on a device. Setting an existing
 // key overwrites it, so this is an upsert rather than an insert.
 type DeviceSetCustomField struct {
-	TenantID string `identity:"tenant"`
+	TenantID string `identity:"tenant" json:"-"`
 	DeviceParam
-	Key   string `param:"key" validate:"required,min=1,max=64"`
+	Key   string `param:"key" json:"-" validate:"required,min=1,max=64"`
 	Value string `json:"value" validate:"max=256"`
 }
 
 // DeviceDeleteCustomField is the request to remove one custom key from a device.
 type DeviceDeleteCustomField struct {
-	TenantID string `identity:"tenant"`
+	TenantID string `identity:"tenant" json:"-"`
 	DeviceParam
-	Key string `param:"key" validate:"required,min=1,max=64"`
+	Key string `param:"key" json:"-" validate:"required,min=1,max=64"`
 }
 
 // DeviceParam is a structure to represent and validate a device UID as path param.
 type DeviceParam struct {
-	UID string `param:"uid" validate:"required"`
+	UID string `param:"uid" json:"-" validate:"required"`
 }
 
 // DeviceGet is the structure to represent the request data for get device endpoint.
@@ -64,9 +64,9 @@ type DeviceGet struct {
 // ResolveDevice is the request to find a device by UID or by hostname. One of the two is
 // required, and UID wins when both are given.
 type ResolveDevice struct {
-	TenantID string `identity:"tenant" validate:"required"`
-	UID      string `query:"uid" validate:"required_without=Hostname"`
-	Hostname string `query:"hostname" validate:"required_without=UID"`
+	TenantID string `identity:"tenant" json:"-" validate:"required"`
+	UID      string `query:"uid" json:"-" validate:"required_without=Hostname"`
+	Hostname string `query:"hostname" json:"-" validate:"required_without=UID"`
 }
 
 // DeviceDelete is the structure to represent the request data for delete device endpoint.
@@ -83,14 +83,14 @@ type DeviceRename struct {
 // DeviceUpdateStatus is the request to accept, reject or re-pend a device. The target status is a
 // path parameter, so the same route serves all three transitions.
 type DeviceUpdateStatus struct {
-	TenantID string `identity:"tenant"`
-	UID      string `param:"uid" validate:"required"`
-	Status   string `param:"status" validate:"required"`
+	TenantID string `identity:"tenant" json:"-"`
+	UID      string `param:"uid" json:"-" validate:"required"`
+	Status   string `param:"status" json:"-" validate:"required"`
 }
 
 // DeviceLoginCodeResolve is the structure to represent the request data for the device login code resolve endpoint.
 type DeviceLoginCodeResolve struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 }
 
 // DevicePairingCreate is the structure to represent the request data for the device pairing creation
@@ -106,13 +106,13 @@ type DevicePairingCreate struct {
 // The code is validated (normalized + checked) in the service, not here, since
 // its charset/length is the pairing-code alphabet, not hexadecimal.
 type DevicePairingAccept struct {
-	Code     string `param:"code" validate:"required"`
+	Code     string `param:"code" json:"-" validate:"required"`
 	TenantID string `json:"tenant_id" validate:"required,uuid"`
 }
 
 // DevicePairingStatus is the structure to represent the request data for the device pairing status endpoint.
 type DevicePairingStatus struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 }
 
 // DeviceIdentity is the hardware identity an agent sends when authenticating. It mirrors
@@ -142,9 +142,9 @@ type DeviceAuth struct {
 	ProvisioningKey string          `json:"provisioning_key,omitempty"`
 	Challenge       string          `json:"challenge,omitempty" validate:"omitempty,max=128"`
 	Signature       string          `json:"signature,omitempty" validate:"omitempty,max=4096"`
-	RealIP          string          `header:"X-Real-IP"`
+	RealIP          string          `header:"X-Real-IP" json:"-"`
 	// ForwardedHost/ForwardedProto carry the public base (set by the gateway) so a webhook-mode
 	// enrollment can build an absolute callback URL for the integrator.
-	ForwardedHost  string `header:"X-Forwarded-Host"`
-	ForwardedProto string `header:"X-Forwarded-Proto"`
+	ForwardedHost  string `header:"X-Forwarded-Host" json:"-"`
+	ForwardedProto string `header:"X-Forwarded-Proto" json:"-"`
 }

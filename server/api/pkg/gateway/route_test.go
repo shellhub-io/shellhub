@@ -21,8 +21,8 @@ import (
 const probeTenant = "00000000-0000-4000-0000-000000000000"
 
 type probeRequest struct {
-	Count int    `query:"count"`
-	Name  string `query:"name" validate:"omitempty,min=3"`
+	Count int    `query:"count" json:"-"`
+	Name  string `query:"name" json:"-" validate:"omitempty,min=3"`
 	query.Paginator
 	query.Sorter
 }
@@ -304,7 +304,7 @@ func TestListWritesTheTotalCountAfterTheErrorCheck(t *testing.T) {
 
 func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 	type plainRequest struct {
-		UID string `query:"uid"`
+		UID string `query:"uid" json:"-"`
 	}
 
 	var got *plainRequest
@@ -358,4 +358,22 @@ func TestNoneAnswersWithoutABody(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 	assert.Empty(t, rec.Body.String())
+}
+
+func TestShapesRefuseAMisdeclaredRequest(t *testing.T) {
+	type misdeclared struct {
+		Tenant string `param:"tenant"`
+	}
+
+	assert.Panics(t, func() {
+		gateway.One(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) (string, error) { return "", nil })
+	})
+	assert.Panics(t, func() {
+		gateway.List(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) ([]string, int64, error) {
+			return nil, 0, nil
+		})
+	})
+	assert.Panics(t, func() {
+		gateway.None(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) error { return nil })
+	})
 }

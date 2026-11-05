@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -19,13 +20,15 @@ import (
 
 func TestBinder(t *testing.T) {
 	type request struct {
-		Name string `param:"name" json:"name" query:"name"`
+		Body  string `json:"name"`
+		Path  string `param:"name" json:"-"`
+		Query string `query:"name" json:"-"`
 	}
 
 	cases := []struct {
 		description string
 		setup       func() *echo.Context
-		wantName    string
+		want        request
 		wantErr     bool
 	}{
 		{
@@ -37,7 +40,7 @@ func TestBinder(t *testing.T) {
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
-			wantName: "test",
+			want: request{Body: "test"},
 		},
 		{
 			description: "succeeds to bind path parameters",
@@ -49,7 +52,7 @@ func TestBinder(t *testing.T) {
 
 				return c
 			},
-			wantName: "plain",
+			want: request{Path: "plain"},
 		},
 		{
 			description: "decodes URL-encoded path parameters",
@@ -61,7 +64,7 @@ func TestBinder(t *testing.T) {
 
 				return c
 			},
-			wantName: "@@@@@@",
+			want: request{Path: "@@@@@@"},
 		},
 		{
 			description: "succeeds to bind query parameters",
@@ -71,7 +74,7 @@ func TestBinder(t *testing.T) {
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
-			wantName: "test",
+			want: request{Query: "test"},
 		},
 		{
 			description: "succeeds to bind query parameters with special characters",
@@ -81,7 +84,7 @@ func TestBinder(t *testing.T) {
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
-			wantName: "@@@",
+			want: request{Query: "@@@"},
 		},
 		{
 			description: "succeeds to bind a body-less chunked request",
@@ -94,7 +97,7 @@ func TestBinder(t *testing.T) {
 
 				return c
 			},
-			wantName: "test",
+			want: request{Path: "test"},
 		},
 		{
 			description: "succeeds to bind a chunked json body",
@@ -106,7 +109,7 @@ func TestBinder(t *testing.T) {
 
 				return e.NewContext(req, httptest.NewRecorder())
 			},
-			wantName: "test",
+			want: request{Body: "test"},
 		},
 		{
 			description: "fails to bind a chunked body without a content type",
@@ -131,7 +134,7 @@ func TestBinder(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			assert.Equal(t, tc.wantName, req.Name)
+			assert.Equal(t, tc.want, req)
 		})
 	}
 }
@@ -293,4 +296,119 @@ func newBindingRouter(bindErrs chan<- error) *echo.Echo {
 	})
 
 	return router
+}
+
+func TestBinderKeepsEachFieldToItsSource(t *testing.T) {
+	type request struct {
+		Tenant  string `param:"tenant" json:"-"`
+		UserID  string `header:"X-ID" json:"-"`
+		IsAdmin bool   `header:"X-Admin" json:"-"`
+		Name    string `json:"name"`
+	}
+
+	type untagged struct {
+		Name string
+	}
+
+	cases := []struct {
+		description string
+		contentType string
+		header      http.Header
+		body        string
+		bind        func(*echo.Context) (any, error)
+		wantStatus  int
+		wantBound   any
+	}{
+		{
+			description: "a body naming a path field answers 422",
+			contentType: echo.MIMEApplicationJSON,
+			body:        `{"Tenant":"other","name":"x"}`,
+			wantStatus:  http.StatusUnprocessableEntity,
+		},
+		{
+			description: "a body naming a header field the request lacks answers 422",
+			contentType: echo.MIMEApplicationJSON,
+			body:        `{"userid":"other","isAdmin":true}`,
+			wantStatus:  http.StatusUnprocessableEntity,
+		},
+		{
+			description: "an XML body answers 415",
+			contentType: echo.MIMEApplicationXML,
+			body:        `<request><Tenant>other</Tenant></request>`,
+			wantStatus:  http.StatusUnsupportedMediaType,
+		},
+		{
+			description: "each field binds from its own source",
+			contentType: echo.MIMEApplicationJSON,
+			header:      http.Header{"X-Id": {"caller"}},
+			body:        `{"name":"renamed","unknown":1}`,
+			wantStatus:  http.StatusOK,
+			wantBound:   request{Tenant: "own", UserID: "caller", Name: "renamed"},
+		},
+		{
+			description: "a request type with an untagged field answers 500",
+			contentType: echo.MIMEApplicationJSON,
+			body:        `{"name":"x"}`,
+			bind: func(c *echo.Context) (any, error) {
+				var req untagged
+				err := c.Bind(&req)
+
+				return req, err
+			},
+			wantStatus: http.StatusInternalServerError,
+		},
+		{
+			description: "a map target still binds the body",
+			contentType: echo.MIMEApplicationJSON,
+			body:        `{"Tenant":"any"}`,
+			bind: func(c *echo.Context) (any, error) {
+				req := map[string]any{}
+				err := c.Bind(&req)
+
+				return req["Tenant"], err
+			},
+			wantStatus: http.StatusOK,
+			wantBound:  "any",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			bind := tc.bind
+			if bind == nil {
+				bind = func(c *echo.Context) (any, error) {
+					var req request
+					err := c.Bind(&req)
+
+					return req, err
+				}
+			}
+
+			var bound any
+			router := echo.New()
+			router.Binder = NewBinder()
+			router.HTTPErrorHandler = NewErrors(nil)
+			router.PUT("/namespaces/:tenant", func(c *echo.Context) error {
+				var err error
+				bound, err = bind(c)
+				if err != nil {
+					return err
+				}
+
+				return c.NoContent(http.StatusOK)
+			})
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/namespaces/own", strings.NewReader(tc.body))
+			req.Header.Set(echo.HeaderContentType, tc.contentType)
+			maps.Copy(req.Header, tc.header)
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.wantStatus, rec.Code)
+			if tc.wantBound != nil {
+				assert.Equal(t, tc.wantBound, bound)
+			}
+		})
+	}
 }

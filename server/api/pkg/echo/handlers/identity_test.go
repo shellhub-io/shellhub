@@ -9,20 +9,21 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/binding"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type identityRequest struct {
-	UserID   string          `json:"user_id" identity:"id"`
-	TenantID string          `param:"tenant" identity:"tenant"`
-	Role     authorizer.Role `identity:"role"`
-	IsAdmin  bool            `json:"is_admin" identity:"admin"`
+	UserID   string          `identity:"id" json:"-"`
+	TenantID string          `identity:"tenant" json:"-"`
+	Role     authorizer.Role `identity:"role" json:"-"`
+	IsAdmin  bool            `identity:"admin" json:"-"`
 	Name     string          `json:"name"`
 }
 
-func bindAs(t *testing.T, caller *identity.Identity, pathTenant, body string, target any) {
+func bindAs(t *testing.T, caller *identity.Identity, pathTenant, body string, target any) error {
 	t.Helper()
 
 	ctx := context.Background()
@@ -38,58 +39,75 @@ func bindAs(t *testing.T, caller *identity.Identity, pathTenant, body string, ta
 		c.SetPathValues(echo.PathValues{{Name: "tenant", Value: pathTenant}})
 	}
 
-	require.NoError(t, NewBinder().Bind(c, target))
+	return NewBinder().Bind(c, target)
 }
 
 func TestBinderFillsIdentityFields(t *testing.T) {
 	caller := identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner, Admin: true}
 
 	var req identityRequest
-	bindAs(t, &caller, "path-tenant", `{"name":"kept"}`, &req)
+	require.NoError(t, bindAs(t, &caller, "path-tenant", `{"name":"kept"}`, &req))
 
 	assert.Equal(t, identityRequest{UserID: "user", TenantID: "tenant", Role: authorizer.RoleOwner, IsAdmin: true, Name: "kept"}, req)
 }
 
-func TestBinderDiscardsIdentityFieldsTheBodySent(t *testing.T) {
+func TestBinderRefusesABodyNamingIdentityFields(t *testing.T) {
 	caller := identity.Identity{ID: "user"}
 
 	var req identityRequest
-	bindAs(t, &caller, "", `{"user_id":"forged","is_admin":true}`, &req)
+	err := bindAs(t, &caller, "", `{"UserID":"forged","IsAdmin":true}`, &req)
 
-	assert.Equal(t, "user", req.UserID)
+	require.ErrorContains(t, err, "IsAdmin, UserID")
+	assert.Empty(t, req.UserID)
 	assert.False(t, req.IsAdmin)
 }
 
 func TestBinderLeavesIdentityFieldsEmptyWhenAnonymous(t *testing.T) {
 	var req identityRequest
-	bindAs(t, nil, "", `{"user_id":"forged","is_admin":true}`, &req)
+	require.NoError(t, bindAs(t, nil, "", `{"name":"kept"}`, &req))
 
 	assert.Empty(t, req.UserID)
 	assert.False(t, req.IsAdmin)
 }
 
-func TestBinderKeepsThePathValueWhenTheIdentityHasNone(t *testing.T) {
-	caller := identity.Identity{ID: "user"}
-
-	var req identityRequest
-	bindAs(t, &caller, "path-tenant", `{}`, &req)
-
-	assert.Equal(t, "path-tenant", req.TenantID)
-}
-
-func TestBinderIgnoresTheBodyForAPathFallback(t *testing.T) {
-	caller := identity.Identity{ID: "user"}
-
-	var req identityRequest
-	bindAs(t, &caller, "", `{"TenantID":"forged"}`, &req)
-
-	assert.Empty(t, req.TenantID)
-}
-
-func TestBinderPanicsOnAnUnknownIdentityTag(t *testing.T) {
+func TestBinderRefusesAFieldReadFromThePathAndTheIdentity(t *testing.T) {
 	var req struct {
-		Value string `identity:"no-such-value"`
+		TenantID string `param:"tenant" identity:"tenant" json:"-"`
 	}
 
-	assert.Panics(t, func() { bindAs(t, &identity.Identity{}, "", `{}`, &req) })
+	require.ErrorContains(t, bindAs(t, &identity.Identity{}, "path-tenant", `{}`, &req), "both param and identity")
+}
+
+func TestBinderRefusesAnIdentityTagNamingNoClaim(t *testing.T) {
+	var req struct {
+		Value string `identity:"no-such-value" json:"-"`
+	}
+
+	require.ErrorContains(t, bindAs(t, &identity.Identity{}, "", `{}`, &req), "names no claim")
+}
+
+func TestBinderFillsEveryIdentityClaim(t *testing.T) {
+	type claims struct {
+		ID      string          `identity:"id" json:"-"`
+		Tenant  string          `identity:"tenant" json:"-"`
+		Device  string          `identity:"device" json:"-"`
+		Role    authorizer.Role `identity:"role" json:"-"`
+		Admin   bool            `identity:"admin" json:"-"`
+		AdminID string          `identity:"admin_id" json:"-"`
+	}
+
+	caller := identity.Identity{ID: "user", TenantID: "tenant", DeviceUID: "device", Role: authorizer.RoleOwner, Admin: true, AdminID: "admin"}
+
+	var req claims
+	require.NoError(t, bindAs(t, &caller, "", `{}`, &req))
+
+	assert.Equal(t, claims{ID: "user", Tenant: "tenant", Device: "device", Role: authorizer.RoleOwner, Admin: true, AdminID: "admin"}, req)
+}
+
+func TestEveryIdentityClaimBindsAField(t *testing.T) {
+	for _, claim := range binding.IdentityClaims {
+		t.Run(claim, func(t *testing.T) {
+			assert.NotPanics(t, func() { identityField(identity.Identity{}, claim) })
+		})
+	}
 }

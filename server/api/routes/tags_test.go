@@ -302,9 +302,9 @@ func TestDeleteTag(t *testing.T) {
 			expectedStatus: http.StatusNoContent,
 		},
 		{
-			description: "succeeds via legacy URL (tenant from path param)",
+			description: "succeeds via legacy URL",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
-			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
@@ -447,10 +447,10 @@ func TestCreateTag(t *testing.T) {
 			expected: Expected{status: http.StatusConflict},
 		},
 		{
-			description: "succeeds via legacy URL (tenant from path param)",
+			description: "succeeds via legacy URL",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags",
 			headers:     map[string]string{"Content-Type": "application/json"},
-			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -605,10 +605,10 @@ func TestUpdateTag(t *testing.T) {
 			expected: Expected{status: http.StatusOK, body: renamedBody},
 		},
 		{
-			description: "succeeds via legacy URL (tenant from path param)",
+			description: "succeeds via legacy URL",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
 			headers:     map[string]string{"Content-Type": "application/json"},
-			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -742,9 +742,9 @@ func TestPushTagToDevice(t *testing.T) {
 			expectedStatus: http.StatusNoContent,
 		},
 		{
-			description: "succeeds via legacy URL (tenant from path param)",
+			description: "succeeds via legacy URL",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
@@ -843,9 +843,9 @@ func TestPullTagFromDevice(t *testing.T) {
 			expectedStatus: http.StatusNoContent,
 		},
 		{
-			description: "succeeds via legacy URL (tenant from path param)",
+			description: "succeeds via legacy URL",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{

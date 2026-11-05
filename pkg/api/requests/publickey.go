@@ -4,12 +4,12 @@ import "github.com/shellhub-io/shellhub/pkg/api/query"
 
 // FingerprintParam is a structure to represent and validate a public key fingerprint as path param.
 type FingerprintParam struct {
-	Fingerprint string `param:"fingerprint" validate:"required"`
+	Fingerprint string `param:"fingerprint" json:"-" validate:"required"`
 }
 
 // ListPublicKeys is the request to page through the namespace's registered SSH keys.
 type ListPublicKeys struct {
-	TenantID string `identity:"tenant"`
+	TenantID string `identity:"tenant" json:"-"`
 	query.Paginator
 	query.Filters
 }

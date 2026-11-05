@@ -16,7 +16,7 @@ type AccessPolicySubject struct {
 
 // AccessPolicyIDParam represents an access policy id as a path param.
 type AccessPolicyIDParam struct {
-	ID string `param:"id" validate:"required"`
+	ID string `param:"id" json:"-" validate:"required"`
 }
 
 // AccessPolicyGet is the structure to represent the request data for the get access policy endpoint.

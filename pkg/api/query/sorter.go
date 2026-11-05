@@ -8,9 +8,9 @@ const (
 
 // Sorter represents the sorting order in a query.
 type Sorter struct {
-	By       string `query:"sort_by"`
-	Order    string `query:"order_by" validate:"omitempty,oneof=asc desc"`
-	Tiebreak string // stable secondary sort column, set by service layer
+	By       string `query:"sort_by" json:"-"`
+	Order    string `query:"order_by" json:"-" validate:"omitempty,oneof=asc desc"`
+	Tiebreak string `json:"-"` // stable secondary sort column, set by service layer
 }
 
 // Normalize ensures that the sorting order is valid.
