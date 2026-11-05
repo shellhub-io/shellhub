@@ -5,10 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
@@ -146,6 +149,42 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 		cancel()
 
 		require.Equal(t, enrollPending, svc.evaluateEnrollment(ctx, keyFor(srv.URL), req, "uid", "host", false))
+	})
+
+	t.Run("closes its connection once the integrator answers", func(t *testing.T) {
+		var mu sync.Mutex
+		states := map[net.Conn]http.ConnState{}
+
+		srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_ = json.NewEncoder(w).Encode(enrollmentWebhookResponse{Decision: string(enrollAccept)})
+		}))
+		srv.Config.ConnState = func(conn net.Conn, state http.ConnState) {
+			mu.Lock()
+			defer mu.Unlock()
+
+			states[conn] = state
+		}
+		srv.Start()
+		defer srv.Close()
+
+		require.Equal(t, enrollAccept, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false))
+
+		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
+
+			if len(states) == 0 {
+				return false
+			}
+
+			for _, state := range states {
+				if state != http.StateClosed {
+					return false
+				}
+			}
+
+			return true
+		}, 5*time.Second, 10*time.Millisecond, "a webhook connection left open after the answer leaks a socket per device authorization")
 	})
 }
 

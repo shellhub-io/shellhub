@@ -365,11 +365,14 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("X-ShellHub-Signature", signEnrollmentWebhook(key.WebhookSecret, body))
 
-	resp, err := enrollmentWebhookClient(s.webhookCIDRs).Do(httpReq)
+	client := enrollmentWebhookClient(s.webhookCIDRs)
+	defer client.CloseIdleConnections()
+
+	resp, err := client.Do(httpReq)
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close() //nolint:errcheck // the decision is made by then, and a failed close has nothing left to undo
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		return "", fmt.Errorf("enrollment webhook returned status %d", resp.StatusCode)
