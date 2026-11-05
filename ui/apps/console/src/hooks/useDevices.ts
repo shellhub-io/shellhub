@@ -8,7 +8,7 @@ import {
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 
 export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
@@ -22,22 +22,13 @@ export function buildFilter(search: string, tags: string[]): string {
   if (search) {
     filters.push(
       { type: "operator", params: { name: "or" } },
-      {
-        type: "property",
-        params: { name: "name", operator: "contains", value: search },
-      },
+      propertyFilter("name", "contains", search),
       { type: "operator", params: { name: "or" } },
-      {
-        type: "property",
-        params: { name: "custom_fields", operator: "contains", value: search },
-      },
+      propertyFilter("custom_fields", "contains", search),
     );
   }
   if (tags.length > 0) {
-    filters.push({
-      type: "property",
-      params: { name: "tags.name", operator: "contains", value: tags },
-    });
+    filters.push(propertyFilter("tags.name", "contains", tags));
   }
   return toBase64Json(filters);
 }
@@ -126,12 +117,7 @@ function unverifiedDevicesOptions(status: "accepted" | "pending") {
       page: 1,
       per_page: 1,
       status,
-      filter: toBase64Json([
-        {
-          type: "property",
-          params: { name: "key_verified", operator: "bool", value: false },
-        },
-      ]),
+      filter: toBase64Json([propertyFilter("key_verified", "bool", false)]),
     },
   };
 }

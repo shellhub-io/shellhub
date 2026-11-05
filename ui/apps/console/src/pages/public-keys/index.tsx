@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useRowAction } from "@/hooks/useRowAction";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { usePagedList } from "@/hooks/usePagedList";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -107,15 +107,9 @@ type PublicKeysParams = {
 function nameOrFingerprintFilter(search: string): string {
   return toBase64Json([
     { type: "operator", params: { name: "or" } },
-    {
-      type: "property",
-      params: { name: "name", operator: "contains", value: search },
-    },
+    propertyFilter("name", "contains", search),
     { type: "operator", params: { name: "or" } },
-    {
-      type: "property",
-      params: { name: "fingerprint", operator: "contains", value: search },
-    },
+    propertyFilter("fingerprint", "contains", search),
   ]);
 }
 

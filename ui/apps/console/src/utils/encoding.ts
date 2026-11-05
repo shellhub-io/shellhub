@@ -18,3 +18,17 @@ export function toBase64Json(value: unknown): string {
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 }
+
+/**
+ * One property condition of a list filter, matching the backend's `query.FilterProperty`. The route
+ * answers 400 (`ErrFilterPropertyInvalid`) when `query.ValidateFilters` rejects the condition: a
+ * name/operator pair its filter fields do not allow, or a value of the wrong type, size or set for
+ * its field and operator.
+ */
+export function propertyFilter(
+  name: string,
+  operator: "contains" | "eq" | "ne" | "bool" | "gt" | "lt",
+  value: unknown,
+) {
+  return { type: "property", params: { name, operator, value } } as const;
+}

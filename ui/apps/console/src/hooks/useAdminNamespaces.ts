@@ -10,17 +10,7 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { adminQueryDefaults } from "./useAdminRequests";
-import { toBase64Json } from "@/utils/encoding";
-
-function buildNameFilter(search: string): string {
-  const filter = [
-    {
-      type: "property",
-      params: { name: "name", operator: "contains", value: search },
-    },
-  ];
-  return toBase64Json(filter);
-}
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 
 interface AdminNamespacesQueryParams {
   page?: number;
@@ -37,7 +27,7 @@ export function adminNamespacesQueryOptions(
   isAdmin: boolean,
 ) {
   const query: GetNamespacesAdminData["query"] = { page, per_page: perPage };
-  if (search) query.filter = buildNameFilter(search);
+  if (search) query.filter = toBase64Json([propertyFilter("name", "contains", search)]);
   const options = { query };
 
   return {

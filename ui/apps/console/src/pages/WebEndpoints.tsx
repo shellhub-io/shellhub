@@ -13,7 +13,7 @@ import {
   type Webendpoint,
 } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState from "@/components/common/EmptyState";
@@ -828,12 +828,7 @@ const DEFAULTS: WebEndpointsParams = {
 };
 
 function addressFilter(address: string): string {
-  return toBase64Json([
-    {
-      type: "property",
-      params: { name: "address", operator: "contains", value: address },
-    },
-  ]);
+  return toBase64Json([propertyFilter("address", "contains", address)]);
 }
 
 function WebEndpointsContent() {
