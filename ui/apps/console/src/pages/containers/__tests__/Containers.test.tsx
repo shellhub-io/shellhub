@@ -207,12 +207,13 @@ describe("Containers — search and tag filter", () => {
     return raw ? decodeB64url(raw) : null;
   }
 
-  it("filters on the name and every chosen tag", async () => {
+  it("requires both the name and the chosen tags to match", async () => {
     renderPage(["/?search=web&tags=prod&tags=eu"]);
 
     await waitFor(() => expect(lastContainersUrl).not.toBeNull());
     expect(sentFilter()).toEqual([
       { type: "property", params: { name: "name", operator: "contains", value: "web" } },
+      { type: "operator", params: { name: "and" } },
       {
         type: "property",
         params: { name: "tags.name", operator: "contains", value: ["prod", "eu"] },

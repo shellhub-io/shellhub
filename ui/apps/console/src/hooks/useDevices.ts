@@ -14,23 +14,23 @@ import { normalizeDeviceTags } from "@/utils/deviceTags";
 export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
 
 /**
- * Builds the device list filter the API expects: a search across name and hostname, and a tag
- * match, combined so an empty search or an empty tag list simply drops out.
+ * Builds the device list filter the API expects: a device matches when its name or custom fields
+ * contain the search and it has every chosen tag. An empty search or an empty tag list drops out.
  */
 export function buildFilter(search: string, tags: string[]): string {
-  const filters: Record<string, unknown>[] = [];
-  if (search) {
-    filters.push(
-      { type: "operator", params: { name: "or" } },
-      propertyFilter("name", "contains", search),
-      { type: "operator", params: { name: "or" } },
-      propertyFilter("custom_fields", "contains", search),
-    );
-  }
-  if (tags.length > 0) {
-    filters.push(propertyFilter("tags.name", "contains", tags));
-  }
-  return toBase64Json(filters);
+  const or = { type: "operator", params: { name: "or" } };
+  const and = { type: "operator", params: { name: "and" } };
+  const tagCondition = propertyFilter("tags.name", "contains", tags);
+  const withTags = (condition: Record<string, unknown>) =>
+    tags.length > 0 ? [condition, and, tagCondition] : [condition];
+
+  if (!search) return toBase64Json(tags.length > 0 ? [tagCondition] : []);
+
+  return toBase64Json([
+    ...withTags(propertyFilter("name", "contains", search)),
+    or,
+    ...withTags(propertyFilter("custom_fields", "contains", search)),
+  ]);
 }
 
 interface DevicesQueryParams {

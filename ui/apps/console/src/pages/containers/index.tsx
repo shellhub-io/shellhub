@@ -69,6 +69,7 @@ function nameAndTagsFilter(search: string, tags: string[]): string {
     filters.push(propertyFilter("name", "contains", search));
   }
   if (tags.length > 0) {
+    if (search) filters.push({ type: "operator", params: { name: "and" } });
     filters.push(propertyFilter("tags.name", "contains", tags));
   }
   return toBase64Json(filters);
