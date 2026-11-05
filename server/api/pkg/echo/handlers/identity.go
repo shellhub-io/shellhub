@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"reflect"
+	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 )
@@ -21,16 +22,16 @@ func identityField(caller identity.Identity, name string) any {
 	case "admin_id":
 		return caller.AdminID
 	default:
-		return nil
+		panic("unknown identity tag " + strconv.Quote(name))
 	}
 }
 
-func bindIdentity(caller identity.Identity, target reflect.Value) {
+func bindIdentity(caller identity.Identity, target reflect.Value, pathValue func(string) string) {
 	for i := range target.NumField() {
 		field, value := target.Type().Field(i), target.Field(i)
 
 		if field.Anonymous && value.Kind() == reflect.Struct {
-			bindIdentity(caller, value)
+			bindIdentity(caller, value, pathValue)
 
 			continue
 		}
@@ -41,8 +42,8 @@ func bindIdentity(caller identity.Identity, target reflect.Value) {
 		}
 
 		bound := reflect.ValueOf(identityField(caller, name))
-		if !bound.IsValid() || bound.IsZero() {
-			continue
+		if param, fromPath := field.Tag.Lookup("param"); fromPath && bound.IsZero() {
+			bound = reflect.ValueOf(pathValue(param))
 		}
 
 		value.Set(bound.Convert(value.Type()))
