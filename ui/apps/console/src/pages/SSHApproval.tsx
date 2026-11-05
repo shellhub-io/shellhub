@@ -20,6 +20,7 @@ import { Button, Spinner } from "@shellhub/design-system/primitives";
 import BaseDialog from "@/components/common/BaseDialog";
 import CopyButton from "@/components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
+import OtpCells from "@/components/mfa/OtpCells";
 import { isSdkError } from "@/api/errors";
 import { webTerminalReauth, getSamlReauthUrl } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
@@ -509,34 +510,12 @@ function ReauthFactor({
           The login continues once you finish.
         </p>
       ) : mfaEnabled ? (
-        <div>
-          <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
-            Verification Code
-          </p>
-          <div
-            className="flex gap-2 justify-center"
-            role="group"
-            aria-label="Verification Code"
-            onPaste={otp.handlePaste}
-          >
-            {otp.code.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => {
-                  otp.inputRefs.current[index] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                aria-label={`Digit ${index + 1}`}
-                onChange={(e) => otp.handleChange(index, e.target.value)}
-                onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-              />
-            ))}
-          </div>
-        </div>
+        <OtpCells
+          otp={otp}
+          label="Verification Code"
+          centered
+          numeric
+        />
       ) : (
         <InputField
           id="reauth-password"

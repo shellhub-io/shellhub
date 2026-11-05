@@ -11,6 +11,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useMfaResetStore } from "@/stores/mfaResetStore";
 import BaseDialog from "@/components/common/BaseDialog";
 import DialogHeader from "@/components/common/DialogHeader";
+import OtpCells from "@/components/mfa/OtpCells";
 
 interface MfaDisableDialogProps {
   open: boolean;
@@ -159,33 +160,13 @@ export default function MfaDisableDialog({
 
           {mode === "totp" ? (
             <>
-              <div>
-                <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
-                  Verification Code
-                </p>
-                <div
-                  className="flex gap-2 justify-center"
-                  role="group"
-                  aria-label="Verification Code"
-                >
-                  {otp.code.map((digit, index) => (
-                    <input
-                      key={index}
-                      ref={(el) => {
-                        otp.inputRefs.current[index] = el;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => otp.handleChange(index, e.target.value)}
-                      onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                      aria-label={`Digit ${index + 1}`}
-                      className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all"
-                    />
-                  ))}
-                </div>
-              </div>
+              <OtpCells
+                otp={otp}
+                label="Verification Code"
+                centered
+                variant="danger"
+                numeric
+              />
 
               <div className="text-center">
                 <Button
@@ -279,69 +260,19 @@ export default function MfaDisableDialog({
                     </p>
                   </div>
 
-                  <div>
-                    <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5 text-center">
-                      Main Email Code
-                    </p>
-                    <div
-                      className="flex justify-center gap-2 mb-2"
-                      role="group"
-                      aria-label="Main Email Code"
-                      onPaste={otpMainEmail.handlePaste}
-                    >
-                      {otpMainEmail.code.map((char, index) => (
-                        <input
-                          key={index}
-                          ref={(el) => {
-                            otpMainEmail.inputRefs.current[index] = el;
-                          }}
-                          type="text"
-                          maxLength={1}
-                          value={char}
-                          aria-label={`Main email code character ${index + 1} of 5`}
-                          onChange={(e) =>
-                            otpMainEmail.handleChange(index, e.target.value)
-                          }
-                          onKeyDown={(e) =>
-                            otpMainEmail.handleKeyDown(index, e)
-                          }
-                          className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all uppercase"
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <OtpCells
+                    otp={otpMainEmail}
+                    label="Main Email Code"
+                    centered
+                    variant="danger"
+                  />
 
-                  <div>
-                    <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-2.5 text-center">
-                      Recovery Email Code
-                    </p>
-                    <div
-                      className="flex justify-center gap-2 mb-2"
-                      role="group"
-                      aria-label="Recovery Email Code"
-                      onPaste={otpRecoveryEmail.handlePaste}
-                    >
-                      {otpRecoveryEmail.code.map((char, index) => (
-                        <input
-                          key={index}
-                          ref={(el) => {
-                            otpRecoveryEmail.inputRefs.current[index] = el;
-                          }}
-                          type="text"
-                          maxLength={1}
-                          value={char}
-                          aria-label={`Recovery email code character ${index + 1} of 5`}
-                          onChange={(e) =>
-                            otpRecoveryEmail.handleChange(index, e.target.value)
-                          }
-                          onKeyDown={(e) =>
-                            otpRecoveryEmail.handleKeyDown(index, e)
-                          }
-                          className="w-10 h-10 text-center text-lg font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent-red/50 focus:ring-1 focus:ring-accent-red/20 transition-all uppercase"
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <OtpCells
+                    otp={otpRecoveryEmail}
+                    label="Recovery Email Code"
+                    centered
+                    variant="danger"
+                  />
 
                   <div className="text-center">
                     <Button
