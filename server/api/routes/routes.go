@@ -100,8 +100,8 @@ func WithOpenAPIValidator(ctx context.Context, cfg *routesmiddleware.OpenAPIVali
 // per-route authentication subrequest the edge proxy used to issue.
 //
 // It is an option rather than a default so handler tests can keep exercising a
-// route's authorization with an identity injected straight into the request
-// headers. Every production entrypoint must pass it;
+// route's authorization with an identity put straight on the request's context
+// through identitytest.As. Every production entrypoint must pass it;
 // [TestRouterRejectsUncredentialedRequests] guards that the wiring stays in place.
 func WithAuthentication(authn *routesmiddleware.Authenticator) Option {
 	return func(e *echo.Echo, handler *Handler) error {
