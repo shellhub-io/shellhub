@@ -1,5 +1,5 @@
 import type { MembershipInvitation } from "@/client";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 
 /**
  * The status of a membership invitation, taken from the generated model so the two cannot drift.
@@ -11,13 +11,7 @@ export type InvitationStatus = MembershipInvitation["status"];
  * endpoints. Mirrors the encoding from the legacy Vue UI (ui/src/utils/invitations.ts).
  */
 export function invitationStatusFilter(status: InvitationStatus): string {
-  const filter = [
-    {
-      type: "property",
-      params: { name: "status", operator: "eq", value: status },
-    },
-  ];
-  return toBase64Json(filter);
+  return toBase64Json([propertyFilter("status", "eq", status)]);
 }
 
 /**

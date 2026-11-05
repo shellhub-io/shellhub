@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getContainers, getContainersQueryKey } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePagedList } from "@/hooks/usePagedList";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
@@ -66,16 +66,10 @@ const statusTabs: SegmentedTab<ValidStatus>[] = [
 function nameAndTagsFilter(search: string, tags: string[]): string {
   const filters: Record<string, unknown>[] = [];
   if (search) {
-    filters.push({
-      type: "property",
-      params: { name: "name", operator: "contains", value: search },
-    });
+    filters.push(propertyFilter("name", "contains", search));
   }
   if (tags.length > 0) {
-    filters.push({
-      type: "property",
-      params: { name: "tags.name", operator: "contains", value: tags },
-    });
+    filters.push(propertyFilter("tags.name", "contains", tags));
   }
   return toBase64Json(filters);
 }

@@ -5,7 +5,7 @@ import {
   type Device,
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 
 /**
  * How many of a member's devices a departure dialog can list, and so keep. It matches the
@@ -24,12 +24,7 @@ export function useMemberDevices(memberId: string, enabled = true) {
       page: 1,
       per_page: MAX_KEPT_DEVICES,
       status: "accepted" as const,
-      filter: toBase64Json([
-        {
-          type: "property",
-          params: { name: "owner_id", operator: "eq", value: memberId },
-        },
-      ]),
+      filter: toBase64Json([propertyFilter("owner_id", "eq", memberId)]),
     },
   };
 

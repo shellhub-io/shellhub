@@ -10,7 +10,7 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { adminQueryDefaults } from "./useAdminRequests";
-import { toBase64Json } from "@/utils/encoding";
+import { propertyFilter, toBase64Json } from "@/utils/encoding";
 
 /**
  * A subset of the user list the admin can narrow to: accounts waiting for an admin's approval, the
@@ -20,29 +20,11 @@ import { toBase64Json } from "@/utils/encoding";
 export type AdminUserSubset =
   "" | "awaiting_approval" | "admin" | "not_confirmed";
 
-type FilterProperty = {
-  type: "property";
-  params: { name: string; operator: string; value: unknown };
-};
-
-const SUBSET_FILTERS: Record<Exclude<AdminUserSubset, "">, FilterProperty> = {
-  awaiting_approval: {
-    type: "property",
-    params: { name: "awaiting_approval", operator: "bool", value: true },
-  },
-  admin: {
-    type: "property",
-    params: { name: "admin", operator: "bool", value: true },
-  },
-  not_confirmed: {
-    type: "property",
-    params: { name: "status", operator: "eq", value: "not-confirmed" },
-  },
-};
-
-function contains(name: string, value: string): FilterProperty {
-  return { type: "property", params: { name, operator: "contains", value } };
-}
+const SUBSET_FILTERS = {
+  awaiting_approval: propertyFilter("awaiting_approval", "bool", true),
+  admin: propertyFilter("admin", "bool", true),
+  not_confirmed: propertyFilter("status", "eq", "not-confirmed"),
+} satisfies Record<Exclude<AdminUserSubset, "">, unknown>;
 
 function usersSearchFields(
   subset: AdminUserSubset,
@@ -67,7 +49,7 @@ function buildUsersFilter(
   subset: AdminUserSubset,
 ): string | undefined {
   const matches = search
-    ? usersSearchFields(subset).map((field) => contains(field, search))
+    ? usersSearchFields(subset).map((field) => propertyFilter(field, "contains", search))
     : [];
   if (!subset) return matches.length > 0 ? toBase64Json(matches) : undefined;
   if (matches.length === 0) return toBase64Json([SUBSET_FILTERS[subset]]);
