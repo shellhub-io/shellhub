@@ -129,7 +129,7 @@ func TestRequiresAnyPermission(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleFromString(tc.role.String())})
+			req = identitytest.As(req, identity.Identity{Role: tc.role})
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 

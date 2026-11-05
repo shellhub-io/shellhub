@@ -28,13 +28,13 @@ func mcpToolCall(name, args string) string {
 
 const mcpCallerTenant = "00000000-0000-4000-0000-000000000000"
 
-func mcpCall(t *testing.T, service *mocks.MockService, tenant, role, body string) *httptest.ResponseRecorder {
+func mcpCall(t *testing.T, service *mocks.MockService, tenant string, role authorizer.Role, body string) *httptest.ResponseRecorder {
 	t.Helper()
 
 	const callerKey = "mcp-test-api-key"
 
 	service.On("AuthAPIKey", gomock.Anything, callerKey).
-		Return(&models.APIKey{TenantID: tenant, Role: authorizer.RoleFromString(role)}, nil).
+		Return(&models.APIKey{TenantID: tenant, Role: role}, nil).
 		Maybe()
 
 	router := newTestRouter(t, service, WithAuthentication(routesmiddleware.NewAuthenticator(service)))
@@ -94,7 +94,7 @@ func TestMCPGetNamespaceDefaultsToCaller(t *testing.T) {
 		Return(&models.Namespace{TenantID: mcpCallerTenant, Name: "dev"}, nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"shellhub_get_namespace","arguments":{}}}`)
 
 	text, isErr := mcpToolResult(t, rec)
@@ -109,7 +109,7 @@ func TestMCPGetNamespaceDefaultsToCaller(t *testing.T) {
 func TestMCPGetNamespaceRejectsOtherTenant(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		`{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"shellhub_get_namespace","arguments":{"tenant_id":"11111111-1111-4000-0000-000000000000"}}}`)
 
 	text, isErr := mcpToolResult(t, rec)
@@ -124,7 +124,7 @@ func TestMCPGetNamespaceRejectsOtherTenant(t *testing.T) {
 func TestMCPDoesNotExposeListNamespaces(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		`{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
 
 	require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
@@ -157,7 +157,7 @@ func TestMCPListDevices(t *testing.T) {
 		Return([]models.Device{{UID: "uid1"}}, int64(1), nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_list_devices", `{"status":"accepted","page":2,"per_page":50}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -259,8 +259,9 @@ func TestMCPRefusesACallCarryingNoCredential(t *testing.T) {
 
 	rec := mcpServe(newTestRouter(t, mock), req, http.Header{})
 
-	_, isErr := mcpToolResult(t, rec)
+	text, isErr := mcpToolResult(t, rec)
 	assert.True(t, isErr)
+	assert.Equal(t, "forbidden: insufficient permissions", text)
 	mock.AssertNotCalled(t, "GetDevice", gomock.Anything, gomock.Anything, gomock.Anything)
 }
 
@@ -272,7 +273,7 @@ func TestMCPGetDevice(t *testing.T) {
 		Return(&models.Device{UID: "uid1", Name: "dev1"}, nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_get_device", `{"uid":"uid1"}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -292,7 +293,7 @@ func TestMCPUpdateDeviceStatus(t *testing.T) {
 		Return(nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_update_device_status", `{"uid":"uid1","status":"accepted"}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -308,7 +309,7 @@ func TestMCPUpdateDeviceStatus(t *testing.T) {
 func TestMCPUpdateDeviceStatusForbidden(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleObserver.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleObserver,
 		mcpToolCall("shellhub_update_device_status", `{"uid":"uid1","status":"accepted"}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -325,7 +326,7 @@ func TestMCPDeleteDevice(t *testing.T) {
 		Return(nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_delete_device", `{"uid":"uid1"}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -342,7 +343,7 @@ func TestMCPRenameDevice(t *testing.T) {
 		Return(nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_rename_device", `{"uid":"uid1","name":"newname"}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -362,7 +363,7 @@ func TestMCPGetStats(t *testing.T) {
 		Return(&models.Stats{RegisteredDevices: 7}, nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_get_stats", `{}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -382,7 +383,7 @@ func TestMCPListSessions(t *testing.T) {
 		Return([]models.Session{{UID: "sess1"}}, int64(1), nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_list_sessions", `{}`))
 
 	text, isErr := mcpToolResult(t, rec)
@@ -400,7 +401,7 @@ func TestMCPGetSession(t *testing.T) {
 		Return(&models.Session{UID: "sess1"}, nil).
 		Once()
 
-	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner.String(),
+	rec := mcpCall(t, mock, mcpCallerTenant, authorizer.RoleOwner,
 		mcpToolCall("shellhub_get_session", `{"uid":"sess1"}`))
 
 	text, isErr := mcpToolResult(t, rec)

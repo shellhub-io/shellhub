@@ -142,6 +142,20 @@ func TestWrapperCeremony(t *testing.T) {
 			},
 		},
 		{
+			description:        "names an administrator on the admin surface by the admin ID",
+			withGatewayContext: true,
+			caller:             identity.Identity{Admin: true, AdminID: "admin-id"},
+			target:             "/probe",
+			claims:             gateway.Claims{Unbounded: true},
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, gateway.Actor{ID: "admin-id"}, call.actor)
+			},
+		},
+		{
 			description:        "hands the handler the identity the request authenticated as",
 			withGatewayContext: true,
 			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id", Username: "username"},
@@ -165,6 +179,19 @@ func TestWrapperCeremony(t *testing.T) {
 				t.Helper()
 
 				assert.Equal(t, gateway.Actor{APIKey: "key"}, call.actor)
+			},
+		},
+		{
+			description:        "accepts a device as the acting identity",
+			withGatewayContext: true,
+			caller:             identity.Identity{TenantID: probeTenant, DeviceUID: "device-uid"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, gateway.Actor{DeviceUID: "device-uid"}, call.actor)
 			},
 		},
 		{
