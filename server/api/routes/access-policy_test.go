@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -92,9 +94,7 @@ func TestAccessPolicyFilterTagLimit(t *testing.T) {
 
 				req := httptest.NewRequestWithContext(t.Context(), route.method, route.url, strings.NewReader(string(data)))
 				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-				req.Header.Set("X-Role", authorizer.RoleOwner.String())
-				req.Header.Set("X-ID", "000000000000000000000000")
+				req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"})
 
 				rec := httptest.NewRecorder()
 				newTestRouter(t, svcMock).ServeHTTP(rec, req)

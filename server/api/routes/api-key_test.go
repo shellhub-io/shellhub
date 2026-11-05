@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -30,18 +33,15 @@ func TestCreateAPIKey(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]any
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails with api key",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-API-KEY":    "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -52,12 +52,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when role is observer",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -68,12 +64,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when role is operator",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOperator},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -84,12 +76,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when name is invalid due to length < 3",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "de",
 				"expires_at": 30,
@@ -100,12 +88,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when name is invalid due to length > 20",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "devdevdevdevdevdevdev",
 				"expires_at": 30,
@@ -116,12 +100,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when name is invalid due to whitespaces",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev dev",
 				"expires_at": 30,
@@ -132,12 +112,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when expires_at is invalid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
@@ -148,12 +124,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when key is provided but invalid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
@@ -165,12 +137,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "fails when optional role is provided but invalid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 0,
@@ -182,12 +150,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "succeeds",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -212,12 +176,8 @@ func TestCreateAPIKey(t *testing.T) {
 		},
 		{
 			description: "ignores a caller-supplied key in the body",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -256,6 +216,7 @@ func TestCreateAPIKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)
@@ -282,18 +243,15 @@ func TestListAPIKey(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
+		caller        identity.Identity
 		query         func() string
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails with api key",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-API-KEY":    "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				return ""
 			},
@@ -303,11 +261,8 @@ func TestListAPIKey(t *testing.T) {
 		},
 		{
 			description: "success",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				url := &url.Values{}
 				url.Add("page", "1")
@@ -359,11 +314,8 @@ func TestListAPIKey(t *testing.T) {
 		},
 		{
 			description: "success when page and per_page are invalid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				url := &url.Values{}
 				url.Add("page", "-1")
@@ -415,11 +367,8 @@ func TestListAPIKey(t *testing.T) {
 		},
 		{
 			description: "success when order_by is an empty string",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				url := &url.Values{}
 				url.Add("page", "1")
@@ -469,11 +418,8 @@ func TestListAPIKey(t *testing.T) {
 		},
 		{
 			description: "success when sort_by is an empty string",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				url := &url.Values{}
 				url.Add("page", "1")
@@ -532,6 +478,7 @@ func TestListAPIKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)
@@ -558,6 +505,7 @@ func TestUpdateAPIKey(t *testing.T) {
 		description   string
 		name          string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]string
 		requiredMocks func()
 		expected      Expected
@@ -565,12 +513,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails with api key",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-API-KEY":    "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod",
 			},
@@ -581,11 +525,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when role is observer",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver},
 			body: map[string]string{
 				"name": "prod",
 			},
@@ -596,11 +537,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when role is operator",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOperator},
 			body: map[string]string{
 				"name": "prod",
 			},
@@ -611,11 +549,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when name is invalid due to length < 3",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "pr",
 			},
@@ -626,11 +561,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when name is invalid due to length > 20",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prodprodprodprodprodprod",
 			},
@@ -641,11 +573,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when name is invalid due to whitespaces",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod prod",
 			},
@@ -656,11 +585,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when role is invalid",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"role": "invalid",
 			},
@@ -671,12 +597,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "fails when member is not found",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod",
 				"role": "administrator",
@@ -700,11 +622,8 @@ func TestUpdateAPIKey(t *testing.T) {
 		{
 			description: "succeeds",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod",
 				"role": "administrator",
@@ -737,6 +656,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)
@@ -758,18 +678,15 @@ func TestDeleteAPIKey(t *testing.T) {
 		description   string
 		name          string
 		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails with api key",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-API-KEY":    "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
+			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},
@@ -777,11 +694,8 @@ func TestDeleteAPIKey(t *testing.T) {
 		{
 			description: "fails when role is observer",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},
@@ -789,11 +703,8 @@ func TestDeleteAPIKey(t *testing.T) {
 		{
 			description: "fails when role is operator",
 			name:        "dev",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOperator},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},
@@ -801,10 +712,7 @@ func TestDeleteAPIKey(t *testing.T) {
 		{
 			description: "succeeds",
 			name:        "dev",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      "owner",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				svcMock.On(
 					"DeleteAPIKey",
@@ -828,6 +736,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)

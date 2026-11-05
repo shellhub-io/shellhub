@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
@@ -119,13 +120,14 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		return err
 	}
 
-	if role := authorizer.RoleFromString(c.Request().Header.Get("X-Role")); !role.HasPermission(authorizer.SessionClose) {
+	ctx := c.Request().Context()
+
+	caller, _ := identity.FromContext(ctx)
+	if !caller.Role.HasPermission(authorizer.SessionClose) {
 		return routeserrors.NewErrForbidden(nil)
 	}
 
-	ctx := c.Request().Context()
-
-	tenant := c.Request().Header.Get("X-Tenant-ID")
+	tenant := caller.TenantID
 
 	owned := h.Sessions.Has(data.UID)
 
@@ -198,8 +200,8 @@ func (h *Handlers) requireAcceptedDevice(ctx context.Context, uid string) (*mode
 func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	requestID := c.Request().Header.Get("X-Request-ID")
 
-	tenant := c.Request().Header.Get("X-Tenant-ID")
-	uid := c.Request().Header.Get("X-Device-UID")
+	caller, _ := identity.FromContext(c.Request().Context())
+	tenant, uid := caller.TenantID, caller.DeviceUID
 
 	if h.Config.RequireAcceptedTunnel {
 		device, err := h.requireAcceptedDevice(c.Request().Context(), uid)
@@ -247,22 +249,22 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 	return nil
 }
 
-// HandleConnectionV2Data is the identifying header set an agent sends when opening a V2
-// tunnel. The device UID and tenant are validated here rather than trusted, because the
-// connection is not yet authenticated at that point.
+// HandleConnectionV2Data identifies a V2 tunnel: the request ID, and the device UID and tenant of
+// the device token the agent authenticated with. They are validated here, so a request with no
+// device identity is refused.
 type HandleConnectionV2Data struct {
 	RequestID string `header:"x-request-id" validate:"required"`
-	UID       string `header:"x-device-uid" validate:"required,len=64"`
-	Tenant    string `header:"x-tenant-id" validate:"required,uuid"`
+	UID       string `identity:"device" validate:"required,len=64"`
+	Tenant    string `identity:"tenant" validate:"required,uuid"`
 }
 
 // HandleConnectionV2 upgrades the HTTP connection to WebSocket and
 // binds it to a yamux session (V2). Subsequent logical streams are
 // opened without additional HTTP handshakes and are protocol-negotiated
-// via multistream-select. It returns the binding or validation error for
-// malformed headers, the device errors of HandleConnectionV1 when
-// RequireAcceptedTunnel is set, and the tunnel's error when binding the upgraded
-// connection fails. When the upgrade fails it logs the cause and returns nil,
+// via multistream-select. It returns the binding or validation error for a
+// missing request ID or a request without a device identity, the device errors
+// of HandleConnectionV1 when RequireAcceptedTunnel is set, and the tunnel's error
+// when binding the upgraded connection fails. When the upgrade fails it logs the cause and returns nil,
 // because the upgrader has already written the response.
 func (h *Handlers) HandleConnectionV2(c *echo.Context) error {
 	log.Trace("handling v2 connection")

@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -28,17 +30,14 @@ func TestUpdateUser(t *testing.T) {
 
 	cases := []struct {
 		description   string
-		headers       map[string]string
+		caller        identity.Identity
 		body          requests.UpdateUser
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when bind fails to validate e-mail",
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": "owner",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
 			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
@@ -50,10 +49,7 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "fails when bind fails to validate username",
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": "owner",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
 			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "_",
@@ -65,10 +61,7 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			description: "fails when try to updating a non-existing user",
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": "owner",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
 			body: requests.UpdateUser{
 				Name:          "John Doe",
 				Username:      "john_doe",
@@ -101,10 +94,7 @@ func TestUpdateUser(t *testing.T) {
 				Email:         "john.doe@test.com",
 				RecoveryEmail: "john.doe@test.com",
 			},
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": "owner",
-			},
+			caller: identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				svcMock.
 					On(
@@ -134,9 +124,7 @@ func TestUpdateUser(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users", strings.NewReader(string(data)))
 			req.Header.Set("Content-Type", "application/json")
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -266,8 +254,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users/path-id-ignored/password", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-ID", tc.updatePayloadMock.UserID)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req = identitytest.As(req, identity.Identity{ID: tc.updatePayloadMock.UserID, Role: authorizer.RoleOwner})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -299,8 +286,7 @@ func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, fmt.Sprintf("/api/users/%s/password", attackerTargetID), strings.NewReader(string(jsonData)))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-ID", sessionID)
-	req.Header.Set("X-Role", authorizer.RoleObserver.String())
+	req = identitytest.As(req, identity.Identity{ID: sessionID, Role: authorizer.RoleObserver})
 
 	rec := httptest.NewRecorder()
 
@@ -314,22 +300,19 @@ func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
 func TestRevokeUserTokens(t *testing.T) {
 	cases := []struct {
 		description   string
-		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func(svcMock *mocks.MockService)
 		expected      int
 	}{
 		{
 			description:   "fails when the caller has no ID",
-			headers:       map[string]string{"X-Role": authorizer.RoleObserver.String()},
+			caller:        identity.Identity{Role: authorizer.RoleObserver},
 			requiredMocks: func(_ *mocks.MockService) {},
 			expected:      http.StatusBadRequest,
 		},
 		{
 			description: "fails when the user does not exist",
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": authorizer.RoleObserver.String(),
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleObserver},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("RevokeUserTokens", gomock.Anything, "000000000000000000000000").
@@ -340,10 +323,7 @@ func TestRevokeUserTokens(t *testing.T) {
 		},
 		{
 			description: "succeeds when the user exists",
-			headers: map[string]string{
-				"X-ID":   "000000000000000000000000",
-				"X-Role": authorizer.RoleObserver.String(),
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleObserver},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("RevokeUserTokens", gomock.Anything, "000000000000000000000000").
@@ -360,9 +340,7 @@ func TestRevokeUserTokens(t *testing.T) {
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/users/tokens", nil)
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -432,8 +410,7 @@ func TestRecordOnboardingSurvey(t *testing.T) {
 			body := strings.NewReader(fmt.Sprintf(`{"outcome":%q}`, tc.outcome))
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/users/onboarding-survey", body)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-ID", userID)
-			req.Header.Set("X-Role", authorizer.RoleObserver.String())
+			req = identitytest.As(req, identity.Identity{ID: userID, Role: authorizer.RoleObserver})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)

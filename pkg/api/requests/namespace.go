@@ -12,10 +12,9 @@ type TenantParam struct {
 
 // NamespaceList is the structure to represent the request data for list namespaces endpoint.
 type NamespaceList struct {
-	UserID   string `header:"X-ID"`
-	TenantID string `header:"X-Tenant-ID"`
-	// IsAdmin comes from the authenticated identity; a client-supplied X-Admin is overwritten.
-	IsAdmin bool `header:"X-Admin"`
+	UserID   string `identity:"id"`
+	TenantID string `identity:"tenant"`
+	IsAdmin  bool   `identity:"admin"`
 	query.Paginator
 	query.Filters
 }
@@ -29,7 +28,7 @@ type MemberList struct {
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
-	UserID   string `header:"X-ID" validate:"required"`
+	UserID   string `identity:"id" validate:"required"`
 	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
 	TenantID string `json:"tenant" validate:"omitempty,uuid"`
 	Type     string `json:"type" validate:"omitempty,lowercase,oneof=personal team"`
@@ -62,7 +61,7 @@ type NamespaceEdit struct {
 type NamespaceAddMember struct {
 	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
-	UserID         string          `header:"X-ID" validate:"required"`
+	UserID         string          `identity:"id" validate:"required"`
 	TenantID       string          `param:"tenant" validate:"required,uuid"`
 	MemberEmail    string          `json:"email" validate:"required"`
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
@@ -71,7 +70,7 @@ type NamespaceAddMember struct {
 // NamespaceUpdateMember is the request to change a member's role. UserID is the caller, MemberID
 // the member being changed — a caller cannot grant a role above their own.
 type NamespaceUpdateMember struct {
-	UserID     string          `header:"X-ID" validate:"required"`
+	UserID     string          `identity:"id" validate:"required"`
 	TenantID   string          `param:"tenant" validate:"required,uuid"`
 	MemberID   string          `param:"uid" validate:"required"`
 	MemberRole authorizer.Role `json:"role" validate:"omitempty,member_role"`
@@ -83,7 +82,7 @@ type NamespaceUpdateMember struct {
 // NamespaceRemoveMember is the request to remove someone else from a namespace. A member removing
 // themselves is LeaveNamespace instead.
 type NamespaceRemoveMember struct {
-	UserID   string `header:"X-ID" validate:"required"`
+	UserID   string `identity:"id" validate:"required"`
 	TenantID string `param:"tenant" validate:"required,uuid"`
 	MemberID string `param:"uid" validate:"required"`
 	// KeepDevices names devices the member owns that stay as team devices instead of leaving.
@@ -94,11 +93,11 @@ type NamespaceRemoveMember struct {
 // being left and the one the caller is authenticated to, because leaving the namespace you are
 // currently in has to invalidate the token you are holding.
 type LeaveNamespace struct {
-	UserID string `header:"X-ID" validate:"required"`
+	UserID string `identity:"id" validate:"required"`
 	// TenantID represents the namespace that the user intends to leave.
 	TenantID string `param:"tenant" validate:"required,uuid"`
 	// AuthenticatedTenantID represents the namespace to which the user is currently authenticated.
-	AuthenticatedTenantID string `header:"X-Tenant-ID" validate:"required"`
+	AuthenticatedTenantID string `identity:"tenant" validate:"required"`
 	// TokenVersion is the version of the caller's bearer, which the token minted on leaving the
 	// authenticated namespace carries. Nil mints at the user's current version. The handler fills
 	// it from the authentication step; no client input reaches it.

@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
@@ -30,6 +32,7 @@ type probeCall struct {
 	scope  scope.Scope
 	actor  gateway.Actor
 	req    *probeRequest
+	tenant string
 }
 
 func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
@@ -48,8 +51,13 @@ func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
 }
 
 func probeHandler(call *probeCall, res []string, count int64, err error) gateway.ListHandler[probeRequest, []string] {
-	return func(_ context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
+	return func(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
 		call.called = true
+
+		if caller, ok := identity.FromContext(ctx); ok {
+			call.tenant = caller.TenantID
+		}
+
 		call.scope = sc
 		call.actor = actor
 		call.req = req
@@ -62,7 +70,7 @@ func TestWrapperCeremony(t *testing.T) {
 	cases := []struct {
 		description        string
 		withGatewayContext bool
-		headers            map[string]string
+		caller             identity.Identity
 		target             string
 		claims             gateway.Claims
 		expectedStatus     int
@@ -72,7 +80,7 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "normalizes the paginator and the sorter before the handler sees them",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
 			target:             "/probe?page=0&per_page=999&order_by=sideways",
 			expectedStatus:     http.StatusOK,
 			expectedCall:       true,
@@ -87,21 +95,21 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "refuses a request whose query cannot bind",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
 			target:             "/probe?count=not-a-number",
 			expectedStatus:     http.StatusUnprocessableEntity,
 		},
 		{
 			description:        "refuses a request that fails validation",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
 			target:             "/probe?name=ab",
 			expectedStatus:     http.StatusBadRequest,
 		},
 		{
 			description:        "bounds the handler to the namespace the caller carries",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
 			target:             "/probe",
 			expectedStatus:     http.StatusOK,
 			expectedCall:       true,
@@ -114,14 +122,14 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "refuses a bounded route when the caller carries no namespace",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-ID": "user-id"},
+			caller:             identity.Identity{ID: "user-id"},
 			target:             "/probe",
 			expectedStatus:     http.StatusForbidden,
 		},
 		{
 			description:        "names the route an unbounded scope was granted to",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-ID": "user-id"},
+			caller:             identity.Identity{ID: "user-id"},
 			target:             "/probe",
 			claims:             gateway.Claims{Unbounded: true},
 			expectedStatus:     http.StatusOK,
@@ -136,14 +144,10 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "hands the handler the identity the request authenticated as",
 			withGatewayContext: true,
-			headers: map[string]string{
-				"X-Tenant-ID": probeTenant,
-				"X-ID":        "user-id",
-				"X-Username":  "username",
-			},
-			target:         "/probe",
-			expectedStatus: http.StatusOK,
-			expectedCall:   true,
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id", Username: "username"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
 			assert: func(t *testing.T, call *probeCall) {
 				t.Helper()
 
@@ -153,7 +157,7 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "accepts an api key as the acting identity",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-API-Key": "key"},
+			caller:             identity.Identity{TenantID: probeTenant, APIKey: "key"},
 			target:             "/probe",
 			expectedStatus:     http.StatusOK,
 			expectedCall:       true,
@@ -166,14 +170,14 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "refuses a route that requires an actor when the request carries none",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant},
+			caller:             identity.Identity{TenantID: probeTenant},
 			target:             "/probe",
 			expectedStatus:     http.StatusUnauthorized,
 		},
 		{
 			description:        "runs an anonymous route with no actor at all",
 			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant},
+			caller:             identity.Identity{TenantID: probeTenant},
 			target:             "/probe",
 			claims:             gateway.Claims{Anonymous: true},
 			expectedStatus:     http.StatusOK,
@@ -187,9 +191,22 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "refuses the request when the gateway context is not installed",
 			withGatewayContext: false,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
 			target:             "/probe",
 			expectedStatus:     http.StatusInternalServerError,
+		},
+		{
+			description:        "hands the handler a context that carries the caller's identity",
+			withGatewayContext: true,
+			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id"},
+			target:             "/probe",
+			expectedStatus:     http.StatusOK,
+			expectedCall:       true,
+			assert: func(t *testing.T, call *probeCall) {
+				t.Helper()
+
+				assert.Equal(t, probeTenant, call.tenant)
+			},
 		},
 	}
 
@@ -201,9 +218,7 @@ func TestWrapperCeremony(t *testing.T) {
 			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil))(tc.claims))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
-			for name, value := range tc.headers {
-				req.Header.Set(name, value)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -249,8 +264,7 @@ func TestListWritesTheTotalCountAfterTheErrorCheck(t *testing.T) {
 			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err))(gateway.Claims{}))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
-			req.Header.Set("X-Tenant-ID", probeTenant)
-			req.Header.Set("X-ID", "user-id")
+			req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
 
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -276,8 +290,7 @@ func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 	})(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe?uid=device&page=0&per_page=999", nil)
-	req.Header.Set("X-Tenant-ID", probeTenant)
-	req.Header.Set("X-ID", "user-id")
+	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
 
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -294,8 +307,7 @@ func TestOneEncodesTheHandlerResult(t *testing.T) {
 	})(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
-	req.Header.Set("X-Tenant-ID", probeTenant)
-	req.Header.Set("X-ID", "user-id")
+	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
 
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
@@ -312,8 +324,7 @@ func TestNoneAnswersWithoutABody(t *testing.T) {
 	})(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
-	req.Header.Set("X-Tenant-ID", probeTenant)
-	req.Header.Set("X-ID", "user-id")
+	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
 
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)

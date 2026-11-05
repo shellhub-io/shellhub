@@ -11,6 +11,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -27,8 +29,7 @@ func newDeviceListRequest(t *testing.T, target string) *http.Request {
 	t.Helper()
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil)
-	req.Header.Set("X-Role", authorizer.RoleOwner.String())
-	req.Header.Set("X-Tenant-ID", cursorTestTenant)
+	req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: cursorTestTenant})
 
 	return req
 }

@@ -5,13 +5,13 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 )
 
-// CreateAPIKey is the request to mint an API key. TenantID and Role come from the authenticated
-// caller's headers, not from the body: a caller cannot mint a key more powerful than itself. The
+// CreateAPIKey is the request to mint an API key. TenantID and Role come from the caller's
+// authenticated identity, not from the body: a caller cannot mint a key more powerful than itself. The
 // key's plaintext is not a field: the server generates it, so no caller can name a secret that
 // another namespace may already hold.
 type CreateAPIKey struct {
-	TenantID  string          `header:"X-Tenant-ID"`
-	Role      authorizer.Role `header:"X-Role"`
+	TenantID  string          `identity:"tenant"`
+	Role      authorizer.Role `identity:"role"`
 	Name      string          `json:"name" validate:"required,api-key_name"`
 	ExpiresAt int             `json:"expires_at" validate:"required,api-key_expires-at"`
 	OptRole   authorizer.Role `json:"role" validate:"omitempty,member_role"`
@@ -19,7 +19,7 @@ type CreateAPIKey struct {
 
 // ListAPIKey is the request to page through a namespace's API keys.
 type ListAPIKey struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	query.Paginator
 	query.Sorter
 }
@@ -27,8 +27,8 @@ type ListAPIKey struct {
 // UpdateAPIKey is the request to rename an API key or change its role. The key is addressed by its
 // current name in the path, so a rename reads both names at once.
 type UpdateAPIKey struct {
-	UserID   string `header:"X-ID"`
-	TenantID string `header:"X-Tenant-ID"`
+	UserID   string `identity:"id"`
+	TenantID string `identity:"tenant"`
 	// CurrentName is the current stored name. It is different from [UpdateAPIKey.Name], which is used
 	// to handle the new target name (optional).
 	CurrentName string          `param:"name" validate:"required"`
@@ -38,6 +38,6 @@ type UpdateAPIKey struct {
 
 // DeleteAPIKey is the request to revoke an API key, addressed by name within the namespace.
 type DeleteAPIKey struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	Name     string `param:"name" validate:"required"`
 }

@@ -8,10 +8,10 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ type AuthnService interface {
 var exemptPrefixes = []string{"/metrics"}
 
 // Authenticator resolves the caller's identity from the request credentials and
-// stamps it onto the canonical headers that [gateway.Context] reads.
+// stores it on the request's context, where [identity.FromContext] reads it.
 //
 // It fails closed: every route requires a valid credential unless it was
 // registered with [Authenticator.AllowAnonymous], and a device token is refused
@@ -65,8 +65,7 @@ const AnyMethod = "*"
 // as the method to cover every verb.
 //
 // An anonymous route still gets its identity resolved when the caller happens
-// to present a valid credential, and still has forged identity headers
-// stripped; it simply does not demand one.
+// to present a valid credential; it simply does not demand one.
 func (a *Authenticator) AllowAnonymous(method, path string) {
 	a.anonymous.add(method, path)
 }
@@ -101,33 +100,37 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		anonymous := a.anonymous.contains(c)
 
-		identity, err := a.Resolve(c)
+		caller, err := a.Resolve(c)
 		if err != nil {
 			if !anonymous {
 				return err
 			}
 
-			identity = nil
+			caller = nil
 		}
 
-		if identity != nil && identity.DeviceUID != "" && !a.devices.contains(c) {
+		if caller != nil && caller.DeviceUID != "" && !a.devices.contains(c) {
 			if !anonymous {
 				return routes.NewErrForbidden(nil)
 			}
 
-			identity = nil
+			caller = nil
 		}
 
-		if identity != nil && strings.HasPrefix(c.Path(), adminAPIPrefix) {
-			scoped := identity.WithoutUserScope()
-			identity = &scoped
+		if caller != nil && strings.HasPrefix(c.Path(), adminAPIPrefix) {
+			scoped := caller.WithoutUserScope()
+			caller = &scoped
 		}
 
-		identity.WriteTo(c.Request().Header)
+		if caller == nil {
+			if !anonymous {
+				return routes.NewErrUnauthorized(nil)
+			}
 
-		if identity == nil && !anonymous {
-			return routes.NewErrUnauthorized(nil)
+			return next(c)
 		}
+
+		c.SetRequest(c.Request().WithContext(identity.NewContext(c.Request().Context(), *caller)))
 
 		return next(c)
 	}
@@ -148,7 +151,7 @@ func isExempt(path string) bool {
 // Resolve turns the request's credential into an identity. It returns a nil
 // identity when the request carries no usable credential, and an error only
 // when a credential was presented and could not be honoured.
-func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
+func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		if strings.HasPrefix(key, models.InstanceAPIKeyPrefix) {
 			if !strings.HasPrefix(c.Path(), adminAPIPrefix) {
@@ -161,10 +164,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 				return nil, nil
 			}
 
-			return &gateway.Identity{
-				APIKey: key,
-				Admin:  true,
-			}, nil
+			return &identity.Identity{APIKey: key, Admin: true}, nil
 		}
 
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
@@ -174,7 +174,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			return nil, nil
 		}
 
-		return &gateway.Identity{
+		return &identity.Identity{
 			TenantID: apiKey.TenantID,
 			Role:     apiKey.Role,
 			APIKey:   key,
@@ -205,7 +205,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			return nil, nil
 		}
 
-		return &gateway.Identity{
+		return &identity.Identity{
 			DeviceUID: claims.UID,
 			TenantID:  claims.TenantID,
 		}, nil
@@ -240,7 +240,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*gateway.Identity, error) {
 			authctx.WithUserBearer(c.Request().Context(), claims.ID, claims.TokenVersion, claims.Impersonated),
 		))
 
-		return &gateway.Identity{
+		return &identity.Identity{
 			ID:       claims.ID,
 			Username: claims.Username,
 			TenantID: claims.TenantID,

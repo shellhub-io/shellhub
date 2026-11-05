@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
@@ -67,15 +68,21 @@ func From(c *echo.Context) (*Context, bool) {
 	return gCtx, ok
 }
 
-// Role returns the user's namespace role got from JWT through gateway. It is
-// empty if the user has no namespaces.
-func (c *Context) Role() authorizer.Role {
-	return authorizer.RoleFromString(c.Request().Header.Get("X-Role"))
+func (c *Context) identity() identity.Identity {
+	caller, _ := identity.FromContext(c.Request().Context())
+
+	return caller
 }
 
-// Tenant returns the namespace's tenant got from JWT through gateway.
+// Role returns the user's namespace role resolved by authentication. It is
+// empty if the user has no namespaces.
+func (c *Context) Role() authorizer.Role {
+	return c.identity().Role
+}
+
+// Tenant returns the namespace's tenant resolved by authentication.
 func (c *Context) Tenant() *models.Tenant {
-	tenant := c.Request().Header.Get("X-Tenant-ID")
+	tenant := c.identity().TenantID
 	if tenant != "" {
 		return &models.Tenant{ID: tenant}
 	}
@@ -83,9 +90,9 @@ func (c *Context) Tenant() *models.Tenant {
 	return nil
 }
 
-// Scope bounds the request to the namespace its tenant header carries. A route that serves
+// Scope bounds the request to the namespace its identity carries. A route that serves
 // namespace-bound data calls this and returns the error rather than widening the read: an absent
-// header refuses the request, matching the tenant guard's fail-closed behaviour.
+// tenant refuses the request, matching the tenant guard's fail-closed behaviour.
 func (c *Context) Scope() (scope.Scope, error) {
 	tenant := c.Tenant()
 	if tenant == nil {
@@ -112,15 +119,15 @@ func (c *Context) AdminOrScope() (scope.Scope, error) {
 	return c.Scope()
 }
 
-// DeviceUID returns the device's UID got from the device JWT through gateway.
+// DeviceUID returns the device's UID the device token authenticated as.
 // It is empty when the request was not authenticated with a device token.
 func (c *Context) DeviceUID() string {
-	return c.Request().Header.Get("X-Device-UID")
+	return c.identity().DeviceUID
 }
 
-// ID returns the user's ID got from JWT through gateway.
+// ID returns the user's ID resolved by authentication.
 func (c *Context) ID() *models.ID {
-	ID := c.Request().Header.Get("X-ID")
+	ID := c.identity().ID
 	if ID != "" {
 		return &models.ID{ID: ID}
 	}
@@ -132,7 +139,7 @@ func (c *Context) ID() *models.ID {
 // empty string for every other credential. A handler reads it to tell an automation acting on
 // itself from one acting on another key.
 func (c *Context) APIKeyID() string {
-	return c.Request().Header.Get("X-API-Key-ID")
+	return c.identity().APIKeyID
 }
 
 // Ctx returns the request's [context.Context], which is cancelled when the client goes away.
@@ -140,9 +147,9 @@ func (c *Context) Ctx() context.Context {
 	return c.Request().Context()
 }
 
-// GetID returns the user's ID got from JWT through gateway.
+// GetID returns the user's ID resolved by authentication.
 func (c *Context) GetID() (string, bool) {
-	ID := c.Request().Header.Get("X-ID")
+	ID := c.identity().ID
 	if ID != "" {
 		return ID, true
 	}
@@ -150,9 +157,9 @@ func (c *Context) GetID() (string, bool) {
 	return "", false
 }
 
-// GetTennat returns the namespace's tenant got from JWT through gateway.
+// GetTennat returns the namespace's tenant resolved by authentication.
 func (c *Context) GetTennat() (string, bool) {
-	tenant := c.Request().Header.Get("X-Tenant-ID")
+	tenant := c.identity().TenantID
 	if tenant != "" {
 		return tenant, true
 	}
@@ -162,5 +169,5 @@ func (c *Context) GetTennat() (string, bool) {
 
 // IsAdmin returns whether the user is an admin or not.
 func (c *Context) IsAdmin() bool {
-	return c.Request().Header.Get("X-Admin") == "true"
+	return c.identity().Admin
 }

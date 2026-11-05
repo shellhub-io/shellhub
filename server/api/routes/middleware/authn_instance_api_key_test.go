@@ -9,8 +9,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,7 @@ func TestAuthenticatorResolveInstanceAPIKey(t *testing.T) {
 		description   string
 		key           string
 		requiredMocks func(service *mocks.MockService)
-		expected      *gateway.Identity
+		expected      *identity.Identity
 	}{
 		{
 			description: "resolves a prefixed key to the instance administrator identity",
@@ -48,10 +48,7 @@ func TestAuthenticatorResolveInstanceAPIKey(t *testing.T) {
 					Return(&models.InstanceAPIKey{ID: "digest", Name: "license-sync", CreatedBy: testUserID}, nil).
 					Once()
 			},
-			expected: &gateway.Identity{
-				APIKey: instanceKey,
-				Admin:  true,
-			},
+			expected: &identity.Identity{APIKey: instanceKey, Admin: true},
 		},
 		{
 			description: "yields no identity when the creator is no longer an instance administrator",

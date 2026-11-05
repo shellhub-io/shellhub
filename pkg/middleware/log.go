@@ -10,6 +10,7 @@ import (
 	"time"
 
 	echo "github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/sirupsen/logrus"
 )
 
@@ -83,13 +84,6 @@ func logrusLevel(level slog.Level) logrus.Level {
 	}
 }
 
-const (
-	// HeaderUserID is the HTTP header where the user ID is stored.
-	HeaderUserID = "X-ID"
-	// HeaderTenantID is the HTTP header where the tenant ID is stored.
-	HeaderTenantID = "X-Tenant-ID"
-)
-
 const redacted = "REDACTED"
 
 var redactedQueryParams = []string{"token", "invite", "approval_code", "email"}
@@ -131,7 +125,7 @@ func redactURI(requestURI string) string {
 }
 
 // Log is the echo middleware that logs one line per request, with the user and tenant taken from
-// the headers named above and the request URI's query passed through [RedactQuery]. It measures
+// the caller's identity and the request URI's query passed through [RedactQuery]. It measures
 // with the wall clock deliberately: this is elapsed time, not a timestamp a test needs to control.
 //
 // It runs the error handler itself rather than returning the error, so the status that handler
@@ -172,14 +166,13 @@ func Log(next echo.HandlerFunc) echo.HandlerFunc {
 			"bytes_out":     strconv.FormatInt(bytesOut, 10),
 		}
 
-		uid := c.Request().Header.Get(HeaderUserID)
-		if uid != "" {
-			fields["user"] = uid
+		caller, _ := identity.FromContext(c.Request().Context())
+		if caller.ID != "" {
+			fields["user"] = caller.ID
 		}
 
-		tenant := c.Request().Header.Get(HeaderTenantID)
-		if tenant != "" {
-			fields["tenant"] = tenant
+		if caller.TenantID != "" {
+			fields["tenant"] = caller.TenantID
 		}
 
 		if err != nil {

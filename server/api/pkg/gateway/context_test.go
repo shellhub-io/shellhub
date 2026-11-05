@@ -7,6 +7,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/stretchr/testify/require"
 )
@@ -14,18 +16,16 @@ import (
 func TestRole(t *testing.T) {
 	cases := []struct {
 		description string
-		headers     map[string]string
+		caller      identity.Identity
 		expected    authorizer.Role
 	}{
 		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleOwner.String(),
-			},
-			expected: authorizer.Role("owner"),
+			description: "returns the value the identity carries",
+			caller:      identity.Identity{Role: authorizer.RoleOwner},
+			expected:    authorizer.Role("owner"),
 		}, {
-			description: "validate empty headers, for fail function",
-			headers:     map[string]string{},
+			description: "returns the zero value with no identity",
+			caller:      identity.Identity{},
 			expected:    authorizer.RoleInvalid,
 		},
 	}
@@ -35,8 +35,8 @@ func TestRole(t *testing.T) {
 			e := echo.New()
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
+			if tc.caller != (identity.Identity{}) {
+				req = identitytest.As(req, tc.caller)
 			}
 
 			rec := httptest.NewRecorder()
@@ -56,20 +56,18 @@ func TestRole(t *testing.T) {
 func TestTenant(t *testing.T) {
 	cases := []struct {
 		description string
-		headers     map[string]string
+		caller      identity.Identity
 		expected    *models.Tenant
 	}{
 		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			description: "returns the value the identity carries",
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"},
 			expected: &models.Tenant{
 				ID: "00000000-0000-4000-0000-000000000000",
 			},
 		}, {
-			description: "validate empty headers, for fail function",
-			headers:     map[string]string{},
+			description: "returns the zero value with no identity",
+			caller:      identity.Identity{},
 			expected:    nil,
 		},
 	}
@@ -81,8 +79,8 @@ func TestTenant(t *testing.T) {
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
+			if tc.caller != (identity.Identity{}) {
+				req = identitytest.As(req, tc.caller)
 			}
 
 			rec := httptest.NewRecorder()
@@ -102,20 +100,18 @@ func TestTenant(t *testing.T) {
 func TestID(t *testing.T) {
 	cases := []struct {
 		description string
-		headers     map[string]string
+		caller      identity.Identity
 		expected    *models.ID
 	}{
 		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-ID": "507f191e810c19729de860ea",
-			},
+			description: "returns the value the identity carries",
+			caller:      identity.Identity{ID: "507f191e810c19729de860ea"},
 			expected: &models.ID{
 				ID: "507f191e810c19729de860ea",
 			},
 		}, {
-			description: "validate empty headers, for fail function",
-			headers:     map[string]string{},
+			description: "returns the zero value with no identity",
+			caller:      identity.Identity{},
 			expected:    nil,
 		},
 	}
@@ -127,8 +123,8 @@ func TestID(t *testing.T) {
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
+			if tc.caller != (identity.Identity{}) {
+				req = identitytest.As(req, tc.caller)
 			}
 
 			rec := httptest.NewRecorder()
@@ -152,21 +148,19 @@ func TestGetID(t *testing.T) {
 	}
 	cases := []struct {
 		description string
-		headers     map[string]string
+		caller      identity.Identity
 		expected    Expected
 	}{
 		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-ID": "507f191e810c19729de860ea",
-			},
+			description: "returns the value the identity carries",
+			caller:      identity.Identity{ID: "507f191e810c19729de860ea"},
 			expected: Expected{
 				id: "507f191e810c19729de860ea",
 				ok: true,
 			},
 		}, {
-			description: "validate empty headers, for fail function",
-			headers:     map[string]string{},
+			description: "returns the zero value with no identity",
+			caller:      identity.Identity{},
 			expected: Expected{
 				id: "",
 				ok: false,
@@ -181,8 +175,8 @@ func TestGetID(t *testing.T) {
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
+			if tc.caller != (identity.Identity{}) {
+				req = identitytest.As(req, tc.caller)
 			}
 
 			rec := httptest.NewRecorder()
@@ -206,21 +200,19 @@ func TestGetTennat(t *testing.T) {
 	}
 	cases := []struct {
 		description string
-		headers     map[string]string
+		caller      identity.Identity
 		expected    Expected
 	}{
 		{
-			description: "verify if given value returns from header",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			description: "returns the value the identity carries",
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"},
 			expected: Expected{
 				user: "00000000-0000-4000-0000-000000000000",
 				ok:   true,
 			},
 		}, {
-			description: "validate empty headers, for fail function",
-			headers:     map[string]string{},
+			description: "returns the zero value with no identity",
+			caller:      identity.Identity{},
 			expected: Expected{
 				user: "",
 				ok:   false,
@@ -235,8 +227,8 @@ func TestGetTennat(t *testing.T) {
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
+			if tc.caller != (identity.Identity{}) {
+				req = identitytest.As(req, tc.caller)
 			}
 
 			rec := httptest.NewRecorder()

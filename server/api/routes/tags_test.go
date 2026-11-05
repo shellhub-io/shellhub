@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -210,9 +212,7 @@ func TestGetTags(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)
@@ -238,39 +238,28 @@ func TestDeleteTag(t *testing.T) {
 	cases := []struct {
 		description    string
 		url            string
-		headers        map[string]string
+		caller         identity.Identity
 		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer (new URL)",
-			url:         "/api/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleObserver.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			description:    "fails when role is observer (new URL)",
+			url:            "/api/tags/production",
+			caller:         identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "fails when role is observer (legacy URL)",
-			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleObserver.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			description:    "fails when role is observer (legacy URL)",
+			url:            "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
+			caller:         identity.Identity{Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			description: "fails when service returns ErrNamespaceNotFound",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
@@ -285,11 +274,7 @@ func TestDeleteTag(t *testing.T) {
 		{
 			description: "fails with 409 when a device filter holds the tag",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
@@ -304,11 +289,7 @@ func TestDeleteTag(t *testing.T) {
 		{
 			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
@@ -323,10 +304,7 @@ func TestDeleteTag(t *testing.T) {
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleOwner.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("DeleteTag", gomock.Anything, &requests.DeleteTag{
@@ -346,9 +324,7 @@ func TestDeleteTag(t *testing.T) {
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, tc.url, nil)
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -372,6 +348,7 @@ func TestCreateTag(t *testing.T) {
 		description   string
 		url           string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]any
 		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
@@ -379,12 +356,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "fails when role is observer (new URL)",
 			url:         "/api/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleObserver.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -394,11 +367,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "fails when role is observer (legacy URL)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleObserver.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -408,12 +378,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "fails when name is too short (< 3 chars)",
 			url:         "/api/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "a",
 			},
@@ -423,12 +389,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "fails when service returns ErrNamespaceNotFound",
 			url:         "/api/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -446,12 +408,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "succeeds with 201 and X-Inserted-ID header (new URL)",
 			url:         "/api/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -472,12 +430,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "returns 409 when the name is already taken",
 			url:         "/api/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -495,11 +449,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "production",
 			},
@@ -531,6 +482,7 @@ func TestCreateTag(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -574,6 +526,7 @@ func TestUpdateTag(t *testing.T) {
 		description   string
 		url           string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]any
 		requiredMocks func(svcMock *mocks.MockService)
 		expected      Expected
@@ -581,12 +534,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "fails when role is observer (new URL)",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleObserver.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -596,11 +545,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "fails when role is observer (legacy URL)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleObserver.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -610,12 +556,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "fails when NewName is too short (< 3 chars)",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "ab",
 			},
@@ -625,12 +567,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "fails when service returns ErrNamespaceNotFound",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -649,12 +587,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "succeeds with 200 and the renamed tag (new URL)",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -673,11 +607,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -696,12 +627,8 @@ func TestUpdateTag(t *testing.T) {
 		{
 			description: "returns 409 when the name is already taken",
 			url:         "/api/tags/production",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"name": "staging",
 			},
@@ -731,6 +658,7 @@ func TestUpdateTag(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -756,50 +684,35 @@ func TestPushTagToDevice(t *testing.T) {
 	cases := []struct {
 		description    string
 		url            string
-		headers        map[string]string
+		caller         identity.Identity
 		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer (new URL)",
-			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleObserver.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			description:    "fails when role is observer (new URL)",
+			url:            "/api/devices/" + deviceUID + "/tags/production",
+			caller:         identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "fails when role is observer (legacy URL)",
-			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleObserver.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			description:    "fails when role is observer (legacy URL)",
+			url:            "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
+			caller:         identity.Identity{Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "fails when tag name is too short (< 3 chars)",
-			url:         "/api/devices/" + deviceUID + "/tags/ab",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			description:    "fails when tag name is too short (< 3 chars)",
+			url:            "/api/devices/" + deviceUID + "/tags/ab",
+			caller:         identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "fails when service returns ErrNamespaceNotFound",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
@@ -815,11 +728,7 @@ func TestPushTagToDevice(t *testing.T) {
 		{
 			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
@@ -835,10 +744,7 @@ func TestPushTagToDevice(t *testing.T) {
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleOwner.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PushTagTo", gomock.Anything, store.TagTargetDevice, &requests.PushTag{
@@ -859,9 +765,7 @@ func TestPushTagToDevice(t *testing.T) {
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, tc.url, nil)
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -881,50 +785,35 @@ func TestPullTagFromDevice(t *testing.T) {
 	cases := []struct {
 		description    string
 		url            string
-		headers        map[string]string
+		caller         identity.Identity
 		requiredMocks  func(svcMock *mocks.MockService)
 		expectedStatus int
 	}{
 		{
-			description: "fails when role is observer (new URL)",
-			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleObserver.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			description:    "fails when role is observer (new URL)",
+			url:            "/api/devices/" + deviceUID + "/tags/production",
+			caller:         identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "fails when role is observer (legacy URL)",
-			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleObserver.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			description:    "fails when role is observer (legacy URL)",
+			url:            "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
+			caller:         identity.Identity{Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description: "fails when tag name is too short (< 3 chars)",
-			url:         "/api/devices/" + deviceUID + "/tags/ab",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			description:    "fails when tag name is too short (< 3 chars)",
+			url:            "/api/devices/" + deviceUID + "/tags/ab",
+			caller:         identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks:  func(_ *mocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "fails when service returns ErrNamespaceNotFound",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
@@ -940,11 +829,7 @@ func TestPullTagFromDevice(t *testing.T) {
 		{
 			description: "succeeds with 204 and no body (new URL)",
 			url:         "/api/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-				"X-Role":      authorizer.RoleOwner.String(),
-				"X-ID":        "000000000000000000000000",
-			},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
@@ -960,10 +845,7 @@ func TestPullTagFromDevice(t *testing.T) {
 		{
 			description: "succeeds via legacy URL (tenant from path param)",
 			url:         "/api/namespaces/00000000-0000-4000-0000-000000000000/devices/" + deviceUID + "/tags/production",
-			headers: map[string]string{
-				"X-Role": authorizer.RoleOwner.String(),
-				"X-ID":   "000000000000000000000000",
-			},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func(svcMock *mocks.MockService) {
 				svcMock.
 					On("PullTagFrom", gomock.Anything, store.TagTargetDevice, &requests.PullTag{
@@ -984,9 +866,7 @@ func TestPullTagFromDevice(t *testing.T) {
 			tc.requiredMocks(svcMock)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, tc.url, nil)
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 

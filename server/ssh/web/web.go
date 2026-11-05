@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -109,9 +110,11 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				return
 			}
 
-			request.UserID = req.Header.Get("X-ID")
+			caller, _ := identity.FromContext(req.Context())
 
-			sc, err := services.BoundTo(req.Header.Get("X-Tenant-ID"))
+			request.UserID = caller.ID
+
+			sc, err := services.BoundTo(caller.TenantID)
 			if err != nil {
 				response(res, http.StatusForbidden, Fail{Error: err.Error()})
 

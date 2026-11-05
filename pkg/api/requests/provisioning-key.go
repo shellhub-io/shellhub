@@ -28,9 +28,9 @@ func (o *OptionalInt) UnmarshalJSON(data []byte) error {
 }
 
 // CreateProvisioningKey is the request to mint a provisioning key. TenantID comes from the caller's
-// headers rather than the body, so a key cannot be minted into another namespace.
+// authenticated identity rather than the body, so a key cannot be minted into another namespace.
 type CreateProvisioningKey struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	Name     string `json:"name" validate:"required,api-key_name"`
 	// Mode is the enrollment policy. Omitted defaults to "automatic". Mode-specific fields
 	// (WebhookURL/WebhookSecret, AllowedIdentities) are validated in the service.
@@ -58,7 +58,7 @@ type CreateProvisioningKey struct {
 // ListProvisioningKey is the request to page through a namespace's provisioning keys. It never returns key
 // material — see RevealProvisioningKey for that.
 type ListProvisioningKey struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	query.Paginator
 	query.Sorter
 }
@@ -67,8 +67,8 @@ type ListProvisioningKey struct {
 // ones are pointers and OptionalInt. The key is addressed by its current name in the path, so a
 // rename reads both names at once.
 type UpdateProvisioningKey struct {
-	UserID   string `header:"X-ID"`
-	TenantID string `header:"X-Tenant-ID"`
+	UserID   string `identity:"id"`
+	TenantID string `identity:"tenant"`
 	// CurrentName is the current stored name (path param). It differs from [UpdateProvisioningKey.Name],
 	// which is the optional new target name.
 	CurrentName string `param:"name" validate:"required"`
@@ -106,13 +106,13 @@ type UpdateProvisioningKey struct {
 // RevealProvisioningKey is the request to read back a provisioning key's secret. It is the only route that
 // returns one, which is why it is separate from the listing.
 type RevealProvisioningKey struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	Name     string `param:"name" validate:"required"`
 }
 
 // ListProvisioningKeyEvents is the request to page through what one provisioning key has enrolled.
 type ListProvisioningKeyEvents struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	// ID is the provisioning key's digest. History is keyed by digest, not name: names are unique only per
 	// namespace and can be reused (the system "legacy" key) or renamed, so a name would be ambiguous.
 	ID string `param:"id" validate:"required"`
@@ -122,7 +122,7 @@ type ListProvisioningKeyEvents struct {
 
 // ListTenantRegistrations pages the registration history of the namespace's tenant-only key.
 type ListTenantRegistrations struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	query.Paginator
 	query.Sorter
 }

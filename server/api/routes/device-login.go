@@ -21,7 +21,7 @@ const (
 
 // CreateDeviceLoginCode issues a short-lived code that deep-links this device
 // into the console's accept page. It is authenticated with the device's own
-// token; the gateway sets X-Device-UID and X-Tenant-ID from the device claims.
+// token, whose claims give the device UID and tenant.
 func (h *Handler) CreateDeviceLoginCode(c *gateway.Context) error {
 	uid := c.DeviceUID()
 	tenant := c.Tenant()

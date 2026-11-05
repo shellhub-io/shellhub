@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -25,19 +28,16 @@ func TestUpdateProvisioningKey(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]any
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "surfaces the offending field on an invalid update",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
-			body: map[string]any{"usage_limit": 10},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			body:        map[string]any{"usage_limit": 10},
 			requiredMocks: func() {
 				svcMock.On("UpdateProvisioningKey", mock.Anything, mock.Anything).
 					Return(services.NewErrProvisioningKeyInvalidField(map[string]string{
@@ -49,13 +49,9 @@ func TestUpdateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "answers a message-only body for a non-field error",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
-			body: map[string]any{"revoked": true},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			body:        map[string]any{"revoked": true},
 			requiredMocks: func() {
 				svcMock.On("UpdateProvisioningKey", mock.Anything, mock.Anything).
 					Return(services.NewErrProvisioningKeyForbidden()).
@@ -68,13 +64,9 @@ func TestUpdateProvisioningKey(t *testing.T) {
 		},
 		{
 			description: "succeeds",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-ID":         "000000000000000000000000",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-			},
-			body: map[string]any{"disabled": true},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			body:        map[string]any{"disabled": true},
 			requiredMocks: func() {
 				svcMock.On("UpdateProvisioningKey", mock.Anything, mock.Anything).
 					Return(nil).
@@ -95,6 +87,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)

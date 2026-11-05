@@ -18,7 +18,7 @@ type GenerateInvitationLink struct {
 	ForwardedHost  string          `header:"X-Forwarded-Host" validate:"required"`
 	ForwardedProto string          `header:"X-Forwarded-Proto"`
 	TenantID       string          `param:"tenant" validate:"required,uuid"`
-	UserID         string          `header:"X-ID" validate:"required"`
+	UserID         string          `identity:"id" validate:"required"`
 	MemberEmail    string          `json:"email" validate:"required"`
 	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
 }
@@ -26,7 +26,7 @@ type GenerateInvitationLink struct {
 // UserMembershipInvitationList is the request to page through the invitations addressed to the
 // authenticated user, across every namespace.
 type UserMembershipInvitationList struct {
-	UserID string `header:"X-ID"`
+	UserID string `identity:"id"`
 	query.Paginator
 	query.Sorter
 	query.Filters
@@ -40,7 +40,7 @@ type NamespaceMembershipInvitationList struct {
 	ForwardedHost  string `header:"X-Forwarded-Host"`
 	ForwardedProto string `header:"X-Forwarded-Proto"`
 	TenantID       string `param:"tenant" validate:"required"`
-	UserID         string `header:"X-ID" validate:"required"`
+	UserID         string `identity:"id" validate:"required"`
 	query.Paginator
 	query.Sorter
 	query.Filters
@@ -50,13 +50,13 @@ type NamespaceMembershipInvitationList struct {
 // authenticated caller, so the request carries no email of its own.
 type AcceptInvite struct {
 	TenantID string `param:"tenant" validate:"required"`
-	UserID   string `header:"X-ID" validate:"required"`
+	UserID   string `identity:"id" validate:"required"`
 }
 
 // CancelMembershipInvitation is the request to withdraw an invitation the namespace sent. UserID
 // is the caller; InvitedUserID is whose invitation is being withdrawn.
 type CancelMembershipInvitation struct {
 	TenantID      string `param:"tenant" validate:"required"`
-	UserID        string `header:"X-ID" validate:"required"`
+	UserID        string `identity:"id" validate:"required"`
 	InvitedUserID string `param:"uid" validate:"required"`
 }

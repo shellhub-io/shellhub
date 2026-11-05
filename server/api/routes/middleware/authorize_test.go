@@ -7,6 +7,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,44 +17,44 @@ func TestRequiresTenant(t *testing.T) {
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
 	cases := []struct {
-		description string
-		paramValue  string
-		header      string
-		useGateway  bool
-		expected    int
+		description  string
+		paramValue   string
+		callerTenant string
+		useGateway   bool
+		expected     int
 	}{
 		{
-			description: "allows when tenant header matches path param",
-			paramValue:  tenant,
-			header:      tenant,
-			useGateway:  true,
-			expected:    http.StatusOK,
+			description:  "allows when caller tenant matches path param",
+			paramValue:   tenant,
+			callerTenant: tenant,
+			useGateway:   true,
+			expected:     http.StatusOK,
 		},
 		{
-			description: "blocks when tenant header does not match path param",
-			paramValue:  tenant,
-			header:      "7e7389a9-55be-4e14-8c47-817a1552774f",
-			useGateway:  true,
-			expected:    http.StatusForbidden,
+			description:  "blocks when caller tenant does not match path param",
+			paramValue:   tenant,
+			callerTenant: "7e7389a9-55be-4e14-8c47-817a1552774f",
+			useGateway:   true,
+			expected:     http.StatusForbidden,
 		},
 		{
-			description: "blocks when tenant header is missing",
+			description: "blocks when caller tenant is missing",
 			paramValue:  tenant,
-			useGateway:  true,
-			expected:    http.StatusForbidden,
-		},
-		{
-			description: "blocks when path param is empty",
-			header:      tenant,
 			useGateway:  true,
 			expected:    http.StatusForbidden,
 		},
 		{
-			description: "blocks when the gateway middleware is not installed",
-			paramValue:  tenant,
-			header:      tenant,
-			useGateway:  false,
-			expected:    http.StatusForbidden,
+			description:  "blocks when path param is empty",
+			callerTenant: tenant,
+			useGateway:   true,
+			expected:     http.StatusForbidden,
+		},
+		{
+			description:  "blocks when the gateway middleware is not installed",
+			paramValue:   tenant,
+			callerTenant: tenant,
+			useGateway:   false,
+			expected:     http.StatusForbidden,
 		},
 	}
 
@@ -60,9 +62,7 @@ func TestRequiresTenant(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-			if tc.header != "" {
-				req.Header.Set("X-Tenant-ID", tc.header)
-			}
+			req = identitytest.As(req, identity.Identity{TenantID: tc.callerTenant})
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 			c.SetPathValues(echo.PathValues{{Name: "tenant", Value: tc.paramValue}})
@@ -129,7 +129,7 @@ func TestRequiresAnyPermission(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			e := echo.New()
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
-			req.Header.Set("X-Role", tc.role.String())
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleFromString(tc.role.String())})
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
 
