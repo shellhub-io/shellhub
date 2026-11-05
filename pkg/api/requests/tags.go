@@ -4,33 +4,33 @@ import "github.com/shellhub-io/shellhub/pkg/api/query"
 
 // CreateTag is the request to add a tag to a namespace's vocabulary, before anything carries it.
 type CreateTag struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
 	Name     string `json:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
 
 // PushTag is the request to attach an existing tag to one target.
 type PushTag struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
-	Name     string `param:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
+	Name     string `param:"name" json:"-" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 	// TargetID is the identifier of the target to push the tag on.
 	// For the reason cannot of it can be a list of things (UID for device, ID for firewall, etc...), it
 	// cannot be parsed and must be set manually
-	TargetID string `validate:"required"`
+	TargetID string `json:"-" validate:"required"`
 }
 
 // PullTag is the request to detach a tag from one target. The tag itself survives.
 type PullTag struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
-	Name     string `param:"name" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
+	Name     string `param:"name" json:"-" validate:"required,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 	// TargetID is the identifier of the target to pull the tag of.
 	// For the reason cannot of it can be a list of things (UID for device, ID for firewall, etc...), it
 	// cannot be parsed and must be set manually
-	TargetID string `validate:"required"`
+	TargetID string `json:"-" validate:"required"`
 }
 
 // ListTags is the request to page through a namespace's tags.
 type ListTags struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
 	query.Paginator
 	query.Filters
 	query.Sorter
@@ -39,8 +39,8 @@ type ListTags struct {
 // UpdateTag is the request to rename a tag. Everything carrying it follows the rename, since
 // targets reference the tag by id.
 type UpdateTag struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
-	Name     string `param:"name" validate:"required"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
+	Name     string `param:"name" json:"-" validate:"required"`
 	// Similar to [UpdateTag.Name], but is used to update the tag's name instead of retrieve the tag.
 	NewName string `json:"name" validate:"omitempty,min=3,max=255,alphanum,ascii,excludes=/@&:"`
 }
@@ -48,6 +48,6 @@ type UpdateTag struct {
 // DeleteTag is the request to remove a tag from the namespace, detaching it from everything that
 // carries it.
 type DeleteTag struct {
-	TenantID string `param:"tenant" identity:"tenant" validate:"required,uuid"`
-	Name     string `param:"name" validate:"required"`
+	TenantID string `identity:"tenant" json:"-" validate:"required,uuid"`
+	Name     string `param:"name" json:"-" validate:"required"`
 }

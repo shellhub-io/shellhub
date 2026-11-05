@@ -10,8 +10,8 @@ import (
 // key's plaintext is not a field: the server generates it, so no caller can name a secret that
 // another namespace may already hold.
 type CreateAPIKey struct {
-	TenantID  string          `identity:"tenant"`
-	Role      authorizer.Role `identity:"role"`
+	TenantID  string          `identity:"tenant" json:"-"`
+	Role      authorizer.Role `identity:"role" json:"-"`
 	Name      string          `json:"name" validate:"required,api-key_name"`
 	ExpiresAt int             `json:"expires_at" validate:"required,api-key_expires-at"`
 	OptRole   authorizer.Role `json:"role" validate:"omitempty,member_role"`
@@ -19,7 +19,7 @@ type CreateAPIKey struct {
 
 // ListAPIKey is the request to page through a namespace's API keys.
 type ListAPIKey struct {
-	TenantID string `identity:"tenant"`
+	TenantID string `identity:"tenant" json:"-"`
 	query.Paginator
 	query.Sorter
 }
@@ -27,17 +27,17 @@ type ListAPIKey struct {
 // UpdateAPIKey is the request to rename an API key or change its role. The key is addressed by its
 // current name in the path, so a rename reads both names at once.
 type UpdateAPIKey struct {
-	UserID   string `identity:"id"`
-	TenantID string `identity:"tenant"`
+	UserID   string `identity:"id" json:"-"`
+	TenantID string `identity:"tenant" json:"-"`
 	// CurrentName is the current stored name. It is different from [UpdateAPIKey.Name], which is used
 	// to handle the new target name (optional).
-	CurrentName string          `param:"name" validate:"required"`
+	CurrentName string          `param:"name" json:"-" validate:"required"`
 	Name        string          `json:"name" validate:"omitempty,api-key_name"`
 	Role        authorizer.Role `json:"role" validate:"omitempty,member_role"`
 }
 
 // DeleteAPIKey is the request to revoke an API key, addressed by name within the namespace.
 type DeleteAPIKey struct {
-	TenantID string `identity:"tenant"`
-	Name     string `param:"name" validate:"required"`
+	TenantID string `identity:"tenant" json:"-"`
+	Name     string `param:"name" json:"-" validate:"required"`
 }

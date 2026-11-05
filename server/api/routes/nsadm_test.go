@@ -317,7 +317,6 @@ func TestEditNamespace(t *testing.T) {
 			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"session_record": true,
-				"tenant":         "00000000-0000-4000-0000-000000000000",
 			},
 			requiredMocks: func() {
 				svcMock.

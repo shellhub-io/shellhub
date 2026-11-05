@@ -29,18 +29,18 @@ type SSHApprovalCreate struct {
 // it once, after the client answers its approval prompt, and the code is
 // normalized and checked in the service rather than here.
 type SSHApprovalStatus struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 }
 
 // SSHApprovalGet is the request data for the endpoint the console page uses to
 // render the approval request details.
 type SSHApprovalGet struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 }
 
 // SSHApprovalConfirm is the request data for the accept endpoint.
 type SSHApprovalConfirm struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 	// ExpiresIn is how many days the key being bound should keep working,
 	// omitted for a key that never expires. Only meaningful for the identity
 	// kind, since a re-auth binds nothing.
@@ -49,5 +49,5 @@ type SSHApprovalConfirm struct {
 
 // SSHApprovalReject is the request data for the deny endpoint.
 type SSHApprovalReject struct {
-	Code string `param:"code" validate:"required"`
+	Code string `param:"code" json:"-" validate:"required"`
 }

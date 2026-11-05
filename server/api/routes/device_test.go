@@ -617,7 +617,6 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 	cases := []struct {
 		description       string
 		target            string
-		body              string
 		expectedConnector bool
 	}{
 		{
@@ -645,18 +644,6 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 			target:            "/api/containers?connector=false",
 			expectedConnector: true,
 		},
-		{
-			description:       "lists containers through /api/containers whatever the body says",
-			target:            "/api/containers",
-			body:              `{"connector":false}`,
-			expectedConnector: true,
-		},
-		{
-			description:       "lists devices other than containers with connector=false whatever the body says",
-			target:            "/api/devices?connector=false",
-			body:              `{"connector":true}`,
-			expectedConnector: false,
-		},
 	}
 
 	for _, tc := range cases {
@@ -674,16 +661,8 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 				Return([]models.Device{}, int64(0), nil).
 				Once()
 
-			var body io.Reader
-			if tc.body != "" {
-				body = strings.NewReader(tc.body)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, body)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
 			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
-			if tc.body != "" {
-				req.Header.Set("Content-Type", "application/json")
-			}
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -693,6 +672,22 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 			assert.Equal(t, tc.expectedConnector, captured.Connector)
 		})
 	}
+
+	t.Run("refuses a body naming the connector", func(t *testing.T) {
+		for _, target := range []string{"/api/containers", "/api/devices?connector=false"} {
+			mock := mocks.NewMockService(t)
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, strings.NewReader(`{"connector":false}`))
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
+			req.Header.Set("Content-Type", "application/json")
+
+			rec := httptest.NewRecorder()
+			newTestRouter(t, mock).ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusUnprocessableEntity, rec.Result().StatusCode, target)
+			mock.AssertNotCalled(t, "ListDevices")
+		}
+	})
 
 	t.Run("refuses a connector value that is not a boolean", func(t *testing.T) {
 		mock := mocks.NewMockService(t)

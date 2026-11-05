@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/binding"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -35,11 +36,15 @@ type Claims struct {
 // Endpoint is a handler waiting for the claims of the route that mounts it.
 type Endpoint func(Claims) echo.HandlerFunc
 
-// One answers 200 with the handler's result as JSON. It fails with 500 when no gateway [Context]
-// was installed, with the bind or validation error for a malformed request, with 403 when the
-// request carries no namespace and the route is not [Claims.Unbounded], with 401 when it carries
-// no actor and the route is not [Claims.Anonymous], and otherwise with the handler's error.
+// One answers 200 with the handler's result as JSON. It panics when T breaks the rule of package
+// binding, so a misdeclared request stops the route table from being built. It fails with 500 when
+// no gateway [Context] was installed, with the bind or validation error for a malformed request,
+// with 403 when the request carries no namespace and the route is not [Claims.Unbounded], with 401
+// when it carries no actor and the route is not [Claims.Anonymous], and otherwise with the
+// handler's error.
 func One[T, R any](handler OneHandler[T, R]) Endpoint {
+	binding.MustCheck[T]()
+
 	return func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			in, err := prepare[T](c, claims)
@@ -58,8 +63,10 @@ func One[T, R any](handler OneHandler[T, R]) Endpoint {
 }
 
 // List answers 200 with the page as JSON and the collection's total in X-Total-Count, written only
-// once the handler succeeded. It fails as [One] does.
+// once the handler succeeded. It panics and fails as [One] does.
 func List[T, R any](handler ListHandler[T, R]) Endpoint {
+	binding.MustCheck[T]()
+
 	return func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			in, err := prepare[T](c, claims)
@@ -79,8 +86,10 @@ func List[T, R any](handler ListHandler[T, R]) Endpoint {
 	}
 }
 
-// None answers 200 with no body once the handler succeeded. It fails as [One] does.
+// None answers 200 with no body once the handler succeeded. It panics and fails as [One] does.
 func None[T any](handler NoneHandler[T]) Endpoint {
+	binding.MustCheck[T]()
+
 	return func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			in, err := prepare[T](c, claims)

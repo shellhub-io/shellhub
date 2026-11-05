@@ -5,12 +5,12 @@ import "github.com/shellhub-io/shellhub/pkg/api/query"
 // SessionIDParam is a structure to represent and validate a session UID as path param.
 type SessionIDParam struct {
 	// UID is the session's UID.
-	UID string `param:"uid" validate:"required"`
+	UID string `param:"uid" json:"-" validate:"required"`
 }
 
 // ListSessions is the request to page through a namespace's sessions, live and finished alike.
 type ListSessions struct {
-	TenantID string `identity:"tenant"`
+	TenantID string `identity:"tenant" json:"-"`
 	query.Paginator
 	query.Filters
 }

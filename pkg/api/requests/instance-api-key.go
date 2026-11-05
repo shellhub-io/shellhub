@@ -8,7 +8,7 @@ import "github.com/shellhub-io/shellhub/pkg/api/query"
 // admin surface strips the ID: an admin-panel call carries no user scope. A request without it is
 // refused, since it names no administrator to record as the key's creator.
 type CreateInstanceAPIKey struct {
-	AdminID   string `identity:"admin_id" validate:"required"`
+	AdminID   string `identity:"admin_id" json:"-" validate:"required"`
 	Name      string `json:"name" validate:"required,api-key_name"`
 	ExpiresAt int    `json:"expires_at" validate:"required,instance-api-key_expires-at"`
 }
@@ -21,5 +21,5 @@ type ListInstanceAPIKey struct {
 
 // DeleteInstanceAPIKey is the request to revoke the named instance API key.
 type DeleteInstanceAPIKey struct {
-	Name string `param:"name" validate:"required"`
+	Name string `param:"name" json:"-" validate:"required"`
 }

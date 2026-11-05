@@ -36,7 +36,7 @@ type SSHIdentityCreate struct {
 // what the key owns.
 type APIKeySSHIdentityCreate struct {
 	// KeyName is the API key the identity belongs to.
-	KeyName  string `param:"name" validate:"required"`
+	KeyName  string `param:"name" json:"-" validate:"required"`
 	TenantID string `json:"-"`
 	Name     string `json:"name" validate:""`
 	// Data is the OpenSSH public key to enroll.
@@ -56,7 +56,7 @@ type APIKeySSHIdentityCreate struct {
 // APIKeySSHIdentityList is the request data for listing the SSH identities an API key owns.
 type APIKeySSHIdentityList struct {
 	// KeyName is the API key whose credentials are listed.
-	KeyName  string `param:"name" validate:"required"`
+	KeyName  string `param:"name" json:"-" validate:"required"`
 	TenantID string `json:"-"`
 	// CallerAPIKeyID is the id of the API key the request authenticated with, empty for a
 	// person. The handler sets it, and the service refuses a key that names another key.
@@ -65,7 +65,7 @@ type APIKeySSHIdentityList struct {
 
 // SSHIdentityIDParam represents an SSH identity id as a path param.
 type SSHIdentityIDParam struct {
-	ID string `param:"id" validate:"required"`
+	ID string `param:"id" json:"-" validate:"required"`
 }
 
 // SSHIdentityUpdate is the request data for renaming an enrolled SSH identity.
