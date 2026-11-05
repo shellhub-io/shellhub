@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { MfaGenerate } from "@/client";
 import { http, HttpResponse } from "msw";
@@ -232,6 +232,24 @@ describe("MfaEnableModal", () => {
           screen.getByText(/MFA Enabled Successfully/i),
         ).toBeInTheDocument();
       });
+    });
+
+    it("fills every cell when a code is pasted", async () => {
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
+      });
+
+      const otpInputs = within(
+        screen.getByRole("group", { name: "Verification Code" }),
+      ).getAllByRole("textbox");
+      await user.click(otpInputs[0]);
+      await user.paste("123456");
+
+      expect(otpInputs.map((input) => (input as HTMLInputElement).value)).toEqual(
+        ["1", "2", "3", "4", "5", "6"],
+      );
     });
 
     it("shows error on invalid OTP", async () => {
