@@ -48,7 +48,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 	}{
 		{
 			description: "an unknown device is refused with a server error",
-			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
+			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct // the test sets only the field it exercises
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
@@ -60,19 +60,19 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 		},
 		{
 			description: "a device that is not accepted is refused",
-			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
+			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct // the test sets only the field it exercises
 			tenant:      "00000000-0000-4000-0000-000000000000",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
 					GetDevice(mock.Anything, mock.Anything, models.UID(testDeviceUID)).
-					Return(&models.Device{UID: testDeviceUID, Status: models.DeviceStatusPending}, nil). //nolint:exhaustruct
+					Return(&models.Device{UID: testDeviceUID, Status: models.DeviceStatusPending}, nil). //nolint:exhaustruct // the test sets only the field it exercises
 					Once()
 			},
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			description: "the pre-0.15 fallback refuses an unknown device with a server error",
-			config:      &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct
+			config:      &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct // the test sets only the field it exercises
 			tenant:      "",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
@@ -143,7 +143,7 @@ func TestHandleConnectionV1RetriesOnlyInfrastructureFailures(t *testing.T) {
 				Return(nil, tt.err).
 				Times(tt.expectedAttempts)
 
-			e := newConnectionTestServer(t, serviceMock, &Config{RequireAcceptedTunnel: true}) //nolint:exhaustruct
+			e := newConnectionTestServer(t, serviceMock, &Config{RequireAcceptedTunnel: true}) //nolint:exhaustruct // the test sets only the field it exercises
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
 			req.Header.Set("X-Request-ID", "request-id")
@@ -194,7 +194,7 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			e := newConnectionTestServer(t, nil, &Config{}) //nolint:exhaustruct
+			e := newConnectionTestServer(t, nil, &Config{}) //nolint:exhaustruct // the test sets only the field it exercises
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV2Path, nil)
 			for name, value := range tt.headers {
