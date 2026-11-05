@@ -383,6 +383,7 @@ func (s *Server) Setup(ctx context.Context) error {
 	s.worker.HandleCron(services.CronDeviceCleanup, service.DeviceCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronNamespaceDeviceCountSync, service.NamespaceDeviceCountSync(), asynq.Unique())
 	s.worker.HandleCron(services.CronEphemeralCleanup, service.EphemeralCleanup(), asynq.Unique())
+	s.worker.HandleCron(services.CronDevicePresenceSweep, service.DevicePresenceSweep(), asynq.Unique())
 	s.worker.HandleCron(services.CronEnrollmentCallbackCleanup, service.EnrollmentCallbackCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronSSHApprovalCleanup, service.SSHApprovalCleanup(), asynq.Unique())
 	s.worker.HandleCron(services.CronActiveSessionCleanup, service.ActiveSessionCleanup(s.env.SessionKeepAliveTimeout), asynq.Unique())

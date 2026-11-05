@@ -109,6 +109,15 @@ type DeviceStore interface {
 	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.
 	DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error
 
+	// DeviceSweepStalePresence stamps disconnected_at on up to limit devices whose tunnel close was
+	// never written: devices that are not removed, carry no disconnected_at and were last seen
+	// before staleBefore. Each gets last_seen plus [models.DeviceOnlineWindow], the instant it stopped
+	// reading online, so the stamp is in the past and any later beat clears it as DeviceHeartbeat
+	// does for a real close. A device never seen is left alone. It returns how many devices it
+	// stamped, ctx's error when ctx ends, and an error wrapping [ErrInternal] for any other database
+	// failure.
+	DeviceSweepStalePresence(ctx context.Context, staleBefore time.Time, limit int64) (stamped int64, err error)
+
 	// DeviceSetCustomField sets or updates a single custom_fields entry on the device atomically.
 	DeviceSetCustomField(ctx context.Context, uid, key, value string) error
 	// DeviceDeleteCustomField removes a single custom_fields entry from the device atomically.
