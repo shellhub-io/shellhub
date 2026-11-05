@@ -1087,3 +1087,124 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }
+
+// TestDeviceSweepStalePresence covers the sweep that closes the presence of devices whose tunnel
+// went away without its close being written: which devices it stamps, the instant it stamps, its
+// batch limit, that a later beat still brings a swept device back online, and that it lets the
+// ephemeral cleanup reach a pending device orphaned that way.
+func (s *Suite) TestDeviceSweepStalePresence(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	resolve := func(t *testing.T, uid models.UID) *models.Device {
+		t.Helper()
+
+		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+
+		return device
+	}
+
+	t.Run("stamps unclosed stale devices at the end of their online window", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		now := s.Clock().Now().UTC().Truncate(time.Second)
+		staleSeen := now.Add(-15 * time.Minute)
+		closedAt := now.Add(-14 * time.Minute)
+		removedAt := now.Add(-time.Hour)
+
+		accepted := s.CreateDevice(t, WithDeviceName("stale-accepted"), WithDeviceLastSeen(staleSeen))
+		pending := s.CreateDevice(t, WithDeviceName("stale-pending"), WithDeviceStatus(models.DeviceStatusPending), WithDeviceLastSeen(staleSeen))
+		fresh := s.CreateDevice(t, WithDeviceName("seen-within-grace"), WithDeviceLastSeen(now.Add(-5*time.Minute)))
+		closed := s.CreateDevice(t, WithDeviceName("close-written"), WithDeviceLastSeen(staleSeen), WithDeviceDisconnectedAt(closedAt))
+		neverSeen := s.CreateDevice(t, WithDeviceName("never-seen"), WithDeviceLastSeen(time.Time{}))
+		removed := s.CreateDevice(t, WithDeviceName("removed"), WithDeviceStatus(models.DeviceStatusRemoved), WithDeviceRemovedAt(&removedAt), WithDeviceLastSeen(staleSeen))
+
+		require.False(t, resolve(t, accepted).Online)
+
+		stamped, err := st.DeviceSweepStalePresence(ctx, now.Add(-10*time.Minute), 1000)
+		require.NoError(t, err)
+		assert.Equal(t, int64(2), stamped)
+
+		for _, uid := range []models.UID{accepted, pending} {
+			device := resolve(t, uid)
+			require.NotNil(t, device.DisconnectedAt, "device %s", device.Name)
+			assert.WithinDuration(t, staleSeen.Add(models.DeviceOnlineWindow), *device.DisconnectedAt, time.Millisecond, "device %s", device.Name)
+			assert.WithinDuration(t, staleSeen, device.LastSeen, time.Millisecond, "the sweep must not move last_seen of %s", device.Name)
+			assert.False(t, device.Online, "device %s", device.Name)
+		}
+
+		assert.Nil(t, resolve(t, fresh).DisconnectedAt, "a device seen after the cutoff is not swept")
+		assert.Nil(t, resolve(t, neverSeen).DisconnectedAt, "a device never seen is not swept")
+		assert.Nil(t, resolve(t, removed).DisconnectedAt, "a removed device is not swept")
+
+		closedDevice := resolve(t, closed)
+		require.NotNil(t, closedDevice.DisconnectedAt)
+		assert.WithinDuration(t, closedAt, *closedDevice.DisconnectedAt, time.Millisecond, "a written close is kept as it is")
+	})
+
+	t.Run("stamps at most limit devices per call", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		now := s.Clock().Now()
+		for range 3 {
+			s.CreateDevice(t, WithDeviceLastSeen(now.Add(-time.Hour)))
+		}
+
+		for _, want := range []int64{2, 1, 0} {
+			stamped, err := st.DeviceSweepStalePresence(ctx, now.Add(-10*time.Minute), 2)
+			require.NoError(t, err)
+			assert.Equal(t, want, stamped)
+		}
+	})
+
+	t.Run("lets a later beat bring a swept device back online", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		now := s.Clock().Now().UTC().Truncate(time.Second)
+		uid := s.CreateDevice(t, WithDeviceLastSeen(now.Add(-time.Hour)))
+
+		_, err := st.DeviceSweepStalePresence(ctx, now.Add(-10*time.Minute), 1000)
+		require.NoError(t, err)
+		require.NotNil(t, resolve(t, uid).DisconnectedAt)
+
+		gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: now}})
+		require.NoError(t, err)
+		require.Empty(t, gone)
+
+		device := resolve(t, uid)
+		assert.Nil(t, device.DisconnectedAt)
+		assert.True(t, device.Online)
+	})
+
+	t.Run("makes an orphaned pending ephemeral device expire", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		now := s.Clock().Now()
+		uid := s.CreateDevice(t,
+			WithDeviceEphemeral(5),
+			WithDeviceStatus(models.DeviceStatusPending),
+			WithDeviceStatusUpdatedAt(now.Add(-time.Hour)),
+			WithDeviceLastSeen(now.Add(-30*time.Minute)),
+		)
+
+		expired := func() []string {
+			devices, err := st.DeviceListExpiredEphemeral(ctx)
+			require.NoError(t, err)
+
+			uids := make([]string, 0, len(devices))
+			for _, device := range devices {
+				uids = append(uids, device.UID)
+			}
+
+			return uids
+		}
+
+		require.Empty(t, expired(), "without a written close the cleanup cannot tell the device is gone")
+
+		_, err := st.DeviceSweepStalePresence(ctx, now.Add(-10*time.Minute), 1000)
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{string(uid)}, expired())
+	})
+}

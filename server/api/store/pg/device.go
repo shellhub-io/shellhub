@@ -366,6 +366,42 @@ func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time
 	return nil
 }
 
+// DeviceSweepStalePresence implements [store.DeviceStore].
+func (pg *Pg) DeviceSweepStalePresence(ctx context.Context, staleBefore time.Time, limit int64) (int64, error) {
+	db := pg.GetConnection(ctx)
+
+	unclosedSince := func(q bun.QueryBuilder) bun.QueryBuilder {
+		return q.
+			Where("disconnected_at IS NULL").
+			Where("last_seen > 'epoch'").
+			Where("last_seen < ?", staleBefore).
+			Where("status <> ?", models.DeviceStatusRemoved)
+	}
+
+	stale := db.NewSelect().
+		Model((*entity.Device)(nil)).
+		Column("id").
+		ApplyQueryBuilder(unclosedSince).
+		Limit(limit)
+
+	r, err := db.NewUpdate().
+		Model((*entity.Device)(nil)).
+		Set("disconnected_at = last_seen + make_interval(secs => ?)", models.DeviceOnlineWindow.Seconds()).
+		Where("id IN (?)", stale).
+		ApplyQueryBuilder(unclosedSince).
+		Exec(ctx)
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	stamped, err := r.RowsAffected()
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	return stamped, nil
+}
+
 // DeviceLockMAC implements [store.DeviceStore].
 func (pg *Pg) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error {
 	tenantID, err := requireBounded(sc)

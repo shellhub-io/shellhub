@@ -24,6 +24,15 @@ const (
 	CronSSHApprovalCleanup        = worker.CronSpec("*/10 * * * *")
 	CronSessionCleanup            = worker.CronSpec("0 1 * * *")
 	CronActiveSessionCleanup      = worker.CronSpec("* * * * *")
+	CronDevicePresenceSweep       = worker.CronSpec("2-59/5 * * * *")
+)
+
+const (
+	devicePresenceSweepGrace = 10 * time.Minute
+
+	devicePresenceSweepBatchSize = 1000
+
+	devicePresenceSweepMaxBatches = 100
 )
 
 const sessionKeepAliveMinTimeout = 2 * time.Minute
@@ -48,6 +57,42 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 func (s *service) EphemeralCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
 		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+	}
+}
+
+// DevicePresenceSweep writes the tunnel close a server process never wrote because it stopped
+// while holding the tunnel, for devices unseen for longer than devicePresenceSweepGrace. It sweeps
+// in batches of devicePresenceSweepBatchSize until a batch comes back short, at most
+// devicePresenceSweepMaxBatches per run, and returns the first store error.
+func (s *service) DevicePresenceSweep() worker.CronHandler {
+	return func(ctx context.Context) error {
+		staleBefore := s.clock.Now().Add(-devicePresenceSweepGrace)
+
+		total := int64(0)
+		batches := 0
+
+		for batches < devicePresenceSweepMaxBatches {
+			stamped, err := s.store.DeviceSweepStalePresence(ctx, staleBefore, devicePresenceSweepBatchSize)
+			if err != nil {
+				log.WithError(err).WithField("stamped", total).Error("failed to sweep stale device presence")
+
+				return err
+			}
+
+			total += stamped
+			batches++
+
+			if stamped < devicePresenceSweepBatchSize {
+				break
+			}
+		}
+
+		if total > 0 {
+			log.WithFields(log.Fields{"stamped": total, "stale_before": staleBefore, "capped": batches == devicePresenceSweepMaxBatches}).
+				Info("closed the presence of devices whose tunnel close was never written")
+		}
+
+		return nil
 	}
 }
 

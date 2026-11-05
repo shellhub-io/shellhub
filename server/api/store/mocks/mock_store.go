@@ -2284,6 +2284,78 @@ func (_c *MockStore_DeviceSetOwner_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// DeviceSweepStalePresence provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceSweepStalePresence(ctx context.Context, staleBefore time.Time, limit int64) (int64, error) {
+	ret := _mock.Called(ctx, staleBefore, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceSweepStalePresence")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int64) (int64, error)); ok {
+		return returnFunc(ctx, staleBefore, limit)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int64) int64); ok {
+		r0 = returnFunc(ctx, staleBefore, limit)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time, int64) error); ok {
+		r1 = returnFunc(ctx, staleBefore, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_DeviceSweepStalePresence_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceSweepStalePresence'
+type MockStore_DeviceSweepStalePresence_Call struct {
+	*mock.Call
+}
+
+// DeviceSweepStalePresence is a helper method to define mock.On call
+//   - ctx context.Context
+//   - staleBefore time.Time
+//   - limit int64
+func (_e *MockStore_Expecter) DeviceSweepStalePresence(ctx any, staleBefore any, limit any) *MockStore_DeviceSweepStalePresence_Call {
+	return &MockStore_DeviceSweepStalePresence_Call{Call: _e.mock.On("DeviceSweepStalePresence", ctx, staleBefore, limit)}
+}
+
+func (_c *MockStore_DeviceSweepStalePresence_Call) Run(run func(ctx context.Context, staleBefore time.Time, limit int64)) *MockStore_DeviceSweepStalePresence_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		var arg2 int64
+		if args[2] != nil {
+			arg2 = args[2].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceSweepStalePresence_Call) Return(stamped int64, err error) *MockStore_DeviceSweepStalePresence_Call {
+	_c.Call.Return(stamped, err)
+	return _c
+}
+
+func (_c *MockStore_DeviceSweepStalePresence_Call) RunAndReturn(run func(ctx context.Context, staleBefore time.Time, limit int64) (int64, error)) *MockStore_DeviceSweepStalePresence_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceUpdate provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceUpdate(ctx context.Context, device *models.Device) error {
 	ret := _mock.Called(ctx, device)

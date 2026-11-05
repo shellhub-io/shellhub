@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -865,6 +866,56 @@ func TestService_ActiveSessionCleanup(t *testing.T) {
 			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache(), WithClock(clk))
 
 			err := service.ActiveSessionCleanup(tc.timeout)(ctx)
+			assert.Equal(t, tc.expected, err)
+
+			storeMock.AssertExpectations(t)
+		})
+	}
+}
+
+func TestService_DevicePresenceSweep(t *testing.T) {
+	ctx := context.Background()
+	now := time.Date(2026, 11, 5, 12, 0, 0, 0, time.UTC)
+	clk := clock.NewFixed(now)
+	staleBefore := now.Add(-devicePresenceSweepGrace)
+
+	cases := []struct {
+		description string
+		batches     []int64
+		storeErr    error
+		expected    error
+	}{
+		{
+			description: "stops after a batch shorter than the limit",
+			batches:     []int64{3},
+		},
+		{
+			description: "keeps sweeping while batches come back full",
+			batches:     []int64{devicePresenceSweepBatchSize, devicePresenceSweepBatchSize, 0},
+		},
+		{
+			description: "stops at the batch cap even while batches come back full",
+			batches:     slices.Repeat([]int64{devicePresenceSweepBatchSize}, devicePresenceSweepMaxBatches),
+		},
+		{
+			description: "propagates the store error",
+			batches:     []int64{0},
+			storeErr:    errors.New("boom"),
+			expected:    errors.New("boom"),
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			for _, stamped := range tc.batches {
+				storeMock.On("DeviceSweepStalePresence", ctx, staleBefore, int64(devicePresenceSweepBatchSize)).
+					Return(stamped, tc.storeErr).Once()
+			}
+
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache(), WithClock(clk))
+
+			err := service.DevicePresenceSweep()(ctx)
 			assert.Equal(t, tc.expected, err)
 
 			storeMock.AssertExpectations(t)
