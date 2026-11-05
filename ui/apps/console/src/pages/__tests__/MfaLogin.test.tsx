@@ -112,7 +112,7 @@ describe("MfaLogin", () => {
         screen.queryByText("Invalid verification code"),
       ).not.toBeInTheDocument();
       await passSeconds(1);
-      expect(screen.getByText(/\(2[89] seconds\)/)).toBeInTheDocument();
+      expect(await screen.findByText(/\(2[89] seconds\)/)).toBeInTheDocument();
       expect(useAuthStore.getState().mfaToken).toBe("temp-mfa-token");
     });
 
