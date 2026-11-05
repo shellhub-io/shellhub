@@ -61,9 +61,11 @@ func (s *service) EphemeralCleanup() worker.CronHandler {
 }
 
 // DevicePresenceSweep writes the tunnel close a server process never wrote because it stopped
-// while holding the tunnel, for devices unseen for longer than devicePresenceSweepGrace. It sweeps
-// in batches of devicePresenceSweepBatchSize until a batch comes back short, at most
-// devicePresenceSweepMaxBatches per run, and returns the first store error.
+// while holding the tunnel, for devices unseen for more than ten minutes. The handler sweeps in
+// batches of 1000 until a batch comes back short, at most 100 batches per run, passing its ctx to
+// every batch. It stops at the first failed batch and returns that error: ctx's error when ctx
+// ends, or the store error wrapping [store.ErrInternal] for any other database failure. Batches
+// already written stay written.
 func (s *service) DevicePresenceSweep() worker.CronHandler {
 	return func(ctx context.Context) error {
 		staleBefore := s.clock.Now().Add(-devicePresenceSweepGrace)
