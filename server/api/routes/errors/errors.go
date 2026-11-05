@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+
 	"github.com/shellhub-io/shellhub/pkg/errors"
 )
 
@@ -11,7 +13,8 @@ const ErrLayer = "route"
 const (
 	// ErrCodeUnprocessableEntity is the error code for when the input model has syntax errors.
 	ErrCodeUnprocessableEntity = iota + 1
-	// ErrCodeInvalidEntity is the error code for when he input model is invalid.
+	// ErrCodeInvalidEntity is the error code for when the input model is invalid or its body could
+	// not be read.
 	ErrCodeInvalidEntity
 	// ErrCodeUnauthorized is the error code for when the user is not authorized to access the resource.
 	ErrCodeUnauthorized
@@ -51,6 +54,13 @@ func NewErrUnprocessableEntity(err error) error {
 // NewErrInvalidEntity returns an error with the invalids fields and why it is invalid after a validation.
 func NewErrInvalidEntity(fields map[string]string) error {
 	return errors.Wrap(errors.WithData(ErrInvalidEntity, ErrDataInvalidEntity{Fields: fields}), nil)
+}
+
+// NewErrUnreadableBody returns [ErrInvalidEntity] for a request body the server could not finish
+// reading, with err kept in the chain for the request log. A status error in err, such as the body
+// limit's 413, outranks the 400 in the error handler.
+func NewErrUnreadableBody(err error) error {
+	return errors.Wrap(ErrInvalidEntity, fmt.Errorf("read request body: %w", err))
 }
 
 // NewErrUnauthorized returns an error with the access is not authorized.
