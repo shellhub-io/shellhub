@@ -68,7 +68,7 @@ interface TerminalState {
   reconnectTarget: ReconnectTarget | null;
   restoreAfterNavigation: string | null;
   setRestoreAfterNavigation: (id: string | null) => void;
-  showPendingRestore: () => boolean;
+  showPendingRestore: (id: string) => boolean;
   open: (
     params: Omit<TerminalSession, "id" | "state" | "connectionStatus">,
   ) => void;
@@ -84,6 +84,25 @@ interface TerminalState {
   showRecording: (id: string) => void;
   closeRecording: (id: string) => void;
   moveWindow: (id: string, to: number) => void;
+}
+
+/**
+ * The history state of a navigation that lands with the terminal id in view. The page reached
+ * shows it only while it is still the restore pending in the store, so returning to that entry
+ * later through the browser's history does not bring the terminal back.
+ */
+export function restoringTerminal(id: string) {
+  return { restoreTerminal: id };
+}
+
+/**
+ * The terminal id a navigation's history state asks to show, as restoringTerminal writes it, or
+ * null when the state carries none.
+ */
+export function restoredTerminalOf(state: unknown): string | null {
+  if (typeof state !== "object" || state === null) return null;
+  const id = (state as { restoreTerminal?: unknown }).restoreTerminal;
+  return typeof id === "string" ? id : null;
 }
 
 /**
@@ -150,9 +169,9 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   setRestoreAfterNavigation: (id) => set({ restoreAfterNavigation: id }),
 
-  showPendingRestore: () => {
+  showPendingRestore: (id) => {
     const pending = get().restoreAfterNavigation;
-    if (!pending) return false;
+    if (pending !== id) return false;
     set((state) => {
       const shown = bringForward(state, { session: pending });
       return {
