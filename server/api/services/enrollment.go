@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/netip"
@@ -290,6 +291,8 @@ type enrollmentWebhookRequest struct {
 
 const enrollDeferDecision = "defer"
 
+const enrollmentWebhookResponseMaxBytes = 4 << 10
+
 type enrollmentWebhookResponse struct {
 	Decision string `json:"decision"`
 	Reason   string `json:"reason,omitempty"`
@@ -378,8 +381,17 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 		return "", fmt.Errorf("enrollment webhook returned status %d", resp.StatusCode)
 	}
 
+	answer, err := io.ReadAll(io.LimitReader(resp.Body, enrollmentWebhookResponseMaxBytes+1))
+	if err != nil {
+		return "", err
+	}
+
+	if len(answer) > enrollmentWebhookResponseMaxBytes {
+		return "", fmt.Errorf("enrollment webhook answer exceeds %d bytes", enrollmentWebhookResponseMaxBytes)
+	}
+
 	var decoded enrollmentWebhookResponse
-	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
+	if err := json.Unmarshal(answer, &decoded); err != nil {
 		return "", err
 	}
 
