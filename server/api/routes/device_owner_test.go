@@ -90,6 +90,7 @@ func TestGetDeviceListFiltersByOwner(t *testing.T) {
 		values.Set("filter", filter)
 
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+values.Encode(), nil)
+		req.Header.Set("X-ID", "000000000000000000000000")
 		req.Header.Set("X-Role", authorizer.RoleOwner.String())
 		req.Header.Set("X-Tenant-ID", ownerTestTenant)
 		rec := httptest.NewRecorder()
