@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"context"
 	"maps"
 	"net/http"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -179,28 +181,11 @@ func nextDevicePageURL(c *gateway.Context, params url.Values, size int64, cursor
 	return next.String()
 }
 
-// GetDevice serves a single device by UID.
-func (h *Handler) GetDevice(c *gateway.Context) error {
-	var req requests.DeviceGet
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	sc, err := c.AdminOrScope()
-	if err != nil {
-		return err
-	}
-
-	device, err := h.service.GetDevice(c.Ctx(), sc, models.UID(req.UID))
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, device)
+// GetDevice returns the device with req's UID within sc. It returns [services.ErrDeviceNotFound]
+// when the read fails for any reason: a device that does not exist or lies outside sc, a store
+// failure and a cancelled ctx alike.
+func (h *Handler) GetDevice(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceGet) (*models.Device, error) {
+	return h.service.GetDevice(ctx, sc, models.UID(req.UID))
 }
 
 // ResolveDevice serves the device matching a name or SSHID, for callers that have a name
