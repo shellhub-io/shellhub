@@ -26,6 +26,7 @@ import {
   createTeam,
   createTeamWithOwnerInAnother,
   findRow,
+  holdRoute,
   mfaReason,
   signInAndOpen,
   singleNamespaceReason,
@@ -915,12 +916,15 @@ test.describe("Window Management", () => {
 
     await connectWithPassword(page, device.name);
     const marker = await expectShell(page, device.name);
+    const dashboard = await holdRoute(page, /\/assets\/Dashboard-[^/]+\.js$/);
     await switchNamespace(page, team.other.namespace);
+    await dashboard.requested();
     await page.getByRole("tab", { name: device.name }).click();
 
     await expect(terminalOutput(page, device.name)).toContainText(
       marker.toUpperCase(),
     );
+    await dashboard.release();
     await expectShell(page, device.name);
     expect(await readDeviceSessions(team, device.uid)).toHaveLength(1);
   });
