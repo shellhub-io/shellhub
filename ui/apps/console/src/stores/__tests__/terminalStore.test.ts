@@ -34,6 +34,35 @@ beforeEach(() => {
   });
 });
 
+describe("terminalStore pending restore", () => {
+  it("leaves the pending terminal put away when another one is named", () => {
+    const id = openTerminal();
+    const { minimizeAll, setRestoreAfterNavigation, showPendingRestore } =
+      useTerminalStore.getState();
+    minimizeAll();
+    setRestoreAfterNavigation(id);
+
+    expect(showPendingRestore("another")).toBe(false);
+
+    expect(useTerminalStore.getState().sessions[0].state).toBe("minimized");
+    expect(useTerminalStore.getState().restoreAfterNavigation).toBe(id);
+  });
+
+  it("shows the pending terminal once and clears the restore", () => {
+    const id = openTerminal();
+    const { minimizeAll, setRestoreAfterNavigation, showPendingRestore } =
+      useTerminalStore.getState();
+    minimizeAll();
+    setRestoreAfterNavigation(id);
+
+    expect(showPendingRestore(id)).toBe(true);
+
+    expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
+    expect(useTerminalStore.getState().restoreAfterNavigation).toBeNull();
+    expect(useTerminalStore.getState().showPendingRestore(id)).toBe(false);
+  });
+});
+
 describe("terminalStore recordings", () => {
   it("puts the terminals away when a recording opens", () => {
     openTerminal();

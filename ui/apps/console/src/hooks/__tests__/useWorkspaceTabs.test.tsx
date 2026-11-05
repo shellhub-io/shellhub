@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
-import { useTerminalStore } from "@/stores/terminalStore";
+import { restoringTerminal, useTerminalStore } from "@/stores/terminalStore";
 import { useVaultStore } from "@/stores/vaultStore";
 import {
   ACCOUNT_TAB_ID,
@@ -143,7 +144,11 @@ describe("useWorkspaceTabs", () => {
     useTerminalStore.getState().minimizeAll();
     const [session] = useTerminalStore.getState().sessions;
     const { result } = renderHook(
-      () => ({ tabs: useWorkspaceTabs(), list: useNamespaces() }),
+      () => ({
+        tabs: useWorkspaceTabs(),
+        list: useNamespaces(),
+        location: useLocation(),
+      }),
       { wrapper: createTestWrapper({ initialEntries: ["/devices"] }) },
     );
     await vi.waitFor(() =>
@@ -156,6 +161,12 @@ describe("useWorkspaceTabs", () => {
 
     expect(useAuthStore.getState().tenant).toBe("tenant-other");
     expect(useTerminalStore.getState().restoreAfterNavigation).toBe(session.id);
+    await vi.waitFor(() =>
+      expect(result.current.location).toMatchObject({
+        pathname: "/sessions",
+        state: restoringTerminal(session.id),
+      }),
+    );
   });
 
   it("keeps the active tab when the neighbour it would move to cannot be entered", async () => {

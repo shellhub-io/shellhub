@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
-import { useTerminalStore } from "@/stores/terminalStore";
+import { restoredTerminalOf, useTerminalStore } from "@/stores/terminalStore";
 import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useAuthStore } from "@/stores/authStore";
@@ -66,11 +66,13 @@ export default function TerminalManager() {
   const location = useLocation();
   const prevPathRef = useRef(location.pathname);
   useEffect(() => {
-    if (location.pathname !== prevPathRef.current) {
-      prevPathRef.current = location.pathname;
-      if (!useTerminalStore.getState().showPendingRestore()) minimizeAll();
-    }
-  }, [location.pathname, minimizeAll]);
+    const leftPage = location.pathname !== prevPathRef.current;
+    prevPathRef.current = location.pathname;
+    const restoring = restoredTerminalOf(location.state);
+    if (restoring && useTerminalStore.getState().showPendingRestore(restoring))
+      return;
+    if (leftPage) minimizeAll();
+  }, [location.pathname, location.state, minimizeAll]);
 
   return (
     <>

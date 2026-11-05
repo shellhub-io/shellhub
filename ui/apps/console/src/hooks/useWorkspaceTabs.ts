@@ -2,7 +2,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { apiErrorMessage } from "@/api/errors";
 import { useEnterNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
-import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
+import {
+  restoringTerminal,
+  useTerminalStore,
+  type TerminalSession,
+} from "@/stores/terminalStore";
 import {
   ACCOUNT_TAB_ID,
   ADMIN_TAB_ID,
@@ -62,9 +66,15 @@ export function useWorkspaceTabs() {
     const destination = landOn ?? tab.path;
     const land = () => {
       const terminals = useTerminalStore.getState();
-      if (restoreSession) terminals.setRestoreAfterNavigation(restoreSession);
-      else terminals.minimizeAll();
-      if (destination === pathname && terminals.showPendingRestore()) return;
+      if (restoreSession) {
+        terminals.setRestoreAfterNavigation(restoreSession);
+        void navigate(destination, {
+          replace: destination === window.location.pathname,
+          state: restoringTerminal(restoreSession),
+        });
+        return;
+      }
+      terminals.minimizeAll();
       void navigate(destination);
     };
     if (
