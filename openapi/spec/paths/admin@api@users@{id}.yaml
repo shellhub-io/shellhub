@@ -1,11 +1,5 @@
 parameters:
-  - name: id
-    schema:
-      description: User's ID
-      type: string
-      example: 507f1f77bcf86cd799439011
-    required: true
-    in: path
+  - $ref: ../components/parameters/path/userIDPath.yaml
 delete:
   operationId: adminDeleteUser
   summary: Delete user
@@ -20,8 +14,12 @@ delete:
   responses:
     '200':
       $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml
     '503':
@@ -59,7 +57,7 @@ put:
     '200':
       $ref: ../components/responses/200.yaml
     '400':
-      $ref: ../components/responses/invalidFields.yaml
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '404':
@@ -180,6 +178,8 @@ get:
                   auth_methods:
                     - 'local'
                     - 'saml'
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '404':
