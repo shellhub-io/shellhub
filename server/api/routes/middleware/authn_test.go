@@ -12,11 +12,11 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -71,7 +71,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 	cases := []struct {
 		description   string
 		requiredMocks func(service *mocks.MockService)
-		expected      *gateway.Identity
+		expected      *identity.Identity
 	}{
 		{
 			description: "succeeds when both role and admin resolve",
@@ -80,7 +80,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 					Return(&models.Namespace{TenantID: testTenant}, "owner", nil).Once()
 				service.On("AuthUserClaims", mock.Anything, claimsOf(testUserID)).Return(&models.User{ID: testUserID, Admin: true}, nil).Once()
 			},
-			expected: &gateway.Identity{
+			expected: &identity.Identity{
 				ID:       testUserID,
 				Username: "john",
 				TenantID: testTenant,
@@ -222,7 +222,6 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 	service.On("ResolveNamespaceRole", mock.Anything, testTenant, testUserID).Return(nil, "", store.ErrNoDocuments).Once()
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
-	c.Request().Header.Set("X-ID", "forged")
 
 	authenticator := NewAuthenticator(service)
 	authenticator.AllowAnonymous(http.MethodGet, "/api/namespaces")
@@ -231,7 +230,8 @@ func TestAuthenticatorMiddlewareStaleTokenOnAnonymousRoute(t *testing.T) {
 	require.NoError(t, authenticator.Middleware(next)(c))
 
 	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
-	assert.Empty(t, c.Request().Header.Get("X-ID"))
+	_, authenticated := identity.FromContext(c.Request().Context())
+	assert.False(t, authenticated)
 	service.AssertExpectations(t)
 }
 
@@ -279,14 +279,15 @@ func TestAuthenticatorMiddlewareAdminID(t *testing.T) {
 
 			c, rec := authenticatedRequest(echo.New(), bearer)
 			c.SetPath(tc.path)
-			c.Request().Header.Set("X-Admin-ID", "forged")
 
 			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
 			require.NoError(t, NewAuthenticator(service).Middleware(next)(c))
 
 			assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
-			assert.Equal(t, tc.expectedID, c.Request().Header.Get("X-ID"))
-			assert.Equal(t, tc.expectedAdminID, c.Request().Header.Get("X-Admin-ID"))
+			caller, ok := identity.FromContext(c.Request().Context())
+			require.True(t, ok)
+			assert.Equal(t, tc.expectedID, caller.ID)
+			assert.Equal(t, tc.expectedAdminID, caller.AdminID)
 			service.AssertExpectations(t)
 		})
 	}
@@ -346,7 +347,6 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 			})).Return(nil).Once()
 
 			c, rec := authenticatedRequest(echo.New(), bearer)
-			c.Request().Header.Set("X-Device-UID", "forged")
 
 			authenticator := NewAuthenticator(service)
 			tc.register(authenticator)
@@ -354,7 +354,8 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 			var deviceSeen string
 
 			next := func(c *echo.Context) error {
-				deviceSeen = c.Request().Header.Get("X-Device-UID")
+				caller, _ := identity.FromContext(c.Request().Context())
+				deviceSeen = caller.DeviceUID
 
 				return c.NoContent(http.StatusOK)
 			}
@@ -418,7 +419,8 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenTheServiceNoLongerHonours(t *
 	renderRefusal(t, c, authenticator.Middleware(next)(c))
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
-	assert.Empty(t, c.Request().Header.Get("X-Device-UID"))
+	_, authenticated := identity.FromContext(c.Request().Context())
+	assert.False(t, authenticated)
 }
 
 func TestAuthenticatorMiddlewareRefusesADeviceTokenItCannotCheck(t *testing.T) {
@@ -443,5 +445,6 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenItCannotCheck(t *testing.T) {
 	renderRefusal(t, c, authenticator.Middleware(next)(c))
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Result().StatusCode)
-	assert.Empty(t, c.Request().Header.Get("X-Device-UID"))
+	_, authenticated := identity.FromContext(c.Request().Context())
+	assert.False(t, authenticated)
 }

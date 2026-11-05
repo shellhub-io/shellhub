@@ -29,8 +29,8 @@ type Credentials struct {
 	// legacy public-key ACL. Empty in legacy and keyless-fallback sessions.
 	PublicKey string `json:"public_key"`
 	// UserID is the ShellHub account driving the web terminal, taken from the
-	// X-ID header the gateway injects after authenticating the request (never
-	// from the request body). It is the identity used in a new namespace, where
+	// identity authentication resolved for the request (never from the request
+	// body). It is the identity used in a new namespace, where
 	// no device credential is presented; empty in a legacy namespace.
 	UserID string `json:"-"`
 }

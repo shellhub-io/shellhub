@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -51,9 +54,7 @@ func TestListEndpointsRejectAnUnapprovedFilterField(t *testing.T) {
 			}))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path+"?"+values.Encode(), nil)
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-			req.Header.Set("X-Role", "owner")
+			req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)
@@ -112,9 +113,7 @@ func TestListEndpointsRejectAnUnapprovedSortField(t *testing.T) {
 			values.Set("order_by", "asc")
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path+"?"+values.Encode(), nil)
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-			req.Header.Set("X-Role", "owner")
+			req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)
@@ -183,9 +182,7 @@ func TestListEndpointsRejectAValueTheColumnCannotHold(t *testing.T) {
 			}))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path+"?"+values.Encode(), nil)
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-			req.Header.Set("X-Role", "owner")
+			req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)

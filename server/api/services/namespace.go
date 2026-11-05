@@ -212,7 +212,7 @@ func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Na
 
 // ListNamespaceMembers returns the namespace's members as enriched MemberView rows (name,
 // username, email, role and a flattened account status), paginated. The tenant is the caller's
-// current namespace (X-Tenant-ID). Cloud/enterprise overrides the route to also fold pending
+// current namespace. Cloud/enterprise overrides the route to also fold pending
 // invitations into the response; core returns only real members.
 func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error) {
 	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {

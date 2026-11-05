@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -406,14 +408,14 @@ func TestCreateUserToken(t *testing.T) {
 	cases := []struct {
 		description string
 		tenantID    string
-		headers     map[string]string
+		caller      identity.Identity
 		mocks       func()
 		expected    Expected
 	}{
 		{
 			description: "success without tenant_id",
 			tenantID:    "",
-			headers:     map[string]string{"X-ID": "000000000000000000000000"},
+			caller:      identity.Identity{ID: "000000000000000000000000"},
 			mocks: func() {
 				svcMock.
 					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
@@ -445,7 +447,7 @@ func TestCreateUserToken(t *testing.T) {
 		{
 			description: "success with tenant_id",
 			tenantID:    "00000000-0000-4000-0000-000000000001",
-			headers:     map[string]string{"X-ID": "000000000000000000000000"},
+			caller:      identity.Identity{ID: "000000000000000000000000"},
 			mocks: func() {
 				svcMock.
 					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
@@ -487,9 +489,7 @@ func TestCreateUserToken(t *testing.T) {
 				req = httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/auth/token/"+tc.tenantID, nil)
 			}
 
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)
@@ -597,7 +597,7 @@ func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testi
 		Once()
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/auth/user", nil)
-	req.Header.Set("X-ID", "000000000000000000000000")
+	req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000"})
 	rec := httptest.NewRecorder()
 
 	newTestRouter(t, svcMock).ServeHTTP(rec, req)

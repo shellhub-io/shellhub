@@ -15,39 +15,36 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
-	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 )
 
-type mcpContextKey string
+type mcpCallerKey struct{}
 
-const (
-	mcpKeyTenantID mcpContextKey = "mcp_tenant_id"
-	mcpKeyHeaders  mcpContextKey = "mcp_headers"
-)
+type mcpCaller struct {
+	tenantID    string
+	credentials http.Header
+}
+
+var mcpCredentialHeaders = []string{"X-API-Key", "Authorization"}
 
 // SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp.
 func SetupMCPRoutes(router *echo.Echo) {
 	s := buildMCPServer(router)
 
 	httpCtxFn := func(ctx context.Context, r *http.Request) context.Context {
-		tenantID := r.Header.Get("X-Tenant-ID")
-		role := authorizer.RoleFromString(r.Header.Get("X-Role"))
-
-		if tenantID == "" || role == authorizer.RoleInvalid {
+		caller, _ := identity.FromContext(r.Context())
+		if caller.TenantID == "" || caller.Role == authorizer.RoleInvalid {
 			return ctx
 		}
 
-		ctx = context.WithValue(ctx, mcpKeyTenantID, tenantID)
-
-		headers := http.Header{}
-		for _, key := range append(gateway.IdentityHeaders(), "Authorization") {
+		credentials := http.Header{}
+		for _, key := range mcpCredentialHeaders {
 			if value := r.Header.Get(key); value != "" {
-				headers.Set(key, value)
+				credentials.Set(key, value)
 			}
 		}
-		ctx = context.WithValue(ctx, mcpKeyHeaders, headers)
 
-		return ctx
+		return context.WithValue(ctx, mcpCallerKey{}, mcpCaller{tenantID: caller.TenantID, credentials: credentials})
 	}
 
 	streamable := mcpserver.NewStreamableHTTPServer(s,
@@ -76,8 +73,8 @@ func mcpAPICall(ctx context.Context, router http.Handler, method, target string,
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	if headers, ok := ctx.Value(mcpKeyHeaders).(http.Header); ok {
-		for key, values := range headers {
+	if caller, ok := ctx.Value(mcpCallerKey{}).(mcpCaller); ok {
+		for key, values := range caller.credentials {
 			for _, value := range values {
 				req.Header.Add(key, value)
 			}
@@ -137,9 +134,9 @@ func mcpUnauth() *mcp.CallToolResult {
 }
 
 func tenantFromCtx(ctx context.Context) string {
-	v, _ := ctx.Value(mcpKeyTenantID).(string)
+	caller, _ := ctx.Value(mcpCallerKey{}).(mcpCaller)
 
-	return v
+	return caller.tenantID
 }
 
 func intArg(args map[string]any, key string, def int) int {

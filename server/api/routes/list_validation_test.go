@@ -6,6 +6,9 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -46,9 +49,7 @@ func TestListHandlersRejectUnexposedQueryFields(t *testing.T) {
 					values = url.Values{"filter": {encodeFilter(t, []query.Filter{{Type: query.FilterTypeProperty, Params: &query.FilterProperty{Name: "unexposed_column", Operator: "eq", Value: "secret"}}})}}
 				}
 				req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/audit/00000000-0000-4000-0000-000000000000/key?"+values.Encode(), nil)
-				req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000001")
-				req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
-				req.Header.Set("X-Role", "owner")
+				req = identitytest.As(req, identity.Identity{ID: "00000000-0000-4000-0000-000000000001", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner})
 				rec := httptest.NewRecorder()
 				router := newTestRouter(t, svc)
 				router.GET("/audit/:tenant/:id", gateway.Handler(func(c *gateway.Context) error {

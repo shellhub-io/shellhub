@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -39,9 +42,7 @@ func TestListSSHIdentitiesScopesByPermission(t *testing.T) {
 			})).Return([]models.SSHIdentity{}, nil).Once()
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.url, nil)
-			req.Header.Set("X-ID", userID)
-			req.Header.Set("X-Tenant-ID", tenantID)
-			req.Header.Set("X-Role", tc.role)
+			req = identitytest.As(req, identity.Identity{ID: userID, TenantID: tenantID, Role: authorizer.RoleFromString(tc.role)})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)
@@ -83,9 +84,7 @@ func TestCreateAPIKeySSHIdentityNeedsTheManagePermission(t *testing.T) {
 			body := strings.NewReader(`{"data":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILBk key","name":"deploy"}`)
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/namespaces/api-key/ci/ssh-identities", body)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-ID", userID)
-			req.Header.Set("X-Tenant-ID", tenantID)
-			req.Header.Set("X-Role", tc.role)
+			req = identitytest.As(req, identity.Identity{ID: userID, TenantID: tenantID, Role: authorizer.RoleFromString(tc.role)})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)

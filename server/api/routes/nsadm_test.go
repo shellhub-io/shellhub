@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -84,8 +86,7 @@ func TestCreateNamespace(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/namespaces", strings.NewReader(tc.req))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "00000000-0000-4000-0000-000000000000"})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock, WithEdition(envs.Enterprise))
@@ -164,8 +165,7 @@ func TestGetNamespace(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/namespaces/"+tc.req, nil)
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", tc.req)
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.req})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -250,9 +250,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/namespaces/"+tc.req, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", tc.uid)
-			req.Header.Set("X-Tenant-ID", tc.req)
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: tc.uid, TenantID: tc.req})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -271,18 +269,15 @@ func TestEditNamespace(t *testing.T) {
 	cases := []struct {
 		description   string
 		headers       map[string]string
+		caller        identity.Identity
 		body          map[string]any
 		requiredMocks func()
 		expected      int
 	}{
 		{
 			description: "fails when role is observer",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"session_record": true,
 			},
@@ -292,12 +287,8 @@ func TestEditNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when role is operator",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOperator, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"session_record": true,
 			},
@@ -307,12 +298,8 @@ func TestEditNamespace(t *testing.T) {
 		},
 		{
 			description: "fails when try to editing an non-existing namespace",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"session_record": true,
 			},
@@ -326,12 +313,8 @@ func TestEditNamespace(t *testing.T) {
 		},
 		{
 			description: "success when try to editing an existing namespace",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			body: map[string]any{
 				"session_record": true,
 				"tenant":         "00000000-0000-4000-0000-000000000000",
@@ -355,10 +338,11 @@ func TestEditNamespace(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/users/security/"+tc.headers["X-Tenant-ID"], strings.NewReader(string(jsonData)))
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/users/security/"+tc.caller.TenantID, strings.NewReader(string(jsonData)))
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -379,27 +363,23 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		description   string
 		tenantID      string
 		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      int
 		expectedToken string
 	}{
 		{
-			description: "fails with api key",
-			tenantID:    "00000000-0000-4000-0000-000000000000",
-			headers: map[string]string{
-				"X-API-KEY":   "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f",
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			description:   "fails with api key",
+			tenantID:      "00000000-0000-4000-0000-000000000000",
+			headers:       map[string]string{"X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
+			caller:        identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {},
 			expected:      http.StatusForbidden,
 		},
 		{
 			description: "fails to leave the namespace",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
-			headers: map[string]string{
-				"X-ID":        "000000000000000000000000",
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -411,10 +391,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		{
 			description: "answers no content when the service mints no replacement token",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
-			headers: map[string]string{
-				"X-ID":        "000000000000000000000000",
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -426,10 +403,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 		{
 			description: "answers the replacement token the service mints",
 			tenantID:    "00000000-0000-4000-0000-000000000000",
-			headers: map[string]string{
-				"X-ID":        "000000000000000000000000",
-				"X-Tenant-ID": "00000000-0000-4000-0000-000000000000",
-			},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("LeaveNamespace", gomock.Anything, &requests.LeaveNamespace{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", AuthenticatedTenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -449,6 +423,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -477,7 +452,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 // TestNamespaceCrossTenantAccess ensures that callers cannot read, edit, delete
 // or toggle session recording of a namespace they are not scoped to. Covers the
 // regression described in GHSA-vwx9-7qcf-gg7f against both auth shapes: the
-// API-key caller (no X-ID) that the advisory reproduced and the JWT caller.
+// API-key caller (no user ID) that the advisory reproduced and the JWT caller.
 func TestNamespaceCrossTenantAccess(t *testing.T) {
 	const (
 		callerTenant = "00000000-0000-4000-0000-000000000000"
@@ -519,20 +494,16 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 	shapes := []struct {
 		name    string
 		headers map[string]string
+		caller  identity.Identity
 	}{
 		{
-			name: "api-key shape",
-			headers: map[string]string{
-				"X-API-Key":   "caller-api-key",
-				"X-Tenant-ID": callerTenant,
-			},
+			name:    "api-key shape",
+			headers: map[string]string{"X-API-Key": "caller-api-key"},
+			caller:  identity.Identity{TenantID: callerTenant, Role: authorizer.RoleOwner},
 		},
 		{
-			name: "jwt shape",
-			headers: map[string]string{
-				"X-ID":        "caller-id",
-				"X-Tenant-ID": callerTenant,
-			},
+			name:   "jwt shape",
+			caller: identity.Identity{ID: "caller-id", TenantID: callerTenant, Role: authorizer.RoleOwner},
 		},
 	}
 
@@ -558,10 +529,10 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 				}
 				req := httptest.NewRequestWithContext(t.Context(), route.method, route.url, body)
 				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("X-Role", authorizer.RoleOwner.String())
 				for k, v := range shape.headers {
 					req.Header.Set(k, v)
 				}
+				req = identitytest.As(req, shape.caller)
 
 				rec := httptest.NewRecorder()
 				newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -579,7 +550,7 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -594,7 +565,7 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock, WithEdition(envs.Enterprise)).ServeHTTP(rec, req)
@@ -608,7 +579,7 @@ func TestUpgradeNamespaceBlocksAPIKey(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces/00000000-0000-4000-0000-000000000000/upgrade", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -776,9 +747,7 @@ func TestGetNamespaceList(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, url, nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			newTestRouter(t, svcMock).ServeHTTP(rec, req)

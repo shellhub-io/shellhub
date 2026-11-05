@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -156,9 +157,9 @@ func resolveScope(c *echo.Context, gCtx *Context, claims Claims) (scope.Scope, e
 }
 
 func resolveActor(gCtx *Context, claims Claims) (Actor, error) {
-	identity := IdentityFrom(gCtx.Request().Header)
+	caller, _ := identity.FromContext(gCtx.Ctx())
 
-	actor := identity.Actor()
+	actor := actorOf(caller)
 
 	if claims.Anonymous || !actor.IsZero() {
 		return actor, nil

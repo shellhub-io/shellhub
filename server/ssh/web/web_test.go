@@ -15,6 +15,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
@@ -203,7 +205,10 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 
 			require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
-			server := httptest.NewServer(e)
+			server := httptest.NewServer(identitytest.Serve(e, identity.Identity{
+				TenantID: tenantID,
+				Role:     authorizer.RoleFromString(test.role),
+			}))
 			defer server.Close()
 
 			body := strings.NewReader(`{"device":"device-uid","username":"root","password":"secret"}`)
@@ -212,11 +217,6 @@ func TestWebSessionRouteRequiresTheConnectPermission(t *testing.T) {
 			require.NoError(t, err)
 
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Tenant-ID", tenantID)
-
-			if test.role != "" {
-				req.Header.Set("X-Role", test.role)
-			}
 
 			res, err := http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -324,7 +324,7 @@ func startBridge(t *testing.T, service *servicemocks.MockService) *httptest.Serv
 
 	require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
-	server := httptest.NewServer(e)
+	server := httptest.NewServer(identitytest.Serve(e, identity.Identity{TenantID: tenantID, Role: authorizer.RoleOperator}))
 	t.Cleanup(server.Close)
 
 	return server
@@ -342,8 +342,6 @@ func postSession(t *testing.T, serverURL, body string) (int, sessionReply) {
 	require.NoError(t, err)
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Tenant-ID", tenantID)
-	req.Header.Set("X-Role", authorizer.RoleOperator.String())
 
 	res, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)

@@ -22,8 +22,9 @@ Untrusted input enters at:
   agent serves them in `agent/pkg/agentd`, and `pkg/webendpoints` parses their hostnames.
 - The gateway in `server/gateway`, which embeds Caddy as a library in the server process. It is
   the public entry point and only routes requests. It does no authentication and passes client
-  headers through, so the API must delete and rewrite every identity header, such as `X-ID`,
-  `X-Tenant-ID` and `X-Role`. That happens in `server/api/pkg/gateway`.
+  headers through, so the API never reads the caller's identity from a header: the authentication
+  middleware in `server/api/routes/middleware/authn.go` resolves it from the credential and keeps
+  it on the request's context (`pkg/api/identity`).
 - The React web console in `ui/apps/console`. It renders data that other users and devices
   control, such as device names, tags and session output.
 

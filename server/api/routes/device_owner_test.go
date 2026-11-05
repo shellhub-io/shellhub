@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -59,8 +61,7 @@ func TestMakeTeamDevice(t *testing.T) {
 			tc.mocks(m)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/devices/uid/owner", nil)
-			req.Header.Set("X-Role", tc.role.String())
-			req.Header.Set("X-Tenant-ID", ownerTestTenant)
+			req = identitytest.As(req, identity.Identity{Role: tc.role, TenantID: ownerTestTenant})
 			rec := httptest.NewRecorder()
 
 			newTestRouter(t, m).ServeHTTP(rec, req)
@@ -90,9 +91,7 @@ func TestGetDeviceListFiltersByOwner(t *testing.T) {
 		values.Set("filter", filter)
 
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+values.Encode(), nil)
-		req.Header.Set("X-ID", "000000000000000000000000")
-		req.Header.Set("X-Role", authorizer.RoleOwner.String())
-		req.Header.Set("X-Tenant-ID", ownerTestTenant)
+		req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner, TenantID: ownerTestTenant})
 		rec := httptest.NewRecorder()
 
 		newTestRouter(t, m).ServeHTTP(rec, req)
@@ -123,9 +122,7 @@ func TestMemberRequestsCarryTheDevicesToKeep(t *testing.T) {
 
 		req := httptest.NewRequestWithContext(t.Context(), method, "/api/namespaces/"+ownerTestTenant+"/members/"+memberID+query, strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Role", authorizer.RoleOwner.String())
-		req.Header.Set("X-ID", "000000000000000000000000")
-		req.Header.Set("X-Tenant-ID", ownerTestTenant)
+		req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: ownerTestTenant})
 		rec := httptest.NewRecorder()
 
 		newTestRouter(t, m).ServeHTTP(rec, req)

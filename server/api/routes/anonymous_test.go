@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
@@ -160,18 +161,19 @@ func TestRouterRejectsUncredentialedRequests(t *testing.T) {
 }
 
 // TestAnonymousRouteReachableWithoutCredential covers the other direction, and
-// pins the header scrubbing the edge proxy's configuration used to do by hand
-// per route: a client cannot reach even an anonymous handler carrying an identity
-// it never authenticated as.
+// pins that identity headers a client makes up are not an identity: a client
+// cannot reach even an anonymous handler carrying an identity it never
+// authenticated as.
 func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 	router, authn, service := authenticatedRouter(t)
 
 	const probe = "/api/anonymous-probe"
 
-	var seen http.Header
+	reached, authenticated := false, false
 
 	router.GET(probe, func(c *echo.Context) error {
-		seen = c.Request().Header.Clone()
+		reached = true
+		_, authenticated = identity.FromContext(c.Request().Context())
 
 		return c.NoContent(http.StatusOK)
 	})
@@ -203,8 +205,6 @@ func TestAnonymousRouteReachableWithoutCredential(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	require.NotNil(t, seen)
-	for key := range forged {
-		assert.Empty(t, seen.Get(key), "%s reached the handler", key)
-	}
+	assert.True(t, reached)
+	assert.False(t, authenticated)
 }

@@ -10,6 +10,8 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
@@ -174,34 +176,36 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 		description string
 		applies     func(route) bool
 		headers     map[string]string
+		caller      identity.Identity
 	}{
 		{
 			description: "an API key where the route blocks one",
 			applies: func(r route) bool {
 				return r.noAPIKey || r.access.kind == accessOwnAccount || r.access.kind == accessPathCode
 			},
-			headers: map[string]string{"X-ID": "user-id", "X-Tenant-ID": tenant, "X-Role": "owner", "X-API-Key": "key"},
+			headers: map[string]string{"X-API-Key": "key"},
+			caller:  identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner},
 		},
 		{
 			description: "a user token with no namespace on a member route",
 			applies: func(r route) bool {
 				return r.access.kind == accessNamespaceMember && r.tenantParam == ""
 			},
-			headers: map[string]string{"X-ID": "user-id"},
+			caller: identity.Identity{ID: "user-id"},
 		},
 		{
 			description: "a namespace member whose role holds no permission",
 			applies: func(r route) bool {
 				return r.access.kind == accessPermission
 			},
-			headers: map[string]string{"X-ID": "user-id", "X-Tenant-ID": tenant},
+			caller: identity.Identity{ID: "user-id", TenantID: tenant},
 		},
 		{
 			description: "a user token with neither a namespace nor a permission",
 			applies: func(r route) bool {
 				return r.access.kind == accessPermission
 			},
-			headers: map[string]string{"X-ID": "user-id"},
+			caller: identity.Identity{ID: "user-id"},
 		},
 	}
 
@@ -249,6 +253,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 					for name, value := range tc.headers {
 						req.Header.Set(name, value)
 					}
+					req = identitytest.As(req, tc.caller)
 
 					rec := httptest.NewRecorder()
 					router.ServeHTTP(rec, req)

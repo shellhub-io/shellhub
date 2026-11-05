@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -39,15 +41,15 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 	tests := []struct {
 		description    string
 		config         *Config
-		tenantHeader   string
+		tenant         string
 		setupMock      func(*servicemocks.MockService)
 		expectedStatus int
 		expectedBody   string
 	}{
 		{
-			description:  "an unknown device is refused with a server error",
-			config:       &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
-			tenantHeader: "00000000-0000-4000-0000-000000000000",
+			description: "an unknown device is refused with a server error",
+			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
+			tenant:      "00000000-0000-4000-0000-000000000000",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
 					GetDevice(mock.Anything, mock.Anything, models.UID(testDeviceUID)).
@@ -57,9 +59,9 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			expectedStatus: http.StatusInternalServerError,
 		},
 		{
-			description:  "a device that is not accepted is refused",
-			config:       &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
-			tenantHeader: "00000000-0000-4000-0000-000000000000",
+			description: "a device that is not accepted is refused",
+			config:      &Config{RequireAcceptedTunnel: true}, //nolint:exhaustruct
+			tenant:      "00000000-0000-4000-0000-000000000000",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
 					GetDevice(mock.Anything, mock.Anything, models.UID(testDeviceUID)).
@@ -69,9 +71,9 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			expectedStatus: http.StatusForbidden,
 		},
 		{
-			description:  "the pre-0.15 fallback refuses an unknown device with a server error",
-			config:       &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct
-			tenantHeader: "",
+			description: "the pre-0.15 fallback refuses an unknown device with a server error",
+			config:      &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct
+			tenant:      "",
 			setupMock: func(m *servicemocks.MockService) {
 				m.EXPECT().
 					GetDevice(mock.Anything, mock.Anything, models.UID(testDeviceUID)).
@@ -83,7 +85,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 		{
 			description:    "a request that is not a websocket upgrade gets only the upgrader's response",
 			config:         &Config{RequireAcceptedTunnel: false}, //nolint:exhaustruct // only the tunnel gate matters here
-			tenantHeader:   "00000000-0000-4000-0000-000000000000",
+			tenant:         "00000000-0000-4000-0000-000000000000",
 			setupMock:      func(*servicemocks.MockService) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "Bad Request\n",
@@ -98,12 +100,8 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 			e := newConnectionTestServer(t, serviceMock, tt.config)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
-			req.Header.Set("X-Device-UID", testDeviceUID)
 			req.Header.Set("X-Request-ID", "request-id")
-
-			if tt.tenantHeader != "" {
-				req.Header.Set("X-Tenant-ID", tt.tenantHeader)
-			}
+			req = identitytest.As(req, identity.Identity{DeviceUID: testDeviceUID, TenantID: tt.tenant})
 
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -148,9 +146,8 @@ func TestHandleConnectionV1RetriesOnlyInfrastructureFailures(t *testing.T) {
 			e := newConnectionTestServer(t, serviceMock, &Config{RequireAcceptedTunnel: true}) //nolint:exhaustruct
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
-			req.Header.Set("X-Device-UID", testDeviceUID)
 			req.Header.Set("X-Request-ID", "request-id")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{DeviceUID: testDeviceUID, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -165,42 +162,31 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 	tests := []struct {
 		description    string
 		headers        map[string]string
+		caller         identity.Identity
 		expectedStatus int
 		expectedBody   string
 	}{
 		{
-			description: "a malformed tenant is rejected before anything else",
-			headers: map[string]string{
-				"X-Request-ID": "request-id",
-				"X-Device-UID": testDeviceUID,
-				"X-Tenant-ID":  "not-a-uuid",
-			},
+			description:    "a malformed tenant is rejected before anything else",
+			headers:        map[string]string{"X-Request-ID": "request-id"},
+			caller:         identity.Identity{DeviceUID: testDeviceUID, TenantID: "not-a-uuid"},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "a short device uid is rejected",
-			headers: map[string]string{
-				"X-Request-ID": "request-id",
-				"X-Device-UID": "too-short",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			description:    "a short device uid is rejected",
+			headers:        map[string]string{"X-Request-ID": "request-id"},
+			caller:         identity.Identity{DeviceUID: "too-short", TenantID: "00000000-0000-4000-0000-000000000000"},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "a missing request id is rejected",
-			headers: map[string]string{
-				"X-Device-UID": testDeviceUID,
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			description:    "a missing request id is rejected",
+			caller:         identity.Identity{DeviceUID: testDeviceUID, TenantID: "00000000-0000-4000-0000-000000000000"},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
-			description: "a request that is not a websocket upgrade gets only the upgrader's response",
-			headers: map[string]string{
-				"X-Request-ID": "request-id",
-				"X-Device-UID": testDeviceUID,
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			description:    "a request that is not a websocket upgrade gets only the upgrader's response",
+			headers:        map[string]string{"X-Request-ID": "request-id"},
+			caller:         identity.Identity{DeviceUID: testDeviceUID, TenantID: "00000000-0000-4000-0000-000000000000"},
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "Bad Request\n",
 		},
@@ -214,6 +200,7 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 			for name, value := range tt.headers {
 				req.Header.Set(name, value)
 			}
+			req = identitytest.As(req, tt.caller)
 
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)

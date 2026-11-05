@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
@@ -57,7 +59,7 @@ func TestGetSystemInfo(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -77,6 +79,7 @@ func TestGetStats(t *testing.T) {
 		title          string
 		reqStats       *models.Stats
 		headers        map[string]string
+		caller         identity.Identity
 		expectedStatus int
 		requiredMocks  func()
 	}{
@@ -89,10 +92,8 @@ func TestGetStats(t *testing.T) {
 				PendingDevices:    3,
 				RejectedDevices:   2,
 			},
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-			},
+			headers: map[string]string{"Content-Type": "application/json"},
+			caller:  identity.Identity{Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: ""}).Return(&models.Stats{}, nil)
 			},
@@ -107,11 +108,8 @@ func TestGetStats(t *testing.T) {
 				PendingDevices:    1,
 				RejectedDevices:   0,
 			},
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			headers: map[string]string{"Content-Type": "application/json"},
+			caller:  identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: "00000000-0000-4000-0000-000000000000"}).Return(&models.Stats{}, nil)
 			},
@@ -128,6 +126,8 @@ func TestGetStats(t *testing.T) {
 			for key, value := range tc.headers {
 				req.Header.Set(key, value)
 			}
+
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 

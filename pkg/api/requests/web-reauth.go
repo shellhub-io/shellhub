@@ -1,8 +1,8 @@
 package requests
 
 // WebReauthVerify is the step-up payload for an SSH login's require_reauth gate.
-// TenantID/UserID are set server-side from the gateway-injected headers, never
-// the body. Community validates Password; the enterprise overlay validates Code
+// TenantID/UserID are set server-side from the caller's authenticated identity,
+// never the body. Community validates Password; the enterprise overlay validates Code
 // (TOTP) when the user has MFA.
 type WebReauthVerify struct {
 	TenantID string `json:"-"`

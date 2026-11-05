@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -116,16 +118,11 @@ func TestGetDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			caller := identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.tenant, Admin: tc.admin}
 			if !tc.noIdentity {
-				req.Header.Set("X-ID", "000000000000000000000000")
+				caller.ID = "000000000000000000000000"
 			}
-			if tc.tenant != "" {
-				req.Header.Set("X-Tenant-ID", tc.tenant)
-			}
-			if tc.admin {
-				req.Header.Set("X-Admin", "true")
-			}
+			req = identitytest.As(req, caller)
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -158,6 +155,7 @@ func TestResolveDevice(t *testing.T) {
 		hostname      string
 		uid           string
 		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      Expected
 	}{
@@ -165,11 +163,8 @@ func TestResolveDevice(t *testing.T) {
 			description: "succeeds when resolver is uid",
 			hostname:    "",
 			uid:         "uid",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ResolveDevice", gomock.Anything, &requests.ResolveDevice{TenantID: "00000000-0000-4000-0000-000000000000", UID: "uid"}).
@@ -185,11 +180,8 @@ func TestResolveDevice(t *testing.T) {
 			description: "succeeds when resolver is hostname",
 			hostname:    "hostname",
 			uid:         "",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {
 				mock.
 					On("ResolveDevice", gomock.Anything, &requests.ResolveDevice{TenantID: "00000000-0000-4000-0000-000000000000", Hostname: "hostname"}).
@@ -202,14 +194,11 @@ func TestResolveDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "fails when neither resolver is given",
-			hostname:    "",
-			uid:         "",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Role":       authorizer.RoleOwner.String(),
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-			},
+			description:   "fails when neither resolver is given",
+			hostname:      "",
+			uid:           "",
+			headers:       map[string]string{"Content-Type": "application/json"},
+			caller:        identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {},
 			expected: Expected{
 				device: nil,
@@ -226,6 +215,7 @@ func TestResolveDevice(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, mock)
@@ -284,7 +274,7 @@ func TestDeleteDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodDelete, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -351,8 +341,7 @@ func TestRenameDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/devices/"+tc.renamePayload.UID, strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", tc.tenant)
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.tenant})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -450,8 +439,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.path, nil)
-			req.Header.Set("X-Role", tc.role.String())
-			req.Header.Set("X-Tenant-ID", "tenant-id")
+			req = identitytest.As(req, identity.Identity{Role: tc.role, TenantID: "tenant-id"})
 			rec := httptest.NewRecorder()
 
 			newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -529,9 +517,7 @@ func TestGetDeviceList(t *testing.T) {
 			urlVal.Set("status", string(tc.req.DeviceStatus))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", tc.req.TenantID)
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: tc.req.TenantID})
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, mock)
@@ -615,9 +601,7 @@ func TestGetDeviceListBadFilter(t *testing.T) {
 			urlVal.Set("filter", tc.filter)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, mock)
@@ -696,9 +680,7 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, body)
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
 			if tc.body != "" {
 				req.Header.Set("Content-Type", "application/json")
 			}
@@ -716,9 +698,7 @@ func TestGetDeviceListConnectorParameter(t *testing.T) {
 		mock := mocks.NewMockService(t)
 
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?connector=yes", nil)
-		req.Header.Set("X-Role", authorizer.RoleOwner.String())
-		req.Header.Set("X-ID", "000000000000000000000000")
-		req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+		req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"})
 
 		rec := httptest.NewRecorder()
 		newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -778,8 +758,7 @@ func TestUpdateDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/devices/"+tc.req.UID, strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -848,9 +827,7 @@ func TestGetDeviceListBadStatus(t *testing.T) {
 			}
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, mock)
@@ -884,9 +861,7 @@ func TestGetDeviceListAcceptsEveryDeviceStatus(t *testing.T) {
 			urlVal.Set("status", string(status))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices?"+urlVal.Encode(), nil)
-			req.Header.Set("X-ID", "000000000000000000000000")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, mock)

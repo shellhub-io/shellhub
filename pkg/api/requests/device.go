@@ -12,7 +12,7 @@ import (
 // CursorPaginator serves cursor mode; which one a request is in is decided by which query
 // parameters it carries, since a zero value cannot tell an absent parameter from a zero one.
 type DeviceList struct {
-	TenantID     string              `header:"X-Tenant-ID"`
+	TenantID     string              `identity:"tenant"`
 	DeviceStatus models.DeviceStatus `query:"status" validate:"omitempty,oneof=accepted pending rejected removed unused"`
 	Connector    bool                `query:"connector" json:"-" xml:"-"`
 	query.Paginator
@@ -24,7 +24,7 @@ type DeviceList struct {
 // DeviceUpdate is the request to change a device's editable fields. An omitted field is left
 // alone, which is why Name is optional rather than required.
 type DeviceUpdate struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	UID      string `param:"uid" validate:"required"`
 	Name     string `json:"name" validate:"omitempty,device_name"`
 }
@@ -32,7 +32,7 @@ type DeviceUpdate struct {
 // DeviceSetCustomField is the request to set one custom key/value on a device. Setting an existing
 // key overwrites it, so this is an upsert rather than an insert.
 type DeviceSetCustomField struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	DeviceParam
 	Key   string `param:"key" validate:"required,min=1,max=64"`
 	Value string `json:"value" validate:"max=256"`
@@ -40,7 +40,7 @@ type DeviceSetCustomField struct {
 
 // DeviceDeleteCustomField is the request to remove one custom key from a device.
 type DeviceDeleteCustomField struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	DeviceParam
 	Key string `param:"key" validate:"required,min=1,max=64"`
 }
@@ -58,7 +58,7 @@ type DeviceGet struct {
 // ResolveDevice is the request to find a device by UID or by hostname. One of the two is
 // required, and UID wins when both are given.
 type ResolveDevice struct {
-	TenantID string `header:"X-Tenant-ID" validate:"required"`
+	TenantID string `identity:"tenant" validate:"required"`
 	UID      string `query:"uid" validate:"required_without=Hostname"`
 	Hostname string `query:"hostname" validate:"required_without=UID"`
 }
@@ -77,7 +77,7 @@ type DeviceRename struct {
 // DeviceUpdateStatus is the request to accept, reject or re-pend a device. The target status is a
 // path parameter, so the same route serves all three transitions.
 type DeviceUpdateStatus struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	UID      string `param:"uid" validate:"required"`
 	Status   string `param:"status" validate:"required"`
 }

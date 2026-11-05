@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -30,14 +32,14 @@ func TestGetPublicKeys(t *testing.T) {
 	cases := []struct {
 		description   string
 		paginator     query.Paginator
-		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "success when try to list a publics keys exists",
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				mock.
 					On("ListPublicKeys", gomock.Anything, &requests.ListPublicKeys{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -62,10 +64,7 @@ func TestGetPublicKeys(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sshkeys/public-keys", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -142,8 +141,7 @@ func TestGetPublicKeysBadFilter(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sshkeys/public-keys?filter="+tc.filter, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			req.Header.Set("X-Tenant-ID", "00000000-0000-4000-0000-000000000000")
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 			rec := httptest.NewRecorder()
 			e := newTestRouter(t, svcMock)
@@ -166,18 +164,15 @@ func TestDeletePublicKey(t *testing.T) {
 		description   string
 		fingerprint   string
 		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when role is observer",
 			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "observer",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleObserver, ID: "000000000000000000000000"},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},
@@ -185,12 +180,8 @@ func TestDeletePublicKey(t *testing.T) {
 		{
 			description: "fails when role is operator",
 			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "operator",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOperator, ID: "000000000000000000000000"},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},
@@ -198,12 +189,8 @@ func TestDeletePublicKey(t *testing.T) {
 		{
 			description: "fails when try to deleting a non existent public key",
 			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
@@ -215,12 +202,8 @@ func TestDeletePublicKey(t *testing.T) {
 		{
 			description: "success when fingerprint is encoded",
 			fingerprint: "8e%3Ab3%3Ae2%3Ace%3A3c%3A6c%3A27%3Aff%3A51%3Ac9%3A5d%3A77%3Aaf%3A92%3A2f%3Ad8",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
@@ -232,12 +215,8 @@ func TestDeletePublicKey(t *testing.T) {
 		{
 			description: "success when try to deleting an existing public key",
 			fingerprint: "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8",
-			headers: map[string]string{
-				"Content-Type": "application/json",
-				"X-Tenant-ID":  "00000000-0000-4000-0000-000000000000",
-				"X-Role":       "owner",
-				"X-ID":         "000000000000000000000000",
-			},
+			headers:     map[string]string{"Content-Type": "application/json"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner, ID: "000000000000000000000000"},
 			requiredMocks: func() {
 				svcMock.
 					On("DeletePublicKey", gomock.Anything, "8e:b3:e2:ce:3c:6c:27:ff:51:c9:5d:77:af:92:2f:d8", "00000000-0000-4000-0000-000000000000").
@@ -256,6 +235,7 @@ func TestDeletePublicKey(t *testing.T) {
 			for k, v := range tc.headers {
 				req.Header.Set(k, v)
 			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 

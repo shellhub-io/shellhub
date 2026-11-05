@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -37,14 +39,14 @@ func TestGetSessionList(t *testing.T) {
 		description   string
 		paginator     query.Paginator
 		filter        string
-		headers       map[string]string
+		caller        identity.Identity
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
 			description: "fails when try to searching a session list of a existing session",
 			paginator:   query.Paginator{Page: 1, PerPage: 10},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 1, PerPage: 10}, TenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -59,7 +61,7 @@ func TestGetSessionList(t *testing.T) {
 		{
 			description: "success when try to searching a session list of a existing session",
 			paginator:   query.Paginator{Page: 2, PerPage: 5},
-			headers:     map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, &requests.ListSessions{Paginator: query.Paginator{Page: 2, PerPage: 5}, TenantID: "00000000-0000-4000-0000-000000000000"}).
@@ -91,7 +93,7 @@ func TestGetSessionList(t *testing.T) {
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
-			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller:        identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
@@ -103,7 +105,7 @@ func TestGetSessionList(t *testing.T) {
 			description:   "returns 400 when filter is malformed non-base64",
 			paginator:     query.Paginator{Page: 1, PerPage: 10},
 			filter:        "!!!not-base64!!!",
-			headers:       map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller:        identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
@@ -130,7 +132,7 @@ func TestGetSessionList(t *testing.T) {
 
 				return base64.StdEncoding.EncodeToString(b)
 			}(),
-			headers: map[string]string{"X-Tenant-ID": "00000000-0000-4000-0000-000000000000"},
+			caller: identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 				mock.
 					On("ListSessions", gomock.Anything, gomock.Anything, gomock.MatchedBy(func(req *requests.ListSessions) bool {
@@ -172,10 +174,7 @@ func TestGetSessionList(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, rawURL, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			for k, v := range tc.headers {
-				req.Header.Set(k, v)
-			}
+			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
 
@@ -287,13 +286,7 @@ func TestGetSession(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/sessions/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Role", authorizer.RoleOwner.String())
-			if tc.tenant != "" {
-				req.Header.Set("X-Tenant-ID", tc.tenant)
-			}
-			if tc.admin {
-				req.Header.Set("X-Admin", "true")
-			}
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.tenant, Admin: tc.admin})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)

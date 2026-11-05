@@ -9,7 +9,7 @@ type FingerprintParam struct {
 
 // ListPublicKeys is the request to page through the namespace's registered SSH keys.
 type ListPublicKeys struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	query.Paginator
 	query.Filters
 }

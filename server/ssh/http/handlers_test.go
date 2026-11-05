@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -32,8 +35,7 @@ func newCloseRequest(t *testing.T, role string) (*echo.Context, *httptest.Respon
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/sessions/session-uid/close", strings.NewReader(`{"device":"device-uid"}`))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set("X-Role", role)
-	req.Header.Set("X-Tenant-ID", "tenant-id")
+	req = identitytest.As(req, identity.Identity{Role: authorizer.RoleFromString(role), TenantID: "tenant-id"})
 
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)

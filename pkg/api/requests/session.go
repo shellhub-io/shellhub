@@ -10,7 +10,7 @@ type SessionIDParam struct {
 
 // ListSessions is the request to page through a namespace's sessions, live and finished alike.
 type ListSessions struct {
-	TenantID string `header:"X-Tenant-ID"`
+	TenantID string `identity:"tenant"`
 	query.Paginator
 	query.Filters
 }
