@@ -877,7 +877,9 @@ func TestService_DevicePresenceSweep(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2026, 11, 5, 12, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
-	staleBefore := now.Add(-devicePresenceSweepGrace)
+	staleBefore := now.Add(-10 * time.Minute)
+
+	const batchSize = int64(1000)
 
 	cases := []struct {
 		description string
@@ -891,11 +893,11 @@ func TestService_DevicePresenceSweep(t *testing.T) {
 		},
 		{
 			description: "keeps sweeping while batches come back full",
-			batches:     []int64{devicePresenceSweepBatchSize, devicePresenceSweepBatchSize, 0},
+			batches:     []int64{batchSize, batchSize, 0},
 		},
 		{
-			description: "stops at the batch cap even while batches come back full",
-			batches:     slices.Repeat([]int64{devicePresenceSweepBatchSize}, devicePresenceSweepMaxBatches),
+			description: "stops after 100 batches even while batches come back full",
+			batches:     slices.Repeat([]int64{batchSize}, 100),
 		},
 		{
 			description: "propagates the store error",
@@ -909,7 +911,7 @@ func TestService_DevicePresenceSweep(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			for _, stamped := range tc.batches {
-				storeMock.On("DeviceSweepStalePresence", ctx, staleBefore, int64(devicePresenceSweepBatchSize)).
+				storeMock.On("DeviceSweepStalePresence", ctx, staleBefore, batchSize).
 					Return(stamped, tc.storeErr).Once()
 			}
 
