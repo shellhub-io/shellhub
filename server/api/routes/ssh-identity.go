@@ -95,13 +95,8 @@ func (h *Handler) UpdateSSHIdentity(c *gateway.Context) error {
 		return errs.NewErrUnauthorized(nil)
 	}
 
-	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
-	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
-		return errs.NewErrForbidden(nil)
-	}
-
 	req.UserID = userID
-	req.Manage = manage
+	req.Manage = c.Role().HasPermission(authorizer.SSHIdentityManage)
 	if c.Tenant() != nil {
 		req.TenantID = c.Tenant().ID
 	}
@@ -131,13 +126,8 @@ func (h *Handler) DeleteSSHIdentity(c *gateway.Context) error {
 		return errs.NewErrUnauthorized(nil)
 	}
 
-	manage := c.Role().HasPermission(authorizer.SSHIdentityManage)
-	if !manage && !c.Role().HasPermission(authorizer.SSHIdentityAdd) {
-		return errs.NewErrForbidden(nil)
-	}
-
 	req.UserID = userID
-	req.Manage = manage
+	req.Manage = c.Role().HasPermission(authorizer.SSHIdentityManage)
 	if c.Tenant() != nil {
 		req.TenantID = c.Tenant().ID
 	}

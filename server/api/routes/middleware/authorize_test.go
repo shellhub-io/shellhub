@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/stretchr/testify/assert"
 )
@@ -80,6 +81,68 @@ func TestRequiresTenant(t *testing.T) {
 			if tc.expected != http.StatusOK {
 				assertRefusalCarriesABody(t, rec)
 			}
+		})
+	}
+}
+
+func TestRequiresAnyPermission(t *testing.T) {
+	cases := []struct {
+		description string
+		role        authorizer.Role
+		permissions []authorizer.Permission
+		noGateway   bool
+		expected    int
+	}{
+		{
+			description: "admits a role holding the first permission",
+			role:        authorizer.RoleOperator,
+			permissions: []authorizer.Permission{authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage},
+			expected:    http.StatusOK,
+		},
+		{
+			description: "refuses when the gateway middleware is not installed",
+			role:        authorizer.RoleOwner,
+			permissions: []authorizer.Permission{authorizer.SSHIdentityAdd},
+			noGateway:   true,
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "admits a role holding only a later permission",
+			role:        authorizer.RoleOperator,
+			permissions: []authorizer.Permission{authorizer.SSHIdentityManage, authorizer.SSHIdentityAdd},
+			expected:    http.StatusOK,
+		},
+		{
+			description: "refuses a role holding none of them",
+			role:        authorizer.RoleObserver,
+			permissions: []authorizer.Permission{authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage},
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "refuses every role when given no permissions",
+			role:        authorizer.RoleOwner,
+			expected:    http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			e := echo.New()
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+			req.Header.Set("X-Role", tc.role.String())
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+
+			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+
+			handler := RequiresAnyPermission(tc.permissions...)(next)
+			if !tc.noGateway {
+				handler = gateway.WithContext()(handler)
+			}
+
+			renderRefusal(t, c, handler(c))
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
 	}
 }
