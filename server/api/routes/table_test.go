@@ -9,10 +9,16 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
+	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
+	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,48 +35,136 @@ func tableFor(t *testing.T, edition envs.Edition) []route {
 	return handler.publicRoutes()
 }
 
-func TestEveryRouteStatesItsAccess(t *testing.T) {
-	for _, edition := range editions {
-		for _, r := range tableFor(t, edition) {
-			assert.NotEqual(t, accessUnstated, r.access.kind, "%s: %s %s states no access", edition, r.method, r.path)
+var mountedOutsideTheTable = map[string]string{
+	echo.RouteAny + " /mcp":         "the MCP server replays each tool call against the table's own routes",
+	echo.RouteAny + " /mcp/*":       "the MCP server replays each tool call against the table's own routes",
+	"GET " + InternalMetricsURL:     "Prometheus scrapes it from inside the cluster",
+	"GET /ssh/connection":           "the SSH server's web terminal, mounted by sshhttp.Register",
+	"GET /ssh/revdial":              "the agent's reverse dial, mounted by sshhttp.Register",
+	"GET /agent/connection":         "the agent's connection, mounted by sshhttp.Register",
+	"POST /api/sessions/:uid/close": "the SSH server closes its own sessions, mounted by sshhttp.Register",
+}
 
-			if r.access.kind == accessPermission {
-				assert.NotEmpty(t, r.access.permissions, "%s: %s %s requires no permission", edition, r.method, r.path)
-			}
+func address(method, path string) string {
+	return method + " " + pathParam.ReplaceAllString(path, ":")
+}
+
+func unstatedAccess(table []route) []string {
+	var found []string
+
+	for _, r := range table {
+		switch {
+		case r.access.kind == accessUnstated:
+			found = append(found, r.method+" "+r.path+" states no access")
+		case r.access.kind == accessPermission && len(r.access.permissions) == 0:
+			found = append(found, r.method+" "+r.path+" requires no permission")
 		}
 	}
+
+	return found
+}
+
+func duplicateAddresses(table []route) []string {
+	var found []string
+
+	seen := make(map[string]bool)
+	for _, r := range table {
+		key := address(r.method, r.path)
+		if seen[key] {
+			found = append(found, r.method+" "+r.path+" is mounted twice")
+		}
+
+		seen[key] = true
+	}
+
+	return found
+}
+
+func mountedOutside(mounted echo.Routes, table []route, exempt map[string]string) []string {
+	listed := make(map[string]bool)
+	for _, r := range table {
+		listed[r.method+" "+publicAPIPrefix+r.path] = true
+	}
+
+	var found []string
+
+	for _, m := range mounted {
+		key := m.Method + " " + m.Path
+		if !listed[key] && exempt[key] == "" {
+			found = append(found, key+" is mounted outside the route table")
+		}
+	}
+
+	return found
+}
+
+func TestEveryRouteStatesItsAccess(t *testing.T) {
+	for _, edition := range editions {
+		assert.Empty(t, unstatedAccess(tableFor(t, edition)), edition)
+	}
+}
+
+func TestUnstatedAccessFlagsARowThatStatesNone(t *testing.T) {
+	table := []route{
+		{method: http.MethodGet, path: "/unstated"},
+		{method: http.MethodGet, path: "/no-permission", access: requires()},
+		{method: http.MethodGet, path: "/anonymous", access: anonymous},
+		{method: http.MethodGet, path: "/permission", access: requires(authorizer.DeviceRename)},
+	}
+
+	assert.Equal(t, []string{
+		"GET /unstated states no access",
+		"GET /no-permission requires no permission",
+	}, unstatedAccess(table))
 }
 
 func TestNoRouteIsMountedTwice(t *testing.T) {
 	for _, edition := range editions {
-		seen := make(map[string]bool)
+		assert.Empty(t, duplicateAddresses(tableFor(t, edition)), edition)
+	}
+}
 
-		for _, r := range tableFor(t, edition) {
-			address := r.method + " " + pathParam.ReplaceAllString(r.path, ":")
-			assert.False(t, seen[address], "%s: %s %s is mounted twice", edition, r.method, r.path)
-			seen[address] = true
+func TestDuplicateAddressesFlagsTheSameAddressUnderAnotherParameterName(t *testing.T) {
+	table := []route{
+		{method: http.MethodGet, path: "/devices/:uid"},
+		{method: http.MethodGet, path: "/devices/:id"},
+		{method: http.MethodPost, path: "/devices/:id"},
+	}
+
+	assert.Equal(t, []string{"GET /devices/:id is mounted twice"}, duplicateAddresses(table))
+}
+
+func TestEveryRouteTheRouterMountsIsInTheTableOrExemptByName(t *testing.T) {
+	for _, edition := range editions {
+		service := serviceMocks.NewMockService(t)
+		authn := routesmiddleware.NewAuthenticator(service)
+		router := newTestRouter(t, service, WithAuthentication(authn), WithEdition(edition))
+		sshhttp.Register(router, authn, dialer.NewDialer(nil, nil, clock.New()), service, session.NewRegistry(), &sshhttp.Config{})
+
+		mounted := router.Router().Routes()
+		assert.Empty(t, mountedOutside(mounted, tableFor(t, edition), mountedOutsideTheTable), edition)
+
+		for exempt := range mountedOutsideTheTable {
+			assert.True(t, slices.ContainsFunc(mounted, func(m echo.RouteInfo) bool {
+				return m.Method+" "+m.Path == exempt
+			}), "%s: %s is exempt but not mounted", edition, exempt)
 		}
 	}
 }
 
-func TestEveryRouteNewRouterMountsOnTheAPIComesFromTheTable(t *testing.T) {
-	for _, edition := range editions {
-		router := newTestRouter(t, serviceMocks.NewMockService(t), WithEdition(edition))
-
-		table := make(map[string]bool)
-		for _, r := range tableFor(t, edition) {
-			table[r.method+" "+publicAPIPrefix+r.path] = true
-		}
-
-		for _, mounted := range router.Router().Routes() {
-			if !strings.HasPrefix(mounted.Path, publicAPIPrefix+"/") {
-				continue
-			}
-
-			address := mounted.Method + " " + mounted.Path
-			assert.True(t, table[address], "%s: %s is mounted outside the route table", edition, address)
-		}
+func TestMountedOutsideFlagsARouteNeitherListedNorExempt(t *testing.T) {
+	router := echo.New()
+	for _, path := range []string{"/api/listed", "/api/unlisted", "/exempt", "/unexempt"} {
+		router.GET(path, func(*echo.Context) error { return nil })
 	}
+
+	table := []route{{method: http.MethodGet, path: "/listed"}}
+	exempt := map[string]string{"GET /exempt": "a reason"}
+
+	assert.ElementsMatch(t, []string{
+		"GET /api/unlisted is mounted outside the route table",
+		"GET /unexempt is mounted outside the route table",
+	}, mountedOutside(router.Router().Routes(), table, exempt))
 }
 
 func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
@@ -96,11 +190,18 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 			headers: map[string]string{"X-ID": "user-id"},
 		},
 		{
-			description: "a role holding none of the route's permissions",
+			description: "a namespace member whose role holds no permission",
 			applies: func(r route) bool {
 				return r.access.kind == accessPermission
 			},
 			headers: map[string]string{"X-ID": "user-id", "X-Tenant-ID": tenant},
+		},
+		{
+			description: "a user token with neither a namespace nor a permission",
+			applies: func(r route) bool {
+				return r.access.kind == accessPermission
+			},
+			headers: map[string]string{"X-ID": "user-id"},
 		},
 	}
 
@@ -109,38 +210,48 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 			var covered int
 
 			for _, edition := range editions {
-				for _, r := range tableFor(t, edition) {
+				var reached bool
+				recording := func(gateway.Claims) echo.HandlerFunc {
+					return func(*echo.Context) error {
+						reached = true
+
+						return nil
+					}
+				}
+
+				table := tableFor(t, edition)
+				for i := range table {
+					table[i].endpoint = recording
+				}
+
+				router := echo.New()
+				router.HTTPErrorHandler = handlers.NewErrors(nil)
+				router.Use(gateway.WithContext())
+				mount(router.Group(publicAPIPrefix), table)
+
+				for _, r := range table {
 					if !tc.applies(r) {
 						continue
 					}
 
 					covered++
+					reached = false
 
-					req := httptest.NewRequestWithContext(t.Context(), r.method, "/", nil)
+					target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.path, func(param string) string {
+						if param[1:] == r.tenantParam {
+							return tenant
+						}
+
+						return "placeholder"
+					})
+
+					req := httptest.NewRequestWithContext(t.Context(), r.method, target, nil)
 					for name, value := range tc.headers {
 						req.Header.Set(name, value)
 					}
 
 					rec := httptest.NewRecorder()
-					c := echo.New().NewContext(req, rec)
-					if r.tenantParam != "" {
-						c.SetPathValues(echo.PathValues{{Name: r.tenantParam, Value: tenant}})
-					}
-
-					var reached bool
-					next := echo.HandlerFunc(func(*echo.Context) error {
-						reached = true
-
-						return nil
-					})
-
-					for _, guard := range slices.Backward(r.middleware()) {
-						next = guard(next)
-					}
-
-					if err := gateway.WithContext()(next)(c); err != nil {
-						handlers.NewErrors(nil)(c, err)
-					}
+					router.ServeHTTP(rec, req)
 
 					assert.False(t, reached, "%s: %s %s reached its handler", edition, r.method, r.path)
 					assert.Equal(t, http.StatusForbidden, rec.Code, "%s: %s %s", edition, r.method, r.path)
