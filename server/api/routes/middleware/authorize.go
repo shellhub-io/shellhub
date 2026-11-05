@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"slices"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -46,9 +47,21 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 // If not, it refuses with [routes.ErrForbidden]. Otherwise, it executes the next
 // handler.
 func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
+	return RequiresAnyPermission(permission)
+}
+
+// RequiresAnyPermission refuses the request with [routes.ErrForbidden] unless the caller's role
+// holds at least one of permissions, or when no gateway context was installed. Given no
+// permissions, it refuses every request.
+func RequiresAnyPermission(permissions ...authorizer.Permission) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			if ctx, ok := gateway.From(c); !ok || !ctx.Role().HasPermission(permission) {
+			ctx, ok := gateway.From(c)
+			if !ok {
+				return routes.NewErrForbidden(nil)
+			}
+
+			if !slices.ContainsFunc(permissions, ctx.Role().HasPermission) {
 				return routes.NewErrForbidden(nil)
 			}
 

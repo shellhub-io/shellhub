@@ -149,7 +149,7 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 		}
 	}
 
-	table := handler.publicRoutes(handler.edition)
+	table := handler.publicRoutes()
 	mount(router.Group(publicAPIPrefix), table)
 
 	SetupMCPRoutes(router)

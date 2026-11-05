@@ -65,7 +65,7 @@ func TestGetLegacyTagsTenantScope(t *testing.T) {
 		{
 			description: "modern route still refuses a tenantless token",
 			path:        "/api/tags",
-			expected:    http.StatusBadRequest,
+			expected:    http.StatusForbidden,
 		},
 		{
 			description: "refuses an unauthenticated request",
