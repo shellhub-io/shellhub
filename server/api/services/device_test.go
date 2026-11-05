@@ -2834,11 +2834,43 @@ func TestSetDeviceCustomField(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
 					Return(nil, errors.New("error", "", 0)).
 					Once()
 			},
 			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
+		},
+		{
+			description: "returns ctx's error when ctx passes its deadline during the resolve",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+				Value:       "prod",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
+					Return(nil, context.DeadlineExceeded).
+					Once()
+			},
+			expected: context.DeadlineExceeded,
+		},
+		{
+			description: "returns ctx's error when ctx is cancelled during the resolve",
+			req: &requests.DeviceSetCustomField{
+				TenantID:    "00000000-0000-0000-0000-000000000000",
+				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
+				Key:         "env",
+				Value:       "prod",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
+					Return(nil, context.Canceled).
+					Once()
+			},
+			expected: context.Canceled,
 		},
 		{
 			description: "fails when adding a new key exceeds the per-device limit",
@@ -2858,7 +2890,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					CustomFields: full,
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
 					Return(device, nil).
 					Once()
 			},
@@ -2878,7 +2910,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					CustomFields: map[string]string{},
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2902,7 +2934,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					CustomFields: map[string]string{"region": "us-east"},
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2930,7 +2962,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					CustomFields: full,
 				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", mock.Anything).
 					Return(device, nil).
 					Once()
 				storeMock.
@@ -2947,6 +2979,11 @@ func TestSetDeviceCustomField(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.description, func(t *testing.T) {
 			ctx := context.Background()
+			storeMock.
+				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
+			queryOptionsMock.On("ForUpdate").Return(nil).Once()
 			test.requiredMocks(ctx)
 
 			err := service.SetDeviceCustomField(ctx, test.req)

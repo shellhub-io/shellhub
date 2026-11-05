@@ -132,9 +132,16 @@ type DeviceService interface {
 	// is not accepted in the namespace, and nil for one that already has no owner.
 	MakeTeamDevice(ctx context.Context, tenantID, uid string) error
 
-	// SetDeviceCustomField sets or updates a single custom_fields entry on the device.
-	// It enforces the per-device entry cap defined by [maxCustomFieldsPerDevice] when
-	// adding a new key.
+	// SetDeviceCustomField sets or updates a single custom_fields entry on the device. Adding a new
+	// key to a device that already holds [maxCustomFieldsPerDevice] entries returns
+	// ErrDeviceCustomFieldLimitReached; updating an existing key never does. The cap holds under
+	// concurrent calls: the check and the write run in one transaction holding the device's row lock,
+	// so calls on the same device run one at a time, and a call returns ctx's error when ctx ends
+	// while it queries the store, including while it waits on another's lock. It returns
+	// ErrForbidden for a request without a tenant; ErrDeviceNotFound when the device cannot be
+	// resolved in that namespace, whatever the store's error other than ctx's; and the store's error
+	// when the transaction cannot begin or commit or the write fails. Any failure leaves nothing
+	// written.
 	SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error
 	// DeleteDeviceCustomField removes a single custom_fields entry from the device.
 	// It is idempotent: removing a non-existent key is not an error.
@@ -682,20 +689,21 @@ func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.Device
 		return err
 	}
 
-	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID)
-	if err != nil {
-		return NewErrDeviceNotFound(models.UID(req.UID), err)
-	}
+	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID, s.store.Options().ForUpdate())
+		switch {
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			return err
+		case err != nil:
+			return NewErrDeviceNotFound(models.UID(req.UID), err)
+		}
 
-	if _, exists := device.CustomFields[req.Key]; !exists && len(device.CustomFields) >= maxCustomFieldsPerDevice {
-		return NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil)
-	}
+		if _, exists := device.CustomFields[req.Key]; !exists && len(device.CustomFields) >= maxCustomFieldsPerDevice {
+			return NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil)
+		}
 
-	if err := s.store.DeviceSetCustomField(ctx, req.UID, req.Key, req.Value); err != nil {
-		return err
-	}
-
-	return nil
+		return s.store.DeviceSetCustomField(ctx, req.UID, req.Key, req.Value)
+	})
 }
 
 func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error {
