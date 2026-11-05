@@ -12,15 +12,12 @@ post:
   security:
     - jwt: []
   parameters:
-    - name: id
-      description: The user ID.
-      schema:
-        type: string
-      required: true
-      in: path
+    - $ref: ../components/parameters/path/userIDPath.yaml
   responses:
     '200':
       $ref: ../components/responses/200.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':
