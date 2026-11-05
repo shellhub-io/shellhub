@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -185,6 +186,24 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 			return true
 		}, 5*time.Second, 10*time.Millisecond, "a webhook connection left open after the answer leaks a socket per device authorization")
+	})
+
+	t.Run("fails closed to pending on an answer over the size limit", func(t *testing.T) {
+		answers := map[string]string{
+			"padded inside the decision": `{"decision":"accept","padding":"` + strings.Repeat("x", enrollmentWebhookResponseMaxBytes) + `"}`,
+			"padded after the decision":  `{"decision":"accept"}` + strings.Repeat(" ", enrollmentWebhookResponseMaxBytes),
+		}
+
+		for name, answer := range answers {
+			t.Run(name, func(t *testing.T) {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					_, _ = io.WriteString(w, answer)
+				}))
+				defer srv.Close()
+
+				require.Equal(t, enrollPending, svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false))
+			})
+		}
 	})
 }
 
