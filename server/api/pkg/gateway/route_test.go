@@ -30,7 +30,6 @@ type probeCall struct {
 	scope  scope.Scope
 	actor  gateway.Actor
 	req    *probeRequest
-	tenant string
 }
 
 func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
@@ -49,15 +48,11 @@ func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
 }
 
 func probeHandler(call *probeCall, res []string, count int64, err error) gateway.ListHandler[probeRequest, []string] {
-	return func(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
+	return func(_ context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
 		call.called = true
 		call.scope = sc
 		call.actor = actor
 		call.req = req
-
-		if tenant := gateway.TenantFromContext(ctx); tenant != nil {
-			call.tenant = tenant.ID
-		}
 
 		return res, count, err
 	}
@@ -195,19 +190,6 @@ func TestWrapperCeremony(t *testing.T) {
 			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
 			target:             "/probe",
 			expectedStatus:     http.StatusInternalServerError,
-		},
-		{
-			description:        "keeps the gateway context reachable from the request context",
-			withGatewayContext: true,
-			headers:            map[string]string{"X-Tenant-ID": probeTenant, "X-ID": "user-id"},
-			target:             "/probe",
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.Equal(t, probeTenant, call.tenant)
-			},
 		},
 	}
 

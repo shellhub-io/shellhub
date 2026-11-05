@@ -117,8 +117,6 @@ func prepare[T any](c *echo.Context, claims Claims) (inputs[T], error) {
 		return inputs[T]{}, echo.ErrInternalServerError
 	}
 
-	stash(c, gCtx)
-
 	req := new(T)
 	if err := c.Bind(req); err != nil {
 		return inputs[T]{}, err

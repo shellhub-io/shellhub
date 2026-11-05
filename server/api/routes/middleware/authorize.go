@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"slices"
 
 	"github.com/labstack/echo/v5"
@@ -19,12 +18,7 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 			return routes.NewErrForbidden(nil)
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "ctx", gCtx)
-
-		id := gateway.IDFromContext(ctx)
-		tenant := gateway.TenantFromContext(ctx)
-
-		if id != nil && tenant == nil && !gCtx.IsAdmin() {
+		if gCtx.ID() != nil && gCtx.Tenant() == nil && !gCtx.IsAdmin() {
 			return routes.NewErrForbidden(nil)
 		}
 
