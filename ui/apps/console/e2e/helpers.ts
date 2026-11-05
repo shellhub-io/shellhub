@@ -226,6 +226,41 @@ export function activeViewTab(page: Page) {
     .getByRole("tab", { selected: true });
 }
 
+/**
+ * Holds every request the page makes to url until release is called. requested waits until one
+ * reaches the hold, and release lets them through and waits until one was served. Both fail the
+ * test naming url when no request gets there, so a matcher that stops matching breaks the test
+ * instead of skipping what it holds back.
+ */
+export async function holdRoute(
+  page: Page,
+  url: string | RegExp | ((url: URL) => boolean),
+) {
+  let open = () => {};
+  const opened = new Promise<void>((resolve) => (open = resolve));
+  let reached = false;
+  let served = false;
+  await page.route(url, async (route) => {
+    reached = true;
+    await opened;
+    await route.continue();
+    served = true;
+  });
+  const matcher =
+    typeof url === "function" ? url.name || url.toString() : url.toString();
+  const waitFor = (done: () => boolean, what: string) =>
+    expect
+      .poll(done, { message: `no request to ${matcher} was ${what}` })
+      .toBe(true);
+  return {
+    requested: () => waitFor(() => reached, "held"),
+    release: async () => {
+      open();
+      await waitFor(() => served, "served");
+    },
+  };
+}
+
 export async function switchNamespace(page: Page, namespace: string) {
   await page.getByRole("button", { name: "New tab" }).click();
   const picker = page.getByRole("dialog", { name: "New tab" });

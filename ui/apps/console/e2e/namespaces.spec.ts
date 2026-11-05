@@ -5,6 +5,7 @@ import {
   createTeamWithOwnerInAnother,
   createTeam,
   findRow,
+  holdRoute,
   signInAndOpen,
   singleNamespaceReason,
   switchNamespace,
@@ -12,16 +13,6 @@ import {
 import { buildRequestContext, createApiKey } from "./api";
 
 const isApiKeyList = (url: URL) => url.pathname === "/api/namespaces/api-key";
-
-async function holdApiKeyList(page: Page) {
-  let release = () => {};
-  const released = new Promise<void>((resolve) => (release = resolve));
-  await page.route(isApiKeyList, async (route) => {
-    await released;
-    await route.continue();
-  });
-  return release;
-}
 
 async function upgradeNamespace(page: Page, namespace: string) {
   const mode = page.getByRole("group", { name: "Namespace" });
@@ -54,17 +45,14 @@ test.describe("Namespaces", () => {
     await page.getByRole("tab", { name: "API Keys" }).click();
     await expect(findRow(page, ownKey.name)).toBeVisible();
 
-    const releaseApiKeyList = await holdApiKeyList(page);
-    const apiKeyList = page.waitForRequest((request) =>
-      isApiKeyList(new URL(request.url())),
-    );
+    const apiKeyList = await holdRoute(page, isApiKeyList);
     await switchNamespace(page, other.namespace);
     await page.getByRole("link", { name: "Team" }).click();
     await page.getByRole("tab", { name: "API Keys" }).click();
-    await apiKeyList;
+    await apiKeyList.requested();
 
     await expect(findRow(page, ownKey.name)).toHaveCount(0);
-    releaseApiKeyList();
+    await apiKeyList.release();
     await expect(findRow(page, otherKey.name)).toBeVisible();
   });
 
