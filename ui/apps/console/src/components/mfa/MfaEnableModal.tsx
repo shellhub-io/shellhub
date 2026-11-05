@@ -11,6 +11,7 @@ import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
+import OtpCells from "@/components/mfa/OtpCells";
 import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
 interface MfaEnableModalProps {
   open: boolean;
@@ -418,33 +419,12 @@ export default function MfaEnableModal({
               )}
             </div>
 
-            <div>
-              <p className="block text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-3 text-center">
-                Verification Code
-              </p>
-              <div
-                className="flex gap-2 justify-center"
-                role="group"
-                aria-label="Verification Code"
-              >
-                {otp.code.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => {
-                      (otp.inputRefs.current[index] = el);
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => otp.handleChange(index, e.target.value)}
-                    onKeyDown={(e) => otp.handleKeyDown(index, e)}
-                    aria-label={`Digit ${index + 1}`}
-                    className="w-10 h-10 text-center text-base font-mono bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
-                  />
-                ))}
-              </div>
-            </div>
+            <OtpCells
+              otp={otp}
+              label="Verification Code"
+              centered
+              numeric
+            />
           </div>
         )}
 
