@@ -50,6 +50,24 @@ func TestBinderFillsIdentityFields(t *testing.T) {
 	assert.Equal(t, identityRequest{UserID: "user", TenantID: "tenant", Role: authorizer.RoleOwner, IsAdmin: true, Name: "kept"}, req)
 }
 
+func TestBinderDiscardsIdentityFieldsTheBodySent(t *testing.T) {
+	caller := identity.Identity{ID: "user"}
+
+	var req identityRequest
+	bindAs(t, &caller, "", `{"user_id":"forged","is_admin":true}`, &req)
+
+	assert.Equal(t, "user", req.UserID)
+	assert.False(t, req.IsAdmin)
+}
+
+func TestBinderLeavesIdentityFieldsEmptyWhenAnonymous(t *testing.T) {
+	var req identityRequest
+	bindAs(t, nil, "", `{"user_id":"forged","is_admin":true}`, &req)
+
+	assert.Empty(t, req.UserID)
+	assert.False(t, req.IsAdmin)
+}
+
 func TestBinderKeepsThePathValueWhenTheIdentityHasNone(t *testing.T) {
 	caller := identity.Identity{ID: "user"}
 
@@ -57,4 +75,21 @@ func TestBinderKeepsThePathValueWhenTheIdentityHasNone(t *testing.T) {
 	bindAs(t, &caller, "path-tenant", `{}`, &req)
 
 	assert.Equal(t, "path-tenant", req.TenantID)
+}
+
+func TestBinderIgnoresTheBodyForAPathFallback(t *testing.T) {
+	caller := identity.Identity{ID: "user"}
+
+	var req identityRequest
+	bindAs(t, &caller, "", `{"TenantID":"forged"}`, &req)
+
+	assert.Empty(t, req.TenantID)
+}
+
+func TestBinderPanicsOnAnUnknownIdentityTag(t *testing.T) {
+	var req struct {
+		Value string `identity:"no-such-value"`
+	}
+
+	assert.Panics(t, func() { bindAs(t, &identity.Identity{}, "", `{}`, &req) })
 }

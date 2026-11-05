@@ -21,14 +21,16 @@ func NewBinder() *Binder {
 	return &Binder{}
 }
 
-// Bind fills s from the request, then every field tagged identity from the caller's identity on
-// the request's context: id, tenant, device, role, admin or admin_id. A value the identity leaves
-// empty, and a tag naming none of those, leaves its field as the request bound it. A path value
-// that will not decode is left as it arrived rather than failing the request, so that validation
+// Bind fills s from the request, then overwrites every field tagged identity with the caller's
+// identity on the request's context: id, tenant, device, role, admin or admin_id. The identity is
+// authoritative, so a value the request body sent for such a field is discarded, and an anonymous
+// request leaves it empty; the one exception is a field also tagged param, which takes the path
+// value when the identity has none, and never a value the body or query sent. A path value that
+// will not decode is left as it arrived rather than failing the request, so that validation
 // reports it instead of the binder.
 //
-// It panics when an identity field is unexported or of a type the value does not convert to: a
-// mistake in a request struct, not in a request.
+// It panics when an identity tag names none of those values, or when its field is unexported or
+// of a type the value does not convert to: a mistake in a request struct, not in a request.
 //
 // It returns the error of [errors.NewErrUnreadableBody] when reading the body failed, whatever the
 // bytes read so far held, and the error of [errors.NewErrUnprocessableEntity] for any other failure
@@ -70,7 +72,7 @@ func (b *Binder) Bind(c *echo.Context, s any) error {
 
 	if target := reflect.Indirect(reflect.ValueOf(s)); target.Kind() == reflect.Struct {
 		caller, _ := identity.FromContext(c.Request().Context())
-		bindIdentity(caller, target)
+		bindIdentity(caller, target, c.Param)
 	}
 
 	return nil
