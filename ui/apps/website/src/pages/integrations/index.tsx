@@ -837,7 +837,6 @@ export default function Integrations() {
                     {[
                       { key: "Authorization", val: "Bearer eyJhb..." },
                       { key: "Content-Type", val: "application/json" },
-                      { key: "X-Tenant-ID", val: "d0a1c2e4..." },
                     ].map((h) => (
                       <div
                         key={h.key}
