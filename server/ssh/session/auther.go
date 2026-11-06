@@ -44,24 +44,16 @@ func mintEphemeralSigner(ctx context.Context, session *Session, config *gossh.Cl
 	return nil
 }
 
-// Auth interface defines a common interface for authenticating a session. An 'Auth'
-// must have an [authFunc] to authenticate the session and an 'Evaluate' method to
-// evaluate the session's context if necessary (e.g. the agent version when
-// authenticating with public keys).
+// Auth is one authentication attempt on a session. The grant a session registers and
+// joins the device with comes only from an Auth's Evaluate, or from approving an Auth
+// that Evaluate parked, so a session never reaches the device on an attempt nobody
+// evaluated. The package's own constructors are its only implementations.
 //
 // The two checks are split by what the client has proven. The SSH protocol lets
 // a client ask whether a key would be acceptable without signing anything, and
 // x/crypto runs the publickey callback for that query, so anything reachable
 // before a signature must stay cheap and free of side effects.
 type Auth interface {
-	// Auth returns the callback that fills in how the gateway logs in to the
-	// device. The callback receives the client connection's context and passes it
-	// to every service call it makes. The password callback never fails. The
-	// key-based callbacks return CreatePrivateKey's error, which wraps ctx's
-	// error once the client has disconnected, or the error from turning that key
-	// into a signer.
-	Auth() authFunc
-
 	// Offer decides whether the credential is acceptable at all. It may run before
 	// the client has proven it holds the key, even for a key it does not hold, so
 	// it must only read. Every read uses ctx, the client connection's context.
@@ -80,17 +72,23 @@ type Auth interface {
 	Offer(context.Context, *Session) error
 
 	// Evaluate runs once the credential is proven, and is where anything with a
-	// cost or a side effect belongs. It's not always necessary.
+	// cost or a side effect belongs. On success it returns the grant the attempt
+	// earned: the principal the session is recorded as, how the gateway logs in to
+	// the device, and the single-use identity to redeem, if any.
 	//
 	// Returning ErrApprovalRequired parks the login: the credential is good but
 	// a person has to decide, and the gateway asks them over a second
-	// authentication method. Evaluate never waits for that decision itself.
-	Evaluate(*Session) error
+	// authentication method. Evaluate never waits for that decision itself. A
+	// session with an approval of that kind already open gets
+	// ErrChallengeAlreadyIssued instead. The identity auths return ErrAccessDenied when no
+	// Access Policy grants the principal, and the error from opening the approval.
+	Evaluate(*Session) (grant, error)
+}
 
-	// Approved finishes what Evaluate parked, and runs only after Evaluate
-	// returned ErrApprovalRequired and the approval came back confirmed.
-	// approver is who confirmed it.
-	Approved(session *Session, approver string) error
+type parked interface {
+	Auth
+	presented() presentedKey
+	approved(session *Session, approver string) (grant, error)
 }
 
 type publicKeyAuth struct {
@@ -103,16 +101,8 @@ func AuthPublicKey(pk gliderssh.PublicKey) Auth {
 	return &publicKeyAuth{pk: pk}
 }
 
-func (*publicKeyAuth) Auth() authFunc {
-	return mintEphemeralSigner
-}
-
-func (*publicKeyAuth) Evaluate(*Session) error {
-	return nil
-}
-
-func (*publicKeyAuth) Approved(*Session, string) error {
-	return nil
+func (*publicKeyAuth) Evaluate(session *Session) (grant, error) {
+	return session.legacyGrant(mintEphemeralSigner), nil
 }
 
 func (p *publicKeyAuth) Offer(ctx context.Context, session *Session) error {
@@ -164,22 +154,16 @@ func AuthPassword(pwd string) Auth {
 	return &passwordAuth{pwd: pwd}
 }
 
-func (p *passwordAuth) Auth() authFunc {
-	return func(_ context.Context, _ *Session, config *gossh.ClientConfig) error {
-		config.Auth = []gossh.AuthMethod{
-			gossh.Password(p.pwd),
-		}
-
-		return nil
+func (p *passwordAuth) method(_ context.Context, _ *Session, config *gossh.ClientConfig) error {
+	config.Auth = []gossh.AuthMethod{
+		gossh.Password(p.pwd),
 	}
-}
 
-func (*passwordAuth) Evaluate(*Session) error {
 	return nil
 }
 
-func (*passwordAuth) Approved(*Session, string) error {
-	return nil
+func (p *passwordAuth) Evaluate(session *Session) (grant, error) {
+	return session.legacyGrant(p.method), nil
 }
 
 func (*passwordAuth) Offer(context.Context, *Session) error {
@@ -206,12 +190,7 @@ func (s *Session) approvalDecision(ctx context.Context) (*models.SSHApprovalStat
 	}
 }
 
-func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
-	principal := models.Principal{Kind: s.PrincipalKind, ID: s.UserID}
-	if principal.Kind == "" {
-		principal.Kind = models.PrincipalUser
-	}
-
+func (s *Session) authorize(ctx context.Context, principal models.Principal) (*models.Decision, error) {
 	dec, err := s.service.Authorize(ctx, s.Namespace.TenantID, principal, s.Device.UID, s.Target.Username, s.IPAddress)
 	if err == nil && dec != nil && dec.Allowed {
 		return dec, nil
@@ -219,7 +198,7 @@ func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
 
 	logger := log.WithFields(s.LogFields()).WithFields(log.Fields{
 		"tenant": s.Namespace.TenantID,
-		"user":   s.UserID,
+		"user":   principal.ID,
 	})
 
 	switch {
@@ -241,78 +220,74 @@ func (s *Session) authorize(ctx context.Context) (*models.Decision, error) {
 
 type approvalAuth struct {
 	ctx gliderssh.Context
-}
-
-// AuthApproval authenticates a session that an administrator has approved out of band,
-// reading the approval from ctx.
-func AuthApproval(ctx gliderssh.Context) Auth {
-	return &approvalAuth{ctx: ctx}
-}
-
-func (*approvalAuth) Auth() authFunc {
-	return mintEphemeralSigner
+	key presentedKey
 }
 
 func (*approvalAuth) Offer(context.Context, *Session) error {
 	return nil
 }
 
-func (a *approvalAuth) Evaluate(session *Session) error {
+func (a *approvalAuth) Evaluate(session *Session) (grant, error) {
 	if err := session.beginChallenge(a.ctx, a, models.SSHApprovalIdentity, nil); err != nil {
-		return err
+		return grant{}, err
 	}
 
-	return ErrApprovalRequired
+	return grant{}, ErrApprovalRequired
 }
 
-func (a *approvalAuth) Approved(session *Session, approver string) error {
-	session.UserID = approver
+func (a *approvalAuth) presented() presentedKey {
+	return a.key
+}
 
-	_, err := session.authorize(a.ctx)
+func (a *approvalAuth) approved(session *Session, approver string) (grant, error) {
+	principal := models.Principal{Kind: models.PrincipalUser, ID: approver}
 
-	return err
+	if _, err := session.authorize(a.ctx, principal); err != nil {
+		return grant{}, err
+	}
+
+	return grant{principal: principal, method: mintEphemeralSigner, redeems: ""}, nil
 }
 
 type identityAuth struct {
-	ctx gliderssh.Context
-}
-
-// AuthIdentity authenticates a session as a stored SSH identity, reading it from ctx.
-func AuthIdentity(ctx gliderssh.Context) Auth {
-	return &identityAuth{ctx: ctx}
-}
-
-func (*identityAuth) Auth() authFunc {
-	return mintEphemeralSigner
+	ctx      gliderssh.Context
+	key      presentedKey
+	identity *models.SSHIdentity
 }
 
 func (*identityAuth) Offer(context.Context, *Session) error {
 	return nil
 }
 
-func (a *identityAuth) Evaluate(session *Session) error {
-	dec, err := session.authorize(a.ctx)
+func (a *identityAuth) Evaluate(session *Session) (grant, error) {
+	g := identityGrant(a.identity, a.key)
+
+	dec, err := session.authorize(a.ctx, g.principal)
 	if err != nil {
 		if session.Web {
 			sendBanner(a.ctx, banner.Message(banner.KindAccessDenied))
 		}
 
-		return err
+		return grant{}, err
 	}
 
-	if !dec.RequireReauth || !needsReauth(session.clock.Now(), session.LastReauthAt, dec.ReauthPeriod) {
-		return nil
+	if !dec.RequireReauth || !needsReauth(session.clock.Now(), a.identity.LastReauthAt, dec.ReauthPeriod) {
+		return g, nil
 	}
 
 	if err := session.beginChallenge(a.ctx, a, models.SSHApprovalReauth, dec.ReauthPeriod); err != nil {
-		return err
+		return grant{}, err
 	}
 
-	return ErrApprovalRequired
+	return grant{}, ErrApprovalRequired
 }
 
-func (*identityAuth) Approved(*Session, string) error {
-	return nil
+func (a *identityAuth) presented() presentedKey {
+	return a.key
+}
+
+func (a *identityAuth) approved(*Session, string) (grant, error) {
+	return identityGrant(a.identity, a.key), nil
 }
 
 func needsReauth(now time.Time, lastReauthAt *time.Time, period *int) bool {
@@ -348,12 +323,13 @@ func sendBanner(ctx gliderssh.Context, msg string) {
 // approval once the client has proven it holds the key.
 //
 // It is a lookup and nothing more. It runs for a key the client has only
-// offered, so it must not write.
+// offered, so it writes nothing to the session: what it resolved lives in the
+// returned auth. It returns ErrAccessDenied for an identity that is consumed or
+// expired, and for an unknown key on a web session, and the lookup's error.
 func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.PublicKey) (Auth, error) {
-	s.Fingerprint = gossh.FingerprintSHA256(publicKey)
-	s.KeyData = gossh.MarshalAuthorizedKey(publicKey)
+	key := presentKey(publicKey)
 
-	identity, found, err := s.service.ResolveSSHIdentity(ctx, s.Namespace.TenantID, s.Fingerprint)
+	identity, found, err := s.service.ResolveSSHIdentity(ctx, s.Namespace.TenantID, key.fingerprint)
 	if err != nil {
 		return nil, err
 	}
@@ -363,24 +339,14 @@ func (s *Session) ResolveKeyAuth(ctx gliderssh.Context, publicKey gliderssh.Publ
 			return nil, ErrAccessDenied
 		}
 
-		s.UserID = identity.PrincipalID
-		s.PrincipalKind = identity.PrincipalType
-		s.LastReauthAt = identity.LastReauthAt
-		s.SingleUse = identity.SingleUse
-
-		return AuthIdentity(ctx), nil
+		return &identityAuth{ctx: ctx, key: key, identity: identity}, nil
 	}
 
 	if s.Web {
 		return nil, ErrAccessDenied
 	}
 
-	s.UserID = ""
-	s.PrincipalKind = ""
-	s.LastReauthAt = nil
-	s.SingleUse = false
-
-	return AuthApproval(ctx), nil
+	return &approvalAuth{ctx: ctx, key: key}, nil
 }
 
 var (

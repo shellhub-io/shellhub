@@ -85,10 +85,12 @@ func TestResolveKeyAuth(t *testing.T) {
 
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
-		assert.IsType(t, &identityAuth{}, auth)
-		assert.Equal(t, "user1", sess.UserID)
-		assert.Equal(t, fingerprint, sess.Fingerprint)
-		assert.True(t, sess.SingleUse)
+		require.IsType(t, &identityAuth{}, auth)
+
+		identity := auth.(*identityAuth) //nolint:forcetypeassert // asserted on the line above
+		assert.Equal(t, "user1", identity.identity.PrincipalID)
+		assert.Equal(t, fingerprint, identity.key.fingerprint)
+		assert.True(t, identity.identity.SingleUse)
 	})
 
 	t.Run("dead key is rejected, not sent to enrollment", func(t *testing.T) {
@@ -105,7 +107,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, auth)
-		assert.Empty(t, sess.UserID)
 	})
 
 	t.Run("an expired key is rejected too", func(t *testing.T) {
@@ -122,7 +123,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, auth)
-		assert.Empty(t, sess.UserID)
 	})
 
 	t.Run("unknown key yields the approval auth without writing anything", func(t *testing.T) {
@@ -137,7 +137,6 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
 		assert.IsType(t, &approvalAuth{}, auth)
-		assert.Empty(t, sess.UserID)
 
 		assert.Equal(t, "WXYZ2K7Q", sess.ApprovalCode)
 	})
@@ -178,7 +177,8 @@ func TestResolveKeyAuth(t *testing.T) {
 		auth, err := sess.ResolveKeyAuth(newStubContext(), pubKey)
 		require.NoError(t, err)
 
-		require.ErrorIs(t, auth.Evaluate(sess), ErrApprovalRequired,
+		_, err = auth.Evaluate(sess)
+		require.ErrorIs(t, err, ErrApprovalRequired,
 			"evaluating parks the login and hands the wait to the client, it does not poll")
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode)
 	})
@@ -201,12 +201,14 @@ func TestResolveKeyAuth(t *testing.T) {
 
 		first, err := sess.ResolveKeyAuth(ctx, pubKey)
 		require.NoError(t, err)
-		require.ErrorIs(t, first.Evaluate(sess), ErrApprovalRequired)
+		_, err = first.Evaluate(sess)
+		require.ErrorIs(t, err, ErrApprovalRequired)
 
 		second, err := sess.ResolveKeyAuth(ctx, otherKey)
 		require.NoError(t, err)
 
-		require.ErrorIs(t, second.Evaluate(sess), ErrChallengeAlreadyIssued,
+		_, err = second.Evaluate(sess)
+		require.ErrorIs(t, err, ErrChallengeAlreadyIssued,
 			"an agent full of unenrolled keys must cost one approval, not one per key")
 		assert.Equal(t, "AB12CD34", sess.ApprovalCode, "the parked approval stays the first one")
 	})
@@ -238,13 +240,15 @@ func TestResolveKeyAuth(t *testing.T) {
 
 		unenrolled, err := sess.ResolveKeyAuth(ctx, pubKey)
 		require.NoError(t, err)
-		require.ErrorIs(t, unenrolled.Evaluate(sess), ErrApprovalRequired)
+		_, err = unenrolled.Evaluate(sess)
+		require.ErrorIs(t, err, ErrApprovalRequired)
 
 		advance(ctx, sess, StateChallenged)
 
 		good, err := sess.ResolveKeyAuth(ctx, enrolled)
 		require.NoError(t, err)
-		require.NoError(t, good.Evaluate(sess),
+		_, err = good.Evaluate(sess)
+		require.NoError(t, err,
 			"a refused approval must not cost the client the enrolled key it offers next")
 	})
 
@@ -273,17 +277,11 @@ func TestResolveKeyAuth(t *testing.T) {
 
 		_, err := sess.ResolveKeyAuth(ctx, pubKey)
 		require.NoError(t, err)
-		require.Equal(t, "user1", sess.UserID)
 
 		auth, err := sess.ResolveKeyAuth(ctx, otherKey)
 		require.NoError(t, err)
-		assert.IsType(t, &approvalAuth{}, auth)
-
-		assert.Empty(t, sess.UserID, "the approver alone decides who an unenrolled key logs in as")
-		assert.Empty(t, sess.PrincipalKind)
-		assert.Nil(t, sess.LastReauthAt)
-		assert.False(t, sess.SingleUse, "burning the previous key's single-use identity would be wrong")
-		assert.Equal(t, otherFingerprint, sess.Fingerprint)
+		require.IsType(t, &approvalAuth{}, auth)
+		assert.Equal(t, otherFingerprint, auth.(*approvalAuth).key.fingerprint) //nolint:forcetypeassert // asserted on the line above
 	})
 }
 
@@ -315,9 +313,8 @@ func TestAuthorize(t *testing.T) {
 			Once()
 
 		sess := newIdentitySession(serviceMock, false)
-		sess.UserID = "user-id"
 
-		dec, err := sess.authorize(ctx)
+		dec, err := sess.authorize(ctx, models.Principal{Kind: models.PrincipalUser, ID: "user-id"})
 
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, dec)
@@ -348,9 +345,8 @@ func TestAuthorize(t *testing.T) {
 			Once()
 
 		sess := newIdentitySession(serviceMock, false)
-		sess.UserID = "user-id"
 
-		_, err := sess.authorize(ctx)
+		_, err := sess.authorize(ctx, models.Principal{Kind: models.PrincipalUser, ID: "user-id"})
 		require.ErrorIs(t, err, ErrAccessDenied)
 
 		require.Len(t, hook.AllEntries(), 1)
@@ -372,9 +368,8 @@ func TestAuthorize(t *testing.T) {
 			Once()
 
 		sess := newIdentitySession(serviceMock, false)
-		sess.UserID = "user-id"
 
-		dec, err := sess.authorize(ctx)
+		dec, err := sess.authorize(ctx, models.Principal{Kind: models.PrincipalUser, ID: "user-id"})
 
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, dec)
@@ -399,9 +394,8 @@ func TestAuthorize(t *testing.T) {
 			Once()
 
 		sess := newIdentitySession(serviceMock, false)
-		sess.UserID = "user-id"
 
-		dec, err := sess.authorize(ctx)
+		dec, err := sess.authorize(ctx, models.Principal{Kind: models.PrincipalUser, ID: "user-id"})
 
 		require.ErrorIs(t, err, ErrAccessDenied)
 		assert.Nil(t, dec)
@@ -420,9 +414,8 @@ func TestAuthorize(t *testing.T) {
 			Once()
 
 		sess := newIdentitySession(serviceMock, false)
-		sess.UserID = "user-id"
 
-		dec, err := sess.authorize(ctx)
+		dec, err := sess.authorize(ctx, models.Principal{Kind: models.PrincipalUser, ID: "user-id"})
 
 		require.NoError(t, err)
 		require.NotNil(t, dec)
@@ -446,14 +439,14 @@ func TestAReauthIsStillAskedAfterADismissedEnrollment(t *testing.T) {
 
 	sess := newIdentitySession(serviceMock, false)
 
-	require.NoError(t, sess.beginChallenge(context.Background(), nil, models.SSHApprovalIdentity, nil))
+	require.NoError(t, sess.beginChallenge(context.Background(), &approvalAuth{}, models.SSHApprovalIdentity, nil))
 
 	require.ErrorIs(t,
-		sess.beginChallenge(context.Background(), nil, models.SSHApprovalIdentity, nil),
+		sess.beginChallenge(context.Background(), &approvalAuth{}, models.SSHApprovalIdentity, nil),
 		ErrChallengeAlreadyIssued,
 		"a second unenrolled key must not cost a second enrollment prompt")
 
 	require.NoError(t,
-		sess.beginChallenge(context.Background(), nil, models.SSHApprovalReauth, nil),
+		sess.beginChallenge(context.Background(), &identityAuth{}, models.SSHApprovalReauth, nil),
 		"a re-auth for an enrolled key is another question, and has to be asked")
 }

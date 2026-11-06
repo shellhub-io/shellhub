@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
@@ -51,7 +52,9 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 		Return(&models.Decision{Allowed: true}, nil). //nolint:exhaustruct // only Allowed is read
 		Once()
 	serviceMock.EXPECT().
-		CreateSession(mock.Anything, mock.Anything).
+		CreateSession(mock.Anything, mock.MatchedBy(func(req requests.SessionCreate) bool {
+			return req.UserID == "user-id" && req.APIKeyID == ""
+		})).
 		Return(&models.Session{}, nil). //nolint:exhaustruct // the session is registered, not read back
 		Once()
 	serviceMock.EXPECT().

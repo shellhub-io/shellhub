@@ -43,31 +43,14 @@ type Data struct {
 	IPAddress string
 	// Web reports whether the session originated from the web terminal.
 	Web bool
-	// UserID is the principal bound to this session: resolved from the presented key
-	// in a new namespace, or set by the enrollment/step-up approval. Empty in a legacy
-	// namespace. PrincipalKind says which table it names, because an automation is an API
-	// key rather than an account.
-	UserID        string
-	PrincipalKind models.PrincipalKind
+	// WebUserID is the console user who opened a web session, recorded as the
+	// session's user when a legacy credential authenticates it. Empty otherwise.
+	WebUserID string
 	// ApprovalCode is the JIT code minted in a new namespace, for enrollment or
 	// step-up. Empty otherwise. It reaches the person on the approval prompt,
 	// inside the console URL they open, and only once the presented key turns
 	// out to be unenrolled, so an enrolled key never sees it.
 	ApprovalCode string
-	// Fingerprint is the presented SSH public key's fingerprint ("SHA256:…") in
-	// a new namespace; it is the identity lookup key.
-	Fingerprint string
-	// KeyData is the presented SSH public key in OpenSSH authorized_keys form,
-	// carried so an enrollment can persist it.
-	KeyData []byte
-	// LastReauthAt is when the resolved identity last re-authenticated, read at
-	// key resolution and compared against a policy's reauth_period to decide
-	// whether a fresh re-auth is still needed. Nil when it never re-authed.
-	LastReauthAt *time.Time
-	// SingleUse marks a single-use identity, read at key resolution. Only an
-	// identity an API key owns can be single-use. When set, the key is burned
-	// once this session establishes, so a second connection with it is rejected.
-	SingleUse bool
 }
 
 // AgentChannel represents a channel open between agent and server.
@@ -228,7 +211,7 @@ type Session struct {
 }
 
 type challenge struct {
-	auth Auth
+	auth parked
 	kind models.SSHApprovalKind
 }
 
@@ -424,7 +407,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 			Device:    lookupDevice,
 			Namespace: namespace,
 			Web:       web,
-			UserID:    webUserID,
+			WebUserID: webUserID,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
 		once:  new(sync.Once),
@@ -549,13 +532,13 @@ func (s *Session) checkBilling(ctx context.Context) error {
 	return err
 }
 
-func (s *Session) register(ctx context.Context) error {
+func (s *Session) register(ctx context.Context, principal models.Principal) error {
 	_, err := s.service.CreateSession(ctx, requests.SessionCreate{
 		UID:       s.UID,
 		DeviceUID: s.Device.UID,
 		Username:  s.Target.Username,
-		UserID:    s.userIDForSession(),
-		APIKeyID:  s.apiKeyIDForSession(),
+		UserID:    userIDOf(principal),
+		APIKeyID:  apiKeyIDOf(principal),
 		IPAddress: s.IPAddress,
 		Web:       s.Web,
 	})
@@ -883,7 +866,7 @@ func (s *Session) Evaluate(ctx gliderssh.Context) error {
 	return nil
 }
 
-func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind, reauthPeriod *int) error {
+func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind, reauthPeriod *int, key presentedKey) error {
 	approval, err := s.service.CreateSSHApproval(ctx, &requests.SSHApprovalCreate{
 		SessionUID:   s.UID,
 		SSHID:        s.SSHID,
@@ -893,8 +876,8 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 		Username:     s.Target.Username,
 		IPAddress:    s.IPAddress,
 		Kind:         kind,
-		Fingerprint:  s.Fingerprint,
-		Data:         s.KeyData,
+		Fingerprint:  key.fingerprint,
+		Data:         key.data,
 		ReauthPeriod: reauthPeriod,
 	})
 	if err != nil {
@@ -906,12 +889,12 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 	return nil
 }
 
-func (s *Session) beginChallenge(ctx context.Context, auth Auth, kind models.SSHApprovalKind, reauthPeriod *int) error {
+func (s *Session) beginChallenge(ctx context.Context, auth parked, kind models.SSHApprovalKind, reauthPeriod *int) error {
 	if s.challenge != nil && s.challenge.kind == kind {
 		return ErrChallengeAlreadyIssued
 	}
 
-	if err := s.openApproval(ctx, kind, reauthPeriod); err != nil {
+	if err := s.openApproval(ctx, kind, reauthPeriod, auth.presented()); err != nil {
 		return err
 	}
 
@@ -982,11 +965,19 @@ func (s *Session) EnrollInstruction() string {
 		"    " + consoleURL("/ssh-identities/new/"+s.ApprovalCode),
 		"",
 		"  Security code:  " + groupCode(s.ApprovalCode),
-		"  Key:            " + s.Fingerprint,
+		"  Key:            " + s.challengedFingerprint(),
 		"",
 		"  The console gives you a confirmation code once you add it.",
 		"",
 	}, "\r\n")
+}
+
+func (s *Session) challengedFingerprint() string {
+	if s.challenge == nil {
+		return ""
+	}
+
+	return s.challenge.auth.presented().fingerprint
 }
 
 // ReauthInstruction is what a person sees when a policy asks them to
@@ -1050,14 +1041,20 @@ func groupCode(code string) string {
 // we can safely retrieve the same session again but attempt authentication with a
 // password this time.
 //
-// Next steps can use the context's snapshot to retrieve the created session. An error is
-// returned if any occurs.
+// Next steps can use the context's snapshot to retrieve the created session.
+//
+// Every attempt is evaluated, and the session reaches the device only with the grant that
+// evaluation returned. Once connected, a grant redeems its single-use identity, and losing
+// the redemption returns ErrAccessDenied. Otherwise it returns Evaluate's error, the
+// redemption's, the registration's, the connection's, or ErrInvalidSessionState from a state
+// that cannot authenticate.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
 
 	switch state {
 	case StateEvaluated, StateChallenged:
-		if err := auth.Evaluate(sess); err != nil {
+		g, err := auth.Evaluate(sess)
+		if err != nil {
 			if errors.Is(err, ErrApprovalRequired) {
 				advance(ctx, sess, StateChallenged)
 			}
@@ -1065,9 +1062,14 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		return sess.finish(ctx, auth)
+		return sess.finish(ctx, g)
 	case StateRegistered:
-		return sess.join(ctx, auth)
+		g, err := auth.Evaluate(sess)
+		if err != nil {
+			return err
+		}
+
+		return sess.join(ctx, g)
 	default:
 		return ErrInvalidSessionState
 	}
@@ -1081,50 +1083,55 @@ func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
 		return ErrInvalidSessionState
 	}
 
-	auth := sess.challenge.auth
-
-	if err := auth.Approved(sess, approver); err != nil {
+	g, err := sess.challenge.auth.approved(sess, approver)
+	if err != nil {
 		return err
 	}
 
-	return sess.finish(ctx, auth)
+	return sess.finish(ctx, g)
 }
 
-func (s *Session) finish(ctx gliderssh.Context, auth Auth) error {
-	sess, _ := ObtainSession(ctx)
-
-	if err := sess.register(ctx); err != nil {
+func (s *Session) finish(ctx gliderssh.Context, g grant) error {
+	if err := s.register(ctx, g.principal); err != nil {
 		return err
 	}
 
-	advance(ctx, sess, StateRegistered)
+	advance(ctx, s, StateRegistered)
 
-	return sess.join(ctx, auth)
+	return s.join(ctx, g)
 }
 
-func (s *Session) join(ctx gliderssh.Context, auth Auth) error {
-	sess, _ := ObtainSession(ctx)
+func (s *Session) redeem(ctx context.Context, g grant) error {
+	if g.redeems == "" {
+		return nil
+	}
 
-	if err := sess.connect(ctx, auth.Auth()); err != nil {
+	won, err := s.service.ConsumeSSHIdentity(ctx, s.Namespace.TenantID, g.redeems)
+	if err != nil {
 		return err
 	}
 
-	if sess.SingleUse {
-		won, err := sess.service.ConsumeSSHIdentity(ctx, sess.Namespace.TenantID, sess.Fingerprint)
-		if err != nil {
-			return err
-		}
-
-		if !won {
-			return ErrAccessDenied
-		}
+	if !won {
+		return ErrAccessDenied
 	}
 
-	if err := sess.authenticate(ctx); err != nil {
+	return nil
+}
+
+func (s *Session) join(ctx gliderssh.Context, g grant) error {
+	if err := s.connect(ctx, g.method); err != nil {
 		return err
 	}
 
-	advance(ctx, sess, StateFinished)
+	if err := s.redeem(ctx, g); err != nil {
+		return err
+	}
+
+	if err := s.authenticate(ctx); err != nil {
+		return err
+	}
+
+	advance(ctx, s, StateFinished)
 
 	return nil
 }
@@ -1318,17 +1325,17 @@ func (s *Session) Finish() error {
 	return nil
 }
 
-func (s *Session) userIDForSession() string {
-	if s.PrincipalKind == models.PrincipalAPIKey {
+func userIDOf(principal models.Principal) string {
+	if principal.Kind == models.PrincipalAPIKey {
 		return ""
 	}
 
-	return s.UserID
+	return principal.ID
 }
 
-func (s *Session) apiKeyIDForSession() string {
-	if s.PrincipalKind == models.PrincipalAPIKey {
-		return s.UserID
+func apiKeyIDOf(principal models.Principal) string {
+	if principal.Kind == models.PrincipalAPIKey {
+		return principal.ID
 	}
 
 	return ""
