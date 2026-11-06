@@ -10,7 +10,6 @@ import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
-import ConnectModal from "@/components/ConnectModal";
 import ManageTagsModal from "@/components/ManageTagsModal";
 import CopyButton from "@/components/common/CopyButton";
 import DataTable, { type Column } from "@/components/common/DataTable";
@@ -104,11 +103,6 @@ export default function Containers() {
   const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
   const runContainerAction = useContainerActionRunner();
-  const [connectTarget, setConnectTarget] = useState<{
-    uid: string;
-    name: string;
-    sshid: string;
-  } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
   const [addConnectorOpen, setAddConnectorOpen] = useState(false);
   const { sortBy, orderBy, handleSort } = useTableSort<SortField>({
@@ -264,21 +258,7 @@ export default function Containers() {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    const existing = useTerminalStore
-                      .getState()
-                      .sessions.find((s) => s.deviceUid === container.uid);
-                    if (existing) {
-                      useTerminalStore.getState().restore(existing.id);
-                    } else {
-                      const sshid = nsName
-                        ? buildSshid(nsName, container.name)
-                        : container.uid;
-                      setConnectTarget({
-                        uid: container.uid,
-                        name: container.name,
-                        sshid,
-                      });
-                    }
+                    useTerminalStore.getState().connect(container.uid, container.name);
                   }}
                   icon={
                     <ChevronDoubleRightIcon
@@ -493,14 +473,6 @@ export default function Containers() {
           runAction={runContainerAction}
         />
       )}
-
-      <ConnectModal
-        open={!!connectTarget}
-        onClose={() => setConnectTarget(null)}
-        deviceUid={connectTarget?.uid ?? ""}
-        deviceName={connectTarget?.name ?? ""}
-        sshid={connectTarget?.sshid ?? ""}
-      />
 
       <ManageTagsModal
         open={manageTagsOpen}

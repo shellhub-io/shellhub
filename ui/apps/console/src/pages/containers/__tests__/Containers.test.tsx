@@ -13,11 +13,6 @@ vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
 
-vi.mock("@/stores/terminalStore", () => ({
-  useTerminalStore: (sel: (s: { sessions: [] }) => unknown) =>
-    sel({ sessions: [] }),
-}));
-
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
@@ -51,10 +46,6 @@ vi.mock("@/components/common/TagFilterDropdown", () => ({
 }));
 
 vi.mock("@/components/ManageTagsModal", () => ({
-  default: () => <div />,
-}));
-
-vi.mock("@/components/ConnectModal", () => ({
   default: () => <div />,
 }));
 

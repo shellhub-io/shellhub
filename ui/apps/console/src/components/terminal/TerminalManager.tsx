@@ -31,7 +31,12 @@ export default function TerminalManager() {
     uid: string;
     name: string;
     sshid: string;
+    openedOn?: string;
   } | null>(null);
+
+  const location = useLocation();
+  if (connectTarget?.openedOn && connectTarget.openedOn !== location.pathname)
+    setConnectTarget(null);
 
   useEffect(() => {
     if (!reconnectTarget) return;
@@ -60,10 +65,10 @@ export default function TerminalManager() {
       uid: reconnectTarget.deviceUid,
       name: reconnectTarget.deviceName,
       sshid,
+      openedOn: reconnectTarget.tenant ? undefined : location.pathname,
     });
-  }, [reconnectTarget, tenantId, namespaces, workspace]);
+  }, [reconnectTarget, tenantId, namespaces, workspace, location.pathname]);
 
-  const location = useLocation();
   const prevPathRef = useRef(location.pathname);
   useEffect(() => {
     const leftPage = location.pathname !== prevPathRef.current;

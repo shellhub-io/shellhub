@@ -77,6 +77,7 @@ interface TerminalState {
   close: (id: string) => void;
   closeAndReconnect: (id: string) => void;
   requestConnect: (deviceUid: string, deviceName: string) => void;
+  connect: (deviceUid: string, deviceName: string) => void;
   clearReconnect: () => void;
   setConnectionStatus: (id: string, status: ConnectionStatus) => void;
   clearSensitiveData: (id: string) => void;
@@ -241,6 +242,12 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
 
   requestConnect: (deviceUid, deviceName) => {
     set({ reconnectTarget: { deviceUid, deviceName } });
+  },
+
+  connect: (deviceUid, deviceName) => {
+    const open = get().sessions.find((s) => s.deviceUid === deviceUid);
+    if (open) get().restore(open.id);
+    else get().requestConnect(deviceUid, deviceName);
   },
 
   clearReconnect: () => {
