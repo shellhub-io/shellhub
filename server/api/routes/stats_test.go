@@ -1,76 +1,58 @@
 package routes
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetSystemInfo(t *testing.T) {
-	mock := mocks.NewMockService(t)
-
 	cases := []struct {
-		title          string
-		request        requests.GetSystemInfo
-		requiredMocks  func(updatePayloadMock requests.GetSystemInfo)
-		expectedStatus int
+		title    string
+		peer     string
+		expected origin.Origin
 	}{
 		{
-			title: "success when try to get infos of a existing system",
-			request: requests.GetSystemInfo{
-				Host: "example.com",
-				Port: 0,
-			},
-			requiredMocks: func(_ requests.GetSystemInfo) {
-				mock.
-					On(
-						"GetSystemInfo",
-						gomock.Anything,
-						&requests.GetSystemInfo{Host: "example.com", Port: 0},
-					).
-					Return(&responses.SystemInfo{}, nil).
-					Once()
-			},
-			expectedStatus: http.StatusOK,
+			title:    "describes the address the client reached, not the one its headers name",
+			peer:     "203.0.113.9:54321",
+			expected: origin.Origin{IP: "203.0.113.9", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			title:    "describes the address a trusted proxy names",
+			peer:     "127.0.0.1:54321",
+			expected: origin.Origin{IP: "127.0.0.1", Host: "elsewhere.example.com", Scheme: "https", Port: "8443"},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.request)
+			mock := mocks.NewMockService(t)
+			mock.On("GetSystemInfo", gomock.Anything, tc.expected).Return(&responses.SystemInfo{}, nil).Once()
 
-			jsonData, err := json.Marshal(tc.request)
-			if err != nil {
-				require.NoError(t, err)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/info", strings.NewReader(string(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
-			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner})
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/info", nil)
+			req.RemoteAddr = tc.peer
+			req.Host = "shellhub.example.com"
+			req.Header.Set("X-Forwarded-Host", "elsewhere.example.com")
+			req.Header.Set("X-Forwarded-Proto", "https")
+			req.Header.Set("X-Forwarded-Port", "8443")
 			rec := httptest.NewRecorder()
 
-			e := newTestRouter(t, mock)
-			e.ServeHTTP(rec, req)
+			newTestRouter(t, mock).ServeHTTP(rec, req)
 
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
+			assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 		})
 	}
-
-	mock.AssertExpectations(t)
 }
 
 func TestGetStats(t *testing.T) {

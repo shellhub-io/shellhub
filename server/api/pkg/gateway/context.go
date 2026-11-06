@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 )
 
 type ctxKey string
@@ -72,6 +73,14 @@ func (c *Context) identity() identity.Identity {
 	caller, _ := identity.FromContext(c.Request().Context())
 
 	return caller
+}
+
+// Origin returns how the client reached the server, as the router resolved it, and the zero
+// Origin when the request did not pass through the router.
+func (c *Context) Origin() origin.Origin {
+	reached, _ := origin.FromContext(c.Request().Context())
+
+	return reached
 }
 
 // Role returns the user's namespace role resolved by authentication. It is

@@ -173,10 +173,10 @@ func nextDevicePageURL(c *gateway.Context, params url.Values, size int64, cursor
 	values.Set(pageSizeParam, strconv.FormatInt(size, 10))
 	values.Set(pageAfterParam, cursor)
 
-	scheme := c.Scheme()
+	reached := c.Origin()
 	next := url.URL{
-		Scheme:   scheme,
-		Host:     services.ClientFacingAddress(scheme, c.Request().Host, c.Request().Header.Get("X-Forwarded-Port")),
+		Scheme:   reached.Scheme,
+		Host:     services.ClientFacingAddress(reached.Scheme, reached.Host, reached.Port),
 		Path:     c.Request().URL.Path,
 		RawQuery: values.Encode(),
 	}
