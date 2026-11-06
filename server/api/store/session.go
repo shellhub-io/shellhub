@@ -46,12 +46,18 @@ type SessionStore interface {
 	// bounded to has the given UID, and the database's error when the statement fails.
 	SessionKeepAlive(ctx context.Context, sc scope.Scope, uid models.UID, at time.Time) error
 
+	// DeviceSessionsSeen stamps at as the last-seen time of every session in uids that device runs,
+	// that is still active and that belongs to the namespace sc is bounded to, both on the session
+	// and in the active set. A UID naming another device's session, an ended session, a session in
+	// another namespace or no session at all is skipped, so a device can keep alive only its own
+	// sessions. It returns how many sessions it stamped, ErrInvalidScope when sc is not bounded,
+	// and the database's error when a statement fails.
+	DeviceSessionsSeen(ctx context.Context, sc scope.Scope, device models.UID, uids []models.UID, at time.Time) (int64, error)
+
 	// ActiveSessionCreate creates an active session entry. It returns an error if any.
 	ActiveSessionCreate(ctx context.Context, session *models.Session) error
 	// ActiveSessionResolve fetches an active session using a specific resolver. It returns the active session if found and an error, if any.
 	ActiveSessionResolve(ctx context.Context, resolver SessionResolver, value string) (*models.ActiveSession, error)
-	// ActiveSessionUpdate updates an active session. It returns an error if any.
-	ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error
 
 	// ActiveSessionDelete retires the session within the namespace sc is bounded to: it stamps its
 	// last-seen time and removes it from the active set. It returns ErrInvalidScope when sc is not

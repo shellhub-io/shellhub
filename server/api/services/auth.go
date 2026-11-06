@@ -690,35 +690,14 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 		}
 	}
 
-	for _, sessionUID := range req.Sessions {
-		session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, sessionUID)
-		if err != nil {
-			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot resolve session")
-
-			continue
+	if len(req.Sessions) > 0 {
+		sessions := make([]models.UID, len(req.Sessions))
+		for i, session := range req.Sessions {
+			sessions[i] = models.UID(session)
 		}
 
-		if !session.Active {
-			continue
-		}
-
-		session.LastSeen = s.clock.Now()
-		if err := s.store.SessionUpdate(ctx, sc, session); err != nil {
-			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot set session's last seen")
-
-			continue
-		}
-
-		activeSession, err := s.store.ActiveSessionResolve(ctx, store.SessionUIDResolver, sessionUID)
-		if err != nil {
-			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot resolve active session")
-
-			continue
-		}
-
-		activeSession.LastSeen = session.LastSeen
-		if err := s.store.ActiveSessionUpdate(ctx, activeSession); err != nil {
-			log.WithError(err).WithField("session_uid", sessionUID).Warn("cannot update active session's last seen")
+		if _, err := s.store.DeviceSessionsSeen(ctx, sc, models.UID(uid), sessions, s.clock.Now()); err != nil {
+			log.WithError(err).WithField("device_uid", uid).Warn("cannot stamp the device's sessions as seen")
 		}
 	}
 
