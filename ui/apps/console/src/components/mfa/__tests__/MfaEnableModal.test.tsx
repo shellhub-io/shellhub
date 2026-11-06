@@ -205,8 +205,15 @@ describe("MfaEnableModal", () => {
       expect(screen.getByDisplayValue(mockMfaData.secret)).toBeInTheDocument();
     });
 
-    it("validates OTP and enables MFA on success", async () => {
+    it("validates OTP and enables MFA on success, sending only the code", async () => {
       const user = userEvent.setup();
+      let enableBody: unknown;
+      server.use(
+        http.put("*/api/user/mfa/enable", async ({ request }) => {
+          enableBody = await request.json();
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
 
       await waitFor(() => {
         expect(screen.getByText(/scan this qr code/i)).toBeInTheDocument();
@@ -232,6 +239,7 @@ describe("MfaEnableModal", () => {
           screen.getByText(/MFA Enabled Successfully/i),
         ).toBeInTheDocument();
       });
+      expect(enableBody).toEqual({ code: "123456" });
     });
 
     it("fills every cell when a code is pasted", async () => {
@@ -247,9 +255,9 @@ describe("MfaEnableModal", () => {
       await user.click(otpInputs[0]);
       await user.paste("123456");
 
-      expect(otpInputs.map((input) => (input as HTMLInputElement).value)).toEqual(
-        ["1", "2", "3", "4", "5", "6"],
-      );
+      expect(
+        otpInputs.map((input) => (input as HTMLInputElement).value),
+      ).toEqual(["1", "2", "3", "4", "5", "6"]);
     });
 
     it("shows error on invalid OTP", async () => {

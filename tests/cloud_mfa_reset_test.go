@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -19,10 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	mfaSecret            = "JBSWY3DPEHPK3PXP" //nolint:gosec // the TOTP secret the test registers for its own user
-	mfaResetCodeLifetime = 24 * time.Hour
-)
+const mfaResetCodeLifetime = 24 * time.Hour
 
 // TestCloudMFAReset runs a cloud instance, the only edition that sends email, for the reset of a
 // user's MFA by the two codes it emails to their main and recovery addresses. Each code lasts 24
@@ -100,17 +96,19 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 
-	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(mfaSecret)
+	generated := struct {
+		Secret string `json:"secret"`
+	}{}
+	resp, err = asBearer(t, compose, user.token).SetResult(&generated).Get("/api/user/mfa/generate")
 	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 
-	recoveryCodes := make([]string, 6)
-	for i := range recoveryCodes {
-		recoveryCodes[i] = strings.ToUpper(strings.ReplaceAll(uuid.Generate(), "-", "")[:16])
-	}
+	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(generated.Secret)
+	require.NoError(t, err)
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		resp, err := asBearer(t, compose, user.token).
-			SetBody(map[string]any{"secret": mfaSecret, "code": totp(key), "recovery_codes": recoveryCodes}).
+			SetBody(map[string]string{"code": totp(key)}).
 			Put("/api/user/mfa/enable")
 		assert.NoError(tt, err)
 		assert.Equal(tt, http.StatusOK, resp.StatusCode(), resp.String())

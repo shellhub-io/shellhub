@@ -124,7 +124,7 @@ export default function MfaEnableModal({
 
     try {
       await enableMfa({
-        body: { code: otp.getValue(), secret, recovery_codes: recoveryCodes },
+        body: { code: otp.getValue() },
         throwOnError: true,
       });
       setStep(4);
@@ -419,12 +419,7 @@ export default function MfaEnableModal({
               )}
             </div>
 
-            <OtpCells
-              otp={otp}
-              label="Verification Code"
-              centered
-              numeric
-            />
+            <OtpCells otp={otp} label="Verification Code" centered numeric />
           </div>
         )}
 

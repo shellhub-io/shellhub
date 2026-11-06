@@ -13,20 +13,18 @@ import { buildRandomEmail, password } from "./seed";
 import { readLatestEmail } from "./mail";
 import { buildRequestContext, expectStatus, loginAs } from "./api";
 import {
-  buildRecoveryCode,
   enableMFA,
   fillDigits,
-  mfaSecret,
   reachCodePrompt,
   setRecoveryEmail,
   signInWithMFA,
   totp,
 } from "./mfa";
 
-async function createMFAUser({ recoveryCodes = [] as string[] } = {}) {
+async function createMFAUser() {
   const { owner } = await createTeam();
-  const { recoveryEmail } = await enableMFA(owner.token, { recoveryCodes });
-  return { ...owner, recoveryEmail };
+  const { recoveryEmail, recoveryCodes, secret } = await enableMFA(owner.token);
+  return { ...owner, recoveryEmail, recoveryCodes, secret };
 }
 
 async function openEnableMFA(page: Page, username: string) {
@@ -114,8 +112,8 @@ async function requestReset(user: MFAUser) {
   return { codes, path: link.path };
 }
 
-async function openDisableMFA(page: Page, username: string) {
-  await signInWithMFA(page, username);
+async function openDisableMFA(page: Page, user: MFAUser) {
+  await signInWithMFA(page, user.username, user.secret);
   await page.goto("/account/security");
   await page.getByRole("button", { name: "Disable", exact: true }).click();
 }
@@ -235,7 +233,7 @@ test.describe("MFA", () => {
     const verified = page.waitForResponse((r) =>
       r.url().endsWith("/api/user/mfa/auth"),
     );
-    await fillDigits(page, totp(mfaSecret));
+    await fillDigits(page, totp(user.secret));
     await page.getByRole("button", { name: "Verify" }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -244,8 +242,8 @@ test.describe("MFA", () => {
 
   test.describe("recovery codes", () => {
     test("a recovery code signs in and is consumed", async ({ page }) => {
-      const [code, remaining] = [buildRecoveryCode(), buildRecoveryCode()];
-      const user = await createMFAUser({ recoveryCodes: [code, remaining] });
+      const user = await createMFAUser();
+      const [code, remaining] = user.recoveryCodes;
 
       await recoverWithCode(page, user.username, code);
       const dialog = page.getByRole("dialog", {
@@ -261,8 +259,8 @@ test.describe("MFA", () => {
     });
 
     test("a used recovery code is rejected", async ({ page }) => {
-      const [code, remaining] = [buildRecoveryCode(), buildRecoveryCode()];
-      const user = await createMFAUser({ recoveryCodes: [code, remaining] });
+      const user = await createMFAUser();
+      const [code, remaining] = user.recoveryCodes;
       await mfaRecover({
         ...buildRequestContext(),
         body: { identifier: user.username, recovery_code: code },
@@ -281,8 +279,8 @@ test.describe("MFA", () => {
     test("MFA can be turned off inside the recovery window", async ({
       page,
     }) => {
-      const code = buildRecoveryCode();
-      const user = await createMFAUser({ recoveryCodes: [code] });
+      const user = await createMFAUser();
+      const [code] = user.recoveryCodes;
 
       await recoverWithCode(page, user.username, code);
       await page
@@ -298,9 +296,9 @@ test.describe("MFA", () => {
   test.describe("disabling from the profile", () => {
     test("with a code from the authenticator", async ({ page }) => {
       const user = await createMFAUser();
-      await openDisableMFA(page, user.username);
+      await openDisableMFA(page, user);
 
-      await fillDigits(page, totp(mfaSecret, 1));
+      await fillDigits(page, totp(user.secret, 1));
       await page.getByRole("button", { name: "Disable MFA" }).click();
 
       await expect(
@@ -310,9 +308,9 @@ test.describe("MFA", () => {
     });
 
     test("with a recovery code", async ({ page }) => {
-      const code = buildRecoveryCode();
-      const user = await createMFAUser({ recoveryCodes: [code] });
-      await openDisableMFA(page, user.username);
+      const user = await createMFAUser();
+      const [code] = user.recoveryCodes;
+      await openDisableMFA(page, user);
 
       await page
         .getByRole("button", { name: "Use recovery code instead" })
@@ -334,7 +332,7 @@ test.describe("MFA", () => {
       page,
     }) => {
       const user = await createMFAUser();
-      await openDisableMFA(page, user.username);
+      await openDisableMFA(page, user);
 
       await page
         .getByRole("button", { name: "Use recovery code instead" })
