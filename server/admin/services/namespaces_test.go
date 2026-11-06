@@ -194,6 +194,64 @@ func TestNamespaceCreate(t *testing.T) {
 			}, nil},
 		},
 		{
+			description:   "reports the tenant ID the store issues when none is given",
+			namespace:     "namespace",
+			username:      "john_doe",
+			tenant:        "",
+			typeNamespace: "",
+			edition:       envs.Community,
+			requiredMocks: func() {
+				user := &models.User{
+					ID: "507f191e810c19729de860ea",
+					UserData: models.UserData{
+						Name:     "John Doe",
+						Email:    "john.doe@test.com",
+						Username: "john_doe",
+					},
+				}
+				mock.On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").Return(user, nil).Once()
+				namespace := &models.Namespace{
+					Name:     "namespace",
+					Owner:    "507f191e810c19729de860ea",
+					TenantID: "",
+					Type:     models.TypeTeam,
+					Members: []models.Member{
+						{
+							ID:      "507f191e810c19729de860ea",
+							Role:    "owner",
+							AddedAt: now,
+						},
+					},
+					Settings: &models.NamespaceSettings{
+						SessionRecord:          true,
+						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
+					},
+					MaxDevices: MaxNumberDevicesUnlimited,
+					CreatedAt:  now,
+				}
+				mock.On("NamespaceCreate", ctx, namespace).Return("11111111-1111-4111-8111-111111111111", nil).Once()
+			},
+			expected: Expected{&models.Namespace{
+				Name:     "namespace",
+				Owner:    "507f191e810c19729de860ea",
+				TenantID: "11111111-1111-4111-8111-111111111111",
+				Type:     models.TypeTeam,
+				Members: []models.Member{
+					{
+						ID:      "507f191e810c19729de860ea",
+						Role:    "owner",
+						AddedAt: now,
+					},
+				},
+				Settings: &models.NamespaceSettings{
+					SessionRecord:          true,
+					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
+				},
+				MaxDevices: MaxNumberDevicesUnlimited,
+				CreatedAt:  now,
+			}, nil},
+		},
+		{
 			description:   "succeeds in creating a namespace when user and namespace data are valid - Cloud - type team",
 			namespace:     "namespace",
 			username:      "john_doe",
