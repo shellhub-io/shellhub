@@ -173,7 +173,7 @@ func (s *service) GenerateInvitationLink(ctx context.Context, sc scope.Scope, re
 		return "", err
 	}
 
-	invitation, err := s.intakeMembership(ctx, namespace, activeUser.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto)
+	invitation, err := s.intakeMembership(ctx, namespace, activeUser.ID, req.MemberEmail, req.MemberRole)
 	if err != nil {
 		return "", err
 	}
@@ -182,19 +182,14 @@ func (s *service) GenerateInvitationLink(ctx context.Context, sc scope.Scope, re
 		return "", nil
 	}
 
-	return buildInviteURL(req.ForwardedProto, req.ForwardedHost, invitation.Sig), nil
+	return s.inviteURL(invitation.Sig), nil
 }
 
-func buildInviteURL(forwardedProto, forwardedHost, sig string) string {
-	scheme := forwardedProto
-	if scheme == "" {
-		scheme = "https"
-	}
-
+func (s *service) inviteURL(sig string) string {
 	query := url.Values{}
 	query.Add("invite", sig)
 
-	return scheme + "://" + forwardedHost + "/accept-invite?" + query.Encode()
+	return s.issuer + "/accept-invite?" + query.Encode()
 }
 
 func (s *service) UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
@@ -239,8 +234,8 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, sc scop
 	res := make([]responses.MembershipInvitation, len(invitations))
 	for i := range invitations {
 		res[i] = *responses.MembershipInvitationFromModel(&invitations[i])
-		if invitations[i].Sig != "" && req.ForwardedHost != "" {
-			res[i].InviteURL = buildInviteURL(req.ForwardedProto, req.ForwardedHost, invitations[i].Sig)
+		if invitations[i].Sig != "" {
+			res[i].InviteURL = s.inviteURL(invitations[i].Sig)
 		}
 	}
 

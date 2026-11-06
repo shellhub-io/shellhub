@@ -143,7 +143,7 @@ func TestRegisterUserEmailCheck(t *testing.T) {
 
 			res, err := s.RegisterUser(ctx, requests.RegisterUser{
 				Name: "Alice", Username: "alice", Email: tc.email, Password: "secret123",
-			}, "shellhub.test", "")
+			})
 
 			assert.Nil(t, res)
 			assert.Equal(t, tc.expected, err)

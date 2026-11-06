@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -268,7 +269,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 	namespace := &models.Namespace{TenantID: "tenant", Members: []models.Member{owner}}
 
 	req := &requests.GenerateInvitationLink{
-		ForwardedHost: "shellhub.test",
+		ForwardedHost: "elsewhere.test",
 		TenantID:      "tenant",
 		UserID:        "owner",
 		MemberEmail:   "invitee@test.com",
@@ -425,12 +426,12 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			fixUUID(t)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), WithIssuer("https://shellhub.example.com"))
 
 			link, err := s.GenerateInvitationLink(ctx, scope.MustBounded(req.TenantID), req)
 			assert.Equal(t, tc.expected.err, err)
 			if tc.expected.hasLink {
-				assert.Contains(t, link, "shellhub.test/accept-invite?invite=")
+				assert.True(t, strings.HasPrefix(link, "https://shellhub.example.com/accept-invite?invite="), link)
 			} else {
 				assert.Empty(t, link)
 			}
@@ -608,9 +609,40 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 				err:   nil,
 			},
 		},
+		{
+			description: "links each pending invitation under the public URL",
+			requiredMocks: func() {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(adminNamespace, nil).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
+				queryOptionsMock.On("Match", &req.Filters).Return(nil).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
+				queryOptionsMock.On("Sort", &req.Sorter).Return(nil).Once()
+				storeMock.On("Options").Return(queryOptionsMock).Maybe()
+				queryOptionsMock.On("Paginate", &req.Paginator).Return(nil).Once()
+				storeMock.On("NamespaceMembershipInvitationList", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("[]store.QueryOption")).
+					Return([]models.MembershipInvitation{
+						{TenantID: "tenant", UserID: "invitee", Role: authorizer.RoleOperator, Sig: "ABCD2345"},
+					}, int64(1), nil).Once()
+			},
+			expected: Expected{
+				invitations: []responses.MembershipInvitation{
+					func() responses.MembershipInvitation {
+						invitation := *responses.MembershipInvitationFromModel(&models.MembershipInvitation{
+							TenantID: "tenant", UserID: "invitee", Role: authorizer.RoleOperator, Sig: "ABCD2345",
+						})
+						invitation.InviteURL = "https://shellhub.example.com/accept-invite?invite=ABCD2345"
+
+						return invitation
+					}(),
+				},
+				count: 1,
+				err:   nil,
+			},
+		},
 	}
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithIssuer("https://shellhub.example.com"))
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {

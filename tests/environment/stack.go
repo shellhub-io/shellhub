@@ -276,7 +276,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		"SHELLHUB_HTTP_PORT":         cfg.HTTPPort,
 		"SHELLHUB_SSH_PORT":          cfg.SSHPort,
 		"SHELLHUB_TEST_MAILPIT_PORT": mailpitPort,
-	}, cfg.Envs, map[string]string{
+	}, publicURLEnvs(https.envs, cfg.HTTPPort), cfg.Envs, map[string]string{
 		"SHELLHUB_NETWORK":          cfg.Network,
 		"SHELLHUB_NETWORK_EXTERNAL": "true",
 	}, cfg.Run.composeEnvs())
@@ -435,6 +435,14 @@ func newComposeStack(name string, files []string) (*compose.DockerCompose, error
 
 func newClient(port string) *resty.Client {
 	return resty.New().SetBaseURL("http://localhost:" + port).SetContentLength(true)
+}
+
+func publicURLEnvs(httpsEnvs map[string]string, httpPort string) map[string]string {
+	if httpsEnvs["SHELLHUB_AUTO_SSL"] == "true" || httpPort == "" {
+		return nil
+	}
+
+	return map[string]string{"SHELLHUB_PUBLIC_URL": "http://localhost:" + httpPort}
 }
 
 func mergeEnvs(files []string, layers ...map[string]string) (map[string]string, error) {

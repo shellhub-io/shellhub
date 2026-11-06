@@ -268,9 +268,12 @@ func webhookURL(path string) string {
 func postEnrollmentCallback(t *testing.T, compose *environment.DockerCompose, callbackURL, decision string) *resty.Response {
 	t.Helper()
 
+	callback, err := url.Parse(callbackURL)
+	require.NoError(t, err)
+
 	resp, err := compose.Anonymous(t.Context()).
 		SetBody(map[string]string{"decision": decision}).
-		Post(callbackURL)
+		Post(callback.Path)
 	require.NoError(t, err)
 
 	return resp

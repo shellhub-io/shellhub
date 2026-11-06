@@ -61,10 +61,13 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_PUBLIC_URL` | built from `SHELLHUB_DOMAIN` and `SHELLHUB_AUTO_SSL` | URL users reach ShellHub at, such as `https://shellhub.example.com`. An `http` or `https` origin with no path |
 | `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
 
-ShellHub builds the links it hands out, such as the SSH approval links in the terminal and the SAML
-URLs it sends an identity provider, from `SHELLHUB_DOMAIN`, with `https://` only when
+ShellHub builds the links it hands out, such as invitation, confirmation and password-reset links,
+enrollment webhook callbacks, the SSH approval links in the terminal and the SAML URLs it sends an
+identity provider, from `SHELLHUB_DOMAIN`, with `https://` only when
 `SHELLHUB_AUTO_SSL=true`. When TLS ends at an ingress or load balancer in front of the gateway, set
 `SHELLHUB_PUBLIC_URL` so those links use `https://` without the gateway requesting certificates.
+Set it too when users reach ShellHub on a port `SHELLHUB_DOMAIN` does not name, such as
+`http://localhost:8080`, or the links leave the port out.
 
 `SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in, device enrollment and web
 terminal sessions, so their lockout, firewall rules and access policy source IPs depend on it. A

@@ -191,7 +191,7 @@ func TestService_RegisterUser(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
-			res, err := s.RegisterUser(ctx, tc.req, "shellhub.test", "")
+			res, err := s.RegisterUser(ctx, tc.req)
 			assert.Equal(t, tc.expected.err, err)
 			if tc.expected.hasToken {
 				assert.NotNil(t, res)
@@ -215,7 +215,7 @@ func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.
 	var received string
 	override(t, &openSignupEnabled, true)
 	override(t, &userRegisteredHooks, []UserRegisteredHookFn{
-		func(_ context.Context, _ *models.User, deviceCode, _, _ string) error {
+		func(_ context.Context, _ *models.User, deviceCode string) error {
 			received = deviceCode
 
 			return nil
@@ -232,7 +232,7 @@ func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.
 
 	_, err := s.RegisterUser(ctx, requests.RegisterUser{
 		Name: "Alice", Username: "alice", Email: "alice@test.com", Password: "secret123", DeviceCode: "wxyz-2k7q",
-	}, "shellhub.test", "")
+	})
 	require.NoError(t, err)
 	assert.Equal(t, "WXYZ2K7Q", received)
 }
