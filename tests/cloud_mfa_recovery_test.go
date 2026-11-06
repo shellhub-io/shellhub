@@ -20,10 +20,12 @@ import (
 
 const mfaResetCodeLifetime = 24 * time.Hour
 
-// TestCloudMFAReset runs a cloud instance, the only edition that sends email, for the reset of a
-// user's MFA by the two codes it emails to their main and recovery addresses. Each code lasts 24
-// hours in the cache, and the reset refuses the pair once either code has expired.
-func TestCloudMFAReset(t *testing.T) {
+// TestCloudMFARecovery runs a cloud instance, the only edition that sends email, for a user who
+// lost their authenticator. A recovery code stands in for the TOTP code after the password, never
+// for the password. The reset of a user's MFA by the two codes it emails to their main and
+// recovery addresses signs no one in: the user signs in with the password afterwards. Each code
+// lasts 24 hours in the cache, and the reset refuses the pair once either code has expired.
+func TestCloudMFARecovery(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -31,16 +33,56 @@ func TestCloudMFAReset(t *testing.T) {
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
 	t.Cleanup(compose.Down)
 
-	t.Run("the emailed codes reset MFA", func(t *testing.T) {
+	t.Run("a recovery code completes the password step", func(t *testing.T) {
+		user := newMFAUser(t, compose, "mfa-recover")
+		mfaToken := passwordStep(t, compose, user)
+
+		auth := new(models.UserAuthResponse)
+		resp, err := compose.Anonymous(t.Context()).
+			SetBody(map[string]string{"token": mfaToken, "recovery_code": user.recoveryCodes[0]}).
+			SetResult(auth).
+			Post("/api/user/mfa/recover")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, user.id, auth.ID)
+		assert.NotEmpty(t, auth.Token)
+	})
+
+	t.Run("a recovery code without the password step signs no one in", func(t *testing.T) {
+		user := newMFAUser(t, compose, "mfa-recover-alone")
+
+		auth := new(models.UserAuthResponse)
+		resp, err := compose.Anonymous(t.Context()).
+			SetBody(map[string]string{"identifier": user.username, "recovery_code": user.recoveryCodes[0]}).
+			SetResult(auth).
+			Post("/api/user/mfa/recover")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+		assert.Empty(t, auth.Token)
+
+		resp, err = compose.Anonymous(t.Context()).
+			SetBody(map[string]string{"token": uuid.Generate(), "recovery_code": user.recoveryCodes[0]}).
+			SetResult(auth).
+			Post("/api/user/mfa/recover")
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())
+		assert.Empty(t, auth.Token)
+	})
+
+	t.Run("the emailed codes reset MFA and the user signs in with the password", func(t *testing.T) {
 		user := newMFAUser(t, compose, "mfa-reset")
 		codes := requestMFAReset(t, compose, user)
 
 		resp, err := compose.Anonymous(t.Context()).SetBody(codes).Put("/api/user/mfa/reset/" + user.id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Empty(t, resp.Body(), "the reset signed the user in")
 
 		requireAnswer(t, asBearer(t, compose, user.token), http.MethodGet, "/api/auth/user", http.StatusUnauthorized)
-		assert.False(t, compose.AuthUser(t, user.username, ShellHubPassword).MFA, "the reset left MFA on")
+
+		signedIn := compose.AuthUser(t, user.username, ShellHubPassword)
+		assert.NotEmpty(t, signedIn.Token)
+		assert.False(t, signedIn.MFA, "the reset left MFA on")
 	})
 
 	t.Run("the emailed codes last 24 hours and the pair is refused once one of them expires", func(t *testing.T) {
@@ -119,6 +161,20 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 	}, time.Minute, 5*time.Second)
 
 	return user
+}
+
+func passwordStep(t *testing.T, compose *environment.DockerCompose, user mfaUser) string {
+	t.Helper()
+
+	resp, err := compose.Anonymous(t.Context()).
+		SetBody(map[string]string{"username": user.username, "password": ShellHubPassword}).
+		Post("/api/login")
+	require.NoError(t, err)
+
+	mfaToken := resp.Header().Get("X-MFA-Token")
+	require.NotEmpty(t, mfaToken, resp.String())
+
+	return mfaToken
 }
 
 func requestMFAReset(t *testing.T, compose *environment.DockerCompose, user mfaUser) map[string]string {
