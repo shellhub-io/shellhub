@@ -10,7 +10,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	apiservices "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -24,14 +23,13 @@ func (s *service) maxDevices() int {
 	return MaxNumberDevicesUnlimited
 }
 
-// NamespaceCreate initializes a new namespace, making the specified user its owner.
-// The tenant defaults to a UUID if not provided.
-// Max device limit is based on the service's edition.
+// NamespaceCreate initializes a new namespace, making the specified user its owner, under the
+// tenant ID the input names or, without one, a tenant ID the store issues. Max device limit is
+// based on the service's edition. It returns ErrUserNotFound when the owner cannot be resolved,
+// whatever the store's error, ErrNamespaceSingle when the instance is bound to a single namespace,
+// ErrDuplicateNamespace when the name is taken or the tenant ID was issued since migration 057,
+// deleted namespaces included, and ErrCreateNewNamespace wrapping any other store error.
 func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCreate) (*models.Namespace, error) {
-	if input.TenantID == "" {
-		input.TenantID = uuid.Generate()
-	}
-
 	user, err := s.store.UserResolve(ctx, store.UserUsernameResolver, strings.ToLower(input.Owner))
 	if err != nil {
 		return nil, ErrUserNotFound
@@ -68,7 +66,8 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		ns.Type = models.TypePersonal
 	}
 
-	if _, err = s.store.NamespaceCreate(ctx, ns); err != nil {
+	tenantID, err := s.store.NamespaceCreate(ctx, ns)
+	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNamespaceSingle):
 			return nil, ErrNamespaceSingle
@@ -78,6 +77,8 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 			return nil, fmt.Errorf("%w: %w", ErrCreateNewNamespace, err)
 		}
 	}
+
+	ns.TenantID = tenantID
 
 	return ns, nil
 }
