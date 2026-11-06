@@ -28,8 +28,6 @@ type AuthnService interface {
 	PublicKey() *rsa.PublicKey
 }
 
-var exemptPrefixes = []string{"/metrics"}
-
 // Authenticator resolves the caller's identity from the request credentials and
 // stores it on the request's context, where [identity.FromContext] reads it.
 //
@@ -94,10 +92,6 @@ func (a *Authenticator) UnregisteredRoutes(routes echo.Routes) []string {
 // after routing, where the matched route pattern is available.
 func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		if isExempt(c.Path()) {
-			return next(c)
-		}
-
 		anonymous := a.anonymous.contains(c)
 
 		caller, err := a.Resolve(c)
@@ -137,16 +131,6 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 const adminAPIPrefix = "/admin/api"
-
-func isExempt(path string) bool {
-	for _, prefix := range exemptPrefixes {
-		if path == prefix || strings.HasPrefix(path, prefix+"/") {
-			return true
-		}
-	}
-
-	return false
-}
 
 // Resolve turns the request's credential into an identity. It returns a nil
 // identity when the request carries no usable credential, and an error only

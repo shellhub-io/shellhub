@@ -71,8 +71,12 @@ type Env struct {
 	// to be enqueued and executed.
 	AsynqUniquenessTimeout int `env:"ASYNQ_UNIQUENESS_TIMEOUT,default=24"`
 
-	// Metrics enables the /metrics endpoint.
+	// Metrics records request metrics into the Prometheus registry the operator listener serves.
 	Metrics bool `env:"METRICS,default=false"`
+
+	// MetricsAddress is where the operator listener serves the Prometheus registry at /metrics,
+	// apart from every listener a client reaches. Empty listens on loopback alone.
+	MetricsAddress string `env:"SHELLHUB_METRICS_ADDRESS"`
 
 	// Domain is the instance's base domain, from which the public URL is built when PublicURL is
 	// empty. A scheme it carries is kept.
@@ -228,6 +232,7 @@ type Server struct {
 	sshEnv        *sshEnv
 	router        *echo.Echo // TODO: evaluate if we can create a custom struct in router (e.g. router.Router)
 	http          *http.Server
+	operator      *http.Server
 	authn         *middleware.Authenticator
 	worker        worker.Server
 	ssh           *sshserver.Server
@@ -241,6 +246,8 @@ type Server struct {
 
 const (
 	httpAddress = ":8080"
+
+	defaultMetricsAddress = "127.0.0.1:9091"
 
 	readHeaderTimeout = 10 * time.Second
 
@@ -512,10 +519,11 @@ func (s *Server) setupSSH(service services.Service) error {
 	return err
 }
 
-// Start begins serving API requests and processing background tasks, and with the gateway enabled
-// serves the public listeners too. It blocks the current goroutine until the server stops, and
-// returns the worker's, the :8080 listener's or the gateway's start error, or whichever of the
-// HTTP and SSH servers fails first.
+// Start begins serving API requests and processing background tasks, serves the Prometheus
+// registry on the operator listener, and with the gateway enabled serves the public listeners
+// too. It blocks the current goroutine until the server stops, and returns the worker's, the :8080
+// listener's, the operator listener's or the gateway's start error, or whichever of the HTTP,
+// operator and SSH servers fails first.
 func (s *Server) Start() error {
 	log.Info("Starting server components")
 
@@ -530,9 +538,18 @@ func (s *Server) Start() error {
 		return err
 	}
 
+	operatorListener, err := new(net.ListenConfig).Listen(context.Background(), "tcp", metricsAddress(s.env.MetricsAddress))
+	if err != nil {
+		listener.Close() //nolint:errcheck // the operator listener's error is the one worth returning
+		s.worker.Shutdown()
+
+		return fmt.Errorf("failed to open the operator listener: %w", err)
+	}
+
 	if s.gatewayConfig != nil {
 		if err := gateway.Start(s.gatewayConfig, s.router); err != nil {
-			listener.Close() //nolint:errcheck // the start error is the one worth returning
+			listener.Close()         //nolint:errcheck // the start error is the one worth returning
+			operatorListener.Close() //nolint:errcheck // the start error is the one worth returning
 			s.worker.Shutdown()
 
 			return fmt.Errorf("failed to start the gateway: %w", err)
@@ -542,10 +559,12 @@ func (s *Server) Start() error {
 	}
 
 	s.http = newHTTPServer(s.router, readHeaderTimeout)
+	s.operator = newHTTPServer(operatorHandler(), readHeaderTimeout)
 
-	errs := make(chan error, 2)
+	errs := make(chan error, 3)
 
 	go func() { errs <- s.http.Serve(listener) }()
+	go func() { errs <- s.operator.Serve(operatorListener) }()
 	go func() { errs <- s.ssh.ListenAndServe() }()
 
 	return <-errs
@@ -574,6 +593,10 @@ func (s *Server) Shutdown() {
 
 	if s.http != nil {
 		s.http.Close() //nolint:errcheck
+	}
+
+	if s.operator != nil {
+		s.operator.Close() //nolint:errcheck
 	}
 
 	s.ssh.Close() //nolint:errcheck

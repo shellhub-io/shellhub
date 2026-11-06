@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
-	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
@@ -120,7 +119,7 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 		{web.WebsocketSSHBridgeRoute, true},
 		{"/metrics", true},
 		{"/internal/auth", true},
-		{routes.InternalMetricsURL, true},
+		{"/internal/metrics", true},
 		{"/mcp", true},
 		{"/mcp/session", true},
 		{webendpoints.ProxyPath, true},

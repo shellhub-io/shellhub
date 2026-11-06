@@ -114,7 +114,8 @@ value that is not a positive duration under one minute.
 |---|---|---|
 | `SHELLHUB_EDITION` | `community` | `community`, `enterprise`, or `cloud` |
 | `SHELLHUB_VERSION` | the release you checked out | Which image tag to run |
-| `SHELLHUB_METRICS` | `false` | Metrics endpoint |
+| `SHELLHUB_METRICS` | `false` | Record HTTP request metrics alongside the server's own |
+| `SHELLHUB_METRICS_ADDRESS` | `127.0.0.1:9091` | Address the server publishes its Prometheus metrics on, at `/metrics`. Clients never reach it: set `:9091` for a scraper on another host or container, and keep the port off the internet |
 | `SHELLHUB_PAYWALL` | `true` | Show Cloud/Enterprise features to Community users |
 | `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Maximum lockout minutes after repeated failed sign-ins, 0 disables |
 | `SHELLHUB_ACCOUNT_LOCKOUT_BASE` | `1m` | First lockout's length as a Go duration, at least `1s`; each later one is four times longer |
