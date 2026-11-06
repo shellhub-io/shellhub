@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { getConfig, isEnterpriseOrCloud } from "@/env";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import { navIcon } from "./SidebarShell";
 
 /**
@@ -51,7 +52,10 @@ export function navSectionTitle(
   )?.title;
 }
 
-function buildSections(isNewNamespace: boolean): NavSection[] {
+function buildSections(
+  isNewNamespace: boolean,
+  canListWebEndpoints: boolean,
+): NavSection[] {
   const config = getConfig();
 
   const resources: NavItem[] = [
@@ -75,7 +79,7 @@ function buildSections(isNewNamespace: boolean): NavSection[] {
     });
   }
 
-  if (config.webEndpoints && isEnterpriseOrCloud()) {
+  if (config.webEndpoints && isEnterpriseOrCloud() && canListWebEndpoints) {
     resources.push({
       to: "/web-endpoints",
       label: "Web Endpoints",
@@ -159,10 +163,13 @@ function buildSections(isNewNamespace: boolean): NavSection[] {
 
 /**
  * The navigation sections for the current namespace. Whether it is legacy decides which security
- * pages exist, so the result depends on the namespace settings.
+ * pages exist, and the current role decides whether web endpoints are offered, so the result
+ * depends on the namespace settings and the role.
  */
 export function useNavSections(): NavSection[] {
-  return buildSections(useNamespaceLegacy() !== true);
+  const isNewNamespace = useNamespaceLegacy() !== true;
+  const canListWebEndpoints = useHasPermission("webEndpoint:list");
+  return buildSections(isNewNamespace, canListWebEndpoints);
 }
 
 /**

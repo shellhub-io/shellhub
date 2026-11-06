@@ -163,3 +163,15 @@ describe("WebEndpoints — list error", () => {
     expect(screen.queryByText("Create your first endpoint")).not.toBeInTheDocument();
   });
 });
+
+describe("WebEndpoints — role", () => {
+  it("does not list endpoints for a role that may not connect to devices", async () => {
+    seedAuthStore({ role: "observer" });
+    renderPage();
+
+    expect(
+      await screen.findByText(/only members who can connect to devices/i),
+    ).toBeInTheDocument();
+    expect(lastRequestUrl).toBeNull();
+  });
+});
