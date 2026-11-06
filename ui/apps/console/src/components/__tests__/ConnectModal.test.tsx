@@ -11,11 +11,6 @@ import { mockDevice, mockNamespace } from "@/tests/factories";
 import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import ConnectModal from "@/components/ConnectModal";
 
-vi.mock("@/utils/browserKey", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/utils/browserKey")>()),
-  storedBrowserKeyFingerprint: () => Promise.resolve(null),
-}));
-
 vi.mock("@/utils/recordings", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/utils/recordings")>()),
   isRecordingSupported: () => true,

@@ -19,11 +19,6 @@ vi.mock("@/components/layout/SessionMenu", () => ({
   default: () => <div data-testid="session-menu" />,
 }));
 
-vi.mock("@/components/ConnectModal", () => ({
-  default: ({ open, sshid }: { open: boolean; sshid: string }) =>
-    open ? <div role="dialog">connect to {sshid}</div> : null,
-}));
-
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
@@ -607,6 +602,7 @@ describe("FirstRunGate shell step", () => {
   it("opens the terminal dialog on the paired device", async () => {
     serveDashboard();
     serveLinkedDevice("shellhub.local:22");
+    server.use(http.get("*/api/ssh-identities", () => HttpResponse.json([])));
     const user = userEvent.setup();
     renderAt("/dashboard");
 
@@ -614,9 +610,11 @@ describe("FirstRunGate shell step", () => {
       await screen.findByRole("button", { name: /open terminal/i }),
     );
 
-    expect(screen.getByRole("dialog")).toHaveTextContent(
-      /connect to dev\.box@/,
-    );
+    expect(
+      within(await screen.findByRole("dialog", { name: "Connect" })).getByTitle(
+        /^dev\.box@/,
+      ),
+    ).toBeInTheDocument();
   });
 });
 
