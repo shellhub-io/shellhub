@@ -40,6 +40,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import RestrictedAction from "@/components/common/RestrictedAction";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import PageLoader from "@/components/common/PageLoader";
 import Pagination from "@/components/common/Pagination";
 import {
@@ -1023,8 +1024,22 @@ function WebEndpointsContent() {
 
 /**
  * The web endpoints page: the addresses that publish a device's local service, and the forms to
- * create and revoke them.
+ * create and revoke them. A role that may not connect to devices gets an explanation instead, and
+ * the list is never requested for it.
  */
 export default function WebEndpoints() {
+  const canList = useHasPermission("webEndpoint:list");
+  if (!canList) {
+    return (
+      <EmptyState
+        icon={<GlobeAltIcon className="w-8 h-8" />}
+        overline="HTTP Tunneling"
+        title="Web Endpoints"
+        description="An endpoint's address opens the device's service to whoever holds it, so only members who can connect to devices see this namespace's endpoints."
+        accent="yellow"
+      />
+    );
+  }
+
   return <WebEndpointsContent />;
 }

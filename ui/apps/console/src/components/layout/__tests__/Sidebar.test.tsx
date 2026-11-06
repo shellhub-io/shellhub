@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -6,6 +6,7 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { getConfig, defaultConfig } from "@/env";
 import Sidebar from "../Sidebar";
 
 async function renderSidebar(legacy: boolean) {
@@ -87,5 +88,38 @@ describe("Sidebar", () => {
     expect(
       screen.queryByRole("link", { name: /firewall rules/i }),
     ).not.toBeInTheDocument();
+  });
+
+  describe("with web endpoints on", () => {
+    beforeEach(() => {
+      vi.mocked(getConfig).mockReturnValue({
+        ...defaultConfig,
+        edition: "cloud",
+        webEndpoints: true,
+      });
+    });
+
+    afterEach(() => {
+      vi.mocked(getConfig).mockReturnValue(defaultConfig);
+    });
+
+    it("links web endpoints for a role that may connect to devices", async () => {
+      seedAuthStore({ role: "operator" });
+      await renderSidebar(true);
+
+      expect(
+        await screen.findByRole("link", { name: /web endpoints/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("hides web endpoints from a role that may not connect to devices", async () => {
+      seedAuthStore({ role: "observer" });
+      await renderSidebar(true);
+
+      await screen.findByRole("link", { name: /public keys/i });
+      expect(
+        screen.queryByRole("link", { name: /web endpoints/i }),
+      ).not.toBeInTheDocument();
+    });
   });
 });

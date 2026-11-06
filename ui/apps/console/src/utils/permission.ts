@@ -58,6 +58,7 @@ const permissions = {
   "tag:deviceCreate": RoleLevel.OPERATOR,
   "tag:update": RoleLevel.OPERATOR,
 
+  "webEndpoint:list": RoleLevel.OPERATOR,
   "webEndpoint:create": RoleLevel.ADMINISTRATOR,
   "webEndpoint:delete": RoleLevel.ADMINISTRATOR,
 

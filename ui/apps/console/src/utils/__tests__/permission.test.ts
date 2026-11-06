@@ -26,6 +26,7 @@ const OPERATOR_ACTIONS: Action[] = [
   "notification:view",
   "sshIdentity:add",
   "provisioningKey:list",
+  "webEndpoint:list",
 ];
 
 const ADMINISTRATOR_ACTIONS: Action[] = [
