@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -15,7 +16,8 @@ import (
 )
 
 const (
-	agentEnvFile     = "/etc/shellhub-agent.env"
+	oldPrivateKey = "/etc/shellhub.key"
+	agentEnvFile     = "/etc/shellhub-agent/shellhub-agent.env"
 	agentServiceFile = "/etc/systemd/system/shellhub-agent.service"
 	agentServiceName = "shellhub-agent"
 )
@@ -27,7 +29,7 @@ Wants=network-online.target
 Requires=local-fs.target
 
 [Service]
-EnvironmentFile=/etc/shellhub-agent.env
+EnvironmentFile=/etc/shellhub-agent/shellhub-agent.env
 ExecStart={{.BinaryPath}}
 Restart=on-failure
 RestartSec=5
@@ -94,7 +96,11 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 
 	installCmd.Flags().String("server-address", "", "ShellHub server address")
 	installCmd.Flags().String("tenant-id", "", "Namespace tenant ID")
-	installCmd.Flags().String("private-key", "/etc/shellhub.key", "Path to the agent private key file")
+	installCmd.Flags().String(
+		"private-key",
+		"/etc/shellhub-agent/shellhub.key",
+		"Path to the agent private key file",
+	)
 	installCmd.Flags().String("provisioning-key", "", "Provisioning key used to enroll the device")
 	installCmd.Flags().String("preferred-hostname", "", "Preferred device hostname")
 	installCmd.Flags().String("preferred-identity", "", "Preferred device identity")
@@ -120,6 +126,36 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	})
 }
 
+func migrateFile(oldPath, newPath string, removeOld bool) (bool, error) {
+	info, err := os.Stat(oldPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("failed to stat old file at %s: %w", oldPath, err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(newPath), 0o700); err != nil {
+		return false, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	data, err := os.ReadFile(oldPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read old file: %w", err)
+	}
+
+	if err := os.WriteFile(newPath, data, info.Mode()); err != nil {
+		return false, fmt.Errorf("failed to write file to new location: %w", err)
+	}
+
+	if removeOld {
+		if err := os.Remove(oldPath); err != nil {
+			return false, fmt.Errorf("failed to remove old file: %w", err)
+		}
+	}
+
+	return true, nil
+}
+
 func agentInstall(cfg installerConfig) error {
 	if os.Geteuid() != 0 {
 		return fmt.Errorf("must be run as root")
@@ -129,8 +165,6 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("systemd is not available on this system")
 	}
 
-	exec.Command("systemctl", "disable", "--now", agentServiceName).Run() //nolint:errcheck
-
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to resolve executable path: %w", err)
@@ -139,6 +173,16 @@ func agentInstall(cfg installerConfig) error {
 	binaryPath, err := filepath.EvalSymlinks(exe)
 	if err != nil {
 		return fmt.Errorf("failed to resolve symlinks: %w", err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(agentEnvFile), 0o700); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", filepath.Dir(agentEnvFile), err)
+	}
+
+	newKeyPath := filepath.Join(filepath.Dir(agentEnvFile), "shellhub.key")
+	privateKeyMigrated, err := migrateFile(oldPrivateKey, newKeyPath, false)
+	if err != nil {
+		return fmt.Errorf("private key migration failed: %w", err)
 	}
 
 	if err := writeAgentEnvFile(cfg); err != nil {
@@ -153,8 +197,30 @@ func agentInstall(cfg installerConfig) error {
 		return fmt.Errorf("failed to reload systemd daemon: %w", err)
 	}
 
-	if err := exec.Command("systemctl", "enable", "--now", agentServiceName).Run(); err != nil {
+	if err := exec.Command("systemctl", "enable", agentServiceName).Run(); err != nil {
 		return fmt.Errorf("failed to enable service: %w", err)
+	}
+
+	output, err := exec.Command("systemctl", "restart", agentServiceName).CombinedOutput()
+	if err != nil {
+		if disableErr := exec.Command("systemctl", "disable", agentServiceName).Run(); disableErr != nil {
+			fmt.Fprintf(
+				os.Stderr, 
+				"warning: failed to disable service %s during rollback: %v\n",
+				agentServiceName,
+				disableErr
+			)
+		}
+		return fmt.Errorf(
+			"failed to restart service: %w (output: %s)",
+			err,
+			strings.TrimSpace(string(output))
+		)
+	}
+
+	if privateKeyMigrated {
+		fmt.Printf("Existing private key successfully migrated to %s.\n", newKeyPath)
+		fmt.Printf("You can now safely delete the old private key at %s.\n", oldPrivateKey)
 	}
 
 	return nil

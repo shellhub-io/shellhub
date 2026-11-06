@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const defaultEnvFilePath = "/etc/shellhub-agent.env"
+const defaultEnvFilePath = "/etc/shellhub-agent/shellhub-agent.env"
 
 func loadEnvFile(path string) map[string]string {
 	f, err := os.Open(path) //nolint:gosec // path is defaultEnvFilePath in production, parameterised for tests.
