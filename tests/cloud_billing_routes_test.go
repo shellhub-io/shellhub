@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
 	"github.com/stretchr/testify/assert"
@@ -194,12 +195,17 @@ func testBillingPermissions(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
 	owner := newBillingOwner(t, compose, "billing-permissions")
+	becomeCustomer(t, compose, owner.tenant)
+	attachCard(t, compose, acceptedTestCard)
+
+	roles := []authorizer.Role{authorizer.RoleObserver, authorizer.RoleOperator, authorizer.RoleAdministrator}
 
 	routes := []struct {
 		method string
 		path   string
 	}{
 		{http.MethodPost, "/api/billing/customer"},
+		{http.MethodGet, "/api/billing/customer"},
 		{http.MethodPost, "/api/billing/subscription"},
 		{http.MethodGet, "/api/billing/subscription"},
 		{http.MethodPost, "/api/billing/portal"},
@@ -210,7 +216,7 @@ func testBillingPermissions(t *testing.T, compose *environment.DockerCompose) {
 		{http.MethodPost, "/api/billing/device-choice"},
 	}
 
-	for _, role := range []authorizer.Role{authorizer.RoleObserver, authorizer.RoleOperator, authorizer.RoleAdministrator} {
+	for _, role := range roles {
 		t.Run(fmt.Sprintf("an %s is refused managing the namespace's billing", role), func(t *testing.T) {
 			username := "billing-" + string(role)
 
@@ -229,6 +235,17 @@ func testBillingPermissions(t *testing.T, compose *environment.DockerCompose) {
 				require.NoError(t, err)
 				assert.Equal(t, http.StatusForbidden, resp.StatusCode(), "%s %s: %s", route.method, route.path, resp.String())
 			}
+		})
+	}
+
+	for _, role := range roles {
+		t.Run(fmt.Sprintf("an API key with the %s role is refused reading the namespace's billing customer", role), func(t *testing.T) {
+			key := compose.CreateAPIKey(t, &requests.CreateAPIKey{Name: "bill-" + string(role)[:3], ExpiresAt: -1, OptRole: role})
+			require.Equal(t, role, key.Role)
+
+			resp, err := withAPIKey(t, compose, key.Key).Get("/api/billing/customer")
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
 		})
 	}
 }
