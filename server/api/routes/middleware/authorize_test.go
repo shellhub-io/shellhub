@@ -146,3 +146,64 @@ func TestRequiresAnyPermission(t *testing.T) {
 		})
 	}
 }
+
+func TestBlockAPIKey(t *testing.T) {
+	cases := []struct {
+		description string
+		caller      *identity.Identity
+		header      string
+		expected    int
+	}{
+		{
+			description: "refuses an identity authenticated by a namespace API key",
+			caller:      &identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", APIKey: "key", APIKeyID: "id"},
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "refuses an identity authenticated by an instance API key",
+			caller:      &identity.Identity{APIKey: "key", Admin: true},
+			expected:    http.StatusForbidden,
+		},
+		{
+			description: "admits a user identity",
+			caller:      &identity.Identity{ID: "user", TenantID: "00000000-0000-4000-0000-000000000000"},
+			expected:    http.StatusOK,
+		},
+		{
+			description: "admits a request with no identity, leaving the credential to the authenticator",
+			expected:    http.StatusOK,
+		},
+		{
+			description: "admits a user identity whatever headers the request carries",
+			caller:      &identity.Identity{ID: "user", TenantID: "00000000-0000-4000-0000-000000000000"},
+			header:      "unresolved",
+			expected:    http.StatusOK,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			e := echo.New()
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+			if tc.header != "" {
+				req.Header.Set("X-API-Key", tc.header)
+			}
+
+			if tc.caller != nil {
+				req = identitytest.As(req, *tc.caller)
+			}
+
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+
+			next := func(*echo.Context) error { return c.NoContent(http.StatusOK) }
+
+			renderRefusal(t, c, BlockAPIKey(next)(c))
+
+			assert.Equal(t, tc.expected, rec.Result().StatusCode)
+			if tc.expected != http.StatusOK {
+				assertRefusalCarriesABody(t, rec)
+			}
+		})
+	}
+}

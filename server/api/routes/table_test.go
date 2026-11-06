@@ -195,7 +195,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 				return r.noAPIKey || r.access.kind == accessOwnAccount || r.access.kind == accessPathCode
 			},
 			headers: map[string]string{"X-API-Key": "key"},
-			caller:  identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner},
+			caller:  identity.Identity{APIKey: "key", TenantID: tenant, Role: authorizer.RoleOwner},
 		},
 		{
 			description: "a user token with no namespace on a member route",

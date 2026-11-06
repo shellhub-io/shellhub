@@ -390,7 +390,7 @@ func TestHandler_LeaveNamespace(t *testing.T) {
 			description:   "fails with api key",
 			tenantID:      "00000000-0000-4000-0000-000000000000",
 			headers:       map[string]string{"X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
-			caller:        identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"},
+			caller:        identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func() {},
 			expected:      http.StatusForbidden,
 		},
@@ -517,7 +517,7 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 		{
 			name:    "api-key shape",
 			headers: map[string]string{"X-API-Key": "caller-api-key"},
-			caller:  identity.Identity{TenantID: callerTenant, Role: authorizer.RoleOwner},
+			caller:  identity.Identity{APIKey: blockedKey, TenantID: callerTenant, Role: authorizer.RoleOwner},
 		},
 		{
 			name:   "jwt shape",
@@ -568,7 +568,7 @@ func TestGetNamespaceListBlocksAPIKey(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/api/namespaces", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
+	req = identitytest.As(req, identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock).ServeHTTP(rec, req)
@@ -583,7 +583,7 @@ func TestCreateNamespaceBlocksAPIKey(t *testing.T) {
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces", strings.NewReader(`{}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
+	req = identitytest.As(req, identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock, WithEdition(envs.Enterprise)).ServeHTTP(rec, req)
@@ -597,7 +597,7 @@ func TestUpgradeNamespaceBlocksAPIKey(t *testing.T) {
 
 	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/api/namespaces/00000000-0000-4000-0000-000000000000/upgrade", nil)
 	req.Header.Set("X-API-KEY", "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f")
-	req = identitytest.As(req, identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000"})
+	req = identitytest.As(req, identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000"})
 
 	rec := httptest.NewRecorder()
 	newTestRouter(t, mock).ServeHTTP(rec, req)

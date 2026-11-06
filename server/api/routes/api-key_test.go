@@ -23,6 +23,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const blockedKey = "caller-api-key"
+
 func TestCreateAPIKey(t *testing.T) {
 	type Expected struct {
 		body   *responses.CreateAPIKey
@@ -42,7 +44,7 @@ func TestCreateAPIKey(t *testing.T) {
 		{
 			description: "fails with api key",
 			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
-			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			caller:      identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]any{
 				"name":       "dev",
 				"expires_at": 30,
@@ -252,7 +254,7 @@ func TestListAPIKey(t *testing.T) {
 		{
 			description: "fails with api key",
 			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
-			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			caller:      identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			query: func() string {
 				return ""
 			},
@@ -515,7 +517,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			description: "fails with api key",
 			name:        "dev",
 			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
-			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			caller:      identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod",
 			},
@@ -690,7 +692,7 @@ func TestDeleteAPIKey(t *testing.T) {
 			description: "fails with api key",
 			name:        "dev",
 			headers:     map[string]string{"Content-Type": "application/json", "X-API-KEY": "b2f7cc0e-d933-4aad-9ab2-b557f2f2554f"},
-			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			caller:      identity.Identity{APIKey: blockedKey, TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			requiredMocks: func() {
 			},
 			expected: Expected{status: http.StatusForbidden},

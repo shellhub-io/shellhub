@@ -83,7 +83,7 @@ func TestMountGuardsEachRouteByTheAccessItStates(t *testing.T) {
 	owner := &identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner}
 	observer := &identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleObserver}
 	userWithoutNamespace := &identity.Identity{ID: "user"}
-	apiKey := http.Header{"X-Api-Key": {"key"}}
+	apiKey := &identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner, APIKey: "key"}
 
 	router := newRouter()
 	require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
@@ -106,8 +106,8 @@ func TestMountGuardsEachRouteByTheAccessItStates(t *testing.T) {
 		{name: "a namespace member passes", path: "/api/member", caller: observer, status: http.StatusOK},
 		{name: "a user outside any namespace is refused a namespace route", path: "/api/member", caller: userWithoutNamespace, status: http.StatusForbidden},
 		{name: "a user passes an own account route", path: "/api/account", caller: userWithoutNamespace, status: http.StatusOK},
-		{name: "an API key is refused an own account route", path: "/api/account", caller: owner, header: apiKey, status: http.StatusForbidden},
-		{name: "an API key is refused a route closed to API keys", path: "/api/no-api-key", caller: owner, header: apiKey, status: http.StatusForbidden},
+		{name: "an API key is refused an own account route", path: "/api/account", caller: apiKey, status: http.StatusForbidden},
+		{name: "an API key is refused a route closed to API keys", path: "/api/no-api-key", caller: apiKey, status: http.StatusForbidden},
 		{name: "a route closed to API keys still serves a user", path: "/api/no-api-key", caller: owner, status: http.StatusOK},
 		{name: "an admin route answers through its guard", path: "/api/admin", caller: owner, status: http.StatusForbidden},
 	}
