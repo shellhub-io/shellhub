@@ -14,8 +14,10 @@ require (
 	github.com/hibiken/asynq v0.26.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/labstack/echo/v5 v5.4.2
+	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2
+	github.com/oschwald/geoip2-golang/v2 v2.5.0
 	github.com/posthog/posthog-go v1.38.0
 	github.com/redis/go-redis/v9 v9.23.0
 	github.com/sethvargo/go-envconfig v1.4.3
@@ -66,6 +68,7 @@ require (
 	github.com/moby/term v0.5.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
+	github.com/oschwald/maxminddb-golang/v2 v2.8.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.6 // indirect
@@ -84,6 +87,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

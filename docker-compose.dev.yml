@@ -31,6 +31,8 @@ services:
       - SHELLHUB_EDITION=${SHELLHUB_EDITION}
       - SHELLHUB_ENV=${SHELLHUB_ENV}
       - SHELLHUB_TELEMETRY=false
+      - SHELLHUB_GEOIP_DATABASE=${SHELLHUB_GEOIP_DATABASE:-fake}
+      - SHELLHUB_GEOIP_UPDATE=${SHELLHUB_GEOIP_UPDATE:-false}
       - SHELLHUB_ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
   ui:
     image: ui:${SHELLHUB_DEV_IMAGE_TAG:-latest}

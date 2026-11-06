@@ -4,14 +4,17 @@ import (
 	"context"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// FirewallEvaluatorFactoryFunc constructs a FirewallEvaluator from the core store and
-// cache. Enterprise packages register a factory via RegisterFirewallEvaluator in their
-// init() functions; it runs during server setup.
-type FirewallEvaluatorFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache) (FirewallEvaluator, error)
+// FirewallEvaluatorFactoryFunc constructs a FirewallEvaluator from the core store, the cache and
+// the locator the server places connections with, the one SHELLHUB_GEOIP_DATABASE chose. The
+// locator is never nil: with no database to open it answers an empty country. Enterprise packages
+// register a factory via RegisterFirewallEvaluator in their init() functions; it runs during
+// server setup.
+type FirewallEvaluatorFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache, locator geoip.Locator) (FirewallEvaluator, error)
 
 var firewallEvaluatorFactory FirewallEvaluatorFactoryFunc
 

@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	geoIPDirEnv    = "SHELLHUB_TEST_GEOIP_DIR"
-	geoIPMirrorEnv = "SHELLHUB_MAXMIND_MIRROR"
+	geoIPDirEnv      = "SHELLHUB_TEST_GEOIP_DIR"
+	geoIPMirrorEnv   = "SHELLHUB_MAXMIND_MIRROR"
+	geoIPDatabaseEnv = "SHELLHUB_GEOIP_DATABASE"
 
 	unreachableGeoIPMirror = "http://geoip.invalid"
 )
@@ -35,8 +36,9 @@ func (cfg Config) geoIPEnvs() (map[string]string, string, error) {
 	}
 
 	return map[string]string{
-		geoIPDirEnv:    dir,
-		geoIPMirrorEnv: unreachableGeoIPMirror,
+		geoIPDirEnv:      dir,
+		geoIPMirrorEnv:   unreachableGeoIPMirror,
+		geoIPDatabaseEnv: "maxmind",
 	}, dir, nil
 }
 

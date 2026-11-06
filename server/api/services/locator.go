@@ -6,13 +6,12 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 )
 
-// LocatorProviderFactory is a function that constructs the geoip.Locator used to
-// resolve IP addresses into countries and geographic positions. It is called
-// during server setup when the -tags enterprise binary is built. Cloud packages
+// LocatorProviderFactory constructs the MaxMind GeoLite2 geoip.Locator. Server setup calls it only
+// when SHELLHUB_GEOIP_DATABASE is maxmind, so nothing may depend on it running. Cloud packages
 // register a factory via RegisterLocatorProvider in their init() functions.
 //
-// The factory may return (nil, nil) when the locator is not configured for the
-// current deployment; in that case the service falls back to the null locator.
+// The factory may return (nil, nil) when no MaxMind licence or mirror is configured. That, or an
+// error, makes the server fall back to DB-IP, and to the null locator when no DB-IP database opens.
 type LocatorProviderFactory func(ctx context.Context) (geoip.Locator, error)
 
 var locatorFactory LocatorProviderFactory
