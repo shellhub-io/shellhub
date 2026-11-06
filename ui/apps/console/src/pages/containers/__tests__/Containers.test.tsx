@@ -8,6 +8,8 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockContainer, mockNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { decodeB64url } from "@/tests/decodeB64url";
+import TerminalManager from "@/components/terminal/TerminalManager";
+import { useTerminalStore } from "@/stores/terminalStore";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
   useDebouncedValue: <T,>(value: T) => value,
@@ -35,10 +37,6 @@ vi.mock("@/components/common/PageHeader", () => ({
 vi.mock("@/utils/date", () => ({
   formatRelative: () => "just now",
   formatDateFull: () => "Jan 15, 2024",
-}));
-
-vi.mock("@/utils/sshid", () => ({
-  buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
 }));
 
 vi.mock("@/components/common/TagFilterDropdown", () => ({
@@ -108,6 +106,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   lastContainersUrl = null;
   seedAuthStore();
+  useTerminalStore.setState({ sessions: [], reconnectTarget: null });
   setContainers([]);
   server.use(
     http.get("*/api/namespaces/:tenant", () =>
@@ -137,6 +136,29 @@ describe("Containers list", () => {
     renderPage();
     await user.click(await screen.findByText("clickable"));
     expect(mockNavigate).toHaveBeenCalledWith("/containers/uid-abc");
+  });
+
+  it("opens the connect dialog from a row's Connect", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+    );
+    setContainers([mockContainer({ name: "web-1", online: true })], 1);
+    render(
+      <>
+        <Containers />
+        <TerminalManager />
+      </>,
+      { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Connect" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Connect" }),
+    ).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("honours a non-accepted status from the URL", async () => {

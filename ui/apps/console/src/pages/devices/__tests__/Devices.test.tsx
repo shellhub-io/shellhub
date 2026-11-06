@@ -16,6 +16,8 @@ import {
 } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
+import TerminalManager from "@/components/terminal/TerminalManager";
+import { useTerminalStore } from "@/stores/terminalStore";
 import Devices from "../index";
 
 vi.mock("@/hooks/useDebouncedValue", () => ({
@@ -48,10 +50,6 @@ vi.mock("@/components/common/PlatformBadge", () => ({
 vi.mock("@/utils/date", () => ({
   formatRelative: () => "just now",
   formatDateFull: () => "Jan 15, 2024",
-}));
-
-vi.mock("@/utils/sshid", () => ({
-  buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
 }));
 
 vi.mock("@/components/ManageTagsModal", () => ({
@@ -164,6 +162,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   lastDevicesUrl = null;
   seedAuthStore();
+  useTerminalStore.setState({ sessions: [], reconnectTarget: null });
   setDevices([]);
   server.use(
     http.get("*/api/namespaces/provisioning-key", () => jsonWithTotal([])),
@@ -216,6 +215,26 @@ describe("Devices list", () => {
     renderPage();
     await user.click(await screen.findByText("clickable"));
     expect(mockNavigate).toHaveBeenCalledWith("/devices/uid-abc");
+  });
+
+  it("opens the connect dialog from a row's Connect", async () => {
+    const user = userEvent.setup();
+    server.use(http.get("*/api/ssh-identities", () => HttpResponse.json([])));
+    setDevices([mockDevice({ name: "edge-1", online: true })], 1);
+    render(
+      <>
+        <Devices />
+        <TerminalManager />
+      </>,
+      { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
+    );
+
+    await user.click(await screen.findByRole("button", { name: "Connect" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Connect" }),
+    ).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("forces status=accepted even when the URL asks for another status", async () => {
