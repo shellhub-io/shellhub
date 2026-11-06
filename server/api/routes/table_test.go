@@ -172,12 +172,23 @@ func TestMountedOutsideFlagsARouteNeitherListedNorExempt(t *testing.T) {
 func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
+	const otherTenant = "11111111-1111-4111-8111-111111111111"
+
 	cases := []struct {
 		description string
 		applies     func(route) bool
 		headers     map[string]string
 		caller      identity.Identity
+		pathTenant  string
 	}{
+		{
+			description: "an owner naming another namespace in the path",
+			applies: func(r route) bool {
+				return namesTheTenant(r) && r.access.kind != accessOwnAccount
+			},
+			caller:     identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner},
+			pathTenant: otherTenant,
+		},
 		{
 			description: "an API key where the route blocks one",
 			applies: func(r route) bool {
@@ -189,7 +200,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 		{
 			description: "a user token with no namespace on a member route",
 			applies: func(r route) bool {
-				return r.access.kind == accessNamespaceMember && r.tenantParam == ""
+				return r.access.kind == accessNamespaceMember && !namesTheTenant(r)
 			},
 			caller: identity.Identity{ID: "user-id"},
 		},
@@ -242,7 +253,11 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 					reached = false
 
 					target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.path, func(param string) string {
-						if param[1:] == r.tenantParam {
+						if param[1:] == ParamNamespaceTenant {
+							if tc.pathTenant != "" {
+								return tc.pathTenant
+							}
+
 							return tenant
 						}
 
@@ -282,4 +297,65 @@ func TestAuthenticationRoutesServeAnonymousCallers(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, rec.Code)
 		})
 	}
+}
+
+func namesTheTenant(r route) bool {
+	return slices.Contains(strings.Split(r.path, "/"), ":"+ParamNamespaceTenant)
+}
+
+func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *testing.T) {
+	const (
+		tenant      = "00000000-0000-4000-0000-000000000000"
+		otherTenant = "11111111-1111-4111-8111-111111111111"
+	)
+
+	var covered int
+
+	for _, edition := range editions {
+		var reached bool
+		recording := func(gateway.Claims) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				reached = true
+
+				return c.NoContent(http.StatusOK)
+			}
+		}
+
+		table := tableFor(t, edition)
+		for i := range table {
+			table[i].endpoint = recording
+		}
+
+		router := echo.New()
+		router.HTTPErrorHandler = handlers.NewErrors(nil)
+		router.Use(gateway.WithContext())
+		mount(router.Group(publicAPIPrefix), table)
+
+		for _, r := range table {
+			if r.access.kind != accessOwnAccount || !namesTheTenant(r) {
+				continue
+			}
+
+			covered++
+			reached = false
+
+			target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.path, func(param string) string {
+				if param[1:] == ParamNamespaceTenant {
+					return otherTenant
+				}
+
+				return "placeholder"
+			})
+
+			req := httptest.NewRequestWithContext(t.Context(), r.method, target, nil)
+			req = identitytest.As(req, identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner})
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.True(t, reached, "%s: %s %s answered %d", edition, r.method, r.path, rec.Code)
+		}
+	}
+
+	assert.NotZero(t, covered)
 }

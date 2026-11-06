@@ -150,7 +150,7 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 }
 
 func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error) {
-	namespace, activeUser, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole)
+	namespace, activeUser, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
 	if err != nil {
 		return "", err
 	}
@@ -200,7 +200,7 @@ func (s *service) UserMembershipInvitationList(ctx context.Context, req *request
 }
 
 func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
-	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleAdministrator); err != nil {
+	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleAdministrator, authorizer.NamespaceEditMember); err != nil {
 		return nil, 0, err
 	}
 
@@ -232,7 +232,7 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *re
 }
 
 func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
-	_, activeMember, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
+	_, activeMember, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
 	if err != nil {
 		return err
 	}

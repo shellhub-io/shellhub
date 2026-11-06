@@ -303,6 +303,17 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 			expected: Expected{false, NewErrNamespaceMemberNotFound("owner", nil)},
 		},
 		{
+			description: "fails when the active member outranks the invited role but cannot add members",
+			requiredMocks: func() {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(&models.Namespace{
+						TenantID: "tenant",
+						Members:  []models.Member{{ID: "owner", Role: authorizer.RoleOperator}},
+					}, nil).Once()
+			},
+			expected: Expected{false, NewErrRoleForbidden()},
+		},
+		{
 			description: "fails when the active member cannot act over the invited role",
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
@@ -674,17 +685,25 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 			expected: NewErrNamespaceMemberNotFound("invitee", nil),
 		},
 		{
-			description: "fails when the active user has no authority over the invitation role",
+			description: "fails when the active user's role cannot remove members",
 			requiredMocks: func() {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(&models.Namespace{
 						TenantID: "tenant",
 						Members:  []models.Member{{ID: "owner", Role: authorizer.RoleOperator}},
 					}, nil).Once()
+			},
+			expected: NewErrRoleForbidden(),
+		},
+		{
+			description: "fails when the active user has no authority over the invitation role",
+			requiredMocks: func() {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(adminNamespace, nil).Once()
 				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "invitee").
 					Return(&models.MembershipInvitation{
 						Status: models.MembershipInvitationStatusPending,
-						Role:   authorizer.RoleAdministrator,
+						Role:   authorizer.RoleOwner,
 					}, nil).Once()
 			},
 			expected: NewErrRoleForbidden(),

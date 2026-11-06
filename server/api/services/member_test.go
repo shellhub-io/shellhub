@@ -82,6 +82,31 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the active member outranks the invited role but cannot add members",
+			req: &requests.NamespaceAddMember{
+				ForwardedHost: "localhost",
+				UserID:        "000000000000000000000000",
+				TenantID:      "00000000-0000-4000-0000-000000000000",
+				MemberEmail:   "john.doe@test.com",
+				MemberRole:    authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{ID: "000000000000000000000000", Role: authorizer.RoleOperator},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrRoleForbidden(),
+			},
+		},
+		{
 			description: "fails when the passive role is owner",
 			req: &requests.NamespaceAddMember{
 				ForwardedHost: "localhost",
@@ -686,12 +711,34 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: nil,
 		},
 		{
-			description: "[community|enterprise|cloud] BFLA: fails when operator tries to promote invalid-role member to administrator",
+			description: "fails when the active member outranks the member but cannot edit members",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
 				TenantID:   "00000000-0000-4000-0000-000000000000",
 				MemberID:   "000000000000000000000001",
-				MemberRole: authorizer.RoleAdministrator,
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{ID: "000000000000000000000000", Role: authorizer.RoleOperator},
+							{ID: "000000000000000000000001", Role: authorizer.RoleObserver},
+						},
+					}, nil).
+					Once()
+			},
+			expected: NewErrRoleForbidden(),
+		},
+		{
+			description: "[community|enterprise|cloud] BFLA: fails when an administrator tries to promote invalid-role member to owner",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -703,7 +750,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOperator,
+								Role: authorizer.RoleAdministrator,
 							},
 							{
 								ID:   "000000000000000000000001",
@@ -968,7 +1015,31 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 			},
 		},
 		{
-			description: "[community|enterprise|cloud] fails when the active member's role cannot act over passive member's role",
+			description: "fails when the active member outranks the member but cannot remove members",
+			req: &requests.NamespaceRemoveMember{
+				UserID:   "000000000000000000000000",
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				MemberID: "000000000000000000000001",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Members: []models.Member{
+							{ID: "000000000000000000000000", Role: authorizer.RoleOperator},
+							{ID: "000000000000000000000001", Role: authorizer.RoleObserver},
+						},
+					}, nil).
+					Once()
+			},
+			expected: Expected{
+				namespace: nil,
+				err:       NewErrRoleForbidden(),
+			},
+		},
+		{
+			description: "[community|enterprise|cloud] fails when an administrator tries to remove the owner",
 			req: &requests.NamespaceRemoveMember{
 				UserID:   "000000000000000000000000",
 				TenantID: "00000000-0000-4000-0000-000000000000",
@@ -984,11 +1055,11 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 						Members: []models.Member{
 							{
 								ID:   "000000000000000000000000",
-								Role: authorizer.RoleOperator,
+								Role: authorizer.RoleAdministrator,
 							},
 							{
 								ID:   "000000000000000000000001",
-								Role: authorizer.RoleAdministrator,
+								Role: authorizer.RoleOwner,
 							},
 						},
 					}, nil).

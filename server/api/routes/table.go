@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -41,13 +42,12 @@ func requires(permissions ...authorizer.Permission) access {
 }
 
 type route struct {
-	method      string
-	path        string
-	endpoint    gateway.Endpoint
-	access      access
-	unbounded   bool
-	noAPIKey    bool
-	tenantParam string
+	method    string
+	path      string
+	endpoint  gateway.Endpoint
+	access    access
+	unbounded bool
+	noAPIKey  bool
 }
 
 func (r route) handler() echo.HandlerFunc {
@@ -58,6 +58,20 @@ func (r route) blocksAPIKey() bool {
 	return r.noAPIKey || r.access.kind == accessOwnAccount || r.access.kind == accessPathCode
 }
 
+func (r route) tenantParam() string {
+	if r.access.kind == accessOwnAccount {
+		return ""
+	}
+
+	for segment := range strings.SplitSeq(r.path, "/") {
+		if segment == ":"+ParamNamespaceTenant {
+			return ParamNamespaceTenant
+		}
+	}
+
+	return ""
+}
+
 func (r route) middleware() []echo.MiddlewareFunc {
 	var chain []echo.MiddlewareFunc
 
@@ -65,8 +79,8 @@ func (r route) middleware() []echo.MiddlewareFunc {
 		chain = append(chain, routesmiddleware.BlockAPIKey)
 	}
 
-	if r.tenantParam != "" {
-		chain = append(chain, routesmiddleware.RequiresTenant(r.tenantParam))
+	if param := r.tenantParam(); param != "" {
+		chain = append(chain, routesmiddleware.RequiresTenant(param))
 	}
 
 	switch r.access.kind {
@@ -171,7 +185,7 @@ func (h *Handler) publicRoutes() []route {
 		{method: http.MethodPost, path: URLPushTagToDevice, endpoint: gateway.Legacy(h.PushTagToDevice), access: requires(authorizer.TagCreate)},
 		{method: http.MethodDelete, path: URLPullTagFromDevice, endpoint: gateway.Legacy(h.PullTagFromDevice), access: requires(authorizer.TagDelete)},
 
-		{method: http.MethodGet, path: URLOldGetTags, endpoint: gateway.Legacy(h.GetTags), access: namespaceMember, tenantParam: ParamNamespaceTenant},
+		{method: http.MethodGet, path: URLOldGetTags, endpoint: gateway.Legacy(h.GetTags), access: namespaceMember},
 		{method: http.MethodPost, path: URLOldCreateTag, endpoint: gateway.Legacy(h.CreateTag), access: requires(authorizer.TagCreate)},
 		{method: http.MethodPatch, path: URLOldUpdateTag, endpoint: gateway.Legacy(h.UpdateTag), access: requires(authorizer.TagUpdate)},
 		{method: http.MethodDelete, path: URLOldDeleteTag, endpoint: gateway.Legacy(h.DeleteTag), access: requires(authorizer.TagDelete)},
@@ -190,19 +204,19 @@ func (h *Handler) publicRoutes() []route {
 		{method: http.MethodPut, path: UpdatePublicKeyURL, endpoint: gateway.Legacy(h.UpdatePublicKey), access: requires(authorizer.PublicKeyEdit)},
 		{method: http.MethodDelete, path: DeletePublicKeyURL, endpoint: gateway.Legacy(h.DeletePublicKey), access: requires(authorizer.PublicKeyRemove)},
 
-		{method: http.MethodGet, path: GetNamespaceURL, endpoint: gateway.Legacy(h.GetNamespace), access: namespaceMember, tenantParam: ParamNamespaceTenant},
+		{method: http.MethodGet, path: GetNamespaceURL, endpoint: gateway.Legacy(h.GetNamespace), access: namespaceMember},
 		{method: http.MethodGet, path: ListNamespaceURL, endpoint: gateway.Legacy(h.GetNamespaceList), access: ownAccount},
-		{method: http.MethodPut, path: EditNamespaceURL, endpoint: gateway.Legacy(h.EditNamespace), access: requires(authorizer.NamespaceUpdate), tenantParam: ParamNamespaceTenant},
-		{method: http.MethodDelete, path: DeleteNamespaceURL, endpoint: gateway.Legacy(h.DeleteNamespace), access: requires(authorizer.NamespaceDelete), tenantParam: ParamNamespaceTenant},
+		{method: http.MethodPut, path: EditNamespaceURL, endpoint: gateway.Legacy(h.EditNamespace), access: requires(authorizer.NamespaceUpdate)},
+		{method: http.MethodDelete, path: DeleteNamespaceURL, endpoint: gateway.Legacy(h.DeleteNamespace), access: requires(authorizer.NamespaceDelete)},
 
-		{method: http.MethodGet, path: ListNamespaceMembersURL, endpoint: gateway.Legacy(h.ListNamespaceMembers), access: namespaceMember, tenantParam: ParamNamespaceTenant},
+		{method: http.MethodGet, path: ListNamespaceMembersURL, endpoint: gateway.Legacy(h.ListNamespaceMembers), access: namespaceMember},
 		{method: http.MethodPost, path: AddNamespaceMemberURL, endpoint: gateway.Legacy(h.AddNamespaceMember), access: requires(authorizer.NamespaceAddMember)},
 		{method: http.MethodPatch, path: EditNamespaceMemberURL, endpoint: gateway.Legacy(h.EditNamespaceMember), access: requires(authorizer.NamespaceEditMember)},
 		{method: http.MethodDelete, path: RemoveNamespaceMemberURL, endpoint: gateway.Legacy(h.RemoveNamespaceMember), access: requires(authorizer.NamespaceRemoveMember)},
 		{method: http.MethodDelete, path: LeaveNamespaceURL, endpoint: gateway.Legacy(h.LeaveNamespace), access: ownAccount},
 
-		{method: http.MethodPut, path: EditSessionRecordStatusURL, endpoint: gateway.Legacy(h.EditSessionRecordStatus), access: requires(authorizer.NamespaceEnableSessionRecord), tenantParam: ParamNamespaceTenant},
-		{method: http.MethodPost, path: UpgradeNamespaceURL, endpoint: gateway.Legacy(h.UpgradeNamespace), access: requires(authorizer.NamespaceUpdate), noAPIKey: true, tenantParam: ParamNamespaceTenant},
+		{method: http.MethodPut, path: EditSessionRecordStatusURL, endpoint: gateway.Legacy(h.EditSessionRecordStatus), access: requires(authorizer.NamespaceEnableSessionRecord)},
+		{method: http.MethodPost, path: UpgradeNamespaceURL, endpoint: gateway.Legacy(h.UpgradeNamespace), access: requires(authorizer.NamespaceUpdate), noAPIKey: true},
 
 		{method: http.MethodGet, path: ListAccessPoliciesURL, endpoint: gateway.Legacy(h.ListAccessPolicies), access: requires(authorizer.AccessPolicyManage)},
 		{method: http.MethodPost, path: CreateAccessPolicyURL, endpoint: gateway.Legacy(h.CreateAccessPolicy), access: requires(authorizer.AccessPolicyManage)},

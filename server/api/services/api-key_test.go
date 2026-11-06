@@ -560,6 +560,22 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrNamespaceMemberNotFound("000000000000000000000000", nil),
 		},
 		{
+			description: "fails when the member cannot update API keys",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
+					Once()
+			},
+			expected: NewErrRoleForbidden(),
+		},
+		{
 			description: "fails when role is greater than user's role",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
@@ -834,7 +850,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
+					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
