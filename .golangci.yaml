@@ -39,6 +39,10 @@ linters:
         text: os\.(Getenv|LookupEnv)
         linters:
           - forbidigo
+      - path: (^server/api/services/signin\.go|_test\.go)$
+        text: jwttoken\.EncodeUserClaims
+        linters:
+          - forbidigo
   enable:
     - errcheck
     - revive
@@ -112,6 +116,8 @@ linters:
         - pattern: ^hash\.Backend$
           msg: a swapped hasher outlives the test that set it. Use hash.Set, which puts the
             previous one back when the test ends.
+        - pattern: ^jwttoken\.EncodeUserClaims$
+          msg: sign a user in through services.SignInService, which owns who may get a token.
     exhaustive:
       default-signifies-exhaustive: true
     gosec:

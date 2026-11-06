@@ -86,6 +86,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
 					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(runTx).Once()
 				storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
@@ -119,12 +120,16 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), mock.AnythingOfType("*models.Member")).
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Twice()
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "invitee").
 					Return(&models.User{
 						ID: "invitee", Status: models.UserStatusConfirmed, UserData: models.UserData{Username: "alice"},
+						Preferences: models.UserPreferences{AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal}},
 					}, nil).Once()
 				storeMock.On("NamespaceGetPreferred", ctx, "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("UserUpdate", ctx, mock.AnythingOfType("*models.User")).
+					Return(nil).Once()
 			},
 			expected: Expected{true, 0, nil},
 		},
@@ -141,6 +146,7 @@ func TestService_RegisterUser(t *testing.T) {
 				}
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
 					Return(membership, nil).Twice()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
@@ -174,6 +180,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
 					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "namespace-admin").
 					Return(&models.User{ID: "namespace-admin", Admin: false}, nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
@@ -191,6 +198,26 @@ func TestService_RegisterUser(t *testing.T) {
 			expected: Expected{false, 0, nil},
 		},
 		{
+			description: "refuses an invited registration before creating it while local sign-in is off",
+			req: requests.RegisterUser{
+				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
+			},
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				membership := &models.MembershipInvitation{
+					UserID: "invitee", TenantID: "tenant", InvitedBy: "owner", Role: authorizer.RoleOperator,
+				}
+				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
+					Return(membership, nil).Once()
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
+					Return(&models.UserInvitation{
+						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
+					}, nil).Once()
+				storeMock.On("SystemGet", ctx).
+					Return(&models.System{Authentication: &models.SystemAuthentication{Local: &models.SystemAuthenticationLocal{Enabled: false}}}, nil).Once()
+			},
+			expected: Expected{false, 0, NewErrAuthMethodNotAllowed(models.UserAuthMethodLocal.String())},
+		},
+		{
 			description: "returns the conflicting field when the invited user's username is duplicated",
 			req: requests.RegisterUser{
 				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
@@ -205,6 +232,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
 					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				dupErr := errors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(runTx).Once()
@@ -285,4 +313,10 @@ func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "WXYZ2K7Q", received)
+}
+
+func localSignInOn() *models.System {
+	return &models.System{
+		Authentication: &models.SystemAuthentication{Local: &models.SystemAuthenticationLocal{Enabled: true}},
+	}
 }

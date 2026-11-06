@@ -465,9 +465,12 @@ func TestSetup(t *testing.T) {
 					},
 					Admin: true,
 				}
+				setUp := localSignInOn()
+				setUp.Setup = true
+				storeMock.On("SystemGet", ctx).Return(setUp, nil).Once()
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(createdUser, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+				storeMock.On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(&models.Namespace{
 						Name:     "userteste",
 						TenantID: tenant,
@@ -476,7 +479,8 @@ func TestSetup(t *testing.T) {
 							{ID: "000000000000000000000000", Role: authorizer.RoleOwner, AddedAt: now},
 						},
 					}, nil).Once()
-				storeMock.On("UserUpdatePreferredNamespace", ctx, mock.Anything, mock.Anything).Return(nil).Once()
+				storeMock.On("UserUpdate", ctx, mock.AnythingOfType("*models.User")).Return(nil).Once()
+				storeMock.On("UserUpdatePreferredNamespace", ctx, "000000000000000000000000", tenant).Return(nil).Once()
 			},
 			expected: nil,
 		},

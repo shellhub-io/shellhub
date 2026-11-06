@@ -263,6 +263,52 @@ func (_c *MockService_AddNamespaceMember_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// AllowSignInMethod provides a mock function for the type MockService
+func (_mock *MockService) AllowSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error) {
+	_mock.Called(method, enabled)
+	return
+}
+
+// MockService_AllowSignInMethod_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AllowSignInMethod'
+type MockService_AllowSignInMethod_Call struct {
+	*mock.Call
+}
+
+// AllowSignInMethod is a helper method to define mock.On call
+//   - method models.UserAuthMethod
+//   - enabled func(ctx context.Context) error
+func (_e *MockService_Expecter) AllowSignInMethod(method any, enabled any) *MockService_AllowSignInMethod_Call {
+	return &MockService_AllowSignInMethod_Call{Call: _e.mock.On("AllowSignInMethod", method, enabled)}
+}
+
+func (_c *MockService_AllowSignInMethod_Call) Run(run func(method models.UserAuthMethod, enabled func(ctx context.Context) error)) *MockService_AllowSignInMethod_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 models.UserAuthMethod
+		if args[0] != nil {
+			arg0 = args[0].(models.UserAuthMethod)
+		}
+		var arg1 func(ctx context.Context) error
+		if args[1] != nil {
+			arg1 = args[1].(func(ctx context.Context) error)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_AllowSignInMethod_Call) Return() *MockService_AllowSignInMethod_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockService_AllowSignInMethod_Call) RunAndReturn(run func(method models.UserAuthMethod, enabled func(ctx context.Context) error)) *MockService_AllowSignInMethod_Call {
+	_c.Run(run)
+	return _c
+}
+
 // AuthAPIKey provides a mock function for the type MockService
 func (_mock *MockService) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
 	ret := _mock.Called(ctx, key)
@@ -2141,74 +2187,6 @@ func (_c *MockService_CreateTag_Call) Return(insertedID string, err error) *Mock
 }
 
 func (_c *MockService_CreateTag_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateTag) (string, error)) *MockService_CreateTag_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// CreateUserToken provides a mock function for the type MockService
-func (_mock *MockService) CreateUserToken(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error) {
-	ret := _mock.Called(ctx, req)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateUserToken")
-	}
-
-	var r0 *models.UserAuthResponse
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserToken) (*models.UserAuthResponse, error)); ok {
-		return returnFunc(ctx, req)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CreateUserToken) *models.UserAuthResponse); ok {
-		r0 = returnFunc(ctx, req)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.UserAuthResponse)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.CreateUserToken) error); ok {
-		r1 = returnFunc(ctx, req)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockService_CreateUserToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserToken'
-type MockService_CreateUserToken_Call struct {
-	*mock.Call
-}
-
-// CreateUserToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - req *requests.CreateUserToken
-func (_e *MockService_Expecter) CreateUserToken(ctx any, req any) *MockService_CreateUserToken_Call {
-	return &MockService_CreateUserToken_Call{Call: _e.mock.On("CreateUserToken", ctx, req)}
-}
-
-func (_c *MockService_CreateUserToken_Call) Run(run func(ctx context.Context, req *requests.CreateUserToken)) *MockService_CreateUserToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *requests.CreateUserToken
-		if args[1] != nil {
-			arg1 = args[1].(*requests.CreateUserToken)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_CreateUserToken_Call) Return(res *models.UserAuthResponse, err error) *MockService_CreateUserToken_Call {
-	_c.Call.Return(res, err)
-	return _c
-}
-
-func (_c *MockService_CreateUserToken_Call) RunAndReturn(run func(ctx context.Context, req *requests.CreateUserToken) (*models.UserAuthResponse, error)) *MockService_CreateUserToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4246,6 +4224,74 @@ func (_c *MockService_GetUserAdmin_Call) Return(admin bool, err error) *MockServ
 }
 
 func (_c *MockService_GetUserAdmin_Call) RunAndReturn(run func(ctx context.Context, userID string) (bool, error)) *MockService_GetUserAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Impersonate provides a mock function for the type MockService
+func (_mock *MockService) Impersonate(ctx context.Context, userID string) (*models.UserAuthResponse, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Impersonate")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.UserAuthResponse, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_Impersonate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Impersonate'
+type MockService_Impersonate_Call struct {
+	*mock.Call
+}
+
+// Impersonate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *MockService_Expecter) Impersonate(ctx any, userID any) *MockService_Impersonate_Call {
+	return &MockService_Impersonate_Call{Call: _e.mock.On("Impersonate", ctx, userID)}
+}
+
+func (_c *MockService_Impersonate_Call) Run(run func(ctx context.Context, userID string)) *MockService_Impersonate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_Impersonate_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_Impersonate_Call {
+	_c.Call.Return(userAuthResponse, err)
+	return _c
+}
+
+func (_c *MockService_Impersonate_Call) RunAndReturn(run func(ctx context.Context, userID string) (*models.UserAuthResponse, error)) *MockService_Impersonate_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6558,6 +6604,74 @@ func (_c *MockService_RenameSSHIdentity_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// RenewUserToken provides a mock function for the type MockService
+func (_mock *MockService) RenewUserToken(ctx context.Context, req *requests.RenewUserToken) (*models.UserAuthResponse, error) {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RenewUserToken")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.RenewUserToken) (*models.UserAuthResponse, error)); ok {
+		return returnFunc(ctx, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.RenewUserToken) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.RenewUserToken) error); ok {
+		r1 = returnFunc(ctx, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_RenewUserToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RenewUserToken'
+type MockService_RenewUserToken_Call struct {
+	*mock.Call
+}
+
+// RenewUserToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.RenewUserToken
+func (_e *MockService_Expecter) RenewUserToken(ctx any, req any) *MockService_RenewUserToken_Call {
+	return &MockService_RenewUserToken_Call{Call: _e.mock.On("RenewUserToken", ctx, req)}
+}
+
+func (_c *MockService_RenewUserToken_Call) Run(run func(ctx context.Context, req *requests.RenewUserToken)) *MockService_RenewUserToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.RenewUserToken
+		if args[1] != nil {
+			arg1 = args[1].(*requests.RenewUserToken)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RenewUserToken_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_RenewUserToken_Call {
+	_c.Call.Return(userAuthResponse, err)
+	return _c
+}
+
+func (_c *MockService_RenewUserToken_Call) RunAndReturn(run func(ctx context.Context, req *requests.RenewUserToken) (*models.UserAuthResponse, error)) *MockService_RenewUserToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ReportBilling provides a mock function for the type MockService
 func (_mock *MockService) ReportBilling(ctx context.Context, tenant string, action services.BillingAction) error {
 	ret := _mock.Called(ctx, tenant, action)
@@ -7338,6 +7452,160 @@ func (_c *MockService_Setup_Call) Return(userAuthResponse *models.UserAuthRespon
 }
 
 func (_c *MockService_Setup_Call) RunAndReturn(run func(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error)) *MockService_Setup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SignIn provides a mock function for the type MockService
+func (_mock *MockService) SignIn(ctx context.Context, userID string, method models.UserAuthMethod) (*models.UserAuthResponse, error) {
+	ret := _mock.Called(ctx, userID, method)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SignIn")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UserAuthMethod) (*models.UserAuthResponse, error)); ok {
+		return returnFunc(ctx, userID, method)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UserAuthMethod) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, userID, method)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.UserAuthMethod) error); ok {
+		r1 = returnFunc(ctx, userID, method)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_SignIn_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SignIn'
+type MockService_SignIn_Call struct {
+	*mock.Call
+}
+
+// SignIn is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - method models.UserAuthMethod
+func (_e *MockService_Expecter) SignIn(ctx any, userID any, method any) *MockService_SignIn_Call {
+	return &MockService_SignIn_Call{Call: _e.mock.On("SignIn", ctx, userID, method)}
+}
+
+func (_c *MockService_SignIn_Call) Run(run func(ctx context.Context, userID string, method models.UserAuthMethod)) *MockService_SignIn_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 models.UserAuthMethod
+		if args[2] != nil {
+			arg2 = args[2].(models.UserAuthMethod)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_SignIn_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_SignIn_Call {
+	_c.Call.Return(userAuthResponse, err)
+	return _c
+}
+
+func (_c *MockService_SignIn_Call) RunAndReturn(run func(ctx context.Context, userID string, method models.UserAuthMethod) (*models.UserAuthResponse, error)) *MockService_SignIn_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SignInAt provides a mock function for the type MockService
+func (_mock *MockService) SignInAt(ctx context.Context, userID string, method models.UserAuthMethod, tokenVersion int) (*models.UserAuthResponse, error) {
+	ret := _mock.Called(ctx, userID, method, tokenVersion)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SignInAt")
+	}
+
+	var r0 *models.UserAuthResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UserAuthMethod, int) (*models.UserAuthResponse, error)); ok {
+		return returnFunc(ctx, userID, method, tokenVersion)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UserAuthMethod, int) *models.UserAuthResponse); ok {
+		r0 = returnFunc(ctx, userID, method, tokenVersion)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.UserAuthResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.UserAuthMethod, int) error); ok {
+		r1 = returnFunc(ctx, userID, method, tokenVersion)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_SignInAt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SignInAt'
+type MockService_SignInAt_Call struct {
+	*mock.Call
+}
+
+// SignInAt is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - method models.UserAuthMethod
+//   - tokenVersion int
+func (_e *MockService_Expecter) SignInAt(ctx any, userID any, method any, tokenVersion any) *MockService_SignInAt_Call {
+	return &MockService_SignInAt_Call{Call: _e.mock.On("SignInAt", ctx, userID, method, tokenVersion)}
+}
+
+func (_c *MockService_SignInAt_Call) Run(run func(ctx context.Context, userID string, method models.UserAuthMethod, tokenVersion int)) *MockService_SignInAt_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 models.UserAuthMethod
+		if args[2] != nil {
+			arg2 = args[2].(models.UserAuthMethod)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_SignInAt_Call) Return(userAuthResponse *models.UserAuthResponse, err error) *MockService_SignInAt_Call {
+	_c.Call.Return(userAuthResponse, err)
+	return _c
+}
+
+func (_c *MockService_SignInAt_Call) RunAndReturn(run func(ctx context.Context, userID string, method models.UserAuthMethod, tokenVersion int) (*models.UserAuthResponse, error)) *MockService_SignInAt_Call {
 	_c.Call.Return(run)
 	return _c
 }

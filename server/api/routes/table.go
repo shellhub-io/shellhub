@@ -116,8 +116,8 @@ func (h *Handler) publicRoutes() []route {
 	table := []route{
 		{method: http.MethodGet, path: HealthCheckURL, endpoint: gateway.None(h.EvaluateHealth), access: anonymous, unbounded: true},
 
-		{method: http.MethodGet, path: AuthLocalUserURLV2, endpoint: gateway.Legacy(h.CreateUserToken), access: ownAccount},
-		{method: http.MethodGet, path: AuthUserTokenPublicURL, endpoint: gateway.Legacy(h.CreateUserToken), access: ownAccount},
+		{method: http.MethodGet, path: AuthLocalUserURLV2, endpoint: gateway.Legacy(h.RenewUserToken), access: ownAccount},
+		{method: http.MethodGet, path: AuthUserTokenPublicURL, endpoint: gateway.Legacy(h.RenewUserToken), access: ownAccount},
 		{method: http.MethodPost, path: AuthDeviceURL, endpoint: gateway.Legacy(h.AuthDevice), access: anonymous},
 		{method: http.MethodPost, path: AuthDeviceChallengeURL, endpoint: gateway.Legacy(h.CreateDeviceAuthChallenge), access: anonymous},
 		{method: http.MethodPost, path: AuthDeviceURLV2, endpoint: gateway.Legacy(h.AuthDevice), access: anonymous},

@@ -398,7 +398,7 @@ func TestAuthLocalUser(t *testing.T) {
 	}
 }
 
-func TestCreateUserToken(t *testing.T) {
+func TestRenewUserToken(t *testing.T) {
 	svcMock := mocks.NewMockService(t)
 
 	type Expected struct {
@@ -419,7 +419,7 @@ func TestCreateUserToken(t *testing.T) {
 			caller:      identity.Identity{ID: "000000000000000000000000"},
 			mocks: func() {
 				svcMock.
-					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
+					On("RenewUserToken", gomock.Anything, &requests.RenewUserToken{
 						UserID:   "000000000000000000000000",
 						TenantID: "",
 					}).
@@ -451,7 +451,7 @@ func TestCreateUserToken(t *testing.T) {
 			caller:      identity.Identity{ID: "000000000000000000000000"},
 			mocks: func() {
 				svcMock.
-					On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{
+					On("RenewUserToken", gomock.Anything, &requests.RenewUserToken{
 						UserID:   "000000000000000000000000",
 						TenantID: "00000000-0000-4000-0000-000000000001",
 					}).
@@ -583,10 +583,10 @@ func TestAuthPublicKey(t *testing.T) {
 	}
 }
 
-func TestCreateUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testing.T) {
+func TestRenewUserTokenSerializesTenantAndRoleAsNullWithoutAMembership(t *testing.T) {
 	svcMock := mocks.NewMockService(t)
 	svcMock.
-		On("CreateUserToken", gomock.Anything, &requests.CreateUserToken{UserID: "000000000000000000000000"}).
+		On("RenewUserToken", gomock.Anything, &requests.RenewUserToken{UserID: "000000000000000000000000"}).
 		Return(&models.UserAuthResponse{
 			ID:    "000000000000000000000000",
 			Name:  "john doe",
@@ -658,7 +658,7 @@ func TestRenewalCarriesTheBearerTokenVersion(t *testing.T) {
 			method:      http.MethodGet,
 			path:        "/api/auth/user",
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("CreateUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.CreateUserToken) bool {
+				service.On("RenewUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.RenewUserToken) bool {
 					return presentedVersion(req.TokenVersion)
 				})).Return(&models.UserAuthResponse{}, nil).Once()
 			},
@@ -668,7 +668,7 @@ func TestRenewalCarriesTheBearerTokenVersion(t *testing.T) {
 			method:      http.MethodGet,
 			path:        "/api/auth/token/" + tenant,
 			requiredMocks: func(service *mocks.MockService) {
-				service.On("CreateUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.CreateUserToken) bool {
+				service.On("RenewUserToken", gomock.Anything, gomock.MatchedBy(func(req *requests.RenewUserToken) bool {
 					return presentedVersion(req.TokenVersion)
 				})).Return(&models.UserAuthResponse{}, nil).Once()
 			},

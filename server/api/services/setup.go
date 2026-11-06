@@ -41,10 +41,10 @@ type SetupService interface {
 }
 
 func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAuthResponse, error) {
-	var userID, tenantID string
+	var userID string
 	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
-		userID, tenantID, err = s.setupInTransaction(ctx, req)
+		userID, err = s.setupInTransaction(ctx, req)
 
 		return err
 	}); err != nil {
@@ -55,7 +55,7 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 		log.WithError(err).Warn("failed to evict the cached system row after setup")
 	}
 
-	res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: userID, TenantID: tenantID})
+	res, err := s.SignIn(ctx, userID, models.UserAuthMethodLocal)
 	if err != nil {
 		log.WithError(err).Warn("setup completed but failed to issue an auto-login token")
 
@@ -65,18 +65,18 @@ func (s *service) Setup(ctx context.Context, req requests.Setup) (*models.UserAu
 	return res, nil
 }
 
-func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (userID, tenantID string, err error) {
+func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (string, error) {
 	if err := s.store.SystemLock(ctx); err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	system, err := s.store.SystemGet(ctx)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	if system.Setup {
-		return "", "", NewErrSetupCompleted()
+		return "", NewErrSetupCompleted()
 	}
 
 	data := models.UserData{
@@ -87,16 +87,16 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (u
 	}
 
 	if ok, err := s.validator.Struct(data); !ok || err != nil {
-		return "", "", NewErrUserInvalid(nil, err)
+		return "", NewErrUserInvalid(nil, err)
 	}
 
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
-		return "", "", NewErrUserPasswordInvalid(err)
+		return "", NewErrUserPasswordInvalid(err)
 	}
 
 	if ok, err := s.validator.Struct(password); !ok || err != nil {
-		return "", "", NewErrUserPasswordInvalid(err)
+		return "", NewErrUserPasswordInvalid(err)
 	}
 
 	user := &models.User{
@@ -116,18 +116,18 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (u
 	if err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			if field, ok := store.DuplicatedField(err); ok {
-				return "", "", NewErrUserDuplicated([]string{field}, err)
+				return "", NewErrUserDuplicated([]string{field}, err)
 			}
 
-			return "", "", NewErrUserUnhandledDuplicate()
+			return "", NewErrUserUnhandledDuplicate()
 		}
 
-		return "", "", err
+		return "", err
 	}
 
 	namespaceName := strings.ToLower(req.Namespace)
 
-	tenantID = uuid.Generate()
+	tenantID := uuid.Generate()
 	if s.development && namespaceName == devNamespace {
 		tenantID = devTenantID
 	}
@@ -155,17 +155,17 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (u
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
-			return "", "", NewErrNamespaceDuplicated(err)
+			return "", NewErrNamespaceDuplicated(err)
 		}
 
-		return "", "", NewErrNamespaceCreateStore(err)
+		return "", NewErrNamespaceCreateStore(err)
 	}
 
 	system.Setup = true
 	system.InstanceTenantID = namespace.TenantID
 	if err := s.store.SystemSet(ctx, system); err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return insertedID, namespace.TenantID, nil
+	return insertedID, nil
 }

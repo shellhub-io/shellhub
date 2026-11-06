@@ -2327,7 +2327,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestCreateUserToken(t *testing.T) {
+func TestRenewUserToken(t *testing.T) {
 	clk := clock.NewFixed(now)
 
 	storeMock := mocks.NewMockStore(t)
@@ -2341,13 +2341,13 @@ func TestCreateUserToken(t *testing.T) {
 
 	tests := []struct {
 		description   string
-		req           *requests.CreateUserToken
+		req           *requests.RenewUserToken
 		requiredMocks func(context.Context)
 		expected      Expected
 	}{
 		{
 			description: "fails when user is not found",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2361,7 +2361,7 @@ func TestCreateUserToken(t *testing.T) {
 		},
 		{
 			description: "[with-tenant] fails when namespace is not found",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2400,7 +2400,7 @@ func TestCreateUserToken(t *testing.T) {
 		},
 		{
 			description: "[with-tenant] fails when user is not a member of the namespace",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2445,7 +2445,7 @@ func TestCreateUserToken(t *testing.T) {
 		},
 		{
 			description: "[with-tenant] succeeds",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000"},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
 					ID:        "000000000000000000000000",
@@ -2510,7 +2510,7 @@ func TestCreateUserToken(t *testing.T) {
 		},
 		{
 			description: "[without-tenant] succeeds when user has a preferred namespace",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: ""},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2572,7 +2572,7 @@ func TestCreateUserToken(t *testing.T) {
 		},
 		{
 			description: "[without-tenant] succeeds when user doesn't has a preferred namespace",
-			req:         &requests.CreateUserToken{UserID: "000000000000000000000000", TenantID: ""},
+			req:         &requests.RenewUserToken{UserID: "000000000000000000000000", TenantID: ""},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
@@ -2631,7 +2631,7 @@ func TestCreateUserToken(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			res, err := s.CreateUserToken(ctx, tc.req)
+			res, err := s.RenewUserToken(ctx, tc.req)
 			if res != nil {
 				res.Token = "must ignore"
 			}
@@ -2643,7 +2643,7 @@ func TestCreateUserToken(t *testing.T) {
 	storeMock.AssertExpectations(t)
 }
 
-func TestCreateUserTokenCarriesTheTokenVersion(t *testing.T) {
+func TestRenewUserTokenCarriesTheTokenVersion(t *testing.T) {
 	presented := 2
 
 	cases := []struct {
@@ -2680,7 +2680,7 @@ func TestCreateUserTokenCarriesTheTokenVersion(t *testing.T) {
 			storeMock.On("NamespaceGetPreferred", ctx, user.ID).Return(nil, store.ErrNoDocuments).Once()
 			cacheMock.On("Set", ctx, "token_"+user.ID, testifymock.Anything, time.Hour*72).Return(nil).Once()
 
-			res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: user.ID, TokenVersion: tc.presented})
+			res, err := s.RenewUserToken(ctx, &requests.RenewUserToken{UserID: user.ID, TokenVersion: tc.presented})
 			require.NoError(t, err)
 
 			claims, err := jwttoken.ClaimsFromBearerToken(&privateKey.PublicKey, res.Token)

@@ -98,10 +98,10 @@ func (h *Handler) AuthLocalUser(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// CreateUserToken issues a token for a user without their password. It is reachable only
-// internally, so that the SSH gateway can act on a user's behalf.
-func (h *Handler) CreateUserToken(c *gateway.Context) error {
-	req := new(requests.CreateUserToken)
+// RenewUserToken replaces the caller's bearer, optionally for another namespace the caller is a
+// member of, keeping the bearer's token version and impersonation.
+func (h *Handler) RenewUserToken(c *gateway.Context) error {
+	req := new(requests.RenewUserToken)
 
 	if err := c.Bind(req); err != nil {
 		return err
@@ -117,7 +117,7 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 
 	req.Impersonated = authctx.UserImpersonated(c.Ctx(), req.UserID)
 
-	res, err := h.service.CreateUserToken(c.Ctx(), req)
+	res, err := h.service.RenewUserToken(c.Ctx(), req)
 	if err != nil {
 		return err
 	}
