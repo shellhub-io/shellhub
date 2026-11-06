@@ -1,16 +1,13 @@
 import { Link } from "react-router-dom";
-import {
-  ChevronDoubleRightIcon,
-  CpuChipIcon,
-  TagIcon,
-} from "@heroicons/react/24/outline";
-import { Badge, Button, StatusDot } from "@shellhub/design-system/primitives";
+import { ChevronDoubleRightIcon, CpuChipIcon } from "@heroicons/react/24/outline";
+import { Button, StatusDot } from "@shellhub/design-system/primitives";
 import type { Device } from "@/client";
 import Modal from "@/components/common/Modal";
 import InfoItem from "@/components/common/InfoItem";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import SshidCard from "@/components/common/SshidCard";
+import TagBadge from "@/components/common/TagBadge";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { formatRelative } from "@/utils/date";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
@@ -108,10 +105,7 @@ export default function DeviceBriefDialog({
           {tags.length > 0 ? (
             <span className="flex flex-wrap gap-1">
               {tags.map((tag) => (
-                <Badge key={tag} color="primary">
-                  <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
-                  {tag}
-                </Badge>
+                <TagBadge key={tag} name={tag} />
               ))}
             </span>
           ) : (

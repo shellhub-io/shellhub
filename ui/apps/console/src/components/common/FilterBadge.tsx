@@ -1,10 +1,6 @@
 import { Tag } from "@/client";
-import { Badge } from "@shellhub/design-system/primitives";
-import {
-  TagIcon,
-  CpuChipIcon,
-  GlobeAltIcon,
-} from "@heroicons/react/24/outline";
+import { CpuChipIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import TagBadge from "@/components/common/TagBadge";
 
 /**
  * Summarises the filter a rule or policy applies to, so a row says what it covers without being
@@ -19,10 +15,7 @@ export default function FilterBadge({
     return (
       <div className="flex flex-wrap gap-1">
         {filter.tags.map((tag) => (
-          <Badge key={tag.name} color="primary">
-            <TagIcon className="w-2.5 h-2.5" strokeWidth={2} />
-            {tag.name}
-          </Badge>
+          <TagBadge key={tag.name} name={tag.name} />
         ))}
       </div>
     );
