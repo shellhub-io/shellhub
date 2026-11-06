@@ -70,7 +70,7 @@ type MemberService interface {
 	SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted)
 }
 
-func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role) (*models.Namespace, *models.Member, error) {
+func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role, permissions ...authorizer.Permission) (*models.Namespace, *models.Member, error) {
 	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	if err != nil || namespace == nil {
 		return nil, nil, NewErrNamespaceNotFound(tenantID, err)
@@ -83,6 +83,12 @@ func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID str
 
 	if requireAuthorityOver != authorizer.RoleInvalid && !member.Role.HasAuthority(requireAuthorityOver) {
 		return nil, nil, NewErrRoleForbidden()
+	}
+
+	for _, permission := range permissions {
+		if !member.Role.HasPermission(permission) {
+			return nil, nil, NewErrRoleForbidden()
+		}
 	}
 
 	return namespace, member, nil
@@ -101,7 +107,7 @@ func (s *service) admitMember(ctx context.Context, sc scope.Scope, member *model
 }
 
 func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole)
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +256,7 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 }
 
 func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceEditMember)
 	if err != nil {
 		return err
 	}
@@ -322,7 +328,7 @@ func canKeepDevices(active *models.Member, keep []string) error {
 }
 
 func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
+	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
 	if err != nil {
 		return nil, err
 	}

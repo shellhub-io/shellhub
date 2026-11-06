@@ -26,13 +26,13 @@ func TestInvitationLink(t *testing.T) {
 	compose := newSSHEnvironment(t, t.Context(), legacyNamespace)
 
 	t.Run("a link resolves for seven days", func(t *testing.T) {
-		tenant := newInvitingNamespace(t, compose, "invitation-lifetime")
-		link := generateInvitationLink(t, compose, tenant, "lifetime@ossystems.com.br")
+		namespace := newInvitingNamespace(t, compose, "invitation-lifetime")
+		link := generateInvitationLink(t, compose, namespace, "lifetime@ossystems.com.br")
 
 		require.Equal(t, http.StatusOK, resolveInvitation(t, compose, link).StatusCode())
 
 		invitations := []models.MembershipInvitation{}
-		resp, err := compose.R(t.Context()).SetResult(&invitations).Get("/api/namespaces/" + tenant + "/invitations")
+		resp, err := asBearer(t, compose, namespace.token).SetResult(&invitations).Get("/api/namespaces/" + namespace.tenant + "/invitations")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 		require.Len(t, invitations, 1)
@@ -41,15 +41,15 @@ func TestInvitationLink(t *testing.T) {
 	})
 
 	t.Run("an expired link is refused, and generating it again issues a fresh one", func(t *testing.T) {
-		tenant := newInvitingNamespace(t, compose, "invitation-expired")
+		namespace := newInvitingNamespace(t, compose, "invitation-expired")
 		invitee := "expired@ossystems.com.br"
-		expired := generateInvitationLink(t, compose, tenant, invitee)
+		expired := generateInvitationLink(t, compose, namespace, invitee)
 
 		require.Equal(t, http.StatusOK, resolveInvitation(t, compose, expired).StatusCode())
-		compose.ExpireMembershipInvitation(t, tenant)
+		compose.ExpireMembershipInvitation(t, namespace.tenant)
 		assert.Equal(t, http.StatusForbidden, resolveInvitation(t, compose, expired).StatusCode())
 
-		fresh := generateInvitationLink(t, compose, tenant, invitee)
+		fresh := generateInvitationLink(t, compose, namespace, invitee)
 
 		assert.NotEqual(t, expired, fresh)
 		assert.Equal(t, http.StatusOK, resolveInvitation(t, compose, fresh).StatusCode())
@@ -57,38 +57,43 @@ func TestInvitationLink(t *testing.T) {
 	})
 
 	t.Run("a link still valid is not generated again", func(t *testing.T) {
-		tenant := newInvitingNamespace(t, compose, "invitation-valid")
+		namespace := newInvitingNamespace(t, compose, "invitation-valid")
 		invitee := "valid@ossystems.com.br"
-		link := generateInvitationLink(t, compose, tenant, invitee)
+		link := generateInvitationLink(t, compose, namespace, invitee)
 
-		resp, err := postInvitationLink(t, compose, tenant, invitee)
+		resp, err := postInvitationLink(t, compose, namespace, invitee)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
 		assert.Equal(t, http.StatusOK, resolveInvitation(t, compose, link).StatusCode())
 	})
 }
 
-func newInvitingNamespace(t *testing.T, compose *environment.DockerCompose, name string) string {
+type invitingNamespace struct {
+	tenant string
+	token  string
+}
+
+func newInvitingNamespace(t *testing.T, compose *environment.DockerCompose, name string) invitingNamespace {
 	t.Helper()
 
 	tenant := uuid.Generate()
 	compose.NewNamespace(t, ShellHubUsername, name, tenant)
 
-	return tenant
+	return invitingNamespace{tenant: tenant, token: signIntoTenant(t, compose, ShellHubUsername, ShellHubPassword, tenant).Token}
 }
 
-func postInvitationLink(t *testing.T, compose *environment.DockerCompose, tenant, email string) (*resty.Response, error) {
+func postInvitationLink(t *testing.T, compose *environment.DockerCompose, namespace invitingNamespace, email string) (*resty.Response, error) {
 	t.Helper()
 
-	return compose.R(t.Context()).
+	return asBearer(t, compose, namespace.token).
 		SetBody(map[string]string{"email": email, "role": "observer"}).
-		Post("/api/namespaces/" + tenant + "/invitations/links")
+		Post("/api/namespaces/" + namespace.tenant + "/invitations/links")
 }
 
-func generateInvitationLink(t *testing.T, compose *environment.DockerCompose, tenant, email string) string {
+func generateInvitationLink(t *testing.T, compose *environment.DockerCompose, namespace invitingNamespace, email string) string {
 	t.Helper()
 
-	resp, err := postInvitationLink(t, compose, tenant, email)
+	resp, err := postInvitationLink(t, compose, namespace, email)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 

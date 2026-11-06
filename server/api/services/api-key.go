@@ -147,7 +147,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 		return err
 	}
 
-	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role); err != nil {
+	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role, authorizer.APIKeyUpdate); err != nil {
 		return err
 	}
 
