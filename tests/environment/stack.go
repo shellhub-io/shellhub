@@ -568,11 +568,11 @@ func (s *Stack) JWT(token string) {
 }
 
 // ServerMetric returns the value of the unlabelled Prometheus series name that the server publishes
-// at its internal metrics endpoint, read with curl from inside the server container, since the
-// gateway refuses that endpoint. ctx bounds the exec. It returns an error when the exec cannot run,
+// on its operator listener, read with curl from inside the server container, since that listener
+// binds loopback alone. ctx bounds the exec. It returns an error when the exec cannot run,
 // its output cannot be read, curl exits non-zero, or the series is missing or not a number.
 func (s *Stack) ServerMetric(ctx context.Context, name string) (float64, error) {
-	code, output, err := s.Service(ServiceServer).Exec(ctx, []string{"curl", "-sf", "http://localhost:8080/internal/metrics"}, tcexec.Multiplexed())
+	code, output, err := s.Service(ServiceServer).Exec(ctx, []string{"curl", "-sf", "http://localhost:9091/metrics"}, tcexec.Multiplexed())
 	if err != nil {
 		return 0, err
 	}

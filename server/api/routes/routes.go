@@ -65,11 +65,11 @@ func WithReporter(reporter *sentry.Client) Option {
 	}
 }
 
-// WithMetrics records request metrics and serves them at /metrics.
+// WithMetrics records request metrics into the default Prometheus registry. It serves nothing:
+// the registry is published on the operator listener, never on this router.
 func WithMetrics() Option {
 	return func(e *echo.Echo, _ *Handler) error {
 		e.Use(echoprometheus.NewMiddleware("api"))
-		e.GET("/metrics", echoprometheus.NewHandler())
 
 		return nil
 	}
@@ -163,8 +163,6 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	mount(router.Group(publicAPIPrefix), table)
 
 	SetupMCPRoutes(router)
-
-	registerInternalMetrics(router, handler.authn)
 
 	if handler.authn != nil {
 		allow(handler.authn, table)

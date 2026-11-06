@@ -40,7 +40,6 @@ func tableFor(t *testing.T, edition envs.Edition) []route {
 var mountedOutsideTheTable = map[string]string{
 	echo.RouteAny + " /mcp":         "the MCP server replays each tool call against the table's own routes",
 	echo.RouteAny + " /mcp/*":       "the MCP server replays each tool call against the table's own routes",
-	"GET " + InternalMetricsURL:     "Prometheus scrapes it from inside the cluster",
 	"GET /ssh/connection":           "the SSH server's web terminal, mounted by sshhttp.Register",
 	"GET /ssh/revdial":              "the agent's reverse dial, mounted by sshhttp.Register",
 	"GET /agent/connection":         "the agent's connection, mounted by sshhttp.Register",

@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
@@ -14,10 +12,8 @@ import (
 // not included; they mount through [routetable.Mount].
 func Declared(edition envs.Edition) map[string]string {
 	declared := map[string]string{
-		routetable.Address(echo.RouteAny, "/mcp"):              "the MCP server replays each tool call against the table's own routes",
-		routetable.Address(echo.RouteAny, "/mcp/*"):            "the MCP server replays each tool call against the table's own routes",
-		routetable.Address(http.MethodGet, "/metrics"):         "Prometheus scrapes it, and authentication exempts it",
-		routetable.Address(http.MethodGet, InternalMetricsURL): "Prometheus scrapes it from inside the cluster",
+		routetable.Address(echo.RouteAny, "/mcp"):   "the MCP server replays each tool call against the table's own routes",
+		routetable.Address(echo.RouteAny, "/mcp/*"): "the MCP server replays each tool call against the table's own routes",
 	}
 
 	handler := NewHandler(nil)
