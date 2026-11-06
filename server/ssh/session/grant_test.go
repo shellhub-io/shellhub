@@ -86,6 +86,10 @@ func apiKeyPrincipal(id string) models.Principal {
 	return models.Principal{Kind: models.PrincipalAPIKey, ID: id}
 }
 
+func userPrincipal(id string) models.Principal {
+	return models.Principal{Kind: models.PrincipalUser, ID: id}
+}
+
 func TestSingleUseIdentityRedemption(t *testing.T) {
 	t.Run("a login that loses the redemption never registers", func(t *testing.T) {
 		f := newGrantFixture(t)
@@ -124,6 +128,73 @@ func TestSingleUseIdentityRedemption(t *testing.T) {
 
 		require.Error(t, f.login(t, key))
 		assert.Equal(t, StateRegistered, f.state())
+
+		spare := newTestSSHKey(t)
+		f.enroll(spare, nil)
+
+		require.ErrorIs(t, f.login(t, spare), ErrInvalidSessionState)
+		assert.Len(t, f.tunnel.Dials(), 1, "another key must not take the registered session to the device")
+	})
+}
+
+func TestRegisteredSessionRejoin(t *testing.T) {
+	t.Run("another key of the registered principal reaches the device again", func(t *testing.T) {
+		f := newGrantFixture(t)
+		first, second := newTestSSHKey(t), newTestSSHKey(t)
+
+		f.enroll(first, &models.SSHIdentity{PrincipalID: "user1", PrincipalType: models.PrincipalUser})  //nolint:exhaustruct
+		f.enroll(second, &models.SSHIdentity{PrincipalID: "user1", PrincipalType: models.PrincipalUser}) //nolint:exhaustruct
+		f.allow(userPrincipal("user1"))
+		f.service.EXPECT().
+			CreateSession(mock.Anything, mock.MatchedBy(func(req requests.SessionCreate) bool { return req.UserID == "user1" })).
+			Return(&models.Session{}, nil). //nolint:exhaustruct // the session is registered, not read back
+			Once()
+
+		require.Error(t, f.login(t, first))
+		require.Equal(t, StateRegistered, f.state())
+
+		err := f.login(t, second)
+		require.Error(t, err)
+		require.NotErrorIs(t, err, ErrInvalidSessionState)
+		assert.Len(t, f.tunnel.Dials(), 2)
+	})
+
+	t.Run("a key of another principal is refused without reaching the device", func(t *testing.T) {
+		f := newGrantFixture(t)
+		first, other := newTestSSHKey(t), newTestSSHKey(t)
+
+		f.enroll(first, &models.SSHIdentity{PrincipalID: "user1", PrincipalType: models.PrincipalUser}) //nolint:exhaustruct
+		f.enroll(other, &models.SSHIdentity{PrincipalID: "user2", PrincipalType: models.PrincipalUser}) //nolint:exhaustruct
+		f.allow(userPrincipal("user1"))
+		f.allow(userPrincipal("user2"))
+		f.service.EXPECT().
+			CreateSession(mock.Anything, mock.MatchedBy(func(req requests.SessionCreate) bool { return req.UserID == "user1" })).
+			Return(&models.Session{}, nil). //nolint:exhaustruct // the session is registered, not read back
+			Once()
+
+		require.Error(t, f.login(t, first))
+		require.Equal(t, StateRegistered, f.state())
+
+		require.ErrorIs(t, f.login(t, other), ErrInvalidSessionState)
+		assert.Len(t, f.tunnel.Dials(), 1)
+	})
+
+	t.Run("a key that needs an approval is refused without opening one", func(t *testing.T) {
+		f := newGrantFixture(t)
+		first, unenrolled := newTestSSHKey(t), newTestSSHKey(t)
+
+		f.enroll(first, &models.SSHIdentity{PrincipalID: "user1", PrincipalType: models.PrincipalUser}) //nolint:exhaustruct
+		f.enroll(unenrolled, nil)
+		f.allow(userPrincipal("user1"))
+		f.service.EXPECT().
+			CreateSession(mock.Anything, mock.Anything).
+			Return(&models.Session{}, nil). //nolint:exhaustruct // the session is registered, not read back
+			Once()
+
+		require.Error(t, f.login(t, first))
+		require.Equal(t, StateRegistered, f.state())
+
+		require.ErrorIs(t, f.login(t, unenrolled), ErrInvalidSessionState)
 		assert.Len(t, f.tunnel.Dials(), 1)
 	})
 }
