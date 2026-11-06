@@ -1,0 +1,37 @@
+get:
+  operationId: getDeviceLocations
+  summary: Count devices by location
+  description: |
+    Count the namespace's accepted devices at each position, for drawing them
+    on a map without reading every device. Devices with no position are left
+    out. The `filter` parameter takes the same fields as the device list,
+    `latitude` and `longitude` included, so the map and the list narrow the
+    same way.
+  tags:
+    - community
+    - devices
+  security:
+    - jwt: []
+    - api-key: []
+  parameters:
+    - $ref: ../components/parameters/query/filterQuery.yaml
+  responses:
+    '200':
+      description: Device counts by location
+      headers:
+        X-GeoIP-Source:
+          $ref: ../components/headers/XGeoIPSource.yaml
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/deviceLocation.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

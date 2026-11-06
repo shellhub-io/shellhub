@@ -1925,6 +1925,89 @@ func (_c *MockStore_DeviceListExpiredEphemeral_Call) RunAndReturn(run func(ctx c
 	return _c
 }
 
+// DeviceLocations provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceLocations(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.DeviceLocation, error) {
+	var tmpRet mock.Arguments
+	if len(opts) > 0 {
+		tmpRet = _mock.Called(ctx, sc, opts)
+	} else {
+		tmpRet = _mock.Called(ctx, sc)
+	}
+	ret := tmpRet
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceLocations")
+	}
+
+	var r0 []models.DeviceLocation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) ([]models.DeviceLocation, error)); ok {
+		return returnFunc(ctx, sc, opts...)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, ...store.QueryOption) []models.DeviceLocation); ok {
+		r0 = returnFunc(ctx, sc, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.DeviceLocation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, ...store.QueryOption) error); ok {
+		r1 = returnFunc(ctx, sc, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_DeviceLocations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceLocations'
+type MockStore_DeviceLocations_Call struct {
+	*mock.Call
+}
+
+// DeviceLocations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - opts ...store.QueryOption
+func (_e *MockStore_Expecter) DeviceLocations(ctx any, sc any, opts ...any) *MockStore_DeviceLocations_Call {
+	return &MockStore_DeviceLocations_Call{Call: _e.mock.On("DeviceLocations",
+		append([]any{ctx, sc}, opts...)...)}
+}
+
+func (_c *MockStore_DeviceLocations_Call) Run(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption)) *MockStore_DeviceLocations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 []store.QueryOption
+		var variadicArgs []store.QueryOption
+		if len(args) > 2 {
+			variadicArgs = args[2].([]store.QueryOption)
+		}
+		arg2 = variadicArgs
+		run(
+			arg0,
+			arg1,
+			arg2...,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceLocations_Call) Return(deviceLocations []models.DeviceLocation, err error) *MockStore_DeviceLocations_Call {
+	_c.Call.Return(deviceLocations, err)
+	return _c
+}
+
+func (_c *MockStore_DeviceLocations_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.DeviceLocation, error)) *MockStore_DeviceLocations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceLockMAC provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error {
 	ret := _mock.Called(ctx, sc, mac)

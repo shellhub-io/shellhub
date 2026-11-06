@@ -3078,3 +3078,25 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 		})
 	}
 }
+
+func TestListDeviceLocations_leaves_connectors_out(t *testing.T) {
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	ctx := context.TODO()
+	filters := &query.Filters{}
+
+	queryOptionsMock.On("Match", filters).Return(nil).Once()
+	queryOptionsMock.On("Match", platformFilters("ne")).Return(nil).Once()
+	storeMock.
+		On("DeviceLocations", ctx, scope.MustBounded(tenantID), mock.MatchedBy(func(opts []store.QueryOption) bool { return len(opts) == 2 })).
+		Return([]models.DeviceLocation{}, nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	_, err := service.ListDeviceLocations(ctx, scope.MustBounded(tenantID), &requests.DeviceLocationList{Filters: *filters})
+	require.NoError(t, err)
+}

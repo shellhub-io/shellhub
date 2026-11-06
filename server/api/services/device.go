@@ -30,13 +30,17 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"tags.name":     {"contains", "eq"},
 	"online":        {"bool", "eq"},
 	"key_verified":  {"bool", "eq"},
+	"located":       {"bool", "eq"},
 	"custom_fields": {"contains"},
 	"owner_id":      {"eq"},
 
 	"info.platform": {"contains", "eq", "ne"},
 	"identity.mac":  {"contains", "eq", "ne"},
+
+	"latitude":  {"gt", "lt"},
+	"longitude": {"gt", "lt"},
 },
-	"online",
+	"online", "located",
 ).WithValues(map[string][]string{
 	"status": {
 		string(models.DeviceStatusAccepted),
@@ -45,7 +49,7 @@ var DeviceFilterFields = query.NewFieldConstraints(map[string][]string{
 		string(models.DeviceStatusRemoved),
 		string(models.DeviceStatusUnused),
 	},
-}).WithUUIDs("owner_id")
+}).WithUUIDs("owner_id").WithNumbers("latitude", "longitude")
 
 // DeviceSortFields is the set of field names accepted in the sort_by query
 // parameter when listing devices.
@@ -72,6 +76,13 @@ type DeviceService interface {
 	// cancelled ctx alike. Any other failure is an error [store.DeviceStore.DeviceListAfter]
 	// documents.
 	ListDevicesAfter(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) (devices []models.Device, next *query.Cursor, err error)
+
+	// ListDeviceLocations counts the scope's accepted devices at each position, as
+	// [store.DeviceStore.DeviceLocations] does, keeping only the devices req.Filters matches and
+	// leaving connector containers out, as the device list does by default. It
+	// reads under ctx and returns the store's errors unchanged, ctx's own error included when ctx
+	// ends.
+	ListDeviceLocations(ctx context.Context, sc scope.Scope, req *requests.DeviceLocationList) ([]models.DeviceLocation, error)
 
 	// GetDevice fetches a device within the given namespace scope. The scope is an explicit
 	// parameter rather than something recovered from the request context, so a caller cannot
@@ -174,6 +185,13 @@ func (s *service) ListDevices(ctx context.Context, sc scope.Scope, req *requests
 	}
 
 	return s.store.DeviceList(ctx, sc, acceptable, append(opts, order...)...)
+}
+
+func (s *service) ListDeviceLocations(ctx context.Context, sc scope.Scope, req *requests.DeviceLocationList) ([]models.DeviceLocation, error) {
+	return s.store.DeviceLocations(ctx, sc,
+		s.store.Options().Match(&req.Filters),
+		s.store.Options().Match(platformFilter(false)),
+	)
 }
 
 func (s *service) ListDevicesAfter(ctx context.Context, sc scope.Scope, req *requests.DeviceList, after *query.Cursor) ([]models.Device, *query.Cursor, error) {

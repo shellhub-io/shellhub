@@ -21,6 +21,12 @@ type DeviceList struct {
 	query.Filters
 }
 
+// DeviceLocationList is the request for the device map: the namespace's accepted devices counted
+// by position, narrowed by the same filter the device list takes.
+type DeviceLocationList struct {
+	query.Filters
+}
+
 // DeviceUpdate is the request to change a device's editable fields. An omitted field is left
 // alone, which is why Name is optional rather than required.
 type DeviceUpdate struct {

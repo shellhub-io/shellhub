@@ -4598,6 +4598,80 @@ func (_c *MockService_ListAccessPolicies_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// ListDeviceLocations provides a mock function for the type MockService
+func (_mock *MockService) ListDeviceLocations(ctx context.Context, sc scope.Scope, req *requests.DeviceLocationList) ([]models.DeviceLocation, error) {
+	ret := _mock.Called(ctx, sc, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDeviceLocations")
+	}
+
+	var r0 []models.DeviceLocation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceLocationList) ([]models.DeviceLocation, error)); ok {
+		return returnFunc(ctx, sc, req)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.DeviceLocationList) []models.DeviceLocation); ok {
+		r0 = returnFunc(ctx, sc, req)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.DeviceLocation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.DeviceLocationList) error); ok {
+		r1 = returnFunc(ctx, sc, req)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ListDeviceLocations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDeviceLocations'
+type MockService_ListDeviceLocations_Call struct {
+	*mock.Call
+}
+
+// ListDeviceLocations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - req *requests.DeviceLocationList
+func (_e *MockService_Expecter) ListDeviceLocations(ctx any, sc any, req any) *MockService_ListDeviceLocations_Call {
+	return &MockService_ListDeviceLocations_Call{Call: _e.mock.On("ListDeviceLocations", ctx, sc, req)}
+}
+
+func (_c *MockService_ListDeviceLocations_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceLocationList)) *MockService_ListDeviceLocations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.DeviceLocationList
+		if args[2] != nil {
+			arg2 = args[2].(*requests.DeviceLocationList)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListDeviceLocations_Call) Return(deviceLocations []models.DeviceLocation, err error) *MockService_ListDeviceLocations_Call {
+	_c.Call.Return(deviceLocations, err)
+	return _c
+}
+
+func (_c *MockService_ListDeviceLocations_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.DeviceLocationList) ([]models.DeviceLocation, error)) *MockService_ListDeviceLocations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDevices provides a mock function for the type MockService
 func (_mock *MockService) ListDevices(ctx context.Context, sc scope.Scope, req *requests.DeviceList) ([]models.Device, int64, error) {
 	ret := _mock.Called(ctx, sc, req)

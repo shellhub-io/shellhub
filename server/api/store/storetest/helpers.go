@@ -228,6 +228,14 @@ func WithDeviceStatusUpdatedAt(statusUpdatedAt time.Time) DeviceOption {
 	}
 }
 
+// WithDevicePosition places the device at latitude and longitude. Without it a device is created
+// with no position, which the store keeps as 0,0.
+func WithDevicePosition(latitude, longitude float64) DeviceOption {
+	return func(d *models.Device) {
+		d.Position = &models.DevicePosition{Latitude: latitude, Longitude: longitude}
+	}
+}
+
 // WithDeviceRemoteAddr sets the device remote address
 func WithDeviceRemoteAddr(addr string) DeviceOption {
 	return func(d *models.Device) {

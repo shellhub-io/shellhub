@@ -22,6 +22,7 @@ var listQueryCases = []struct {
 	sort   bool
 }{
 	{"GetDeviceList", (*Handler).GetDeviceList, true, true},
+	{"GetDeviceLocations", (*Handler).GetDeviceLocations, true, false},
 	{"GetSessionList", (*Handler).GetSessionList, true, false},
 	{"GetNamespaceList", (*Handler).GetNamespaceList, true, false},
 	{"GetPublicKeys", (*Handler).GetPublicKeys, true, false},

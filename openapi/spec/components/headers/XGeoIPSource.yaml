@@ -1,0 +1,10 @@
+description: |-
+  The GeoIP database that placed the devices: `dbip` for DB-IP City Lite or
+  `maxmind` for MaxMind GeoLite2. A map showing these positions credits that
+  database. The header is absent when the server has no GeoIP database.
+schema:
+  type: string
+  enum:
+    - dbip
+    - maxmind
+  readOnly: true

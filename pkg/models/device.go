@@ -277,6 +277,21 @@ type DevicePosition struct {
 	Longitude float64 `json:"longitude"`
 }
 
+// DeviceLocation is one point of the device map: how many accepted devices sit at a position, and
+// how many of them are online. The position is a [DevicePosition] rounded to
+// [DeviceLocationPrecision] decimal places, so devices a GeoIP lookup put a few hundred metres apart
+// count at the same point.
+type DeviceLocation struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Devices   int64   `json:"devices"`
+	Online    int64   `json:"online"`
+}
+
+// DeviceLocationPrecision is the number of decimal places a [DeviceLocation] keeps, about a
+// kilometre at the equator.
+const DeviceLocationPrecision = 2
+
 // DeviceConflicts holds user attributes that must be unique for each itam and can be utilized in queries
 // to identify conflicts.
 type DeviceConflicts struct {

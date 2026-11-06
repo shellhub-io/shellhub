@@ -141,6 +141,7 @@ func (h *Handler) publicRoutes() []route {
 
 		{method: http.MethodGet, path: GetDeviceListURL, endpoint: gateway.Legacy(h.GetDeviceList), access: namespaceMember},
 		{method: http.MethodGet, path: GetDeviceURL, endpoint: gateway.One(h.GetDevice), access: namespaceMember},
+		{method: http.MethodGet, path: DeviceLocationsURL, endpoint: gateway.Legacy(h.GetDeviceLocations), access: namespaceMember},
 		{method: http.MethodGet, path: ResolveDeviceURL, endpoint: gateway.Legacy(h.ResolveDevice), access: namespaceMember},
 		{method: http.MethodPut, path: UpdateDevice, endpoint: gateway.Legacy(h.UpdateDevice), access: requires(authorizer.DeviceUpdate)},
 		{method: http.MethodPatch, path: RenameDeviceURL, endpoint: gateway.Legacy(h.RenameDevice), access: requires(authorizer.DeviceRename)},

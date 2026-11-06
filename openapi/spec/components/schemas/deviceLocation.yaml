@@ -1,0 +1,25 @@
+description: |
+  A point of the device map: how many accepted devices sit at a position and
+  how many of them are online. The position is the devices' GeoIP position
+  rounded to two decimal places.
+type: object
+properties:
+  latitude:
+    type: number
+    example: 47.38
+  longitude:
+    type: number
+    example: 8.54
+  devices:
+    description: Accepted devices at this position.
+    type: integer
+    example: 128
+  online:
+    description: Of those devices, how many are online.
+    type: integer
+    example: 97
+required:
+  - latitude
+  - longitude
+  - devices
+  - online

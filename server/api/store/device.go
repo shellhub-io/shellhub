@@ -60,6 +60,15 @@ type DeviceStore interface {
 
 	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int64, error)
 
+	// DeviceLocations groups the scope's accepted devices by position, rounded to
+	// [models.DeviceLocationPrecision] decimal places, and counts the devices and the online
+	// devices at each. A device with no position, which the store keeps as 0,0, counts nowhere. The
+	// order of the locations is unspecified. It reads under ctx, within the transaction ctx carries,
+	// if any. It returns ErrInvalidScope for a scope of no known kind, ErrNoDocuments for a bounded
+	// scope whose tenant is not a UUID, an option's own error, ctx's error unwrapped when ctx ends,
+	// and an error wrapping [ErrInternal] for any other database failure.
+	DeviceLocations(ctx context.Context, sc scope.Scope, opts ...QueryOption) ([]models.DeviceLocation, error)
+
 	// DeviceListAfter reads up to size devices ordered by creation time, then id, ascending,
 	// starting after the after cursor, or from the first device when after is nil. A size below
 	// one reads one. It applies sc, acceptable and opts as DeviceList does, takes no Sort or
