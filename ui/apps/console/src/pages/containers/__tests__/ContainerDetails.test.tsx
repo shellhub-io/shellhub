@@ -160,7 +160,7 @@ describe("ContainerDetails", () => {
       expect(screen.getByText("aa:bb:cc:dd:ee:ff")).toBeInTheDocument();
       expect(screen.getByText("Alpine Linux 3.19")).toBeInTheDocument();
       expect(
-        screen.getByText("my-namespace.my-container@localhost"),
+        await screen.findByText("my-namespace.my-container@localhost"),
       ).toBeInTheDocument();
       expect(screen.getByText("Online")).toBeInTheDocument();
     });

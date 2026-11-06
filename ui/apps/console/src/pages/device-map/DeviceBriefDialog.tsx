@@ -4,25 +4,16 @@ import {
   CpuChipIcon,
   TagIcon,
 } from "@heroicons/react/24/outline";
-import {
-  Badge,
-  Button,
-  Card,
-  StatusDot,
-} from "@shellhub/design-system/primitives";
+import { Badge, Button, StatusDot } from "@shellhub/design-system/primitives";
 import type { Device } from "@/client";
 import Modal from "@/components/common/Modal";
-import CopyButton from "@/components/common/CopyButton";
 import InfoItem from "@/components/common/InfoItem";
 import PlatformBadge from "@/components/common/PlatformBadge";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import SshidCard from "@/components/common/SshidCard";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { formatRelative } from "@/utils/date";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
-import { buildSshid } from "@/utils/sshid";
-import { LABEL_BASE } from "@/utils/styles";
 
 interface DeviceBriefDialogProps {
   device: Device;
@@ -38,13 +29,7 @@ export default function DeviceBriefDialog({
   device,
   onClose,
 }: DeviceBriefDialogProps) {
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace } = useNamespace(tenantId);
   const connectTo = useTerminalStore((s) => s.connect);
-
-  const sshid = namespace?.name
-    ? buildSshid(namespace.name, device.name)
-    : device.uid;
   const { tags } = normalizeDeviceTags(device);
 
   const connect = () => {
@@ -95,15 +80,7 @@ export default function DeviceBriefDialog({
         </>
       }
     >
-      <Card className="flex items-center justify-between gap-4 p-4">
-        <div className="min-w-0">
-          <p className={LABEL_BASE}>SSHID</p>
-          <code className="mt-0.5 block break-all font-mono text-sm text-accent-cyan">
-            {sshid}
-          </code>
-        </div>
-        <CopyButton text={sshid} />
-      </Card>
+      <SshidCard uid={device.uid} name={device.name} />
 
       <dl className="mt-5 grid grid-cols-2 gap-4">
         <InfoItem label="Platform">

@@ -1,6 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
-import { LABEL_BASE } from "@/utils/styles";
 import {
   TrashIcon,
   ComputerDesktopIcon,
@@ -14,7 +13,6 @@ import {
   useAddDeviceTag,
   useRemoveDeviceTag,
 } from "@/hooks/useDeviceRequests";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useProvisioningKeys } from "@/hooks/useProvisioningKeyRequests";
 import {
   enrollmentSourceName,
@@ -25,9 +23,8 @@ import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
-import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
-import { buildSshid } from "../utils/sshid";
+import SshidCard from "@/components/common/SshidCard";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import IdentityCard from "@/components/common/IdentityCard";
@@ -51,7 +48,6 @@ export default function DeviceDetails() {
   const navigate = useNavigate();
   const { device, isLoading, error } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
   const { provisioningKeys } = useProvisioningKeys();
   const connect = useTerminalStore((s) => s.connect);
   const renameMutation = useRenameDevice();
@@ -80,9 +76,6 @@ export default function DeviceDetails() {
       />
     );
   }
-
-  const nsName = currentNamespace?.name ?? "";
-  const sshid = nsName ? buildSshid(nsName, device.name) : device.uid;
 
   const enrollment = resolveEnrollmentSource(
     device.provisioning_key_id,
@@ -248,15 +241,7 @@ export default function DeviceDetails() {
       </div>
 
       {device.status === "accepted" && (
-        <Card className="p-4 mb-6 flex items-center justify-between gap-4">
-          <div>
-            <p className={LABEL_BASE}>SSHID</p>
-            <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
-              {sshid}
-            </code>
-          </div>
-          <CopyButton text={sshid} />
-        </Card>
+        <SshidCard uid={device.uid} name={device.name} className="mb-6" />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

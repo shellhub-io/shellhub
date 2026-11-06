@@ -15,14 +15,11 @@ import {
   useRemoveContainerTag,
 } from "@/hooks/useContainerRequests";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import { useActionDialog } from "../hooks/useActionDialog";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
-import CopyButton from "../components/common/CopyButton";
-import { buildSshid } from "../utils/sshid";
+import SshidCard from "@/components/common/SshidCard";
 import RestrictedAction from "../components/common/RestrictedAction";
 import { useConnectFromLink } from "@/hooks/useConnectFromLink";
 import TagsSection from "@/components/common/TagsSection";
@@ -32,7 +29,6 @@ import InfoItem from "@/components/common/InfoItem";
 import TimelineCard from "@/components/common/TimelineCard";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { LABEL_BASE } from "@/utils/styles";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 
 /**
@@ -46,8 +42,6 @@ export default function ContainerDetails() {
     getContainerOptions({ path: { uid: uid! } }),
   );
 
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
   const connect = useTerminalStore((s) => s.connect);
 
   const renameMutation = useRenameContainer();
@@ -75,9 +69,6 @@ export default function ContainerDetails() {
       />
     );
   }
-
-  const nsName = currentNamespace?.name ?? "";
-  const sshid = nsName ? buildSshid(nsName, container.name) : container.uid;
 
   const tags = normalizeDeviceTags(container).tags;
 
@@ -238,15 +229,7 @@ export default function ContainerDetails() {
       </div>
 
       {container.status === "accepted" && (
-        <Card className="p-4 mb-6 flex items-center justify-between gap-4">
-          <div>
-            <p className={LABEL_BASE}>SSHID</p>
-            <code className="text-sm font-mono text-accent-cyan mt-0.5 block">
-              {sshid}
-            </code>
-          </div>
-          <CopyButton text={sshid} />
-        </Card>
+        <SshidCard uid={container.uid} name={container.name} className="mb-6" />
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
