@@ -1,9 +1,12 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 )
 
@@ -14,23 +17,10 @@ const (
 	GetSystemDownloadInstallScriptURL = "/install"
 )
 
-// GetStats serves the namespace's device and session counts.
-func (h *Handler) GetStats(c *gateway.Context) error {
-	req := new(requests.GetStats)
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	stats, err := h.service.GetStats(c.Ctx(), req)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, stats)
+// GetStats serves the device and session counts of the namespace the request is scoped to. It
+// returns the store's error when the counts cannot be read.
+func (h *Handler) GetStats(ctx context.Context, sc scope.Scope, _ gateway.Actor, _ *struct{}) (*models.Stats, error) {
+	return h.service.GetStats(ctx, sc)
 }
 
 // GetSystemInfo serves what the instance is and how to reach it. It is reachable

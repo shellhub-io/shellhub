@@ -3,24 +3,17 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
 // StatsService reports the counts shown on the dashboard.
 type StatsService interface {
-	GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error)
+	// GetStats returns the device and session counts within sc, or the store's error. An unbounded
+	// sc aggregates every namespace, so only a caller entitled to the whole instance passes one.
+	GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, error)
 }
 
-func (s *service) GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error) {
-	sc := scope.NewUnbounded("instance-wide statistics deliberately aggregate every namespace")
-	if req.TenantID != "" {
-		var err error
-		if sc, err = BoundTo(req.TenantID); err != nil {
-			return nil, err
-		}
-	}
-
+func (s *service) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, error) {
 	return s.store.GetStats(ctx, sc)
 }

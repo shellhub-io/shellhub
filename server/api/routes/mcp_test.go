@@ -357,9 +357,7 @@ func TestMCPRenameDevice(t *testing.T) {
 func TestMCPGetStats(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("GetStats", gomock.Anything, gomock.MatchedBy(func(r *requests.GetStats) bool {
-			return r.TenantID == mcpCallerTenant
-		})).
+		On("GetStats", gomock.Anything, scope.MustBounded(mcpCallerTenant)).
 		Return(&models.Stats{RegisteredDevices: 7}, nil).
 		Once()
 

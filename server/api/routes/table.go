@@ -195,7 +195,7 @@ func (h *Handler) publicRoutes() []route {
 		{method: http.MethodGet, path: GetSessionsURL, endpoint: gateway.Legacy(h.GetSessionList), access: namespaceMember},
 		{method: http.MethodGet, path: GetSessionURL, endpoint: gateway.Legacy(h.GetSession), access: namespaceMember},
 
-		{method: http.MethodGet, path: GetStatsURL, endpoint: gateway.Legacy(h.GetStats), access: namespaceMember},
+		{method: http.MethodGet, path: GetStatsURL, endpoint: gateway.One(h.GetStats), access: namespaceMember},
 		{method: http.MethodGet, path: GetSystemInfoURL, endpoint: gateway.Legacy(h.GetSystemInfo), access: anonymous},
 		{method: http.MethodGet, path: GetSystemDownloadInstallScriptURL, endpoint: gateway.Legacy(h.GetSystemDownloadInstallScript), access: anonymous},
 

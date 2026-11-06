@@ -4042,8 +4042,8 @@ func (_c *MockService_GetSession_Call) RunAndReturn(run func(ctx context.Context
 }
 
 // GetStats provides a mock function for the type MockService
-func (_mock *MockService) GetStats(ctx context.Context, req *requests.GetStats) (*models.Stats, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) GetStats(ctx context.Context, sc scope.Scope) (*models.Stats, error) {
+	ret := _mock.Called(ctx, sc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetStats")
@@ -4051,18 +4051,18 @@ func (_mock *MockService) GetStats(ctx context.Context, req *requests.GetStats) 
 
 	var r0 *models.Stats
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GetStats) (*models.Stats, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) (*models.Stats, error)); ok {
+		return returnFunc(ctx, sc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GetStats) *models.Stats); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) *models.Stats); ok {
+		r0 = returnFunc(ctx, sc)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Stats)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.GetStats) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4076,20 +4076,20 @@ type MockService_GetStats_Call struct {
 
 // GetStats is a helper method to define mock.On call
 //   - ctx context.Context
-//   - req *requests.GetStats
-func (_e *MockService_Expecter) GetStats(ctx any, req any) *MockService_GetStats_Call {
-	return &MockService_GetStats_Call{Call: _e.mock.On("GetStats", ctx, req)}
+//   - sc scope.Scope
+func (_e *MockService_Expecter) GetStats(ctx any, sc any) *MockService_GetStats_Call {
+	return &MockService_GetStats_Call{Call: _e.mock.On("GetStats", ctx, sc)}
 }
 
-func (_c *MockService_GetStats_Call) Run(run func(ctx context.Context, req *requests.GetStats)) *MockService_GetStats_Call {
+func (_c *MockService_GetStats_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockService_GetStats_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.GetStats
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.GetStats)
+			arg1 = args[1].(scope.Scope)
 		}
 		run(
 			arg0,
@@ -4104,7 +4104,7 @@ func (_c *MockService_GetStats_Call) Return(stats *models.Stats, err error) *Moc
 	return _c
 }
 
-func (_c *MockService_GetStats_Call) RunAndReturn(run func(ctx context.Context, req *requests.GetStats) (*models.Stats, error)) *MockService_GetStats_Call {
+func (_c *MockService_GetStats_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) (*models.Stats, error)) *MockService_GetStats_Call {
 	_c.Call.Return(run)
 	return _c
 }
