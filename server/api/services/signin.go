@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"time"
@@ -64,10 +65,17 @@ type SignInService interface {
 	// req.TokenVersion when it is set, so renewing a bearer never yields one newer than the
 	// bearer, and stays impersonated when req.Impersonated is set.
 	//
-	// It returns [ErrUserNotFound] when the user cannot be resolved, [ErrNamespaceNotFound] when
-	// req.TenantID names no namespace, [ErrNamespaceMemberNotFound] when the user is not a member
-	// of the namespace, [ErrUserUpdate] when the preferred namespace cannot be saved, and
-	// [ErrTokenSigned] when the token cannot be signed.
+	// Unless req.Impersonated is set, the user must still be admitted to sign in: the account
+	// confirmed and approved, and at least one of the user's methods on for the instance, as
+	// [SignInService.SignIn] checks it.
+	//
+	// It returns [ErrUserNotFound] when the user cannot be resolved, and [ErrAuthUnathorized],
+	// wrapping the reason, when the user is no longer admitted to sign in. It returns the store's
+	// error as is when the system settings cannot be read, and an edition's check error other than
+	// [ErrAuthMethodNotAllowed] as is. It returns [ErrNamespaceNotFound] when req.TenantID names no
+	// namespace, [ErrNamespaceMemberNotFound] when the user is not a member of the namespace,
+	// [ErrUserUpdate] when the preferred namespace cannot be saved, and [ErrTokenSigned] when the
+	// token cannot be signed.
 	RenewUserToken(ctx context.Context, req *requests.RenewUserToken) (*models.UserAuthResponse, error)
 	// Impersonate issues the token an instance administrator acts as the user userID names with.
 	// The token is marked impersonated, and every token renewed from it stays so. It returns
@@ -76,8 +84,8 @@ type SignInService interface {
 	Impersonate(ctx context.Context, userID string) (*models.UserAuthResponse, error)
 	// AllowSignInMethod lets [SignInService.SignIn] sign users in by method, a method other than
 	// local that an edition implements, while enabled returns nil. enabled is called with the
-	// caller's ctx on each sign-in it gates. It must be called before the server serves requests;
-	// a method no edition allowed is refused.
+	// caller's ctx on each sign-in and each renewal it gates. It must be called before the server
+	// serves requests; a method no edition allowed is refused.
 	AllowSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error)
 }
 
@@ -228,6 +236,41 @@ func (s *service) signInMethodEnabled(ctx context.Context, method models.UserAut
 	return enabled(ctx)
 }
 
+func (s *service) stillAdmitted(ctx context.Context, user *models.User) error {
+	if err := accountAdmitted(user); err != nil {
+		return err
+	}
+
+	refused := NewErrAuthMethodNotAllowed("")
+
+	var failure error
+
+	for _, method := range user.Preferences.AuthMethods {
+		err := s.signInMethodEnabled(ctx, method)
+		if err == nil {
+			return nil
+		}
+
+		if signInRefused(err) {
+			refused = err
+		} else {
+			failure = err
+		}
+	}
+
+	if failure != nil {
+		return failure
+	}
+
+	return refused
+}
+
+func signInRefused(err error) bool {
+	return errors.Is(err, ErrAuthMethodNotAllowed) ||
+		errors.Is(err, ErrUserNotConfirmed) ||
+		errors.Is(err, ErrUserAwaitingApproval)
+}
+
 func accountAdmitted(user *models.User) error {
 	if user.Status == models.UserStatusNotConfirmed {
 		return NewErrUserNotConfirmed(nil)
@@ -281,6 +324,16 @@ func (s *service) RenewUserToken(ctx context.Context, req *requests.RenewUserTok
 	user, err := s.store.UserResolve(ctx, store.UserIDResolver, req.UserID)
 	if err != nil {
 		return nil, NewErrUserNotFound(req.UserID, err)
+	}
+
+	if !req.Impersonated {
+		if err := s.stillAdmitted(ctx, user); err != nil {
+			if signInRefused(err) {
+				return nil, NewErrAuthUnathorized(err)
+			}
+
+			return nil, err
+		}
 	}
 
 	tenantID := ""

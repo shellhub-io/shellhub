@@ -71,14 +71,16 @@ type MemberService interface {
 
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
 	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated
-	// and a new one, at req.TokenVersion when set, is returned.
+	// and a new one, at req.TokenVersion when set, is returned. That token comes from
+	// [SignInService.RenewUserToken] after the leave is saved.
 	//
 	// It returns ErrForbidden when req.TenantID is empty; ErrNamespaceNotFound when the namespace
 	// carrying req.TenantID cannot be resolved, whatever the store's error, or the membership is gone
 	// before it is deleted; ErrNamespaceMemberNotFound when req.UserID is not a member;
 	// ErrAuthForbidden when the member is the owner; ErrUserNotFound when the user cannot be resolved
-	// after leaving the namespace the token names; CreateUserToken's errors when minting the
-	// replacement; and the store's error otherwise.
+	// after leaving the namespace the token names; ErrAuthUnathorized, unless req.Impersonated is set,
+	// when the instance no longer lets the user sign in; the error reading the system settings or an
+	// edition's check returns, as is; and the store's error otherwise.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 
 	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave

@@ -2332,6 +2332,7 @@ func TestRenewUserToken(t *testing.T) {
 
 	storeMock := mocks.NewMockStore(t)
 	storeMock.On("ProvisioningKeyResolveSystem", testifymock.Anything, testifymock.Anything).Return(nil, store.ErrNoDocuments).Maybe()
+	storeMock.On("SystemGet", testifymock.Anything).Return(localSignInOn(), nil).Maybe()
 	cacheMock := mockcache.NewMockCache(t)
 
 	type Expected struct {
@@ -2383,6 +2384,7 @@ func TestRenewUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						nil,
@@ -2422,6 +2424,7 @@ func TestRenewUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						nil,
@@ -2464,6 +2467,7 @@ func TestRenewUserToken(t *testing.T) {
 					},
 					Preferences: models.UserPreferences{
 						PreferredNamespace: "",
+						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
 
@@ -2497,13 +2501,14 @@ func TestRenewUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: new("00000000-0000-4000-0000-000000000000"),
-					Role:   new(authorizer.RoleOwner),
-					Token:  "must ignore",
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					ID:          "000000000000000000000000",
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      new("00000000-0000-4000-0000-000000000000"),
+					Role:        new(authorizer.RoleOwner),
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
@@ -2532,6 +2537,7 @@ func TestRenewUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "00000000-0000-4000-0000-000000000000",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						nil,
@@ -2559,13 +2565,14 @@ func TestRenewUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:     "000000000000000000000000",
-					Name:   "john doe",
-					User:   "john_doe",
-					Email:  "john.doe@test.com",
-					Tenant: new("00000000-0000-4000-0000-000000000000"),
-					Role:   new(authorizer.RoleOwner),
-					Token:  "must ignore",
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					ID:          "000000000000000000000000",
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Tenant:      new("00000000-0000-4000-0000-000000000000"),
+					Role:        new(authorizer.RoleOwner),
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
@@ -2594,6 +2601,7 @@ func TestRenewUserToken(t *testing.T) {
 							},
 							Preferences: models.UserPreferences{
 								PreferredNamespace: "",
+								AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 							},
 						},
 						nil,
@@ -2610,11 +2618,12 @@ func TestRenewUserToken(t *testing.T) {
 			},
 			expected: Expected{
 				res: &models.UserAuthResponse{
-					ID:    "000000000000000000000000",
-					Name:  "john doe",
-					User:  "john_doe",
-					Email: "john.doe@test.com",
-					Token: "must ignore",
+					AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					ID:          "000000000000000000000000",
+					Name:        "john doe",
+					User:        "john_doe",
+					Email:       "john.doe@test.com",
+					Token:       "must ignore",
 				},
 				err: nil,
 			},
@@ -2641,6 +2650,32 @@ func TestRenewUserToken(t *testing.T) {
 	}
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestRenewUserTokenReturnsTheStoreErrorAsIs(t *testing.T) {
+	storeMock := mocks.NewMockStore(t)
+	cacheMock := mockcache.NewMockCache(t)
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
+
+	ctx := context.Background()
+	user := &models.User{
+		ID:          "000000000000000000000000",
+		Status:      models.UserStatusConfirmed,
+		Preferences: models.UserPreferences{AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal}},
+	}
+	failure := errors.New("connection refused", "", 0)
+
+	storeMock.On("UserResolve", ctx, store.UserIDResolver, user.ID).Return(user, nil).Once()
+	storeMock.On("SystemGet", ctx).Return(nil, failure).Once()
+
+	res, err := s.RenewUserToken(ctx, &requests.RenewUserToken{UserID: user.ID})
+	require.ErrorIs(t, err, failure)
+	require.NotErrorIs(t, err, ErrAuthUnathorized)
+	assert.Nil(t, res)
 }
 
 func TestRenewUserTokenCarriesTheTokenVersion(t *testing.T) {
@@ -2674,9 +2709,14 @@ func TestRenewUserTokenCarriesTheTokenVersion(t *testing.T) {
 			s := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
 
 			ctx := context.Background()
-			user := &models.User{ID: "000000000000000000000000", TokenVersion: 3}
+			user := &models.User{
+				ID:           "000000000000000000000000",
+				TokenVersion: 3,
+				Preferences:  models.UserPreferences{AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal}},
+			}
 
 			storeMock.On("UserResolve", ctx, store.UserIDResolver, user.ID).Return(user, nil).Once()
+			storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 			storeMock.On("NamespaceGetPreferred", ctx, user.ID).Return(nil, store.ErrNoDocuments).Once()
 			cacheMock.On("Set", ctx, "token_"+user.ID, testifymock.Anything, time.Hour*72).Return(nil).Once()
 

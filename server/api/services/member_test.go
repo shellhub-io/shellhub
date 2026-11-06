@@ -1562,6 +1562,10 @@ func TestService_LeaveNamespace(t *testing.T) {
 					Return(user, nil).
 					Once()
 				storeMock.
+					On("SystemGet", ctx).
+					Return(localSignInOn(), nil).
+					Once()
+				storeMock.
 					On("NamespaceGetPreferred", ctx, "000000000000000000000000").
 					Return(nil, store.ErrNoDocuments).
 					Once()
