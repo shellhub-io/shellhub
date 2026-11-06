@@ -40,13 +40,17 @@ type TagsService interface {
 
 	// PushTagTo adds an existing tag in a namespace to a target document (e.g. Device, PublicKey, FirewallRule).
 	//
-	// Returns ErrNamespaceNotFound if namespace not found, ErrTagNotFound if tag not found, or other errors if operation fails.
+	// Returns [ErrForbidden] for an empty tenant, ErrNamespaceNotFound if namespace not found,
+	// ErrTagNotFound if tag not found, and ErrDeviceSelectorOutOfReach when the target is a device and
+	// a [DeviceSelector] holds the tag whose source's EditPermission the role of the caller identity
+	// on ctx lacks. A ctx carrying no identity holds no permission. Any failure listing those rules,
+	// or other errors if the operation fails, is returned unchanged.
 	PushTagTo(ctx context.Context, target store.TagTarget, req *requests.PushTag) (err error)
 
 	// PullTagFrom removes a tag from a target document in a namespace. The tag itself is not deleted.
 	// If no other documents reference the tag, it becomes orphaned but remains available for future use.
 	//
-	// Returns ErrNamespaceNotFound if namespace not found, ErrTagNotFound if tag not found, or other errors if operation fails.
+	// It fails as [TagsService.PushTagTo] does, ErrDeviceSelectorOutOfReach included.
 	PullTagFrom(ctx context.Context, target store.TagTarget, req *requests.PullTag) (err error)
 
 	// ListTags retrieves a batch of tags that belong to the given namespace.
@@ -123,7 +127,7 @@ func (s *service) PushTagTo(ctx context.Context, target store.TagTarget, req *re
 		return NewErrTagNotFound(req.Name, err)
 	}
 
-	return s.store.TagPushToTarget(ctx, tag.ID, target, req.TargetID)
+	return s.attachTag(ctx, sc, target, tag.ID, req.TargetID)
 }
 
 func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *requests.PullTag) (err error) {
@@ -141,7 +145,7 @@ func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *
 		return NewErrTagNotFound(req.Name, err)
 	}
 
-	return s.store.TagPullFromTarget(ctx, tag.ID, target, req.TargetID)
+	return s.detachTag(ctx, sc, target, tag.ID, req.TargetID)
 }
 
 func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error) {

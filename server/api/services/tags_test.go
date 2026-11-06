@@ -141,6 +141,8 @@ func TestService_PushTagTo(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	storeMock.On("PublicKeyList", mock.Anything, mock.Anything).Return([]models.PublicKey{}, int64(0), nil).Maybe()
+	storeMock.On("AccessPolicyList", mock.Anything, mock.Anything).Return([]models.AccessPolicy{}, int64(0), nil).Maybe()
 
 	ctx := context.TODO()
 
@@ -255,6 +257,8 @@ func TestService_PullTagFrom(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	storeMock.On("PublicKeyList", mock.Anything, mock.Anything).Return([]models.PublicKey{}, int64(0), nil).Maybe()
+	storeMock.On("AccessPolicyList", mock.Anything, mock.Anything).Return([]models.AccessPolicy{}, int64(0), nil).Maybe()
 
 	ctx := context.TODO()
 

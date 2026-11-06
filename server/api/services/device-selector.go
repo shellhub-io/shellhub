@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -25,9 +26,13 @@ func (d DeviceSelector) holdsTag(tagID string) bool {
 }
 
 // DeviceSelectorSource lists one kind of rule that picks devices, such as access policies or the
-// enterprise firewall rules. A tag a rule of any source holds is not deleted.
+// enterprise firewall rules. Those rules read the tags of a device, so moving one changes what the
+// rule covers. A caller moves a tag a rule holds on or off a device only when its role holds the
+// source's EditPermission, and a tag a rule of any source holds is not deleted.
 type DeviceSelectorSource interface {
-	// EditPermission is the permission under which the source's rules are edited.
+	// EditPermission is the permission under which the source's rules are edited. [NewService] panics
+	// when no owner holds it, or when every role that moves tags holds it: such a role could change
+	// what the rule covers without editing it.
 	EditPermission() authorizer.Permission
 	// DeviceSelectors returns every rule of the source in sc, or an error when they cannot be
 	// listed. A store read through ctx joins the caller's transaction when there is one, and an
@@ -54,9 +59,30 @@ func DeviceSelectorSourceFactory() DeviceSelectorSourceFactoryFunc {
 }
 
 // WithDeviceSelectorSource adds a kind of rule that picks devices to those the core store holds.
+// [NewService] panics when no owner holds the source's EditPermission, or when every role that
+// moves tags holds it.
 func WithDeviceSelectorSource(source DeviceSelectorSource) Option {
 	return func(service *APIService) {
 		service.selectorSources = append(service.selectorSources, source)
+	}
+}
+
+var deviceSelectorInputs = []authorizer.Permission{authorizer.TagCreate, authorizer.TagDelete}
+
+func mustSetApart(source DeviceSelectorSource) {
+	edit := source.EditPermission()
+
+	if !authorizer.RoleOwner.HasPermission(edit) {
+		panic(fmt.Sprintf("device selector source %T is edited under a permission no owner holds", source))
+	}
+
+	setsApart := slices.ContainsFunc(authorizer.AssignableRoles(), func(role authorizer.Role) bool {
+		changesInputs := slices.ContainsFunc(deviceSelectorInputs, role.HasPermission)
+
+		return changesInputs && !role.HasPermission(edit)
+	})
+	if !setsApart {
+		panic(fmt.Sprintf("device selector source %T is edited under a permission every role that moves tags holds", source))
 	}
 }
 
@@ -106,4 +132,58 @@ func (p publicKeySelectors) DeviceSelectors(ctx context.Context, sc scope.Scope)
 
 func (s *service) coreSelectorSources() []DeviceSelectorSource {
 	return []DeviceSelectorSource{publicKeySelectors{store: s.store}, accessPolicySelectors{store: s.store}}
+}
+
+func (s *service) selectorsOutOfReach(ctx context.Context, sc scope.Scope) ([]DeviceSelector, error) {
+	caller, _ := identity.FromContext(ctx)
+
+	outOfReach := []DeviceSelector{}
+
+	for _, source := range slices.Concat(s.coreSelectorSources(), s.selectorSources) {
+		if caller.Role.HasPermission(source.EditPermission()) {
+			continue
+		}
+
+		selectors, err := source.DeviceSelectors(ctx, sc)
+		if err != nil {
+			return nil, err
+		}
+
+		outOfReach = append(outOfReach, selectors...)
+	}
+
+	return outOfReach, nil
+}
+
+func (s *service) guardDeviceTag(ctx context.Context, sc scope.Scope, target store.TagTarget, tagID string) error {
+	if target != store.TagTargetDevice {
+		return nil
+	}
+
+	outOfReach, err := s.selectorsOutOfReach(ctx, sc)
+	if err != nil {
+		return err
+	}
+
+	if slices.ContainsFunc(outOfReach, func(d DeviceSelector) bool { return d.holdsTag(tagID) }) {
+		return NewErrDeviceSelectorOutOfReach()
+	}
+
+	return nil
+}
+
+func (s *service) attachTag(ctx context.Context, sc scope.Scope, target store.TagTarget, tagID, targetID string) error {
+	if err := s.guardDeviceTag(ctx, sc, target, tagID); err != nil {
+		return err
+	}
+
+	return s.store.TagPushToTarget(ctx, tagID, target, targetID)
+}
+
+func (s *service) detachTag(ctx context.Context, sc scope.Scope, target store.TagTarget, tagID, targetID string) error {
+	if err := s.guardDeviceTag(ctx, sc, target, tagID); err != nil {
+		return err
+	}
+
+	return s.store.TagPullFromTarget(ctx, tagID, target, targetID)
 }

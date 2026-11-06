@@ -147,6 +147,7 @@ var (
 	ErrProvisioningKeyNotFound         = errors.New("ProvisioningKey not found", ErrLayer, ErrCodeNotFound)
 	ErrProvisioningKeyDuplicated       = errors.New("ProvisioningKey duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrProvisioningKeyForbidden        = errors.New("the legacy provisioning key cannot be modified", ErrLayer, ErrCodeForbidden)
+	ErrDeviceSelectorOutOfReach        = errors.New("a rule the caller cannot edit selects devices by this", ErrLayer, ErrCodeForbidden)
 	ErrProvisioningKeyInvalidField     = errors.New("provisioning key field is invalid", ErrLayer, ErrCodeInvalid)
 	ErrProvisioningKeyExhausted        = errors.New("provisioning key usage limit reached", ErrLayer, ErrCodeLimit)
 	ErrAuthForbidden                   = errors.New("user is authenticated but cannot access this resource", ErrLayer, ErrCodeForbidden)
@@ -306,6 +307,12 @@ func NewErrTagNotFound(tag string, next error) error {
 // field(s) already taken, e.g. ["name"].
 func NewErrTagDuplicated(conflicts []string, next error) error {
 	return NewErrDuplicated(ErrDuplicateTagName, conflicts, next)
+}
+
+// NewErrDeviceSelectorOutOfReach returns the refusal a caller gets for moving a tag on or off a
+// device when a rule its role may not edit selects devices by that tag.
+func NewErrDeviceSelectorOutOfReach() error {
+	return NewErrForbidden(ErrDeviceSelectorOutOfReach, nil)
 }
 
 // NewErrTagInUse returns the conflict a tag delete gets while holders hold the tag, each described

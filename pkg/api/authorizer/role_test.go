@@ -92,6 +92,19 @@ func TestRoleAssignable(t *testing.T) {
 	}
 }
 
+func TestAssignableRoles(t *testing.T) {
+	known := []authorizer.Role{authorizer.RoleInvalid, authorizer.RoleObserver, authorizer.RoleOperator, authorizer.RoleAdministrator, authorizer.RoleOwner}
+
+	assignable := []authorizer.Role{}
+	for _, role := range known {
+		if role.Assignable() {
+			assignable = append(assignable, role)
+		}
+	}
+
+	require.ElementsMatch(t, assignable, authorizer.AssignableRoles())
+}
+
 func TestRolePermissions(t *testing.T) {
 	cases := []struct {
 		description string
