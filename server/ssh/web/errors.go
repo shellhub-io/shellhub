@@ -36,7 +36,7 @@ var (
 var (
 	ErrWebSocketGetToken      = errors.New("failed to get the token from query")
 	ErrWebSocketGetDimensions = errors.New("failed to get terminal dimensions from query")
-	ErrWebSocketGetIP         = errors.New("failed to get IP from query")
+	ErrWebSocketGetIP         = errors.New("failed to get the client address")
 )
 
 var (
@@ -55,7 +55,7 @@ var (
 // Failures in reading the parameters of a session request.
 var (
 	ErrGetToken      = errors.New("token not found on request query")
-	ErrGetIP         = errors.New("ip not found on request query")
+	ErrGetIP         = errors.New("the client address was not resolved")
 	ErrGetDimensions = errors.New("failed to get a terminal dimension")
 )
 

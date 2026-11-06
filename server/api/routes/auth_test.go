@@ -54,7 +54,7 @@ func TestAuthDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("AuthDevice", gomock.Anything, gomock.MatchedBy(func(req requests.DeviceAuth) bool {
 					return req.Challenge == strings.Repeat("c", 75) && req.Signature == strings.Repeat("s", 3000)
-				})).Return(&models.DeviceAuthResponse{}, nil).Once()
+				}), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -76,7 +76,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -98,7 +98,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -122,7 +122,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth")).Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -150,6 +150,7 @@ func TestAuthDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/devices/auth", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Real-IP", "198.51.100.1")
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)

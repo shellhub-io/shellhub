@@ -688,11 +688,13 @@ func TestUpdateProvisioningKey(t *testing.T) {
 func TestAppendProvisioningKeyEvent(t *testing.T) {
 	const tenant = "00000000-0000-4000-0000-000000000000"
 
-	req := requests.DeviceAuth{
-		TenantID: tenant,
-		Identity: &requests.DeviceIdentity{MAC: "00:1a:2b:3c:4d:5e"},
-		Info:     &requests.DeviceInfo{ID: "debian", PrettyName: "Debian GNU/Linux 12", Version: "v0.18.0", Arch: "amd64", Platform: "docker"},
-		RealIP:   "203.0.113.7",
+	req := deviceAuth{
+		DeviceAuth: requests.DeviceAuth{
+			TenantID: tenant,
+			Identity: &requests.DeviceIdentity{MAC: "00:1a:2b:3c:4d:5e"},
+			Info:     &requests.DeviceInfo{ID: "debian", PrettyName: "Debian GNU/Linux 12", Version: "v0.18.0", Arch: "amd64", Platform: "docker"},
+		},
+		clientIP: "203.0.113.7",
 	}
 	key := &models.ProvisioningKey{ID: "digest", Name: "ci", TenantID: tenant, Ephemeral: true}
 

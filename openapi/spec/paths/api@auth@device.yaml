@@ -11,19 +11,6 @@ post:
   security:
     - jwt: []
     - api-key: []
-  parameters:
-    - name: X-Real-IP
-      schema:
-        description: |
-          Device's IP address.
-
-
-          `X-Real-IP` header is used to set a geolocation position to device when
-          `geoip` feature is enable.
-        type: string
-        pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$
-        example: 127.0.0.1
-      in: header
   requestBody:
     content:
       application/json:

@@ -56,7 +56,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | Variable | Default | Meaning |
 |---|---|---|
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
-| `SHELLHUB_PROXY_TRUSTED_IPS` | `0.0.0.0/0 ::/0` | Space-separated CIDRs allowed to declare a client address |
+| `SHELLHUB_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs allowed to declare a client address, besides loopback. Required when `SHELLHUB_PROXY=true` |
 | `SHELLHUB_SSH_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs allowed to send a PROXY protocol header to the SSH port, besides loopback |
 | `SHELLHUB_PUBLIC_URL` | built from `SHELLHUB_DOMAIN` and `SHELLHUB_AUTO_SSL` | URL users reach ShellHub at, such as `https://shellhub.example.com`. An `http` or `https` origin with no path |
 | `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
@@ -66,10 +66,14 @@ URLs it sends an identity provider, from `SHELLHUB_DOMAIN`, with `https://` only
 `SHELLHUB_AUTO_SSL=true`. When TLS ends at an ingress or load balancer in front of the gateway, set
 `SHELLHUB_PUBLIC_URL` so those links use `https://` without the gateway requesting certificates.
 
-`SHELLHUB_PROXY` and `SHELLHUB_PROXY_TRUSTED_IPS` apply to the gateway, which serves HTTP and
-HTTPS. `SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in and of web terminal
-sessions, so their lockout, firewall rules and access policy source IPs depend on it. The default
-trusts everyone, which is fine only if nothing but your balancer can reach the port.
+`SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in, device enrollment and web
+terminal sessions, so their lockout, firewall rules and access policy source IPs depend on it. A
+peer in those ranges, or on loopback, may name the client: in a PROXY protocol header when
+`SHELLHUB_PROXY=true`, or in `X-Real-IP` and `X-Forwarded-*` when it reaches port `8080`. Any other
+peer is taken to be the client. Empty, the default, trusts loopback alone. With
+`SHELLHUB_GATEWAY=false`, list your ingress or load balancer here, or every client appears to come
+from it. The server refuses to start with `SHELLHUB_PROXY=true` and no ranges, or with an entry that
+is not a CIDR range.
 
 The SSH port reads only `SHELLHUB_SSH_PROXY_TRUSTED_IPS`, which decides the client address of SSH
 clients that connect to it. It closes a connection whose PROXY header comes from a peer outside

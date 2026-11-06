@@ -184,7 +184,7 @@ func (e *ownershipE2E) pair(t *testing.T, userID, mac, publicKey string) *models
 func (e *ownershipE2E) enrollKey(t *testing.T, mac, publicKey string) string {
 	t.Helper()
 
-	res, err := e.svc.AuthDevice(context.Background(), e.keyedAuthRequest(mac, publicKey))
+	res, err := e.svc.AuthDevice(context.Background(), e.keyedAuthRequest(mac, publicKey), "")
 	require.NoError(t, err)
 
 	return res.UID
@@ -381,7 +381,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 
 		req := e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1")
 		req.ProvisioningKey = ""
-		_, err := e.svc.AuthDevice(ctx, req)
+		_, err := e.svc.AuthDevice(ctx, req, "")
 		require.ErrorIs(t, err, ErrAuthUnathorized)
 		assert.Equal(t, models.DeviceStatusRemoved, e.device(t, accepted.UID).Status)
 	})
@@ -396,7 +396,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 
 		req := e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1")
 		req.ProvisioningKey = ""
-		_, err := e.svc.AuthDevice(ctx, req)
+		_, err := e.svc.AuthDevice(ctx, req, "")
 		require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 		assert.Equal(t, models.DeviceStatusRemoved, e.device(t, accepted.UID).Status)
 	})
@@ -422,7 +422,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 
 		req := e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1")
 		req.ProvisioningKey = plaintextFor(1)
-		_, err := e.svc.AuthDevice(ctx, req)
+		_, err := e.svc.AuthDevice(ctx, req, "")
 		require.NoError(t, err)
 
 		device := e.device(t, accepted.UID)
@@ -707,7 +707,7 @@ func TestADepartureDuringAuthenticationIsNotUndone(t *testing.T) {
 			}}
 			svc := NewService(racing, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
 
-			_, err := svc.AuthDevice(ctx, e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1"))
+			_, err := svc.AuthDevice(ctx, e.keyedAuthRequest("aa:bb:cc:dd:ee:01", "pk-1"), "")
 			require.Error(t, err, "the stale read must not be written back")
 
 			device := e.device(t, owned.UID)

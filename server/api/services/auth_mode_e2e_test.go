@@ -77,7 +77,7 @@ func TestAuthDeviceMode(t *testing.T) {
 		e.provisioningKey(t, digest(0x77), "manual", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) { k.KeyEncrypted, k.KeyHint = "", "" })
 		e.legacy(t)
 
-		_, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:04", plaintextFor(0x77)))
+		_, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:04", plaintextFor(0x77)), "")
 		require.ErrorIs(t, err, ErrAuthNamespaceLegacy)
 		require.Equal(t, int64(0), e.deviceCount(t))
 	})
@@ -102,7 +102,7 @@ func TestAuthDeviceMode(t *testing.T) {
 
 		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
-		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:06", ""))
+		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:06", ""), "")
 		require.NoError(t, err)
 		require.Equal(t, uid, res.UID)
 		require.Equal(t, models.DeviceStatusAccepted, e.status(t, uid))
@@ -114,7 +114,7 @@ func TestAuthDeviceMode(t *testing.T) {
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:07", "")
 		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
-		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:07", ""))
+		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:07", ""), "")
 		require.NoError(t, err)
 		require.Equal(t, uid, res.UID)
 		require.Equal(t, models.DeviceStatusPending, e.status(t, uid))
@@ -130,7 +130,7 @@ func TestAuthDeviceMode(t *testing.T) {
 
 		req := e.authRequest("aa:bb:cc:dd:ee:08", "")
 		req.PublicKey = "pk-08"
-		res, err := e.svc.AuthDevice(ctx, req)
+		res, err := e.svc.AuthDevice(ctx, req, "")
 		require.NoError(t, err)
 		require.Equal(t, accepted.UID, res.UID)
 	})
@@ -144,7 +144,7 @@ func TestAuthDeviceMode(t *testing.T) {
 
 		req := e.authRequest("aa:bb:cc:dd:ee:10", "")
 		req.PublicKey = "pk-10"
-		res, err := e.svc.AuthDevice(ctx, req)
+		res, err := e.svc.AuthDevice(ctx, req, "")
 		require.NoError(t, err)
 		require.Equal(t, models.DeviceStatusPending, e.status(t, res.UID))
 	})
@@ -158,7 +158,7 @@ func TestAuthDeviceMode(t *testing.T) {
 
 		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
-		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:09", ""))
+		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:09", ""), "")
 		require.NoError(t, err)
 		require.Equal(t, uid, res.UID)
 

@@ -15,7 +15,7 @@ func configurations() map[string]*GatewayConfig {
 	base := func() *GatewayConfig {
 		return &GatewayConfig{ //nolint:exhaustruct
 			Domain:          "shellhub.example",
-			ProxyTrustedIPs: "0.0.0.0/0 ::/0",
+			ProxyTrustedIPs: "127.0.0.0/8 ::1/128",
 		}
 	}
 
@@ -166,18 +166,6 @@ func TestCaddyfileProvesTheWildcardWithTheACMEDNSAccount(t *testing.T) {
 	assert.Equal(t, cfg.WebEndpointsACMEDNSSubdomain, providers[0]["subdomain"])
 	assert.Equal(t, "{env.SHELLHUB_WEB_ENDPOINTS_ACME_DNS_PASSWORD}", providers[0]["password"],
 		"the password stays out of the rendered configuration; the module resolves it")
-}
-
-func TestTrustedProxiesSurvivesAnEmptyVariable(t *testing.T) {
-	cfg := configurations()["proxy protocol"]
-	cfg.ProxyTrustedIPs = ""
-	cfg.applyDefaults()
-
-	rendered, err := Caddyfile(cfg)
-	require.NoError(t, err)
-
-	assert.Contains(t, string(rendered), "trusted_proxies static "+defaultProxyTrustedIPs)
-	assert.NotContains(t, string(rendered), "trusted_proxies static\n")
 }
 
 func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {

@@ -140,7 +140,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			res, err := service.AuthDevice(ctx, tc.req)
+			res, err := service.AuthDevice(ctx, tc.req, "")
 			require.Equal(tt, tc.expected.res, res)
 			require.Equal(tt, tc.expected.err, err)
 		})
@@ -232,7 +232,7 @@ func TestEnrollmentProvisioningKey(t *testing.T) {
 			tc.requiredMocks(ctx, storeMock)
 
 			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer))
-			key, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), tc.req, tc.paired, &models.NamespaceSettings{Legacy: tc.legacy})
+			key, err := svc.enrollmentProvisioningKey(ctx, scope.MustBounded(tenant), deviceAuth{DeviceAuth: tc.req}, tc.paired, &models.NamespaceSettings{Legacy: tc.legacy})
 
 			require.Equal(tt, tc.expectedErr, err)
 			require.Equal(tt, tc.expectedKey, key)
@@ -353,7 +353,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			res, err := service.AuthDevice(ctx, tc.req)
+			res, err := service.AuthDevice(ctx, tc.req, "")
 			require.Equal(tt, tc.expected.res, res)
 			require.Equal(tt, tc.expected.err, err)
 		})

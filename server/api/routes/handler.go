@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 )
@@ -17,6 +18,8 @@ type Handler struct {
 
 	deviceListMaxPageSize int64
 	geoipSource           string
+
+	trust *origin.Trust
 }
 
 // NewHandler returns a handler over s with no authenticator. Until WithAuthenticator sets one,
@@ -25,6 +28,7 @@ func NewHandler(s svc.Service) *Handler {
 	return &Handler{
 		service: s,
 		edition: envs.Community,
+		trust:   origin.Loopback(),
 	}
 }
 

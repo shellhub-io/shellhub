@@ -62,7 +62,9 @@ public CA for a name the operator meant to serve themselves.
 `SHELLHUB_PROXY` enables the PROXY protocol, and `SHELLHUB_PROXY_TRUSTED_IPS` names the peers
 allowed to use it. This list matters: a peer that may send the preamble is a peer that chooses
 the client's address, and that address is what the login lockout and the GeoIP rules are keyed
-on. The default trusts anyone, which is what the previous configuration did.
+on. It has no default: `LoadGatewayConfig` refuses `SHELLHUB_PROXY=true` without it. The router
+reads the same list, through `server/api/pkg/origin`, to decide which peers of `:8080` may name
+the client in `X-Real-IP` and `X-Forwarded-*`.
 
 ## Development
 

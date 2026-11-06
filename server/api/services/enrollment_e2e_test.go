@@ -118,7 +118,6 @@ func (e *enrollmentE2E) enrollAs(t *testing.T, hostname, mac, publicKey, provisi
 		Identity:       &requests.DeviceIdentity{MAC: mac},
 		Info:           &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 		PublicKey:      publicKey,
-		RealIP:         "203.0.113.7",
 		ForwardedHost:  "shellhub.test",
 		ForwardedProto: "https",
 	}
@@ -126,7 +125,7 @@ func (e *enrollmentE2E) enrollAs(t *testing.T, hostname, mac, publicKey, provisi
 		req.ProvisioningKey = provisioningKey
 	}
 
-	res, err := e.svc.AuthDevice(context.Background(), req)
+	res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7")
 	require.NoError(t, err)
 
 	return res.UID
@@ -263,9 +262,9 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 			Identity:        &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:44"},
 			Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 			PublicKey:       "pk-status",
-			RealIP:          "203.0.113.7",
 			ProvisioningKey: plaintextFor(0x04),
-		})
+		}, "203.0.113.7")
+
 		require.NoError(t, err)
 		require.Equal(t, models.DeviceStatusAccepted, res.Status)
 	})
@@ -591,14 +590,13 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 				Identity:        &requests.DeviceIdentity{MAC: fmt.Sprintf("aa:bb:cc:dd:80:%02x", i)},
 				Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 				PublicKey:       fmt.Sprintf("pk-80-%02d", i),
-				RealIP:          "203.0.113.7",
 				ForwardedHost:   "shellhub.test",
 				ForwardedProto:  "https",
 				ProvisioningKey: plaintextFor(0x80),
 			}
 
 			<-start // release all racers together to maximize the overlap on the last slot
-			res, err := e.svc.AuthDevice(context.Background(), req)
+			res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7")
 			if errs[i] = err; err == nil {
 				uids[i] = res.UID
 			}
@@ -801,7 +799,8 @@ func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) {
 			Identity:        &requests.DeviceIdentity{MAC: mac},
 			PublicKey:       "pk-new",
 			ProvisioningKey: plaintextFor(0x76),
-		})
+		}, "")
+
 		require.NoError(t, err)
 
 		require.Equal(t, models.DeviceStatusAccepted, res.Status)

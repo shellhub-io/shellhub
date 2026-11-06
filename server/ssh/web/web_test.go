@@ -20,6 +20,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/webhandoff"
@@ -268,19 +269,19 @@ func TestNewSSHServerBridge_FailedOpenSpendsTheToken(t *testing.T) {
 	tests := []struct {
 		description string
 		query       string
-		realIP      string
+		resolved    bool
 		expected    error
 	}{
 		{
 			description: "an invalid terminal size",
 			query:       "cols=wide&rows=24",
-			realIP:      "127.0.0.1",
+			resolved:    true,
 			expected:    ErrWebSocketGetDimensions,
 		},
 		{
-			description: "a missing client IP",
+			description: "a client origin the router did not resolve",
 			query:       "cols=80&rows=24",
-			realIP:      "",
+			resolved:    false,
 			expected:    ErrWebSocketGetIP,
 		},
 	}
@@ -291,12 +292,12 @@ func TestNewSSHServerBridge_FailedOpenSpendsTheToken(t *testing.T) {
 			service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
 				Return(deviceInNamespace(true)).Once()
 
-			server := startBridge(t, service)
+			server := startBridgeResolving(t, service, test.resolved)
 
 			status, reply := postSession(t, server.URL, `{"device":"device-uid","username":"root","fingerprint":"fingerprint"}`)
 			require.Equal(t, http.StatusOK, status)
 
-			assert.Contains(t, openBridgeWith(t, server.URL, "token="+reply.Token+"&"+test.query, test.realIP), test.expected.Error())
+			assert.Contains(t, openBridgeWith(t, server.URL, "token="+reply.Token+"&"+test.query), test.expected.Error())
 			assert.Contains(t, openBridge(t, server.URL, reply.Token), ErrBridgeCredentialsNotFound.Error())
 		})
 	}
@@ -318,9 +319,25 @@ func TestWebSessionRouteRefusesAPasswordItCannotEncrypt(t *testing.T) {
 func startBridge(t *testing.T, service *servicemocks.MockService) *httptest.Server {
 	t.Helper()
 
+	return startBridgeResolving(t, service, true)
+}
+
+func startBridgeResolving(t *testing.T, service *servicemocks.MockService, resolved bool) *httptest.Server {
+	t.Helper()
+
 	e := echo.New()
 	e.HTTPErrorHandler = handlers.NewErrors(nil)
 	e.Use(gateway.WithContext())
+	if resolved {
+		e.Pre(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				req := c.Request()
+				c.SetRequest(req.WithContext(origin.NewContext(req.Context(), origin.Loopback().Resolve(req))))
+
+				return next(c)
+			}
+		})
+	}
 
 	require.NoError(t, NewSSHServerBridge(e, nil, service, webhandoff.NewStore(), &Config{HostKeyFile: writeHostKey(t)}))
 
@@ -357,18 +374,14 @@ func postSession(t *testing.T, serverURL, body string) (int, sessionReply) {
 func openBridge(t *testing.T, serverURL, token string) string {
 	t.Helper()
 
-	return openBridgeWith(t, serverURL, "token="+token+"&cols=80&rows=24", "127.0.0.1")
+	return openBridgeWith(t, serverURL, "token="+token+"&cols=80&rows=24")
 }
 
-func openBridgeWith(t *testing.T, serverURL, query, realIP string) string {
+func openBridgeWith(t *testing.T, serverURL, query string) string {
 	t.Helper()
 
 	cfg, err := websocket.NewConfig("ws"+strings.TrimPrefix(serverURL, "http")+WebsocketSSHBridgeRoute+"?"+query, serverURL)
 	require.NoError(t, err)
-
-	if realIP != "" {
-		cfg.Header.Set("X-Real-Ip", realIP)
-	}
 
 	conn, err := websocket.DialConfig(cfg)
 	require.NoError(t, err)

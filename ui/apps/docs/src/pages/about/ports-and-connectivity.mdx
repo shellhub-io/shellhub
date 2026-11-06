@@ -57,10 +57,14 @@ ShellHub, the SSH port needs its own path — it is not HTTP and it will not sur
 A Layer 4 load balancer can pass the client address in a PROXY protocol header. The gateway and
 the SSH port read that header under separate settings.
 
-For web traffic, set `SHELLHUB_PROXY=true` on the gateway. `SHELLHUB_PROXY_TRUSTED_IPS` decides
-which peers are allowed to declare a client address. It defaults to `0.0.0.0/0 ::/0`, which
-trusts everyone. That is fine when nothing but your balancer can reach the port, and wrong if
-that is not true.
+For web traffic, set `SHELLHUB_PROXY=true` on the gateway and list your balancer's ranges in
+`SHELLHUB_PROXY_TRUSTED_IPS`. The server refuses to start with one and not the other. Only those
+ranges and loopback may declare a client address.
+
+Without the gateway (`SHELLHUB_GATEWAY=false`), the same `SHELLHUB_PROXY_TRUSTED_IPS` decides which
+peers of port `8080` may name the client in `X-Real-IP` and `X-Forwarded-*`. List your ingress or
+load balancer there. Every other peer, and every peer when the list is empty, is taken to be the
+client.
 
 For SSH, set `SHELLHUB_SSH_PROXY_TRUSTED_IPS` to the space-separated ranges the header arrives
 from, such as your balancer's or your ingress pods'. The SSH port always trusts loopback and

@@ -25,6 +25,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -85,6 +86,12 @@ type Env struct {
 	// AutoSSL reports whether the bundled gateway serves the console over HTTPS; it selects the
 	// public URL's scheme when PublicURL is empty and Domain carries none.
 	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
+
+	// HTTPTrustedProxies lists the CIDR prefixes, besides loopback, whose X-Real-IP and
+	// X-Forwarded-* headers name the client of an HTTP request: the load balancer or ingress in
+	// front of :8080, and the PROXY protocol peers when the gateway runs. Empty trusts loopback
+	// alone, so every other peer is its own client.
+	HTTPTrustedProxies string `env:"SHELLHUB_PROXY_TRUSTED_IPS"`
 
 	// PublicURL is the URL users reach the console at, set when TLS ends before the gateway so
 	// AutoSSL cannot tell the scheme. Empty derives it from Domain and AutoSSL.
@@ -778,10 +785,16 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 }
 
 func (s *Server) routerOptions(ctx context.Context, geoipSource string) ([]routes.Option, error) {
+	trust, err := origin.ParseTrust(s.env.HTTPTrustedProxies)
+	if err != nil {
+		return nil, err
+	}
+
 	opts := []routes.Option{
 		routes.WithEdition(s.env.Edition),
 		routes.WithDeviceListMaxPageSize(s.env.DeviceListMaxPageSize),
 		routes.WithGeoIPSource(geoipSource),
+		routes.WithTrustedProxies(trust),
 	}
 
 	if s.env.SentryDSN != "" {
