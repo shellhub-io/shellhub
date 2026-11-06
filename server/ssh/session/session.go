@@ -206,6 +206,7 @@ type Session struct {
 	challenge *challenge
 
 	registered bool
+	principal  models.Principal
 
 	Data
 }
@@ -551,6 +552,7 @@ func (s *Session) register(ctx context.Context, principal models.Principal) erro
 	}
 
 	s.registered = true
+	s.principal = principal
 	s.sessions.Add(s.UID)
 	s.startKeepAlive(ctx, keepAliveInterval)
 
@@ -890,6 +892,10 @@ func (s *Session) openApproval(ctx context.Context, kind models.SSHApprovalKind,
 }
 
 func (s *Session) beginChallenge(ctx context.Context, auth parked, kind models.SSHApprovalKind, reauthPeriod *int) error {
+	if s.registered {
+		return ErrInvalidSessionState
+	}
+
 	if s.challenge != nil && s.challenge.kind == kind {
 		return ErrChallengeAlreadyIssued
 	}
@@ -1046,9 +1052,11 @@ func groupCode(code string) string {
 // Every attempt is evaluated, and the session reaches the device only with the grant that
 // evaluation returned. Every grant redeems its single-use identity before it reaches the
 // device, the first one before the session registers, and losing the redemption returns
-// ErrAccessDenied. Otherwise it returns Evaluate's error, the redemption's, the
-// registration's, the connection's, or ErrInvalidSessionState from a state that cannot
-// authenticate.
+// ErrAccessDenied. Once registered, an attempt must evaluate to the principal the session
+// registered as, or it returns ErrInvalidSessionState without reaching the device; one that
+// would need an approval returns ErrInvalidSessionState too. Otherwise it returns Evaluate's
+// error, the redemption's, the registration's, the connection's, or ErrInvalidSessionState
+// from a state that cannot authenticate.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
 
@@ -1107,6 +1115,10 @@ func (s *Session) finish(ctx gliderssh.Context, g grant) error {
 }
 
 func (s *Session) rejoin(ctx gliderssh.Context, g grant) error {
+	if g.principal != s.principal {
+		return ErrInvalidSessionState
+	}
+
 	if err := s.redeem(ctx, g); err != nil {
 		return err
 	}

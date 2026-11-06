@@ -79,8 +79,9 @@ type Auth interface {
 	// Returning ErrApprovalRequired parks the login: the credential is good but
 	// a person has to decide, and the gateway asks them over a second
 	// authentication method. Evaluate never waits for that decision itself. A
-	// session with an approval of that kind already open gets
-	// ErrChallengeAlreadyIssued instead. The identity auths return ErrAccessDenied when no
+	// session already registered cannot park, and gets ErrInvalidSessionState
+	// instead, and one with an approval of that kind already open gets
+	// ErrChallengeAlreadyIssued. The identity auths return ErrAccessDenied when no
 	// Access Policy grants the principal, and the error from opening the approval.
 	Evaluate(*Session) (grant, error)
 }
