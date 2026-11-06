@@ -216,8 +216,10 @@ func TestKeyAuthPassesTheClientContextToTheDeviceKeyCreation(t *testing.T) {
 
 	sess := newTestSession(serviceMock, nil)
 
-	err := AuthPublicKey(newTestSSHKey(t)).Auth()(ctx, sess, &gossh.ClientConfig{})
-	require.ErrorIs(t, err, context.Canceled)
+	g, err := AuthPublicKey(newTestSSHKey(t)).Evaluate(sess)
+	require.NoError(t, err)
+
+	require.ErrorIs(t, g.method(ctx, sess, &gossh.ClientConfig{}), context.Canceled)
 }
 
 func expectKeyAdmitted(service *servicemocks.MockService) {
