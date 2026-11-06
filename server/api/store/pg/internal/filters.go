@@ -204,9 +204,9 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string, onlineCuto
 	case "bool":
 		condition, args, err = fromBool(fp.Name, fp.Value, tableAlias)
 	case "gt":
-		condition, args, err = fromGt(fp.Name, fp.Value, tableAlias)
+		condition, args, err = fromComparison(fp.Name, fp.Value, tableAlias, ">")
 	case "lt":
-		condition, args, err = fromLt(fp.Name, fp.Value, tableAlias)
+		condition, args, err = fromComparison(fp.Name, fp.Value, tableAlias, "<")
 	case "ne":
 		condition, args = fromNe(fp.Name, fp.Value, tableAlias)
 	default:
@@ -288,12 +288,14 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
 }
 
-func fromGt(column string, value any, tableAlias string) (string, []any, error) {
+func fromComparison(column string, value any, tableAlias, operator string) (string, []any, error) {
+	condition := "? " + operator + " ?"
+
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
 	case time.Time:
-		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
 	case string:
 		var num any
 		var err error
@@ -306,31 +308,7 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 			}
 		}
 
-		return "? > ?", []any{qualifyColumn(column, tableAlias), num}, nil
-	default:
-		return "", nil, ErrUnsupportedNumericType
-	}
-}
-
-func fromLt(column string, value any, tableAlias string) (string, []any, error) {
-	switch v := value.(type) {
-	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
-	case time.Time:
-		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
-	case string:
-		var num any
-		var err error
-
-		num, err = strconv.Atoi(v)
-		if err != nil {
-			num, err = strconv.ParseFloat(v, 64)
-			if err != nil {
-				return "", nil, err
-			}
-		}
-
-		return "? < ?", []any{qualifyColumn(column, tableAlias), num}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), num}, nil
 	default:
 		return "", nil, ErrUnsupportedNumericType
 	}
