@@ -2,16 +2,13 @@ package services
 
 import (
 	"context"
-	"crypto"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/pem"
 	"errors"
 	"net"
 	"slices"
@@ -147,7 +144,12 @@ type AuthService interface {
 	// minted.
 	AuthInstanceAPIKey(ctx context.Context, key string) (apiKey *models.InstanceAPIKey, err error)
 
-	AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
+	// AuthPublicKey signs req.Data with the key [SSHKeysService.MintDeviceSigner] minted for
+	// device, found by req.Fingerprint, which is how a device's agent tells the SSH gateway's login
+	// apart from anyone else's. It returns ErrPublicKeyNotFound for a key the server did not mint,
+	// one that expired, one minted for another device, an empty device, or when the cache cannot be
+	// read; the key's parse error when the stored key is corrupt; and the signing's error otherwise.
+	AuthPublicKey(ctx context.Context, device models.UID, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)
 	PublicKey() *rsa.PublicKey
 }
 
@@ -1030,33 +1032,6 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 	apiKey.Role = apiKeyRoleLimit(apiKey.Role)
 
 	return apiKey, nil
-}
-
-func (s *service) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
-	privKey, err := s.store.PrivateKeyGet(ctx, req.Fingerprint)
-	if err != nil {
-		return nil, NewErrPublicKeyNotFound(req.Fingerprint, err)
-	}
-
-	block, _ := pem.Decode(privKey.Data)
-	if block == nil {
-		return nil, err
-	}
-
-	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	digest := sha256.Sum256([]byte(req.Data))
-	signature, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, digest[:])
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.PublicKeyAuthResponse{
-		Signature: base64.StdEncoding.EncodeToString(signature),
-	}, nil
 }
 
 func (s *service) ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error) {

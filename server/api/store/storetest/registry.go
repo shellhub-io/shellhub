@@ -153,9 +153,6 @@ var Groups = []Group{
 		(*Suite).TestNamespaceUsages,
 		(*Suite).TestCountRegisteredDevices,
 	}},
-	{Name: "PrivateKeyStore", Tests: []TestFunc{
-		(*Suite).TestPrivateKeyGet,
-	}},
 	{Name: "MemberStore", Tests: []TestFunc{
 		(*Suite).TestNamespaceCreateMembership,
 		(*Suite).TestNamespaceUpdateMembership,

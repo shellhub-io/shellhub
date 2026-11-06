@@ -13,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
@@ -23,25 +24,47 @@ type memoryCache struct {
 	storecache.Cache
 	mu      sync.Mutex
 	entries map[string][]byte
+	expires map[string]time.Time
+	clock   clock.Clock
 }
 
 func newMemoryCache() *memoryCache {
-	return &memoryCache{Cache: storecache.NewNullCache(), entries: map[string][]byte{}}
+	return &memoryCache{
+		Cache:   storecache.NewNullCache(),
+		entries: map[string][]byte{},
+		expires: map[string]time.Time{},
+	}
+}
+
+func newExpiringMemoryCache(c clock.Clock) *memoryCache {
+	m := newMemoryCache()
+	m.clock = c
+
+	return m
+}
+
+func (c *memoryCache) live(key string) bool {
+	if _, ok := c.entries[key]; !ok {
+		return false
+	}
+
+	expires, ok := c.expires[key]
+
+	return !ok || c.clock.Now().Before(expires)
 }
 
 func (c *memoryCache) Get(_ context.Context, key string, value any) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	raw, ok := c.entries[key]
-	if !ok {
+	if !c.live(key) {
 		return storecache.ErrGetNotFound
 	}
 
-	return json.Unmarshal(raw, value)
+	return json.Unmarshal(c.entries[key], value)
 }
 
-func (c *memoryCache) Set(_ context.Context, key string, value any, _ time.Duration) error {
+func (c *memoryCache) Set(_ context.Context, key string, value any, ttl time.Duration) error {
 	raw, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -51,13 +74,17 @@ func (c *memoryCache) Set(_ context.Context, key string, value any, _ time.Durat
 	defer c.mu.Unlock()
 
 	c.entries[key] = raw
+	delete(c.expires, key)
+	if c.clock != nil && ttl > 0 {
+		c.expires[key] = c.clock.Now().Add(ttl)
+	}
 
 	return nil
 }
 
 func (c *memoryCache) SetNX(ctx context.Context, key string, value any, ttl time.Duration) (bool, error) {
 	c.mu.Lock()
-	_, exists := c.entries[key]
+	exists := c.live(key)
 	c.mu.Unlock()
 
 	if exists {

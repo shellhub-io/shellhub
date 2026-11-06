@@ -204,13 +204,13 @@ func TestPublicKeyOfferPassesTheClientContextToTheKeyLookup(t *testing.T) {
 	require.ErrorIs(t, AuthPublicKey(newTestSSHKey(t)).Offer(ctx, sess), context.Canceled)
 }
 
-func TestKeyAuthPassesTheClientContextToTheDeviceKeyCreation(t *testing.T) {
+func TestKeyAuthMintsTheDeviceKeyForTheSessionDeviceOnTheClientContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	serviceMock := servicemocks.NewMockService(t)
 	serviceMock.EXPECT().
-		CreatePrivateKey(mock.MatchedBy(isCancelled)).
+		MintDeviceSigner(mock.MatchedBy(isCancelled), models.UID("device-uid")).
 		Return(nil, context.Canceled).
 		Once()
 

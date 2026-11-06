@@ -2,10 +2,7 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -33,7 +30,11 @@ type SSHKeysService interface {
 	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
-	CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error)
+	// MintDeviceSigner generates the key the SSH gateway logs in to device with, and keeps it for a
+	// minute, bound to device, so the device's agent can have [AuthService.AuthPublicKey] vouch for
+	// it. ctx bounds only the cache write, not the key generation. It returns the key generation's
+	// error, or the cache's, ctx's cancellation included, when the key cannot be kept.
+	MintDeviceSigner(ctx context.Context, device models.UID) (*rsa.PrivateKey, error)
 }
 
 func (s *service) EvaluateKeyFilter(ctx context.Context, key *models.PublicKey, dev models.Device) (bool, error) {
@@ -232,31 +233,4 @@ func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant strin
 	}
 
 	return s.store.PublicKeyDelete(ctx, publicKey)
-}
-
-func (s *service) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 4096)
-	if err != nil {
-		return nil, err
-	}
-
-	pubKey, err := ssh.NewPublicKey(&key.PublicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	privateKey := &models.PrivateKey{
-		Data: pem.EncodeToMemory(&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(key),
-		}),
-		Fingerprint: ssh.FingerprintLegacyMD5(pubKey),
-		CreatedAt:   s.clock.Now(),
-	}
-
-	if err := s.store.PrivateKeyCreate(ctx, privateKey); err != nil {
-		return nil, err
-	}
-
-	return privateKey, nil
 }

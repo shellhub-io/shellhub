@@ -607,41 +607,6 @@ func (s *Suite) CreatePublicKey(t *testing.T, opts ...PublicKeyOption) string {
 	return createdFingerprint
 }
 
-// PrivateKeyOption allows customization of test private keys
-type PrivateKeyOption func(*models.PrivateKey)
-
-// WithPrivateKeyData sets the private key data
-func WithPrivateKeyData(data []byte) PrivateKeyOption {
-	return func(key *models.PrivateKey) {
-		key.Data = data
-	}
-}
-
-// CreatePrivateKey creates a private key with default or customized values
-// Returns the fingerprint
-func (s *Suite) CreatePrivateKey(t *testing.T, opts ...PrivateKeyOption) string {
-	t.Helper()
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	fingerprint := uniqueFingerprint(t)
-
-	key := &models.PrivateKey{
-		Data:        []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA..."),
-		Fingerprint: fingerprint,
-		CreatedAt:   s.Clock().Now(),
-	}
-
-	for _, opt := range opts {
-		opt(key)
-	}
-
-	err := st.PrivateKeyCreate(ctx, key)
-	require.NoError(t, err)
-
-	return key.Fingerprint
-}
-
 // InstanceAPIKeyOption allows customization of test instance API keys
 type InstanceAPIKeyOption func(*models.InstanceAPIKey)
 

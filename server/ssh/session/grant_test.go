@@ -3,8 +3,6 @@ package session
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"testing"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -36,8 +34,8 @@ func newGrantFixture(t *testing.T) *grantFixture {
 
 	service := servicemocks.NewMockService(t)
 	service.EXPECT().
-		CreatePrivateKey(mock.Anything).
-		Return(&models.PrivateKey{Data: pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(gatewayKey)})}, nil). //nolint:exhaustruct // only the PEM is read
+		MintDeviceSigner(mock.Anything, mock.Anything).
+		Return(gatewayKey, nil).
 		Maybe()
 
 	tunnel := &dialertest.Stub{Err: dialer.ErrNoConnection} //nolint:exhaustruct

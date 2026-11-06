@@ -3,8 +3,6 @@ package session
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -36,8 +34,8 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 
 	serviceMock := servicemocks.NewMockService(t)
 	serviceMock.EXPECT().
-		CreatePrivateKey(mock.Anything).
-		Return(&models.PrivateKey{Data: pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(gatewayKey)})}, nil). //nolint:exhaustruct // only the PEM is read
+		MintDeviceSigner(mock.Anything, mock.Anything).
+		Return(gatewayKey, nil).
 		Once()
 	serviceMock.EXPECT().
 		ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
