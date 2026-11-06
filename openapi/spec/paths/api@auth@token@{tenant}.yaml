@@ -1,14 +1,12 @@
 get:
   operationId: getNamespaceToken
   summary: Get a new namespace's token
-  description: "This route works like a login's one; returns a JWT token and extra
-
+  description: |
+    This route works like a login's one; returns a JWT token and extra
     information about namespace.
 
-
-    You can use this route to swap between namespaces.
-
-    "
+    You can use this route to swap between namespaces. A user the instance no
+    longer lets sign in answers `401`, as `getUserInfo` does.
   tags:
     - community
     - namespaces

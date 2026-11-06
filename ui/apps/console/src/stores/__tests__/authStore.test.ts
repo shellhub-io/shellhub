@@ -489,22 +489,29 @@ describe("authStore", () => {
   describe("recoverWithCode", () => {
     beforeEach(() => {
       useAuthStore.setState({
+        mfaToken: "mfa-temp-token",
         user: "admin",
       });
     });
 
-    it("authenticates with valid recovery code", async () => {
+    it("completes the password step with a recovery code in place of the TOTP code", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
+      let body: unknown;
       server.use(
-        http.post("*/api/user/mfa/recover", () =>
-          HttpResponse.json(mockUserAuth({ token: "recovered-jwt" }), {
+        http.post("*/api/user/mfa/recover", async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json(mockUserAuth({ token: "recovered-jwt" }), {
             headers: { "x-expires-at": futureExpiry.toString() },
-          }),
-        ),
+          });
+        }),
       );
 
       await useAuthStore.getState().recoverWithCode("recovery-code-abc");
 
+      expect(body).toEqual({
+        token: "mfa-temp-token",
+        recovery_code: "recovery-code-abc",
+      });
       const state = useAuthStore.getState();
       expect(state.token).toBe("recovered-jwt");
       expect(state.mfaRecoveryExpiry).toBe(futureExpiry);
@@ -513,7 +520,6 @@ describe("authStore", () => {
 
     it("clears mfaToken on successful recovery to prevent stale token re-use", async () => {
       const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
-      useAuthStore.setState({ mfaToken: "mfa-temp-token", user: "admin" });
       server.use(
         http.post("*/api/user/mfa/recover", () =>
           HttpResponse.json(mockUserAuth({ token: "recovered-jwt" }), {
@@ -527,27 +533,30 @@ describe("authStore", () => {
       expect(useAuthStore.getState().mfaToken).toBeNull();
     });
 
-    it("throws error when no username available", async () => {
-      useAuthStore.setState({ user: null, username: null });
+    it("throws without the password step's MFA token", async () => {
+      useAuthStore.setState({ mfaToken: null });
 
       await expect(
         useAuthStore.getState().recoverWithCode("recovery-code"),
-      ).rejects.toThrow("Username or email is required");
+      ).rejects.toThrow("No MFA token available");
+      expect(useAuthStore.getState().error).toBe(
+        "Sign in with your password first.",
+      );
     });
 
     it("sets error on invalid recovery code", async () => {
       server.use(
         http.post("*/api/user/mfa/recover", () =>
-          HttpResponse.json({}, { status: 400 }),
+          HttpResponse.json({}, { status: 401 }),
         ),
       );
 
       await expect(
         useAuthStore.getState().recoverWithCode("invalid-code"),
-      ).rejects.toThrow("Invalid recovery code or username");
+      ).rejects.toThrow("Invalid recovery code");
 
       const state = useAuthStore.getState();
-      expect(state.error).toBe("Invalid recovery code or username");
+      expect(state.error).toBe("Invalid recovery code");
     });
   });
 

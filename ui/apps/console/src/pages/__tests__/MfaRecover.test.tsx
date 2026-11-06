@@ -30,6 +30,7 @@ beforeEach(() => {
   );
   useAuthStore.setState({
     user: "admin",
+    mfaToken: "mfa-temp-token",
     loading: false,
     error: null,
     recoverWithCode: vi.fn(),
@@ -52,14 +53,14 @@ describe("MfaRecover", () => {
     await user.click(screen.getByRole("button", { name: /recover/i }));
 
     await waitFor(() => {
-      expect(mockRecover).toHaveBeenCalledWith("ABC-123-XYZ", "admin");
+      expect(mockRecover).toHaveBeenCalledWith("ABC-123-XYZ");
     });
   });
 
   it("displays error message on invalid code", async () => {
     const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ error: "Invalid recovery code or username" });
-      throw new Error("Invalid recovery code or username");
+      useAuthStore.setState({ error: "Invalid recovery code" });
+      throw new Error("Invalid recovery code");
     });
     useAuthStore.setState({ recoverWithCode: mockRecover });
 
@@ -70,9 +71,7 @@ describe("MfaRecover", () => {
     await user.click(screen.getByRole("button", { name: /recover/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Invalid recovery code or username"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Invalid recovery code")).toBeInTheDocument();
     });
   });
 
@@ -132,12 +131,8 @@ describe("MfaRecover", () => {
     ).toBeInTheDocument();
   });
 
-  it("redirects to login when no identifier and no mfaToken", async () => {
-    useAuthStore.setState({
-      user: null,
-      username: null,
-      mfaToken: null,
-    });
+  it("redirects to login without the password step's MFA token", async () => {
+    useAuthStore.setState({ mfaToken: null, token: null });
 
     render(
       <MemoryRouter initialEntries={["/recover-mfa"]}>
@@ -150,27 +145,6 @@ describe("MfaRecover", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Login Page")).toBeInTheDocument();
-    });
-  });
-
-  it("does not redirect when mfaToken is present even without identifier", async () => {
-    useAuthStore.setState({
-      user: null,
-      username: null,
-      mfaToken: "active-mfa-token",
-    });
-
-    render(
-      <MemoryRouter initialEntries={["/recover-mfa"]}>
-        <Routes>
-          <Route path="/recover-mfa" element={<MfaRecover />} />
-          <Route path="/login" element={<div>Login Page</div>} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => {
-      expect(screen.queryByText("Login Page")).not.toBeInTheDocument();
     });
   });
 

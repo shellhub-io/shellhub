@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { requestResetMfa, resetMfa } from "../client";
 import { useAuthStore } from "./authStore";
-import { signedInSession } from "./authSession";
+
+/** What the sign-in page says after an MFA reset, which signs no one in. */
+export const mfaResetNotice = "MFA is off. Sign in with your password.";
 
 interface MfaResetState {
   mfaResetToken: string | null;
@@ -63,7 +65,7 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
 
     set({ loading: true, error: null });
     try {
-      const { data } = await resetMfa({
+      await resetMfa({
         path: { "user-id": mfaResetToken },
         body: {
           main_email_code: mainEmailCode,
@@ -72,7 +74,7 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
         throwOnError: true,
       });
 
-      useAuthStore.setState(signedInSession(data));
+      useAuthStore.setState({ mfaToken: null });
       set({ mfaResetToken: null, mfaResetIdentifier: null, loading: false });
     } catch {
       set({

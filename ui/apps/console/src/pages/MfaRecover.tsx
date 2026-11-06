@@ -13,8 +13,8 @@ import { FormInputField } from "@/components/common/fields/rhf";
 import { mfaRecoverSchema, type MfaRecoverFormValues } from "./setup/schemas";
 
 /**
- * Signing in with a recovery code, for someone without their authenticator. Each code works
- * once, which the page says, because using one silently reduces what is left.
+ * Finishing a password sign-in with a recovery code in place of the authenticator's code. Each
+ * code works once, which the page says, because using one silently reduces what is left.
  */
 export default function MfaRecover() {
   const {
@@ -24,12 +24,11 @@ export default function MfaRecover() {
     mfaRecoveryExpiry,
     updateMfaStatus,
     user,
-    username,
     mfaToken,
+    token,
   } = useAuthStore();
   const navigate = useNavigate();
 
-  const identifier = user || username;
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
   const { control, handleSubmit, reset, resetField, formState } =
@@ -43,19 +42,21 @@ export default function MfaRecover() {
     useAuthStore.setState({ error: null });
   }, []);
 
+  const inSignIn = !!mfaToken || !!token;
+
   useEffect(() => {
-    if (!identifier && !mfaToken) {
+    if (!inSignIn) {
       void navigate("/login");
     }
-  }, [identifier, mfaToken, navigate]);
+  }, [inSignIn, navigate]);
 
-  if (!identifier) {
+  if (!inSignIn) {
     return null;
   }
 
   const onSubmit = async (values: MfaRecoverFormValues) => {
     try {
-      await recoverWithCode(values.recoveryCode, identifier);
+      await recoverWithCode(values.recoveryCode);
       reset();
       setShowTimeoutModal(true);
     } catch {
@@ -87,10 +88,14 @@ export default function MfaRecover() {
         title="Recover Your Account"
         lead={
           <>
-            Enter one of your recovery codes for{" "}
-            <span className="font-semibold text-text-primary">
-              {identifier}
-            </span>
+            Enter one of your recovery codes
+            {user && (
+              <>
+                {" "}
+                for{" "}
+                <span className="font-semibold text-text-primary">{user}</span>
+              </>
+            )}
             . Each code works once. After using one, you have a 10-minute window
             to disable MFA if you no longer have your authenticator.
           </>

@@ -35,11 +35,12 @@ func TestCloudMFAReset(t *testing.T) {
 		user := newMFAUser(t, compose, "mfa-reset")
 		codes := requestMFAReset(t, compose, user)
 
-		auth := new(models.UserAuthResponse)
-		resp, err := compose.Anonymous(t.Context()).SetBody(codes).SetResult(auth).Put("/api/user/mfa/reset/" + user.id)
+		resp, err := compose.Anonymous(t.Context()).SetBody(codes).Put("/api/user/mfa/reset/" + user.id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-		assert.False(t, auth.MFA, "the reset left MFA on")
+
+		requireAnswer(t, asBearer(t, compose, user.token), http.MethodGet, "/api/auth/user", http.StatusUnauthorized)
+		assert.False(t, compose.AuthUser(t, user.username, ShellHubPassword).MFA, "the reset left MFA on")
 	})
 
 	t.Run("the emailed codes last 24 hours and the pair is refused once one of them expires", func(t *testing.T) {

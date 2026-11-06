@@ -3,15 +3,15 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
-import { signedInSession } from "../stores/authSession";
+import { mfaResetNotice } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import OtpCells from "@/components/mfa/OtpCells";
-import { landingAfterSignIn } from "@/utils/navigation";
 
 /**
- * The last step of an MFA reset, reached from the emailed link.
+ * The last step of an MFA reset, reached from the emailed link. The reset signs no one in, so it
+ * ends on the sign-in page.
  */
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
@@ -33,7 +33,7 @@ export default function MfaResetComplete() {
     setError(null);
 
     try {
-      const { data } = await resetMfa({
+      await resetMfa({
         path: { "user-id": userId },
         body: {
           main_email_code: otpMain.getValue(),
@@ -42,8 +42,10 @@ export default function MfaResetComplete() {
         throwOnError: true,
       });
 
-      useAuthStore.setState(signedInSession(data));
-      void navigate(landingAfterSignIn("/dashboard"));
+      useAuthStore.setState({ mfaToken: null });
+      void navigate("/login", {
+        state: { notice: mfaResetNotice, signOut: true },
+      });
     } catch {
       setError("Invalid verification codes. Please check and try again.");
       otpMain.reset();
@@ -108,7 +110,7 @@ export default function MfaResetComplete() {
                 !otpMain.isComplete || !otpRecovery.isComplete || loading
               }
             >
-              {loading ? "Verifying..." : "Reset MFA and Login"}
+              {loading ? "Verifying..." : "Reset MFA"}
             </Button>
           }
           links={[{ label: "Back to sign in", to: "/login" }]}

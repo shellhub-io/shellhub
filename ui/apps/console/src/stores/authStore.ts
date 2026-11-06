@@ -68,7 +68,7 @@ interface AuthState {
   deleteUser: () => Promise<void>;
   loginWithMfa: (code: string) => Promise<void>;
   confirmAccount: (identifier: string, code: string) => Promise<boolean>;
-  recoverWithCode: (code: string, identifier?: string) => Promise<void>;
+  recoverWithCode: (code: string) => Promise<void>;
   updateMfaStatus: (enabled: boolean) => void;
   setMfaToken: (token: string) => void;
   setOnboardingSurvey: (outcome: UserOnboardingSurvey) => void;
@@ -258,17 +258,17 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      recoverWithCode: async (code: string, identifier?: string) => {
-        const username = identifier || get().user || get().username;
-        if (!username) {
-          set({ error: "Username or email is required" });
-          throw new Error("Username or email is required");
+      recoverWithCode: async (code: string) => {
+        const { mfaToken } = get();
+        if (!mfaToken) {
+          set({ error: "Sign in with your password first." });
+          throw new Error("No MFA token available");
         }
 
         set({ loading: true, error: null });
         try {
           const { data, response } = await mfaRecover({
-            body: { identifier: username, recovery_code: code },
+            body: { token: mfaToken, recovery_code: code },
             throwOnError: true,
           });
 
@@ -288,8 +288,8 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
-          set({ loading: false, error: "Invalid recovery code or username" });
-          throw new Error("Invalid recovery code or username");
+          set({ loading: false, error: "Invalid recovery code" });
+          throw new Error("Invalid recovery code");
         }
       },
 

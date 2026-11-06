@@ -3,7 +3,6 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useMfaResetStore } from "../mfaResetStore";
 import { useAuthStore } from "../authStore";
-import { mockUserAuth } from "@/tests/factories";
 
 beforeEach(() => {
   useMfaResetStore.setState({
@@ -119,35 +118,20 @@ describe("mfaResetStore", () => {
       );
     });
 
-    it("sets auth state in authStore on success", async () => {
+    it("signs no one in and drops the password step's MFA token", async () => {
+      useAuthStore.setState({ token: null, mfaToken: "mfa-temp-token" });
       server.use(
-        http.put("*/api/user/mfa/reset/:userId", () =>
-          HttpResponse.json(mockUserAuth({ token: "reset-token", mfa: false })),
+        http.put(
+          "*/api/user/mfa/reset/:userId",
+          () => new HttpResponse(null, { status: 200 }),
         ),
       );
 
       await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
 
       const auth = useAuthStore.getState();
-      expect(auth.token).toBe("reset-token");
-      expect(auth.user).toBe("admin");
-      expect(auth.userId).toBe("user-123");
-      expect(auth.email).toBe("admin@test.com");
-      expect(auth.tenant).toBe("tenant-456");
-      expect(auth.isAdmin).toBe(false);
-      expect(auth.mfaEnabled).toBe(false);
-    });
-
-    it("carries the onboarding survey outcome into the session", async () => {
-      server.use(
-        http.put("*/api/user/mfa/reset/:userId", () =>
-          HttpResponse.json(mockUserAuth({ onboarding_survey: "pending" })),
-        ),
-      );
-
-      await useMfaResetStore.getState().completeMfaReset("AAA11", "BBB22");
-
-      expect(useAuthStore.getState().onboardingSurvey).toBe("pending");
+      expect(auth.token).toBeNull();
+      expect(auth.mfaToken).toBeNull();
     });
 
     it("clears mfaResetToken and mfaResetIdentifier on success", async () => {
@@ -156,8 +140,9 @@ describe("mfaResetStore", () => {
         mfaResetIdentifier: "admin",
       });
       server.use(
-        http.put("*/api/user/mfa/reset/:userId", () =>
-          HttpResponse.json(mockUserAuth()),
+        http.put(
+          "*/api/user/mfa/reset/:userId",
+          () => new HttpResponse(null, { status: 200 }),
         ),
       );
 

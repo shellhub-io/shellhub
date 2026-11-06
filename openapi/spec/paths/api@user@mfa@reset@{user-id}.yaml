@@ -6,6 +6,9 @@ put:
     by `requestResetMFA` instead of a TOTP or recovery code. The `user-id` path
     segment accepts either the opaque token returned by `requestResetMFA` (the
     in-app flow) or the raw user ID carried by the emailed reset link.
+
+    The reset revokes every token the user holds and signs no one in: the
+    user signs in afterwards with the password alone.
   tags:
     - cloud
     - mfa
@@ -29,11 +32,7 @@ put:
           $ref: ../components/schemas/mfaReset.yaml
   responses:
     '200':
-      description: Success to reset and authenticate.
-      content:
-        application/json:
-          schema:
-            $ref: ../components/schemas/userAuth.yaml
+      description: Success to reset the MFA.
     '400':
       $ref: ../components/responses/400.yaml
     '401':

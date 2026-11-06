@@ -57,6 +57,10 @@ post:
 get:
   operationId: getUserInfo
   summary: Get user info
+  description: |
+    Return the signed-in user and a renewed token. A user the instance no
+    longer lets sign in, because the account is not confirmed or approved or
+    every sign-in method of the user is off, answers `401`.
   tags:
     - community
     - users

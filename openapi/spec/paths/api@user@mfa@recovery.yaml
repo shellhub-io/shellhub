@@ -2,8 +2,13 @@ post:
   operationId: mfaRecover
   summary: Recover MFA
   description: |
-    Recover account access by providing one of the user's recovery codes. It
-    will be invalidated for future uses.
+    Complete a sign-in with one of the user's recovery codes in place of the
+    TOTP code `authMFA` takes. Like `authMFA`, it is called after the password
+    step of `authUser`, with the `X-MFA-Token` that step returned, and the
+    token signs in once only. The recovery code is invalidated for future uses.
+    An unknown, expired or already used token answers `401`, and so does a
+    code sent while the account is locked out by wrong codes, which recovery
+    codes count toward like TOTP codes.
 
     The recovery code will be cached for 10 minutes. During this period, the
     user can use the same recovery code to disable their MFA without needing to
