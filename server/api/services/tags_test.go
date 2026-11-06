@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -1148,12 +1149,6 @@ func TestListTags(t *testing.T) {
 	})
 }
 
-type tagHolderFunc func(ctx context.Context, sc scope.Scope, tagID string) ([]string, error)
-
-func (f tagHolderFunc) TagHolders(ctx context.Context, sc scope.Scope, tagID string) ([]string, error) {
-	return f(ctx, sc, tagID)
-}
-
 func TestService_DeleteTag_TagHolder(t *testing.T) {
 	ctx := context.TODO()
 	tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
@@ -1163,6 +1158,7 @@ func TestService_DeleteTag_TagHolder(t *testing.T) {
 		description string
 		publicKeys  []models.PublicKey
 		held        []string
+		heldOther   []string
 		listErr     error
 		deleted     bool
 		expected    error
@@ -1182,6 +1178,12 @@ func TestService_DeleteTag_TagHolder(t *testing.T) {
 		},
 		{
 			description: "deletes the tag when the tag holder reports nothing holding it",
+			deleted:     true,
+			expected:    nil,
+		},
+		{
+			description: "deletes the tag when the tag holder reports only other tags held",
+			heldOther:   []string{`firewall rule "rule2"`},
 			deleted:     true,
 			expected:    nil,
 		},
@@ -1235,15 +1237,25 @@ func TestService_DeleteTag_TagHolder(t *testing.T) {
 
 			var askedScope scope.Scope
 
-			var askedTagID string
+			source := deviceSelectorSourceFunc{
+				permission: authorizer.FirewallEdit,
+				list: func(_ context.Context, sc scope.Scope) ([]DeviceSelector, error) {
+					askedScope = sc
 
-			holder := tagHolderFunc(func(_ context.Context, sc scope.Scope, tagID string) ([]string, error) {
-				askedScope, askedTagID = sc, tagID
+					selectors := []DeviceSelector{}
+					for _, name := range tc.held {
+						selectors = append(selectors, DeviceSelector{Name: name, TagIDs: []string{tag.ID}})
+					}
 
-				return tc.held, tc.listErr
-			})
+					for _, name := range tc.heldOther {
+						selectors = append(selectors, DeviceSelector{Name: name, TagIDs: []string{"tag_00000000-0000-4000-0000-000000000001"}})
+					}
 
-			service := NewService(storeMock, privateKey, publicKey, nil, WithTagHolder(holder))
+					return selectors, tc.listErr
+				},
+			}
+
+			service := NewService(storeMock, privateKey, publicKey, nil, WithDeviceSelectorSource(source))
 
 			err := service.DeleteTag(ctx, &requests.DeleteTag{Name: "production", TenantID: "tenant1"})
 			require.Equal(t, tc.expected, err)
@@ -1251,7 +1263,6 @@ func TestService_DeleteTag_TagHolder(t *testing.T) {
 			bounded, err := scope.NewBounded("tenant1")
 			require.NoError(t, err)
 			assert.Equal(t, bounded, askedScope)
-			assert.Equal(t, tag.ID, askedTagID)
 		})
 	}
 }

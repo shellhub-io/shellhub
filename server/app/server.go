@@ -345,12 +345,12 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, feOpts...)
 
-	thOpts, err := s.tagHolderOption(ctx, store, cache)
+	dsOpts, err := s.deviceSelectorSourceOption(ctx, store, cache)
 	if err != nil {
 		return err
 	}
 
-	servicesOptions = append(servicesOptions, thOpts...)
+	servicesOptions = append(servicesOptions, dsOpts...)
 
 	rpOpts, err := s.sessionRecordingPrunerOption(ctx, store, cache)
 	if err != nil {
@@ -689,19 +689,19 @@ func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Stor
 	return nil, nil
 }
 
-func (s *Server) tagHolderOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
-	factory := services.TagHolderFactory()
+func (s *Server) deviceSelectorSourceOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+	factory := services.DeviceSelectorSourceFactory()
 	if factory == nil {
 		return nil, nil
 	}
 
-	th, err := factory(ctx, st, c)
+	source, err := factory(ctx, st, c)
 	if err != nil {
-		return nil, errors.Join(errors.New("init tag holder"), err)
+		return nil, errors.Join(errors.New("init device selector source"), err)
 	}
 
-	if th != nil {
-		return []services.Option{services.WithTagHolder(th)}, nil
+	if source != nil {
+		return []services.Option{services.WithDeviceSelectorSource(source)}, nil
 	}
 
 	return nil, nil
