@@ -15,6 +15,7 @@ export const defaultConfig: ClientConfig = {
   stripePublishableKey: "",
   chatwootWebsiteToken: "",
   chatwootBaseUrl: "",
+  mapStyle: "outline",
 };
 
 /**

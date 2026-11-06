@@ -36,6 +36,7 @@ const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
+const DeviceMap = lazy(() => import("./pages/device-map/DeviceMap"));
 const PendingDevices = lazy(() => import("./pages/devices/PendingDevices"));
 const Containers = lazy(() => import("./pages/containers"));
 const ContainerDetails = lazy(() => import("./pages/ContainerDetails"));
@@ -220,6 +221,7 @@ export default function App() {
                       />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/devices" element={<Devices />} />
+                      <Route path="/dashboard/map" element={<DeviceMap />} />
                       <Route
                         path="/devices/pending"
                         element={<PendingDevices />}

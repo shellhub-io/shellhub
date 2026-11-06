@@ -134,6 +134,24 @@ value that is not a positive duration under one minute.
 That is the real variable name. Reproduce it exactly.
 </Callout>
 
+## Device map and GeoIP
+
+The Dashboard maps devices by the position of the address they connect from. The server image
+ships DB-IP City Lite, so positions work with no setup and no internet. When it can reach the
+internet, the server fetches DB-IP's new database each month into `/data/geoip`.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SHELLHUB_MAP_STYLE` | `outline` | `outline` draws bundled country outlines and makes no outside request. `openfreemap` draws OpenFreeMap tiles. An `http(s)` URL points at your own MapLibre style |
+| `SHELLHUB_GEOIP_DATABASE` | `dbip` | `dbip` uses DB-IP City Lite. `maxmind` uses MaxMind GeoLite2 (Enterprise and Cloud), with `SHELLHUB_MAXMIND_LICENSE` or `SHELLHUB_MAXMIND_MIRROR` as its credentials |
+| `SHELLHUB_GEOIP_UPDATE` | `true` | `false` stops the monthly DB-IP download, and the server keeps the database it has |
+
+When `maxmind` cannot load, the server falls back to DB-IP and logs a warning. The map credits the
+database the server actually uses.
+
+DB-IP City Lite is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The
+map credits it as "IP Geolocation by DB-IP", linked to [db-ip.com](https://db-ip.com).
+
 ## Enterprise
 
 From `.env.enterprise`, and only meaningful when the edition is not community.

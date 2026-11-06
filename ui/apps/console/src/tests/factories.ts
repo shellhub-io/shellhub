@@ -20,6 +20,7 @@ import type {
   Webendpoint,
 } from "@/client";
 import type { RecordingMeta } from "@/utils/recordings";
+import type { MapPalette } from "@/pages/device-map/mapModel";
 
 /**
  * Builds a user as the admin API returns it for a test: confirmed, not an admin and not awaiting
@@ -515,5 +516,26 @@ export function mockLegacyNamespace(
       ...base.settings,
       legacy: true,
     },
+  };
+}
+
+/**
+ * Builds a device map palette for a test, each colour a distinct rgb() so an assertion can tell
+ * which one a layer drew.
+ */
+export function mockMapPalette(overrides: Partial<MapPalette> = {}): MapPalette {
+  return {
+    online: "rgb(0, 200, 0)",
+    partial: "rgb(200, 200, 0)",
+    offline: "rgb(200, 0, 0)",
+    muted: "rgb(100, 100, 100)",
+    halo: "rgb(0, 0, 0)",
+    text: "rgb(255, 255, 255)",
+    selection: "rgb(0, 0, 255)",
+    background: "rgb(20, 20, 20)",
+    land: "rgb(30, 30, 30)",
+    border: "rgb(60, 60, 60)",
+    label: "rgb(150, 150, 150)",
+    ...overrides,
   };
 }

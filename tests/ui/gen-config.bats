@@ -97,3 +97,23 @@ require_jq() {
     [ "$status" -ne 0 ]
     [ ! -f "$BATS_TEST_TMPDIR/config.json" ]
 }
+
+@test "map style defaults to the bundled outline" {
+    out=$(gen_config)
+    [[ "$out" == *'"mapStyle": "outline"'* ]]
+}
+
+@test "map style takes openfreemap or a style URL" {
+    out=$(gen_config SHELLHUB_MAP_STYLE=openfreemap)
+    [[ "$out" == *'"mapStyle": "openfreemap"'* ]]
+
+    out=$(gen_config SHELLHUB_MAP_STYLE=https://maps.example.com/style.json)
+    [[ "$out" == *'"mapStyle": "https://maps.example.com/style.json"'* ]]
+}
+
+@test "an invalid map style aborts without writing the config" {
+    run env -i PATH="$PATH" SHELLHUB_MAP_STYLE=ftp://maps.example.com \
+        sh "$GEN_CONFIG" "$BATS_TEST_TMPDIR/config.json"
+    [ "$status" -ne 0 ]
+    [ ! -f "$BATS_TEST_TMPDIR/config.json" ]
+}

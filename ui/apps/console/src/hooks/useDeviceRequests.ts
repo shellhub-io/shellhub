@@ -3,6 +3,8 @@ import { isSdkError } from "@/api/errors";
 import {
   acceptDeviceMutation,
   createTag,
+  getDeviceLocations,
+  getDeviceLocationsQueryKey,
   getDeviceOptions,
   pullTagFromDeviceMutation,
   pushTagToDevice,
@@ -10,6 +12,7 @@ import {
   type Device,
 } from "@/client";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import type { GeoIPSource } from "@/types/geoip";
 
 /**
  * One device by UID. Idle until a UID is given. refetchInterval keeps it polling, and as a function
@@ -34,6 +37,44 @@ export function useDevice(
 
   return {
     device: result.data ?? null,
+    isLoading: result.isLoading,
+    error: result.error,
+  };
+}
+
+const DEVICE_LOCATIONS_REFRESH_MS = 30_000;
+
+function geoipSourceOf(response: Response): GeoIPSource | undefined {
+  const source = response.headers.get("X-GeoIP-Source");
+
+  return source === "dbip" || source === "maxmind" ? source : undefined;
+}
+
+/**
+ * The namespace's accepted devices counted by position, refreshed every thirty seconds so the
+ * online counts follow the fleet, and the GeoIP database the server placed them with, which the
+ * map credits. locations is empty and source undefined until the first read succeeds. A failed
+ * read keeps the last successful locations and source and sets error, so a caller that must not
+ * act on stale positions checks error, not only locations. source is also undefined when the
+ * server names no database.
+ */
+export function useDeviceLocations() {
+  const result = useQuery({
+    queryKey: getDeviceLocationsQueryKey(),
+    queryFn: async ({ signal }) => {
+      const { data, response } = await getDeviceLocations({
+        signal,
+        throwOnError: true,
+      });
+
+      return { locations: data, source: geoipSourceOf(response) };
+    },
+    refetchInterval: DEVICE_LOCATIONS_REFRESH_MS,
+  });
+
+  return {
+    locations: result.data?.locations ?? [],
+    source: result.data?.source,
     isLoading: result.isLoading,
     error: result.error,
   };
