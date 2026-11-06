@@ -97,6 +97,10 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		return nil, errors.New("invitation already accepted")
 	}
 
+	if err := s.signInMethodEnabled(ctx, models.UserAuthMethodLocal); err != nil {
+		return nil, err
+	}
+
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
 		return nil, err
@@ -173,11 +177,11 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 	switch user.Status {
 	case models.UserStatusConfirmed:
-		res, err := s.CreateUserToken(ctx, &requests.CreateUserToken{UserID: invitation.ID})
+		res, err := s.SignIn(ctx, invitation.ID, models.UserAuthMethodLocal)
 		if err != nil {
 			log.WithError(err).
 				WithField("user_id", invitation.ID).
-				Error("CreateUserToken failed after transaction commit; user exists but registration returned error")
+				Error("SignIn failed after transaction commit; user exists but registration returned error")
 
 			return nil, NewErrUserGetToken(invitation.ID, err)
 		}

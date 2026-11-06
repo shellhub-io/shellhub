@@ -20,7 +20,9 @@ type UserService interface {
 	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s). An
 	// open sign-up whose email an [OnEmailCheck] hook refuses yields [ErrBadRequest] whose fields
 	// map "email" to the hook's reason; an invited account is not checked, since the invitation
-	// fixed its email.
+	// fixed its email. An invited account signs in locally, so while the instance has local
+	// sign-in off it yields [ErrAuthMethodNotAllowed] before anything is created, and the store's
+	// error as is when the system settings cannot be read.
 	RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error)
 
 	// UpdateUser updates the user's data, such as email and username, and a password change revokes

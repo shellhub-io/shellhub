@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/hkdf"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -12,6 +13,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
@@ -48,6 +50,8 @@ type service struct {
 	development  bool
 	webhookCIDRs []netip.Prefix
 
+	signInMethods map[models.UserAuthMethod]func(ctx context.Context) error
+
 	telemetry                      TelemetrySender
 	telemetryDisabledByEnvironment bool
 }
@@ -70,6 +74,7 @@ type Service interface {
 	MemberService
 	InvitationService
 	AuthService
+	SignInService
 	StatsService
 	SetupService
 	SystemService

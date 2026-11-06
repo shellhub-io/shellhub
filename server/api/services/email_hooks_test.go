@@ -124,6 +124,7 @@ func TestRegisterUserEmailCheck(t *testing.T) {
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@listed.test", Status: models.UserInvitationStatusPending,
 					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).Return("invitee", nil).Once()

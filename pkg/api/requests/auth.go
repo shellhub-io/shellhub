@@ -1,8 +1,9 @@
 package requests
 
-// CreateUserToken is the request to mint a token for a user, optionally scoped to one namespace.
+// RenewUserToken is the request to replace a signed-in user's bearer, optionally scoped to one
+// namespace.
 // With no TenantID the token carries no namespace, which is what a user with no memberships gets.
-type CreateUserToken struct {
+type RenewUserToken struct {
 	UserID   string `identity:"id" json:"-" validate:"required"`
 	TenantID string `param:"tenant" json:"-" validate:"omitempty,uuid"`
 	// TokenVersion is the version of the bearer being renewed, which the new token carries in
