@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v5"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/routes"
 	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
@@ -25,8 +24,8 @@ var sshRoutes = map[string]string{
 	routetable.Address(http.MethodGet, web.WebsocketSSHBridgeRoute):    "the web terminal's socket, opened by the token its session minted",
 }
 
-func requireDeclaredRoutes(router *echo.Echo, edition envs.Edition) error {
-	declared := routes.Declared(edition)
+func requireDeclaredRoutes(router *echo.Echo) error {
+	declared := routes.Declared()
 	maps.Copy(declared, sshRoutes)
 
 	if undeclared := routetable.Undeclared(router.Router().Routes(), declared); len(undeclared) > 0 {

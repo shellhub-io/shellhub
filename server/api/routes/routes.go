@@ -16,6 +16,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/sirupsen/logrus"
 )
@@ -153,8 +154,8 @@ func WithGeoIPSource(source string) Option {
 
 // NewRouter builds the API router over service, applying each option in turn.
 // It returns a nil router and an error wrapping the option's own error when an
-// option fails, or an error when [DefaultHTTPHandler] does not build an
-// [echo.Echo].
+// option fails, an error when [DefaultHTTPHandler] does not build an
+// [echo.Echo], or the error [routetable.Mount] returns for the core route table.
 func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	router, ok := DefaultHTTPHandler().(*echo.Echo)
 	if !ok {
@@ -171,14 +172,11 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	router.IPExtractor = handler.trust.ClientIP
 	router.Pre(resolveOrigin(handler.trust))
 
-	table := handler.publicRoutes()
-	mount(router.Group(publicAPIPrefix), table)
+	if err := routetable.Mount(router.Group(publicAPIPrefix), handler.authn, handler.publicRoutes()); err != nil {
+		return nil, fmt.Errorf("failed to mount the core route table: %w", err)
+	}
 
 	SetupMCPRoutes(router)
-
-	if handler.authn != nil {
-		allow(handler.authn, table)
-	}
 
 	if err := applyExtensions(router, handler.authn, service); err != nil {
 		logrus.WithError(err).Error("failed to apply route extensions")

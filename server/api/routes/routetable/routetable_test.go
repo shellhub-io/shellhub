@@ -1,6 +1,9 @@
 package routetable_test
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"fmt"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -10,11 +13,15 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
+	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,6 +59,10 @@ func denyAll(echo.HandlerFunc) echo.HandlerFunc {
 	return func(*echo.Context) error {
 		return echo.ErrForbidden
 	}
+}
+
+func allowAll(next echo.HandlerFunc) echo.HandlerFunc {
+	return next
 }
 
 func TestMountRefusesARouteThatStatesNoAccess(t *testing.T) {
@@ -153,4 +164,98 @@ func TestUndeclaredNamesEveryRouteMountedOutsideATable(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, []string{"POST /declared/:id", "GET /grouped/bare"}, routetable.Undeclared(router.Router().Routes(), declared))
+}
+
+func TestMountRefusesAPIKeysOnAPathCodeRoute(t *testing.T) {
+	router := newRouter()
+	require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+		{Method: http.MethodGet, Path: "/code/:code", Endpoint: ok, Access: routetable.PathCode},
+	}))
+
+	user := &identity.Identity{ID: "user"}
+	apiKey := &identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner, APIKey: "key"}
+
+	assert.Equal(t, http.StatusOK, serve(t, router, http.MethodGet, "/api/code/abc", user, nil))
+	assert.Equal(t, http.StatusForbidden, serve(t, router, http.MethodGet, "/api/code/abc", apiKey, nil))
+}
+
+func TestMountOpensOnlyDeviceTokenRoutesToADevice(t *testing.T) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: "tenant"}, "http://localhost", privateKey, clock.New().Now())
+	require.NoError(t, err)
+
+	service := servicemocks.NewMockService(t)
+	service.On("PublicKey").Return(&privateKey.PublicKey)
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(nil)
+
+	authn := middleware.NewAuthenticator(service)
+
+	router := newRouter()
+	router.Use(authn.Middleware)
+	require.NoError(t, routetable.Mount(router.Group("/api"), authn, []routetable.Route{
+		{Method: http.MethodPost, Path: "/device", Endpoint: ok, Access: routetable.DeviceToken},
+		{Method: http.MethodPost, Path: "/account", Endpoint: ok, Access: routetable.OwnAccount},
+	}))
+
+	header := http.Header{"Authorization": []string{"Bearer " + bearer}}
+
+	assert.Equal(t, http.StatusOK, serve(t, router, http.MethodPost, "/api/device", nil, header))
+	assert.Equal(t, http.StatusForbidden, serve(t, router, http.MethodPost, "/api/account", nil, header))
+	assert.Empty(t, authn.UnregisteredRoutes(router.Router().Routes()))
+}
+
+func TestMountRefusesACallerNamingAnotherNamespaceInThePath(t *testing.T) {
+	router := newRouter()
+	require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+		{Method: http.MethodGet, Path: "/namespaces/:" + routetable.TenantParam, Endpoint: ok, Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: "/namespaces/:" + routetable.TenantParam + "/leave", Endpoint: ok, Access: routetable.OwnAccount},
+		{Method: http.MethodGet, Path: "/admin/namespaces/:" + routetable.TenantParam, Endpoint: ok, Access: routetable.Admin(allowAll)},
+	}))
+
+	caller := &identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleObserver}
+
+	assert.Equal(t, http.StatusOK, serve(t, router, http.MethodGet, "/api/namespaces/tenant", caller, nil))
+	assert.Equal(t, http.StatusForbidden, serve(t, router, http.MethodGet, "/api/namespaces/other", caller, nil))
+	assert.Equal(t, http.StatusOK, serve(t, router, http.MethodGet, "/api/namespaces/other/leave", caller, nil))
+	assert.Equal(t, http.StatusOK, serve(t, router, http.MethodGet, "/api/admin/namespaces/other", caller, nil))
+}
+
+func TestMountHandsEachEndpointTheClaimsItsRowStates(t *testing.T) {
+	answeringClaims := func(claims gateway.Claims) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			return c.String(http.StatusOK, fmt.Sprintf("%+v", claims))
+		}
+	}
+
+	router := newRouter()
+	require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+		{Method: http.MethodGet, Path: "/anonymous", Endpoint: answeringClaims, Access: routetable.Anonymous},
+		{Method: http.MethodGet, Path: "/unbounded", Endpoint: answeringClaims, Access: routetable.Anonymous, Unbounded: true},
+		{Method: http.MethodGet, Path: "/member", Endpoint: answeringClaims, Access: routetable.NamespaceMember},
+	}))
+
+	owner := identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner}
+
+	cases := []struct {
+		path   string
+		claims gateway.Claims
+	}{
+		{path: "/api/anonymous", claims: gateway.Claims{Anonymous: true}},
+		{path: "/api/unbounded", claims: gateway.Claims{Anonymous: true, Unbounded: true}},
+		{path: "/api/member", claims: gateway.Claims{}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.path, func(t *testing.T) {
+			req := identitytest.As(httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.path, nil), owner)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusOK, rec.Code)
+
+			assert.Equal(t, fmt.Sprintf("%+v", tc.claims), rec.Body.String())
+		})
+	}
 }

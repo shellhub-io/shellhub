@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
+	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	log "github.com/sirupsen/logrus"
 )
@@ -36,7 +37,7 @@ const (
 
 // The path parameter names these routes bind by.
 const (
-	ParamNamespaceTenant = "tenant"
+	ParamNamespaceTenant = routetable.TenantParam
 )
 
 // GetNamespaceList serves the namespaces the caller belongs to.

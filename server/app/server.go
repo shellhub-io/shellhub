@@ -502,7 +502,7 @@ func (s *Server) setupSSH(service services.Service) error {
 		return err
 	}
 
-	if err := requireDeclaredRoutes(s.router, s.env.Edition); err != nil {
+	if err := requireDeclaredRoutes(s.router); err != nil {
 		return err
 	}
 
