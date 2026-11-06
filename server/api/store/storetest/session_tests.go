@@ -516,35 +516,6 @@ func (s *Suite) TestActiveSessionResolve(t *testing.T) {
 	})
 }
 
-// TestActiveSessionUpdate tests active session updates
-func (s *Suite) TestActiveSessionUpdate(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("fails when active session is not found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		err := st.ActiveSessionUpdate(ctx, &models.ActiveSession{
-			UID:      "nonexistent",
-			LastSeen: s.Clock().Now(),
-		})
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("succeeds when active session is found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		sessionUID := s.CreateSession(t, WithSessionActive(true))
-
-		newTime := time.Date(2023, 2, 1, 12, 0, 0, 0, time.UTC)
-		err := st.ActiveSessionUpdate(ctx, &models.ActiveSession{
-			UID:      sessionUID,
-			LastSeen: newTime,
-		})
-		require.NoError(t, err)
-	})
-}
-
 // TestSessionEventsCreate tests session event creation
 func (s *Suite) TestSessionEventsCreate(t *testing.T) {
 	ctx := context.Background()
@@ -1399,5 +1370,66 @@ func (s *Suite) TestSessionEventsTimeline(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, events, 1)
 		assert.Equal(t, map[string]any{"offset": "0s"}, events[0].Data)
+	})
+}
+
+// TestDeviceSessionsSeen locks that a device stamps as seen only the active sessions it runs in its
+// own namespace.
+func (s *Suite) TestDeviceSessionsSeen(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("stamps only the active sessions the device runs within the namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant := s.CreateNamespace(t)
+		other := s.CreateNamespace(t)
+		device := s.CreateDevice(t, WithTenantID(tenant), WithDeviceName("device"))
+		sibling := s.CreateDevice(t, WithTenantID(tenant), WithDeviceName("sibling"))
+		outsider := s.CreateDevice(t, WithTenantID(other), WithDeviceName("device"))
+
+		own := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(true))
+		ended := s.CreateSession(t, WithSessionDevice(device), WithSessionActive(false))
+		siblings := s.CreateSession(t, WithSessionDevice(sibling), WithSessionActive(true))
+		outsiders := s.CreateSession(t, WithSessionDevice(outsider), WithSessionActive(true))
+
+		before := map[models.UID]time.Time{
+			ended:     s.sessionLastSeen(t, tenant, ended),
+			siblings:  s.sessionLastSeen(t, tenant, siblings),
+			outsiders: s.sessionLastSeen(t, other, outsiders),
+		}
+
+		at := s.Clock().Now().Add(time.Hour).Truncate(time.Microsecond)
+		stamped, err := st.DeviceSessionsSeen(ctx, scope.MustBounded(tenant), device, []models.UID{own, ended, siblings, outsiders, "missing"}, at)
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), stamped)
+
+		assert.True(t, at.Equal(s.sessionLastSeen(t, tenant, own)), "the device's active session is stamped")
+		active, err := st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(own))
+		require.NoError(t, err)
+		assert.True(t, at.Equal(active.LastSeen), "the device's active session is stamped in the active set too")
+
+		assert.True(t, before[ended].Equal(s.sessionLastSeen(t, tenant, ended)), "an ended session is left alone")
+		_, err = st.ActiveSessionResolve(ctx, store.SessionUIDResolver, string(ended))
+		require.ErrorIs(t, err, store.ErrNoDocuments, "an ended session is not put back in the active set")
+
+		assert.True(t, before[siblings].Equal(s.sessionLastSeen(t, tenant, siblings)), "another device's session is left alone")
+		assert.True(t, before[outsiders].Equal(s.sessionLastSeen(t, other, outsiders)), "a session in another namespace is left alone")
+	})
+
+	t.Run("stamps nothing given no sessions", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenant := s.CreateNamespace(t)
+		device := s.CreateDevice(t, WithTenantID(tenant), WithDeviceName("device"))
+
+		stamped, err := st.DeviceSessionsSeen(ctx, scope.MustBounded(tenant), device, nil, s.Clock().Now())
+		require.NoError(t, err)
+		assert.Zero(t, stamped)
+	})
+
+	t.Run("refuses a scope that is not bounded", func(t *testing.T) {
+		_, err := st.DeviceSessionsSeen(ctx, scope.NewUnbounded(reasonTestQueryMechanics), "device", []models.UID{"session"}, s.Clock().Now())
+		require.ErrorIs(t, err, store.ErrInvalidScope)
 	})
 }

@@ -1119,63 +1119,6 @@ func (_c *MockStore_ActiveSessionResolve_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
-// ActiveSessionUpdate provides a mock function for the type MockStore
-func (_mock *MockStore) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
-	ret := _mock.Called(ctx, activeSession)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ActiveSessionUpdate")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.ActiveSession) error); ok {
-		r0 = returnFunc(ctx, activeSession)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockStore_ActiveSessionUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActiveSessionUpdate'
-type MockStore_ActiveSessionUpdate_Call struct {
-	*mock.Call
-}
-
-// ActiveSessionUpdate is a helper method to define mock.On call
-//   - ctx context.Context
-//   - activeSession *models.ActiveSession
-func (_e *MockStore_Expecter) ActiveSessionUpdate(ctx any, activeSession any) *MockStore_ActiveSessionUpdate_Call {
-	return &MockStore_ActiveSessionUpdate_Call{Call: _e.mock.On("ActiveSessionUpdate", ctx, activeSession)}
-}
-
-func (_c *MockStore_ActiveSessionUpdate_Call) Run(run func(ctx context.Context, activeSession *models.ActiveSession)) *MockStore_ActiveSessionUpdate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *models.ActiveSession
-		if args[1] != nil {
-			arg1 = args[1].(*models.ActiveSession)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStore_ActiveSessionUpdate_Call) Return(err error) *MockStore_ActiveSessionUpdate_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockStore_ActiveSessionUpdate_Call) RunAndReturn(run func(ctx context.Context, activeSession *models.ActiveSession) error) *MockStore_ActiveSessionUpdate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CountRegisteredDevices provides a mock function for the type MockStore
 func (_mock *MockStore) CountRegisteredDevices(ctx context.Context, sc scope.Scope) (int64, error) {
 	ret := _mock.Called(ctx, sc)
@@ -2225,6 +2168,90 @@ func (_c *MockStore_DeviceResolve_Call) Return(device *models.Device, err error)
 }
 
 func (_c *MockStore_DeviceResolve_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, resolver store.DeviceResolver, value string, opts ...store.QueryOption) (*models.Device, error)) *MockStore_DeviceResolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeviceSessionsSeen provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceSessionsSeen(ctx context.Context, sc scope.Scope, device models.UID, uids []models.UID, at time.Time) (int64, error) {
+	ret := _mock.Called(ctx, sc, device, uids, at)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceSessionsSeen")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID, []models.UID, time.Time) (int64, error)); ok {
+		return returnFunc(ctx, sc, device, uids, at)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID, []models.UID, time.Time) int64); ok {
+		r0 = returnFunc(ctx, sc, device, uids, at)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, models.UID, []models.UID, time.Time) error); ok {
+		r1 = returnFunc(ctx, sc, device, uids, at)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_DeviceSessionsSeen_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceSessionsSeen'
+type MockStore_DeviceSessionsSeen_Call struct {
+	*mock.Call
+}
+
+// DeviceSessionsSeen is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - device models.UID
+//   - uids []models.UID
+//   - at time.Time
+func (_e *MockStore_Expecter) DeviceSessionsSeen(ctx any, sc any, device any, uids any, at any) *MockStore_DeviceSessionsSeen_Call {
+	return &MockStore_DeviceSessionsSeen_Call{Call: _e.mock.On("DeviceSessionsSeen", ctx, sc, device, uids, at)}
+}
+
+func (_c *MockStore_DeviceSessionsSeen_Call) Run(run func(ctx context.Context, sc scope.Scope, device models.UID, uids []models.UID, at time.Time)) *MockStore_DeviceSessionsSeen_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
+		}
+		var arg3 []models.UID
+		if args[3] != nil {
+			arg3 = args[3].([]models.UID)
+		}
+		var arg4 time.Time
+		if args[4] != nil {
+			arg4 = args[4].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceSessionsSeen_Call) Return(n int64, err error) *MockStore_DeviceSessionsSeen_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_DeviceSessionsSeen_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device models.UID, uids []models.UID, at time.Time) (int64, error)) *MockStore_DeviceSessionsSeen_Call {
 	_c.Call.Return(run)
 	return _c
 }

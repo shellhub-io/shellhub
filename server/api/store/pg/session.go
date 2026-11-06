@@ -230,26 +230,58 @@ func (pg *Pg) ActiveSessionResolve(ctx context.Context, resolver store.SessionRe
 	return entity.ActiveSessionToModel(e), nil
 }
 
-// ActiveSessionUpdate implements [store.SessionStore].
-func (pg *Pg) ActiveSessionUpdate(ctx context.Context, activeSession *models.ActiveSession) error {
-	db := pg.GetConnection(ctx)
-
-	e := entity.ActiveSessionFromModel(activeSession, pg.clock.Now())
-	result, err := db.NewUpdate().Model(e).Where("session_id = ?", e.SessionID).Exec(ctx)
+// DeviceSessionsSeen implements [store.SessionStore].
+func (pg *Pg) DeviceSessionsSeen(ctx context.Context, sc scope.Scope, device models.UID, uids []models.UID, at time.Time) (int64, error) {
+	tenantID, err := requireBounded(sc)
 	if err != nil {
-		return fromSQLError(err)
+		return 0, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return fromSQLError(err)
+	if len(uids) == 0 {
+		return 0, nil
 	}
 
-	if rowsAffected < 1 {
-		return store.ErrNoDocuments
+	ids := make([]string, len(uids))
+	for i, uid := range uids {
+		ids[i] = string(uid)
 	}
 
-	return nil
+	var stamped int64
+
+	err = pg.WithTransaction(ctx, func(ctx context.Context) error {
+		db := pg.GetConnection(ctx)
+
+		var owned []string
+		if err := db.NewUpdate().
+			Model((*entity.Session)(nil)).
+			Set("seen_at = ?", at).
+			Where("namespace_id = ?", tenantID).
+			Where("device_id = ?", string(device)).
+			Where("id IN (?)", bun.List(ids)).
+			Where("EXISTS (SELECT 1 FROM active_sessions WHERE active_sessions.session_id = ?TableAlias.id)").
+			Returning("id").
+			Scan(ctx, &owned); err != nil {
+			return fromSQLError(err)
+		}
+
+		if len(owned) == 0 {
+			return nil
+		}
+
+		if _, err := db.NewUpdate().
+			Model((*entity.ActiveSession)(nil)).
+			Set("seen_at = ?", at).
+			Where("session_id IN (?)", bun.List(owned)).
+			Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
+		stamped = int64(len(owned))
+
+		return nil
+	})
+
+	return stamped, err
 }
 
 // ActiveSessionDelete implements [store.SessionStore].

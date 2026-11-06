@@ -109,8 +109,6 @@ type ActiveSession struct {
 
 	SessionID string    `bun:"session_id,pk"`
 	SeenAt    time.Time `bun:"seen_at"`
-	// skipupdate: ActiveSessionFromModel always stamps the now it is given, so without this every
-	// ActiveSessionUpdate would reset created_at to "now".
 	CreatedAt time.Time `bun:"created_at,skipupdate"`
 
 	Session *Session `bun:"rel:belongs-to,join:session_id=id"`

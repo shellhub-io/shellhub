@@ -296,9 +296,9 @@ func (s *Suite) TestUserInvitationUpdateDoesNotClobberInvitations(t *testing.T) 
 	assert.Equal(t, 2, updated.Invitations, "concurrent re-invite increment must not be clobbered")
 }
 
-// TestActiveSessionUpdatePreservesCreatedAt ensures ActiveSessionUpdate no longer resets the row's
-// creation timestamp to the store's now (ActiveSessionFromModel always stamps the now it is given).
-func (s *Suite) TestActiveSessionUpdatePreservesCreatedAt(t *testing.T) {
+// TestDeviceSessionsSeenPreservesCreatedAt ensures stamping a session as seen leaves the active
+// row's creation timestamp as it was.
+func (s *Suite) TestDeviceSessionsSeenPreservesCreatedAt(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
 
@@ -311,16 +311,20 @@ func (s *Suite) TestActiveSessionUpdatePreservesCreatedAt(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	sessionUID := s.CreateSession(t, WithSessionActive(true))
+	session, err := st.SessionResolve(ctx, s.sessionScope(t, sessionUID), store.SessionUIDResolver, string(sessionUID))
+	require.NoError(t, err)
 
 	createdAt := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	_, err := db.NewUpdate().
+	_, err = db.NewUpdate().
 		Table("active_sessions").
 		Set("created_at = ?", createdAt).
 		Where("session_id = ?", string(sessionUID)).
 		Exec(ctx)
 	require.NoError(t, err)
 
-	require.NoError(t, st.ActiveSessionUpdate(ctx, &models.ActiveSession{UID: sessionUID, LastSeen: s.Clock().Now()}))
+	stamped, err := st.DeviceSessionsSeen(ctx, scope.MustBounded(session.TenantID), session.DeviceUID, []models.UID{sessionUID}, s.Clock().Now())
+	require.NoError(t, err)
+	require.Equal(t, int64(1), stamped)
 
 	var got time.Time
 	require.NoError(t, db.NewSelect().

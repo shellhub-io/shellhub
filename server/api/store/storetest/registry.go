@@ -78,8 +78,7 @@ var Groups = []Group{
 		(*Suite).TestSessionUpdate,
 		(*Suite).TestActiveSessionDelete,
 		(*Suite).TestActiveSessionResolve,
-		(*Suite).TestActiveSessionUpdate,
-		(*Suite).TestActiveSessionUpdatePreservesCreatedAt,
+		(*Suite).TestDeviceSessionsSeenPreservesCreatedAt,
 		(*Suite).TestSessionEventsCreate,
 		(*Suite).TestSessionEventsList,
 		(*Suite).TestSessionEventsDelete,
@@ -88,6 +87,7 @@ var Groups = []Group{
 		(*Suite).TestSessionEventsTimeline,
 		(*Suite).TestSessionCleanup,
 		(*Suite).TestSessionKeepAlive,
+		(*Suite).TestDeviceSessionsSeen,
 		(*Suite).TestActiveSessionCleanup,
 	}},
 	{Name: "TagStore", Tests: []TestFunc{
