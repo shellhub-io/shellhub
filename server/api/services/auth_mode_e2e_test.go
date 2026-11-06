@@ -100,7 +100,7 @@ func TestAuthDeviceMode(t *testing.T) {
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:06", "")
 		require.NoError(t, e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted)}))
 
-		require.NoError(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
 		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:06", ""))
 		require.NoError(t, err)
@@ -112,7 +112,7 @@ func TestAuthDeviceMode(t *testing.T) {
 		e := setupLegacyEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:07", "")
-		require.NoError(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
 		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:07", ""))
 		require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestAuthDeviceMode(t *testing.T) {
 		require.NoError(t, e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted)}))
 		require.NoError(t, e.svc.DeleteDevice(ctx, models.UID(uid), e.tenantID))
 
-		require.NoError(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 
 		res, err := e.svc.AuthDevice(ctx, e.authRequest("aa:bb:cc:dd:ee:09", ""))
 		require.NoError(t, err)
@@ -279,11 +279,11 @@ func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
 		e := setupLegacyEnrollmentE2E(t)
 		e.dropPolicies(t)
 
-		require.NoError(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 		require.False(t, e.isLegacy(t))
 		require.Len(t, e.ownerPolicies(t), 1)
 
-		require.ErrorIs(t, e.svc.UpgradeNamespace(ctx, e.tenantID), ErrNamespaceNotLegacy)
+		require.ErrorIs(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID), ErrNamespaceNotLegacy)
 		require.Equal(t, int64(1), e.policyCount(t))
 	})
 
@@ -292,7 +292,7 @@ func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
 		before := e.ownerPolicies(t)
 		require.NotEmpty(t, before)
 
-		require.NoError(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.NoError(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 		require.False(t, e.isLegacy(t))
 		require.Equal(t, before, e.ownerPolicies(t))
 		require.Equal(t, int64(len(before)), e.policyCount(t))
@@ -304,7 +304,7 @@ func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
 		_, err := e.db.NewRaw("DELETE FROM memberships WHERE namespace_id = ?", e.tenantID).Exec(ctx)
 		require.NoError(t, err)
 
-		require.Error(t, e.svc.UpgradeNamespace(ctx, e.tenantID))
+		require.Error(t, e.svc.UpgradeNamespace(ctx, scope.MustBounded(e.tenantID), e.tenantID))
 		require.True(t, e.isLegacy(t))
 		require.Equal(t, int64(0), e.policyCount(t))
 	})

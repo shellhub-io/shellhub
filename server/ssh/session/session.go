@@ -389,7 +389,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 		return nil, err
 	}
 
-	namespace, err := service.GetNamespace(ctx, lookupDevice.TenantID)
+	namespace, err := service.GetNamespace(ctx, scope.MustBounded(lookupDevice.TenantID), lookupDevice.TenantID)
 	if err != nil {
 		return nil, err
 	}

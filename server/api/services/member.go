@@ -18,9 +18,12 @@ import (
 
 // MemberService owns who belongs to a namespace and in what role.
 type MemberService interface {
-	// EditNamespace updates a namespace for the specified requests.NamespaceEdit#Tenant.
-	// It returns the namespace with the updated fields and an error, if any.
-	EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)
+	// EditNamespace changes the name and settings of the namespace carrying req.Tenant and returns it
+	// as stored. It returns ErrForbidden when sc was never constructed, ErrNamespaceNotFound when sc
+	// is bounded to another namespace or the namespace carrying req.Tenant cannot be resolved,
+	// whatever the store's error, ErrNamespaceDuplicated when the name is taken, and the store's error
+	// otherwise.
+	EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error)
 
 	// AddNamespaceMember adds a member to a namespace by email.
 	//
@@ -30,27 +33,52 @@ type MemberService interface {
 	// membership is enabled (enterprise) and the target already has an account, the member is added
 	// to the namespace directly instead, with no invitation.
 	//
-	// The role assigned to the new member must not grant more authority than the user adding them (e.g.,
-	// an administrator cannot add a member with a higher role such as an owner). Owners cannot be created.
-	// It returns the namespace and an error, if any.
-	AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)
+	// The role assigned to the new member must not grant more authority than the user adding them
+	// (e.g., an administrator cannot add a member with a higher role such as an owner). Owners cannot
+	// be created. It returns the namespace as stored afterwards. It returns ErrForbidden when sc was
+	// never constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
+	// carrying req.TenantID cannot be resolved, whatever the store's error; ErrNamespaceMemberNotFound
+	// when req.UserID is not a member; ErrRoleForbidden when that member lacks NamespaceAddMember or
+	// holds no authority over req.MemberRole; ErrNamespaceMemberDuplicated when the email already
+	// belongs to a member or holds a pending invitation; and the store's error otherwise.
+	AddNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error)
 
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
 	// have more authority than the user who is updating the member; owners cannot be created.
 	//
-	// It returns an error, if any.
-	UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error
+	// It returns ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded
+	// to another namespace or the namespace carrying req.TenantID cannot be resolved, whatever the
+	// store's error, or the membership is gone before a demotion departs it;
+	// ErrNamespaceMemberNotFound when req.UserID or req.MemberID is not a member; ErrAuthForbidden
+	// when they are the same member; ErrRoleForbidden when the acting member lacks
+	// NamespaceEditMember, keeps devices without ProvisioningKeyCreate, or holds no authority over the
+	// member or the new role; ErrDeviceNotOwned when a kept device is not the member's; and the
+	// store's error otherwise.
+	UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error
 
 	// RemoveNamespaceMember removes a specified member from a namespace. The action must be performed by a user with higher
 	// authority than the target member. Owners cannot be removed.
 	//
-	// Returns the updated namespace and an error, if any.
-	RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
+	// It returns the namespace as stored afterwards. It returns ErrForbidden when sc was never
+	// constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
+	// carrying req.TenantID cannot be resolved, whatever the store's error, or the membership is gone
+	// before it is deleted; ErrNamespaceMemberNotFound when req.UserID or req.MemberID is not a
+	// member; ErrAuthForbidden when they are the same member; ErrRoleForbidden when the acting member
+	// lacks NamespaceRemoveMember, keeps devices without ProvisioningKeyCreate, or holds no authority
+	// over the member; ErrDeviceNotOwned when a kept device is not the member's; and the store's error
+	// otherwise.
+	RemoveNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
 	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated
 	// and a new one, at req.TokenVersion when set, is returned.
-	// Returns an error, if any.
+	//
+	// It returns ErrForbidden when req.TenantID is empty; ErrNamespaceNotFound when the namespace
+	// carrying req.TenantID cannot be resolved, whatever the store's error, or the membership is gone
+	// before it is deleted; ErrNamespaceMemberNotFound when req.UserID is not a member;
+	// ErrAuthForbidden when the member is the owner; ErrUserNotFound when the user cannot be resolved
+	// after leaving the namespace the token names; CreateUserToken's errors when minting the
+	// replacement; and the store's error otherwise.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 
 	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave
@@ -70,10 +98,10 @@ type MemberService interface {
 	SettleMemberDeparture(ctx context.Context, departed *models.MemberDeparted)
 }
 
-func (s *service) resolveActingMember(ctx context.Context, tenantID, actorID string, requireAuthorityOver authorizer.Role, permissions ...authorizer.Permission) (*models.Namespace, *models.Member, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil || namespace == nil {
-		return nil, nil, NewErrNamespaceNotFound(tenantID, err)
+func (s *service) resolveActingMember(ctx context.Context, sc scope.Scope, tenantID, actorID string, requireAuthorityOver authorizer.Role, permissions ...authorizer.Permission) (*models.Namespace, *models.Member, error) {
+	namespace, err := s.resolveWithin(ctx, sc, tenantID, anyResolveError)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	member, ok := namespace.FindMember(actorID)
@@ -106,8 +134,8 @@ func (s *service) admitMember(ctx context.Context, sc scope.Scope, member *model
 	return nil
 }
 
-func (s *service) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
+func (s *service) AddNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error) {
+	namespace, active, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
 	if err != nil {
 		return nil, err
 	}
@@ -255,8 +283,8 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 	return nil
 }
 
-func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceEditMember)
+func (s *service) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error {
+	namespace, active, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceEditMember)
 	if err != nil {
 		return err
 	}
@@ -286,10 +314,10 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 		member.Role = req.MemberRole
 	}
 
-	sc := scope.MustBounded(namespace.TenantID)
+	bounded := scope.MustBounded(namespace.TenantID)
 
 	if member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
-		if err := s.store.NamespaceUpdateMembership(ctx, sc, member); err != nil {
+		if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
 			return err
 		}
 
@@ -303,7 +331,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, req *requests.Names
 
 	var departed *models.MemberDeparted
 	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		if err := s.store.NamespaceUpdateMembership(ctx, sc, member); err != nil {
+		if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
 			return err
 		}
 
@@ -327,8 +355,8 @@ func canKeepDevices(active *models.Member, keep []string) error {
 	return nil
 }
 
-func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	namespace, active, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
+func (s *service) RemoveNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
+	namespace, active, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +393,12 @@ func (s *service) RemoveNamespaceMember(ctx context.Context, req *requests.Names
 }
 
 func (s *service) LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error) {
-	ns, member, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid)
+	leaving, err := BoundTo(req.TenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	ns, member, err := s.resolveActingMember(ctx, leaving, req.TenantID, req.UserID, authorizer.RoleInvalid)
 	if err != nil {
 		return nil, err
 	}

@@ -3220,7 +3220,7 @@ func TestAuthAPIKey_RoleDowngradeTakesEffectOnTheNextRequest(t *testing.T) {
 		Return(nil).
 		Once()
 
-	require.NoError(t, service.UpdateAPIKey(ctx, &requests.UpdateAPIKey{
+	require.NoError(t, service.UpdateAPIKey(ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &requests.UpdateAPIKey{
 		TenantID:    "00000000-0000-4000-0000-000000000000",
 		UserID:      "editor-id",
 		CurrentName: "dev",

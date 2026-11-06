@@ -18,6 +18,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
@@ -107,6 +108,11 @@ func TestCreateNamespace(t *testing.T) {
 
 func TestGetNamespace(t *testing.T) {
 	mock := mocks.NewMockService(t)
+	memberOf123 := &models.Namespace{
+		Name:     "namespace",
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Members:  []models.Member{{ID: "123", Email: "member@example.com", Role: authorizer.RoleOwner}},
+	}
 
 	type Expected struct {
 		expectedSession *responses.Namespace
@@ -149,12 +155,25 @@ func TestGetNamespace(t *testing.T) {
 			uid:   "123",
 			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(&models.Namespace{}, nil)
+				mock.On("GetNamespace", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "00000000-0000-4000-0000-000000000000").Return(memberOf123, nil).Once()
 			},
 			expected: Expected{
-				expectedStatus:  http.StatusOK,
-				expectedSession: &responses.Namespace{Members: []responses.Member{}},
+				expectedStatus: http.StatusOK,
+				expectedSession: &responses.Namespace{
+					Name:     "namespace",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Members:  []responses.Member{{ID: "123", Email: "member@example.com", Role: authorizer.RoleOwner}},
+				},
 			},
+		},
+		{
+			title: "fails when the caller is no longer a member of the namespace",
+			uid:   "456",
+			req:   "00000000-0000-4000-0000-000000000000",
+			requiredMocks: func() {
+				mock.On("GetNamespace", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "00000000-0000-4000-0000-000000000000").Return(memberOf123, nil).Once()
+			},
+			expected: Expected{expectedStatus: http.StatusForbidden},
 		},
 	}
 
@@ -165,7 +184,7 @@ func TestGetNamespace(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/namespaces/"+tc.req, nil)
 
 			req.Header.Set("Content-Type", "application/json")
-			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.req})
+			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, ID: tc.uid, TenantID: tc.req})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)
@@ -229,7 +248,7 @@ func TestDeleteNamespace(t *testing.T) {
 			uid:   "123",
 			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
+				mock.On("DeleteNamespace", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "00000000-0000-4000-0000-000000000000").Return(svc.ErrNotFound).Once()
 			},
 			expectedStatus: http.StatusNotFound,
 		},
@@ -238,7 +257,7 @@ func TestDeleteNamespace(t *testing.T) {
 			uid:   "123",
 			req:   "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func() {
-				mock.On("DeleteNamespace", gomock.Anything, "00000000-0000-4000-0000-000000000000").Return(nil).Once()
+				mock.On("DeleteNamespace", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "00000000-0000-4000-0000-000000000000").Return(nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
@@ -305,7 +324,7 @@ func TestEditNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					On("EditSessionRecordStatus", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), true, "00000000-0000-4000-0000-000000000000").
 					Return(svc.ErrNotFound).
 					Once()
 			},
@@ -320,7 +339,7 @@ func TestEditNamespace(t *testing.T) {
 			},
 			requiredMocks: func() {
 				svcMock.
-					On("EditSessionRecordStatus", gomock.Anything, true, "00000000-0000-4000-0000-000000000000").
+					On("EditSessionRecordStatus", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), true, "00000000-0000-4000-0000-000000000000").
 					Return(nil).
 					Once()
 			},
@@ -517,10 +536,10 @@ func TestNamespaceCrossTenantAccess(t *testing.T) {
 					TenantID: victimTenant,
 					Members:  []models.Member{{ID: "victim-user", Email: victimEmail, Role: authorizer.RoleOwner}},
 				}
-				mock.On("GetNamespace", gomock.Anything, victimTenant).Return(victim, nil).Maybe()
-				mock.On("EditNamespace", gomock.Anything, gomock.Anything).Return(victim, nil).Maybe()
-				mock.On("DeleteNamespace", gomock.Anything, victimTenant).Return(nil).Maybe()
-				mock.On("EditSessionRecordStatus", gomock.Anything, gomock.Anything, victimTenant).Return(nil).Maybe()
+				mock.On("GetNamespace", gomock.Anything, gomock.Anything, victimTenant).Return(victim, nil).Maybe()
+				mock.On("EditNamespace", gomock.Anything, gomock.Anything, gomock.Anything).Return(victim, nil).Maybe()
+				mock.On("DeleteNamespace", gomock.Anything, gomock.Anything, victimTenant).Return(nil).Maybe()
+				mock.On("EditSessionRecordStatus", gomock.Anything, gomock.Anything, gomock.Anything, victimTenant).Return(nil).Maybe()
 
 				var body io.Reader
 				if route.body != "" {

@@ -319,7 +319,7 @@ func TestService_AddNamespaceMember(t *testing.T) {
 			ctx := context.TODO()
 			fixUUID(t)
 			tc.requiredMocks(ctx)
-			ns, err := s.AddNamespaceMember(ctx, tc.req)
+			ns, err := s.AddNamespaceMember(ctx, scope.MustBounded(tc.req.TenantID), tc.req)
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -800,7 +800,7 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
-			err := s.UpdateNamespaceMember(ctx, tc.req)
+			err := s.UpdateNamespaceMember(ctx, scope.MustBounded(tc.req.TenantID), tc.req)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1310,7 +1310,7 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
-			ns, err := s.RemoveNamespaceMember(ctx, tc.req)
+			ns, err := s.RemoveNamespaceMember(ctx, scope.MustBounded(tc.req.TenantID), tc.req)
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -1637,7 +1637,7 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 	storeMock.On("MembershipInvitationCreate", ctx, mock.AnythingOfType("*models.MembershipInvitation")).Return(nil).Once()
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
-	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",
 		TenantID:      ns.TenantID,
@@ -1690,7 +1690,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	})
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
-	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
 		ForwardedHost:  "localhost",
 		ForwardedProto: "https",
 		UserID:         "000000000000000000000000",
@@ -1747,7 +1747,7 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	})
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
-	_, err := s.AddNamespaceMember(ctx, &requests.NamespaceAddMember{
+	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
 		ForwardedHost: "localhost",
 		UserID:        "000000000000000000000000",
 		TenantID:      ns.TenantID,
@@ -1758,4 +1758,63 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, hookCalled)
 	storeMock.AssertExpectations(t)
+}
+
+func TestMemberServicesRefuseATenantOutsideTheirScope(t *testing.T) {
+	ctx := context.Background()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		actorID  = "000000000000000000000000"
+	)
+
+	calls := map[string]func(Service, scope.Scope) error{
+		"AddNamespaceMember": func(s Service, sc scope.Scope) error {
+			_, err := s.AddNamespaceMember(ctx, sc, &requests.NamespaceAddMember{TenantID: tenantID, UserID: actorID, MemberEmail: "jane@test.com", MemberRole: authorizer.RoleObserver})
+
+			return err
+		},
+		"UpdateNamespaceMember": func(s Service, sc scope.Scope) error {
+			return s.UpdateNamespaceMember(ctx, sc, &requests.NamespaceUpdateMember{TenantID: tenantID, UserID: actorID, MemberID: "member", MemberRole: authorizer.RoleObserver})
+		},
+		"RemoveNamespaceMember": func(s Service, sc scope.Scope) error {
+			_, err := s.RemoveNamespaceMember(ctx, sc, &requests.NamespaceRemoveMember{TenantID: tenantID, UserID: actorID, MemberID: "member"})
+
+			return err
+		},
+		"GenerateInvitationLink": func(s Service, sc scope.Scope) error {
+			_, err := s.GenerateInvitationLink(ctx, sc, &requests.GenerateInvitationLink{TenantID: tenantID, UserID: actorID, MemberEmail: "jane@test.com", MemberRole: authorizer.RoleObserver})
+
+			return err
+		},
+		"NamespaceMembershipInvitationList": func(s Service, sc scope.Scope) error {
+			_, _, err := s.NamespaceMembershipInvitationList(ctx, sc, &requests.NamespaceMembershipInvitationList{TenantID: tenantID, UserID: actorID})
+
+			return err
+		},
+		"CancelMembershipInvitation": func(s Service, sc scope.Scope) error {
+			return s.CancelMembershipInvitation(ctx, sc, &requests.CancelMembershipInvitation{TenantID: tenantID, UserID: actorID, InvitedUserID: "member"})
+		},
+		"UpdateAPIKey": func(s Service, sc scope.Scope) error {
+			return s.UpdateAPIKey(ctx, sc, &requests.UpdateAPIKey{TenantID: tenantID, UserID: actorID, CurrentName: "dev", Name: "dev"})
+		},
+	}
+
+	scopes := map[string]struct {
+		sc       scope.Scope
+		expected error
+	}{
+		"scope bounded to another namespace": {sc: scope.MustBounded("11111111-1111-4111-8111-111111111111"), expected: ErrNamespaceNotFound},
+		"scope nobody constructed":           {sc: scope.Scope{}, expected: ErrForbidden},
+	}
+
+	for name, call := range calls {
+		for kind, tc := range scopes {
+			t.Run(name+" with a "+kind, func(t *testing.T) {
+				s := NewService(storemock.NewMockStore(t), privateKey, publicKey, storecache.NewNullCache())
+
+				require.ErrorIs(t, call(s, tc.sc), tc.expected)
+			})
+		}
+	}
 }

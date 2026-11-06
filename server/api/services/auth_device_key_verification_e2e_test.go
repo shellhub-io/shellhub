@@ -179,7 +179,7 @@ func (e *enrollmentE2E) requireVerifiedDeviceKey(t *testing.T, required bool) {
 	req := &requests.NamespaceEdit{TenantParam: requests.TenantParam{Tenant: e.tenantID}}
 	req.Settings.RequireVerifiedDeviceKey = &required
 
-	namespace, err := e.svc.EditNamespace(context.Background(), req)
+	namespace, err := e.svc.EditNamespace(context.Background(), scope.MustBounded(e.tenantID), req)
 	require.NoError(t, err)
 	require.Equal(t, required, namespace.Settings.RequireVerifiedDeviceKey)
 }

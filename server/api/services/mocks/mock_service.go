@@ -189,8 +189,8 @@ func (_c *MockService_AcceptInvite_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // AddNamespaceMember provides a mock function for the type MockService
-func (_mock *MockService) AddNamespaceMember(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) AddNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddNamespaceMember")
@@ -198,18 +198,18 @@ func (_mock *MockService) AddNamespaceMember(ctx context.Context, req *requests.
 
 	var r0 *models.Namespace
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceAddMember) (*models.Namespace, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceAddMember) (*models.Namespace, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceAddMember) *models.Namespace); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceAddMember) *models.Namespace); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceAddMember) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.NamespaceAddMember) error); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -223,24 +223,30 @@ type MockService_AddNamespaceMember_Call struct {
 
 // AddNamespaceMember is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.NamespaceAddMember
-func (_e *MockService_Expecter) AddNamespaceMember(ctx any, req any) *MockService_AddNamespaceMember_Call {
-	return &MockService_AddNamespaceMember_Call{Call: _e.mock.On("AddNamespaceMember", ctx, req)}
+func (_e *MockService_Expecter) AddNamespaceMember(ctx any, sc any, req any) *MockService_AddNamespaceMember_Call {
+	return &MockService_AddNamespaceMember_Call{Call: _e.mock.On("AddNamespaceMember", ctx, sc, req)}
 }
 
-func (_c *MockService_AddNamespaceMember_Call) Run(run func(ctx context.Context, req *requests.NamespaceAddMember)) *MockService_AddNamespaceMember_Call {
+func (_c *MockService_AddNamespaceMember_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember)) *MockService_AddNamespaceMember_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.NamespaceAddMember
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.NamespaceAddMember)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.NamespaceAddMember
+		if args[2] != nil {
+			arg2 = args[2].(*requests.NamespaceAddMember)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -251,7 +257,7 @@ func (_c *MockService_AddNamespaceMember_Call) Return(namespace *models.Namespac
 	return _c
 }
 
-func (_c *MockService_AddNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceAddMember) (*models.Namespace, error)) *MockService_AddNamespaceMember_Call {
+func (_c *MockService_AddNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error)) *MockService_AddNamespaceMember_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -970,16 +976,16 @@ func (_c *MockService_Authorize_Call) RunAndReturn(run func(ctx context.Context,
 }
 
 // CancelMembershipInvitation provides a mock function for the type MockService
-func (_mock *MockService) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) CancelMembershipInvitation(ctx context.Context, sc scope.Scope, req *requests.CancelMembershipInvitation) error {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CancelMembershipInvitation")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.CancelMembershipInvitation) error); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.CancelMembershipInvitation) error); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -993,24 +999,30 @@ type MockService_CancelMembershipInvitation_Call struct {
 
 // CancelMembershipInvitation is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.CancelMembershipInvitation
-func (_e *MockService_Expecter) CancelMembershipInvitation(ctx any, req any) *MockService_CancelMembershipInvitation_Call {
-	return &MockService_CancelMembershipInvitation_Call{Call: _e.mock.On("CancelMembershipInvitation", ctx, req)}
+func (_e *MockService_Expecter) CancelMembershipInvitation(ctx any, sc any, req any) *MockService_CancelMembershipInvitation_Call {
+	return &MockService_CancelMembershipInvitation_Call{Call: _e.mock.On("CancelMembershipInvitation", ctx, sc, req)}
 }
 
-func (_c *MockService_CancelMembershipInvitation_Call) Run(run func(ctx context.Context, req *requests.CancelMembershipInvitation)) *MockService_CancelMembershipInvitation_Call {
+func (_c *MockService_CancelMembershipInvitation_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.CancelMembershipInvitation)) *MockService_CancelMembershipInvitation_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.CancelMembershipInvitation
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.CancelMembershipInvitation)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.CancelMembershipInvitation
+		if args[2] != nil {
+			arg2 = args[2].(*requests.CancelMembershipInvitation)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1021,7 +1033,7 @@ func (_c *MockService_CancelMembershipInvitation_Call) Return(err error) *MockSe
 	return _c
 }
 
-func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx context.Context, req *requests.CancelMembershipInvitation) error) *MockService_CancelMembershipInvitation_Call {
+func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.CancelMembershipInvitation) error) *MockService_CancelMembershipInvitation_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2549,16 +2561,16 @@ func (_c *MockService_DeleteInstanceAPIKey_Call) RunAndReturn(run func(ctx conte
 }
 
 // DeleteNamespace provides a mock function for the type MockService
-func (_mock *MockService) DeleteNamespace(ctx context.Context, tenantID string) error {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockService) DeleteNamespace(ctx context.Context, sc scope.Scope, tenantID string) error {
+	ret := _mock.Called(ctx, sc, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteNamespace")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) error); ok {
+		r0 = returnFunc(ctx, sc, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2572,24 +2584,30 @@ type MockService_DeleteNamespace_Call struct {
 
 // DeleteNamespace is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - tenantID string
-func (_e *MockService_Expecter) DeleteNamespace(ctx any, tenantID any) *MockService_DeleteNamespace_Call {
-	return &MockService_DeleteNamespace_Call{Call: _e.mock.On("DeleteNamespace", ctx, tenantID)}
+func (_e *MockService_Expecter) DeleteNamespace(ctx any, sc any, tenantID any) *MockService_DeleteNamespace_Call {
+	return &MockService_DeleteNamespace_Call{Call: _e.mock.On("DeleteNamespace", ctx, sc, tenantID)}
 }
 
-func (_c *MockService_DeleteNamespace_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_DeleteNamespace_Call {
+func (_c *MockService_DeleteNamespace_Call) Run(run func(ctx context.Context, sc scope.Scope, tenantID string)) *MockService_DeleteNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -2600,7 +2618,7 @@ func (_c *MockService_DeleteNamespace_Call) Return(err error) *MockService_Delet
 	return _c
 }
 
-func (_c *MockService_DeleteNamespace_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockService_DeleteNamespace_Call {
+func (_c *MockService_DeleteNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, tenantID string) error) *MockService_DeleteNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2863,8 +2881,8 @@ func (_c *MockService_DepartNamespaceMember_Call) RunAndReturn(run func(ctx cont
 }
 
 // EditNamespace provides a mock function for the type MockService
-func (_mock *MockService) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EditNamespace")
@@ -2872,18 +2890,18 @@ func (_mock *MockService) EditNamespace(ctx context.Context, req *requests.Names
 
 	var r0 *models.Namespace
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceEdit) (*models.Namespace, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceEdit) (*models.Namespace, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceEdit) *models.Namespace); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceEdit) *models.Namespace); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceEdit) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.NamespaceEdit) error); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2897,24 +2915,30 @@ type MockService_EditNamespace_Call struct {
 
 // EditNamespace is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.NamespaceEdit
-func (_e *MockService_Expecter) EditNamespace(ctx any, req any) *MockService_EditNamespace_Call {
-	return &MockService_EditNamespace_Call{Call: _e.mock.On("EditNamespace", ctx, req)}
+func (_e *MockService_Expecter) EditNamespace(ctx any, sc any, req any) *MockService_EditNamespace_Call {
+	return &MockService_EditNamespace_Call{Call: _e.mock.On("EditNamespace", ctx, sc, req)}
 }
 
-func (_c *MockService_EditNamespace_Call) Run(run func(ctx context.Context, req *requests.NamespaceEdit)) *MockService_EditNamespace_Call {
+func (_c *MockService_EditNamespace_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit)) *MockService_EditNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.NamespaceEdit
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.NamespaceEdit)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.NamespaceEdit
+		if args[2] != nil {
+			arg2 = args[2].(*requests.NamespaceEdit)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -2925,22 +2949,22 @@ func (_c *MockService_EditNamespace_Call) Return(namespace *models.Namespace, er
 	return _c
 }
 
-func (_c *MockService_EditNamespace_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error)) *MockService_EditNamespace_Call {
+func (_c *MockService_EditNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error)) *MockService_EditNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // EditSessionRecordStatus provides a mock function for the type MockService
-func (_mock *MockService) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
-	ret := _mock.Called(ctx, sessionRecord, tenantID)
+func (_mock *MockService) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error {
+	ret := _mock.Called(ctx, sc, sessionRecord, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EditSessionRecordStatus")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, bool, string) error); ok {
-		r0 = returnFunc(ctx, sessionRecord, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, bool, string) error); ok {
+		r0 = returnFunc(ctx, sc, sessionRecord, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2954,30 +2978,36 @@ type MockService_EditSessionRecordStatus_Call struct {
 
 // EditSessionRecordStatus is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - sessionRecord bool
 //   - tenantID string
-func (_e *MockService_Expecter) EditSessionRecordStatus(ctx any, sessionRecord any, tenantID any) *MockService_EditSessionRecordStatus_Call {
-	return &MockService_EditSessionRecordStatus_Call{Call: _e.mock.On("EditSessionRecordStatus", ctx, sessionRecord, tenantID)}
+func (_e *MockService_Expecter) EditSessionRecordStatus(ctx any, sc any, sessionRecord any, tenantID any) *MockService_EditSessionRecordStatus_Call {
+	return &MockService_EditSessionRecordStatus_Call{Call: _e.mock.On("EditSessionRecordStatus", ctx, sc, sessionRecord, tenantID)}
 }
 
-func (_c *MockService_EditSessionRecordStatus_Call) Run(run func(ctx context.Context, sessionRecord bool, tenantID string)) *MockService_EditSessionRecordStatus_Call {
+func (_c *MockService_EditSessionRecordStatus_Call) Run(run func(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string)) *MockService_EditSessionRecordStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 bool
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(bool)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 string
+		var arg2 bool
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(bool)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -2988,7 +3018,7 @@ func (_c *MockService_EditSessionRecordStatus_Call) Return(err error) *MockServi
 	return _c
 }
 
-func (_c *MockService_EditSessionRecordStatus_Call) RunAndReturn(run func(ctx context.Context, sessionRecord bool, tenantID string) error) *MockService_EditSessionRecordStatus_Call {
+func (_c *MockService_EditSessionRecordStatus_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error) *MockService_EditSessionRecordStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3366,8 +3396,8 @@ func (_c *MockService_EventSession_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // GenerateInvitationLink provides a mock function for the type MockService
-func (_mock *MockService) GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) GenerateInvitationLink(ctx context.Context, sc scope.Scope, req *requests.GenerateInvitationLink) (string, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateInvitationLink")
@@ -3375,16 +3405,16 @@ func (_mock *MockService) GenerateInvitationLink(ctx context.Context, req *reque
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GenerateInvitationLink) (string, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.GenerateInvitationLink) (string, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GenerateInvitationLink) string); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.GenerateInvitationLink) string); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.GenerateInvitationLink) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.GenerateInvitationLink) error); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3398,24 +3428,30 @@ type MockService_GenerateInvitationLink_Call struct {
 
 // GenerateInvitationLink is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.GenerateInvitationLink
-func (_e *MockService_Expecter) GenerateInvitationLink(ctx any, req any) *MockService_GenerateInvitationLink_Call {
-	return &MockService_GenerateInvitationLink_Call{Call: _e.mock.On("GenerateInvitationLink", ctx, req)}
+func (_e *MockService_Expecter) GenerateInvitationLink(ctx any, sc any, req any) *MockService_GenerateInvitationLink_Call {
+	return &MockService_GenerateInvitationLink_Call{Call: _e.mock.On("GenerateInvitationLink", ctx, sc, req)}
 }
 
-func (_c *MockService_GenerateInvitationLink_Call) Run(run func(ctx context.Context, req *requests.GenerateInvitationLink)) *MockService_GenerateInvitationLink_Call {
+func (_c *MockService_GenerateInvitationLink_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.GenerateInvitationLink)) *MockService_GenerateInvitationLink_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.GenerateInvitationLink
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.GenerateInvitationLink)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.GenerateInvitationLink
+		if args[2] != nil {
+			arg2 = args[2].(*requests.GenerateInvitationLink)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -3426,7 +3462,7 @@ func (_c *MockService_GenerateInvitationLink_Call) Return(s string, err error) *
 	return _c
 }
 
-func (_c *MockService_GenerateInvitationLink_Call) RunAndReturn(run func(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)) *MockService_GenerateInvitationLink_Call {
+func (_c *MockService_GenerateInvitationLink_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.GenerateInvitationLink) (string, error)) *MockService_GenerateInvitationLink_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3642,8 +3678,8 @@ func (_c *MockService_GetDevicePairingStatus_Call) RunAndReturn(run func(ctx con
 }
 
 // GetNamespace provides a mock function for the type MockService
-func (_mock *MockService) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockService) GetNamespace(ctx context.Context, sc scope.Scope, tenantID string) (*models.Namespace, error) {
+	ret := _mock.Called(ctx, sc, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetNamespace")
@@ -3651,18 +3687,18 @@ func (_mock *MockService) GetNamespace(ctx context.Context, tenantID string) (*m
 
 	var r0 *models.Namespace
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.Namespace, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) (*models.Namespace, error)); ok {
+		return returnFunc(ctx, sc, tenantID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) *models.Namespace); ok {
+		r0 = returnFunc(ctx, sc, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, string) error); ok {
+		r1 = returnFunc(ctx, sc, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3676,24 +3712,30 @@ type MockService_GetNamespace_Call struct {
 
 // GetNamespace is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - tenantID string
-func (_e *MockService_Expecter) GetNamespace(ctx any, tenantID any) *MockService_GetNamespace_Call {
-	return &MockService_GetNamespace_Call{Call: _e.mock.On("GetNamespace", ctx, tenantID)}
+func (_e *MockService_Expecter) GetNamespace(ctx any, sc any, tenantID any) *MockService_GetNamespace_Call {
+	return &MockService_GetNamespace_Call{Call: _e.mock.On("GetNamespace", ctx, sc, tenantID)}
 }
 
-func (_c *MockService_GetNamespace_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_GetNamespace_Call {
+func (_c *MockService_GetNamespace_Call) Run(run func(ctx context.Context, sc scope.Scope, tenantID string)) *MockService_GetNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -3704,7 +3746,7 @@ func (_c *MockService_GetNamespace_Call) Return(namespace *models.Namespace, err
 	return _c
 }
 
-func (_c *MockService_GetNamespace_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.Namespace, error)) *MockService_GetNamespace_Call {
+func (_c *MockService_GetNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, tenantID string) (*models.Namespace, error)) *MockService_GetNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4859,8 +4901,8 @@ func (_c *MockService_ListInstanceAPIKeys_Call) RunAndReturn(run func(ctx contex
 }
 
 // ListNamespaceMembers provides a mock function for the type MockService
-func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) ListNamespaceMembers(ctx context.Context, sc scope.Scope, req *requests.MemberList) ([]models.MemberView, int64, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListNamespaceMembers")
@@ -4869,23 +4911,23 @@ func (_mock *MockService) ListNamespaceMembers(ctx context.Context, req *request
 	var r0 []models.MemberView
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) ([]models.MemberView, int64, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.MemberList) ([]models.MemberView, int64, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.MemberList) []models.MemberView); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.MemberList) []models.MemberView); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.MemberView)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.MemberList) int64); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.MemberList) int64); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.MemberList) error); ok {
-		r2 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.MemberList) error); ok {
+		r2 = returnFunc(ctx, sc, req)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -4899,24 +4941,30 @@ type MockService_ListNamespaceMembers_Call struct {
 
 // ListNamespaceMembers is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.MemberList
-func (_e *MockService_Expecter) ListNamespaceMembers(ctx any, req any) *MockService_ListNamespaceMembers_Call {
-	return &MockService_ListNamespaceMembers_Call{Call: _e.mock.On("ListNamespaceMembers", ctx, req)}
+func (_e *MockService_Expecter) ListNamespaceMembers(ctx any, sc any, req any) *MockService_ListNamespaceMembers_Call {
+	return &MockService_ListNamespaceMembers_Call{Call: _e.mock.On("ListNamespaceMembers", ctx, sc, req)}
 }
 
-func (_c *MockService_ListNamespaceMembers_Call) Run(run func(ctx context.Context, req *requests.MemberList)) *MockService_ListNamespaceMembers_Call {
+func (_c *MockService_ListNamespaceMembers_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.MemberList)) *MockService_ListNamespaceMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.MemberList
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.MemberList)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.MemberList
+		if args[2] != nil {
+			arg2 = args[2].(*requests.MemberList)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -4927,7 +4975,7 @@ func (_c *MockService_ListNamespaceMembers_Call) Return(memberViews []models.Mem
 	return _c
 }
 
-func (_c *MockService_ListNamespaceMembers_Call) RunAndReturn(run func(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)) *MockService_ListNamespaceMembers_Call {
+func (_c *MockService_ListNamespaceMembers_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.MemberList) ([]models.MemberView, int64, error)) *MockService_ListNamespaceMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5796,8 +5844,8 @@ func (_c *MockService_NamespaceHasAccessPolicies_Call) RunAndReturn(run func(ctx
 }
 
 // NamespaceMembershipInvitationList provides a mock function for the type MockService
-func (_mock *MockService) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NamespaceMembershipInvitationList")
@@ -5806,23 +5854,23 @@ func (_mock *MockService) NamespaceMembershipInvitationList(ctx context.Context,
 	var r0 []responses0.MembershipInvitation
 	var r1 int64
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceMembershipInvitationList) []responses0.MembershipInvitation); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceMembershipInvitationList) []responses0.MembershipInvitation); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]responses0.MembershipInvitation)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceMembershipInvitationList) int64); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.NamespaceMembershipInvitationList) int64); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, *requests.NamespaceMembershipInvitationList) error); ok {
-		r2 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, scope.Scope, *requests.NamespaceMembershipInvitationList) error); ok {
+		r2 = returnFunc(ctx, sc, req)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -5836,24 +5884,30 @@ type MockService_NamespaceMembershipInvitationList_Call struct {
 
 // NamespaceMembershipInvitationList is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.NamespaceMembershipInvitationList
-func (_e *MockService_Expecter) NamespaceMembershipInvitationList(ctx any, req any) *MockService_NamespaceMembershipInvitationList_Call {
-	return &MockService_NamespaceMembershipInvitationList_Call{Call: _e.mock.On("NamespaceMembershipInvitationList", ctx, req)}
+func (_e *MockService_Expecter) NamespaceMembershipInvitationList(ctx any, sc any, req any) *MockService_NamespaceMembershipInvitationList_Call {
+	return &MockService_NamespaceMembershipInvitationList_Call{Call: _e.mock.On("NamespaceMembershipInvitationList", ctx, sc, req)}
 }
 
-func (_c *MockService_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, req *requests.NamespaceMembershipInvitationList)) *MockService_NamespaceMembershipInvitationList_Call {
+func (_c *MockService_NamespaceMembershipInvitationList_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList)) *MockService_NamespaceMembershipInvitationList_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.NamespaceMembershipInvitationList
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.NamespaceMembershipInvitationList)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.NamespaceMembershipInvitationList
+		if args[2] != nil {
+			arg2 = args[2].(*requests.NamespaceMembershipInvitationList)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -5864,7 +5918,7 @@ func (_c *MockService_NamespaceMembershipInvitationList_Call) Return(membershipI
 	return _c
 }
 
-func (_c *MockService_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)) *MockService_NamespaceMembershipInvitationList_Call {
+func (_c *MockService_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)) *MockService_NamespaceMembershipInvitationList_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6299,8 +6353,8 @@ func (_c *MockService_RejectSSHApproval_Call) RunAndReturn(run func(ctx context.
 }
 
 // RemoveNamespaceMember provides a mock function for the type MockService
-func (_mock *MockService) RemoveNamespaceMember(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) RemoveNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember) (*models.Namespace, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RemoveNamespaceMember")
@@ -6308,18 +6362,18 @@ func (_mock *MockService) RemoveNamespaceMember(ctx context.Context, req *reques
 
 	var r0 *models.Namespace
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceRemoveMember) (*models.Namespace, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceRemoveMember) (*models.Namespace, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceRemoveMember) *models.Namespace); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceRemoveMember) *models.Namespace); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Namespace)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.NamespaceRemoveMember) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *requests.NamespaceRemoveMember) error); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -6333,24 +6387,30 @@ type MockService_RemoveNamespaceMember_Call struct {
 
 // RemoveNamespaceMember is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.NamespaceRemoveMember
-func (_e *MockService_Expecter) RemoveNamespaceMember(ctx any, req any) *MockService_RemoveNamespaceMember_Call {
-	return &MockService_RemoveNamespaceMember_Call{Call: _e.mock.On("RemoveNamespaceMember", ctx, req)}
+func (_e *MockService_Expecter) RemoveNamespaceMember(ctx any, sc any, req any) *MockService_RemoveNamespaceMember_Call {
+	return &MockService_RemoveNamespaceMember_Call{Call: _e.mock.On("RemoveNamespaceMember", ctx, sc, req)}
 }
 
-func (_c *MockService_RemoveNamespaceMember_Call) Run(run func(ctx context.Context, req *requests.NamespaceRemoveMember)) *MockService_RemoveNamespaceMember_Call {
+func (_c *MockService_RemoveNamespaceMember_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember)) *MockService_RemoveNamespaceMember_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.NamespaceRemoveMember
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.NamespaceRemoveMember)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.NamespaceRemoveMember
+		if args[2] != nil {
+			arg2 = args[2].(*requests.NamespaceRemoveMember)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -6361,7 +6421,7 @@ func (_c *MockService_RemoveNamespaceMember_Call) Return(namespace *models.Names
 	return _c
 }
 
-func (_c *MockService_RemoveNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceRemoveMember) (*models.Namespace, error)) *MockService_RemoveNamespaceMember_Call {
+func (_c *MockService_RemoveNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember) (*models.Namespace, error)) *MockService_RemoveNamespaceMember_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7513,16 +7573,16 @@ func (_c *MockService_TelemetryStatus_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // UpdateAPIKey provides a mock function for the type MockService
-func (_mock *MockService) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) UpdateAPIKey(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) error {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateAPIKey")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.UpdateAPIKey) error); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.UpdateAPIKey) error); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -7536,24 +7596,30 @@ type MockService_UpdateAPIKey_Call struct {
 
 // UpdateAPIKey is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.UpdateAPIKey
-func (_e *MockService_Expecter) UpdateAPIKey(ctx any, req any) *MockService_UpdateAPIKey_Call {
-	return &MockService_UpdateAPIKey_Call{Call: _e.mock.On("UpdateAPIKey", ctx, req)}
+func (_e *MockService_Expecter) UpdateAPIKey(ctx any, sc any, req any) *MockService_UpdateAPIKey_Call {
+	return &MockService_UpdateAPIKey_Call{Call: _e.mock.On("UpdateAPIKey", ctx, sc, req)}
 }
 
-func (_c *MockService_UpdateAPIKey_Call) Run(run func(ctx context.Context, req *requests.UpdateAPIKey)) *MockService_UpdateAPIKey_Call {
+func (_c *MockService_UpdateAPIKey_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey)) *MockService_UpdateAPIKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.UpdateAPIKey
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.UpdateAPIKey)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.UpdateAPIKey
+		if args[2] != nil {
+			arg2 = args[2].(*requests.UpdateAPIKey)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -7564,7 +7630,7 @@ func (_c *MockService_UpdateAPIKey_Call) Return(err error) *MockService_UpdateAP
 	return _c
 }
 
-func (_c *MockService_UpdateAPIKey_Call) RunAndReturn(run func(ctx context.Context, req *requests.UpdateAPIKey) error) *MockService_UpdateAPIKey_Call {
+func (_c *MockService_UpdateAPIKey_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) error) *MockService_UpdateAPIKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7752,16 +7818,16 @@ func (_c *MockService_UpdateDeviceStatus_Call) RunAndReturn(run func(ctx context
 }
 
 // UpdateNamespaceMember provides a mock function for the type MockService
-func (_mock *MockService) UpdateNamespaceMember(ctx context.Context, req *requests.NamespaceUpdateMember) error {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateNamespaceMember")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.NamespaceUpdateMember) error); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *requests.NamespaceUpdateMember) error); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -7775,24 +7841,30 @@ type MockService_UpdateNamespaceMember_Call struct {
 
 // UpdateNamespaceMember is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - req *requests.NamespaceUpdateMember
-func (_e *MockService_Expecter) UpdateNamespaceMember(ctx any, req any) *MockService_UpdateNamespaceMember_Call {
-	return &MockService_UpdateNamespaceMember_Call{Call: _e.mock.On("UpdateNamespaceMember", ctx, req)}
+func (_e *MockService_Expecter) UpdateNamespaceMember(ctx any, sc any, req any) *MockService_UpdateNamespaceMember_Call {
+	return &MockService_UpdateNamespaceMember_Call{Call: _e.mock.On("UpdateNamespaceMember", ctx, sc, req)}
 }
 
-func (_c *MockService_UpdateNamespaceMember_Call) Run(run func(ctx context.Context, req *requests.NamespaceUpdateMember)) *MockService_UpdateNamespaceMember_Call {
+func (_c *MockService_UpdateNamespaceMember_Call) Run(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember)) *MockService_UpdateNamespaceMember_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.NamespaceUpdateMember
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*requests.NamespaceUpdateMember)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *requests.NamespaceUpdateMember
+		if args[2] != nil {
+			arg2 = args[2].(*requests.NamespaceUpdateMember)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -7803,7 +7875,7 @@ func (_c *MockService_UpdateNamespaceMember_Call) Return(err error) *MockService
 	return _c
 }
 
-func (_c *MockService_UpdateNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, req *requests.NamespaceUpdateMember) error) *MockService_UpdateNamespaceMember_Call {
+func (_c *MockService_UpdateNamespaceMember_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error) *MockService_UpdateNamespaceMember_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -8209,16 +8281,16 @@ func (_c *MockService_UpdateUser_Call) RunAndReturn(run func(ctx context.Context
 }
 
 // UpgradeNamespace provides a mock function for the type MockService
-func (_mock *MockService) UpgradeNamespace(ctx context.Context, tenantID string) error {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockService) UpgradeNamespace(ctx context.Context, sc scope.Scope, tenantID string) error {
+	ret := _mock.Called(ctx, sc, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpgradeNamespace")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) error); ok {
+		r0 = returnFunc(ctx, sc, tenantID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -8232,24 +8304,30 @@ type MockService_UpgradeNamespace_Call struct {
 
 // UpgradeNamespace is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - tenantID string
-func (_e *MockService_Expecter) UpgradeNamespace(ctx any, tenantID any) *MockService_UpgradeNamespace_Call {
-	return &MockService_UpgradeNamespace_Call{Call: _e.mock.On("UpgradeNamespace", ctx, tenantID)}
+func (_e *MockService_Expecter) UpgradeNamespace(ctx any, sc any, tenantID any) *MockService_UpgradeNamespace_Call {
+	return &MockService_UpgradeNamespace_Call{Call: _e.mock.On("UpgradeNamespace", ctx, sc, tenantID)}
 }
 
-func (_c *MockService_UpgradeNamespace_Call) Run(run func(ctx context.Context, tenantID string)) *MockService_UpgradeNamespace_Call {
+func (_c *MockService_UpgradeNamespace_Call) Run(run func(ctx context.Context, sc scope.Scope, tenantID string)) *MockService_UpgradeNamespace_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -8260,7 +8338,7 @@ func (_c *MockService_UpgradeNamespace_Call) Return(err error) *MockService_Upgr
 	return _c
 }
 
-func (_c *MockService_UpgradeNamespace_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockService_UpgradeNamespace_Call {
+func (_c *MockService_UpgradeNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, tenantID string) error) *MockService_UpgradeNamespace_Call {
 	_c.Call.Return(run)
 	return _c
 }

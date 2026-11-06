@@ -504,7 +504,7 @@ func TestRemovingAMemberRemovesTheirDevices(t *testing.T) {
 
 	e.seedCache(t, "auth_device/"+owned.UID, "token_"+e.tenantID+member, "token_"+e.tenantID+e.ownerID)
 
-	_, err := e.svc.RemoveNamespaceMember(ctx, &requests.NamespaceRemoveMember{UserID: e.ownerID, TenantID: e.tenantID, MemberID: member})
+	_, err := e.svc.RemoveNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceRemoveMember{UserID: e.ownerID, TenantID: e.tenantID, MemberID: member})
 	require.NoError(t, err)
 
 	device := e.device(t, owned.UID)
@@ -543,7 +543,7 @@ func TestDemotingAMemberWhoCannotAcceptDevices(t *testing.T) {
 		member := e.member(t, "member", authorizer.RoleOperator)
 		owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
 
-		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, &requests.NamespaceUpdateMember{
+		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceUpdateMember{
 			UserID: e.ownerID, TenantID: e.tenantID, MemberID: member, MemberRole: authorizer.RoleObserver,
 		}))
 
@@ -560,7 +560,7 @@ func TestDemotingAMemberWhoCannotAcceptDevices(t *testing.T) {
 		member := e.member(t, "member", authorizer.RoleOperator)
 		owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
 
-		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, &requests.NamespaceUpdateMember{
+		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceUpdateMember{
 			UserID: e.ownerID, TenantID: e.tenantID, MemberID: member, MemberRole: authorizer.RoleAdministrator,
 		}))
 
@@ -580,7 +580,7 @@ func TestKeepingADepartingMembersDeviceAsATeamDevice(t *testing.T) {
 		kept := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
 		gone := e.pair(t, member, "aa:bb:cc:dd:ee:02", "pk-2")
 
-		_, err := e.svc.RemoveNamespaceMember(ctx, &requests.NamespaceRemoveMember{
+		_, err := e.svc.RemoveNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceRemoveMember{
 			UserID: e.ownerID, TenantID: e.tenantID, MemberID: member, KeepDevices: []string{kept.UID},
 		})
 		require.NoError(t, err)
@@ -596,7 +596,7 @@ func TestKeepingADepartingMembersDeviceAsATeamDevice(t *testing.T) {
 		member := e.member(t, "member", authorizer.RoleOperator)
 		kept := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
 
-		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, &requests.NamespaceUpdateMember{
+		require.NoError(t, e.svc.UpdateNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceUpdateMember{
 			UserID: e.ownerID, TenantID: e.tenantID, MemberID: member, MemberRole: authorizer.RoleObserver,
 			KeepDevices: []string{kept.UID},
 		}))
@@ -612,7 +612,7 @@ func TestKeepingADepartingMembersDeviceAsATeamDevice(t *testing.T) {
 		team := e.enrollKey(t, "aa:bb:cc:dd:ee:02", "pk-2")
 		e.accept(t, team)
 
-		_, err := e.svc.RemoveNamespaceMember(ctx, &requests.NamespaceRemoveMember{
+		_, err := e.svc.RemoveNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceRemoveMember{
 			UserID: e.ownerID, TenantID: e.tenantID, MemberID: member, KeepDevices: []string{team},
 		})
 		require.ErrorIs(t, err, ErrDeviceNotOwned)
@@ -627,7 +627,7 @@ func TestKeepingADepartingMembersDeviceAsATeamDevice(t *testing.T) {
 		operator := e.member(t, "operator", authorizer.RoleOperator)
 		observer := e.member(t, "observer", authorizer.RoleObserver)
 
-		_, err := e.svc.RemoveNamespaceMember(ctx, &requests.NamespaceRemoveMember{
+		_, err := e.svc.RemoveNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceRemoveMember{
 			UserID: operator, TenantID: e.tenantID, MemberID: observer, KeepDevices: []string{"uid"},
 		})
 		require.ErrorIs(t, err, ErrRoleForbidden)
@@ -654,7 +654,7 @@ func TestMakingAPairedDeviceATeamDevice(t *testing.T) {
 		assert.Equal(t, source, device.ProvisioningKeyID, "the device still records that it arrived by pairing")
 		assert.Empty(t, *e.removals)
 
-		_, err := e.svc.RemoveNamespaceMember(ctx, &requests.NamespaceRemoveMember{UserID: e.ownerID, TenantID: e.tenantID, MemberID: member})
+		_, err := e.svc.RemoveNamespaceMember(ctx, scope.MustBounded(e.tenantID), &requests.NamespaceRemoveMember{UserID: e.ownerID, TenantID: e.tenantID, MemberID: member})
 		require.NoError(t, err)
 		assert.Equal(t, models.DeviceStatusAccepted, e.device(t, owned.UID).Status)
 	})

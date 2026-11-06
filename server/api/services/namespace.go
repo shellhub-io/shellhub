@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -49,17 +50,43 @@ type NamespaceService interface {
 	// error when the transaction cannot begin or commit, the owner lock cannot be taken or the
 	// owned namespaces cannot be read. Any failure leaves nothing written.
 	CreateNamespace(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)
-	GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error)
-	ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error)
-	DeleteNamespace(ctx context.Context, tenantID string) error
-	EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error
-	// UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. The
-	// flag and the owner's starter Access Policy, skipped when the namespace already has one, are
-	// written in one transaction, so a namespace never reaches the new model with no policy to
-	// authorize anyone. It returns ErrNamespaceNotFound when no namespace carries the tenant,
-	// ErrNamespaceNotLegacy when the namespace is already new, and the store's error otherwise,
-	// with the upgrade rolled back when the failure comes inside the transaction.
-	UpgradeNamespace(ctx context.Context, tenantID string) error
+	// GetNamespace returns the namespace carrying tenantID. It returns ErrForbidden when sc was never
+	// constructed, and ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
+	// carrying tenantID cannot be resolved, whatever the store's error.
+	GetNamespace(ctx context.Context, sc scope.Scope, tenantID string) (*models.Namespace, error)
+	// ListNamespaceMembers returns a page of the members of the namespace carrying req.TenantID. It
+	// returns ErrForbidden when sc was never constructed, ErrNamespaceNotFound when sc is bounded to
+	// another namespace, req.TenantID is empty, or the namespace carrying it cannot be resolved,
+	// whatever the store's error; and the store's error when the members cannot be read.
+	ListNamespaceMembers(ctx context.Context, sc scope.Scope, req *requests.MemberList) ([]models.MemberView, int64, error)
+	// DeleteNamespace deletes the namespace carrying tenantID. When cloud and billing is enabled, it
+	// reports the deletion to billing first. After the namespace is gone it ends every device it held
+	// as a device removal does, evicting its cached authorization and closing its tunnel when this
+	// process holds it, or on the tunnel's next beat otherwise; a failed eviction is logged and does
+	// not fail the call.
+	//
+	// It returns ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded
+	// to another namespace or the namespace carrying tenantID cannot be resolved, whatever the store's
+	// error; ErrBillingReportNamespaceDelete when billing refuses the deletion; a namespace delete
+	// hook's error; ErrNamespaceInstanceProtected for the instance's namespace; and the store's error
+	// when the namespace's devices cannot be listed or the namespace cannot be deleted. None of them
+	// evicts anything. The devices are listed before billing hears of the deletion and before the
+	// delete hooks run, so a failed listing leaves no side effect behind. ctx bounds the listing, the
+	// billing report, the hooks, the deletion and the evictions, so a ctx cancelled after the deletion
+	// leaves the cached authorizations to expire on their own.
+	DeleteNamespace(ctx context.Context, sc scope.Scope, tenantID string) error
+	// EditSessionRecordStatus turns session recording on or off in the namespace carrying tenantID. It
+	// returns ErrForbidden when sc was never constructed, ErrNamespaceNotFound when sc is bounded to
+	// another namespace or no namespace carries tenantID, and the store's error otherwise.
+	EditSessionRecordStatus(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error
+	// UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. The flag and the
+	// owner's starter Access Policy, skipped when the namespace already has one, are written in one
+	// transaction, so a namespace never reaches the new model with no policy to authorize anyone. It
+	// returns ErrNamespaceNotFound when no namespace carries the tenant, or sc is bounded to another
+	// namespace, ErrNamespaceNotLegacy when the namespace is already new, ErrForbidden when sc was
+	// never constructed, and the store's error otherwise, with the upgrade rolled back when the
+	// failure comes inside the transaction.
+	UpgradeNamespace(ctx context.Context, sc scope.Scope, tenantID string) error
 }
 
 func (s *service) CreateNamespace(ctx context.Context, req *requests.NamespaceCreate) (*models.Namespace, error) {
@@ -196,59 +223,27 @@ func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceLis
 	return namespaces, count, nil
 }
 
-// GetNamespace gets a namespace.
-//
-// It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
-//
-// GetNamespace returns a models.Namespace and an error. When error is not nil, the models.Namespace is nil.
-func (s *service) GetNamespace(ctx context.Context, tenantID string) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-	if err != nil || namespace == nil {
-		return nil, NewErrNamespaceNotFound(tenantID, err)
-	}
-
-	return namespace, nil
+func (s *service) GetNamespace(ctx context.Context, sc scope.Scope, tenantID string) (*models.Namespace, error) {
+	return s.resolveWithin(ctx, sc, tenantID, anyResolveError)
 }
 
-// ListNamespaceMembers returns the namespace's members as enriched MemberView rows (name,
-// username, email, role and a flattened account status), paginated. The tenant is the caller's
-// current namespace. Cloud/enterprise overrides the route to also fold pending
-// invitations into the response; core returns only real members.
-func (s *service) ListNamespaceMembers(ctx context.Context, req *requests.MemberList) ([]models.MemberView, int64, error) {
-	if _, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID); err != nil {
-		return nil, 0, NewErrNamespaceNotFound(req.TenantID, err)
-	}
-
-	sc, err := BoundTo(req.TenantID)
+func (s *service) ListNamespaceMembers(ctx context.Context, sc scope.Scope, req *requests.MemberList) ([]models.MemberView, int64, error) {
+	namespace, err := s.resolveWithin(ctx, sc, req.TenantID, anyResolveError)
 	if err != nil {
 		return nil, 0, err
 	}
 
+	bounded := scope.MustBounded(namespace.TenantID)
+
 	opts := []store.QueryOption{s.store.Options().Paginate(&req.Paginator)}
 
-	return s.store.NamespaceGetMembers(ctx, sc, opts...)
+	return s.store.NamespaceGetMembers(ctx, bounded, opts...)
 }
 
-// DeleteNamespace deletes a namespace.
-//
-// It receives a context, used to "control" the request flow and the tenant ID from models.Namespace.
-//
-// When cloud and billing is enabled, it will try to delete the namespace's billing information from the billing
-// service if it exists.
-//
-// After the namespace is gone it ends every device it held as a device removal does, evicting its cached
-// authorization and closing its tunnel when this process holds it, or on the tunnel's next beat otherwise. A
-// failed eviction is logged and does not fail the call. It returns ErrNamespaceNotFound, ErrBillingReportNamespaceDelete when
-// billing refuses the deletion, a namespace delete hook's error, ErrNamespaceInstanceProtected for the instance's
-// namespace, ErrForbidden for a tenant ID that is not a valid scope, and the store's error when the namespace's
-// devices cannot be listed or the namespace cannot be deleted, evicting nothing on any of them. The devices are
-// listed before billing hears of the deletion and before the delete hooks run, so a failed listing leaves no
-// side effect behind. ctx bounds the listing, the billing report, the hooks, the deletion and the evictions, so a
-// ctx cancelled after the deletion leaves the cached authorizations to expire on their own.
-func (s *service) DeleteNamespace(ctx context.Context, tenantID string) error {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+func (s *service) DeleteNamespace(ctx context.Context, sc scope.Scope, tenantID string) error {
+	n, err := s.resolveWithin(ctx, sc, tenantID, anyResolveError)
 	if err != nil {
-		return NewErrNamespaceNotFound(tenantID, err)
+		return err
 	}
 
 	err = DeleteNamespacesEndingDevices(ctx, s.store, s.cache, []string{n.TenantID}, func(ctx context.Context) error {
@@ -279,10 +274,10 @@ func (s *service) deleteNamespace(ctx context.Context, n *models.Namespace) erro
 	return s.store.NamespaceDelete(ctx, n)
 }
 
-func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit) (*models.Namespace, error) {
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
+func (s *service) EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error) {
+	namespace, err := s.resolveWithin(ctx, sc, req.Tenant, anyResolveError)
 	if err != nil {
-		return nil, NewErrNamespaceNotFound(req.Tenant, err)
+		return nil, err
 	}
 
 	if req.Name != "" && !strings.EqualFold(req.Name, namespace.Name) {
@@ -312,21 +307,10 @@ func (s *service) EditNamespace(ctx context.Context, req *requests.NamespaceEdit
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
 }
 
-// EditSessionRecordStatus defines if the sessions will be recorded.
-//
-// It receives a context, used to "control" the request flow, a boolean to define if the sessions will be recorded and
-// the tenant ID from models.Namespace.
-//
-// This method is deprecated, use [NamespaceService#EditNamespace] instead.
-func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord bool, tenantID string) error {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+func (s *service) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error {
+	n, err := s.resolveWithin(ctx, sc, tenantID, missingDocument)
 	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return NewErrNamespaceNotFound(tenantID, err)
-		default:
-			return err
-		}
+		return err
 	}
 
 	n.Settings.SessionRecord = sessionRecord
@@ -337,15 +321,10 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sessionRecord boo
 	return nil
 }
 
-func (s *service) UpgradeNamespace(ctx context.Context, tenantID string) error {
-	n, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+func (s *service) UpgradeNamespace(ctx context.Context, sc scope.Scope, tenantID string) error {
+	n, err := s.resolveWithin(ctx, sc, tenantID, missingDocument)
 	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNoDocuments):
-			return NewErrNamespaceNotFound(tenantID, err)
-		default:
-			return err
-		}
+		return err
 	}
 
 	return s.store.WithTransaction(ctx, func(ctx context.Context) error {

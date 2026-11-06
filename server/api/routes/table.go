@@ -128,7 +128,7 @@ func (h *Handler) publicRoutes() []route {
 
 		{method: http.MethodPost, path: CreateAPIKeyURL, endpoint: gateway.Legacy(h.CreateAPIKey), access: requires(authorizer.APIKeyCreate), noAPIKey: true},
 		{method: http.MethodGet, path: ListAPIKeysURL, endpoint: gateway.Legacy(h.ListAPIKeys), access: namespaceMember, noAPIKey: true},
-		{method: http.MethodPatch, path: UpdateAPIKeyURL, endpoint: gateway.Legacy(h.UpdateAPIKey), access: requires(authorizer.APIKeyUpdate), noAPIKey: true},
+		{method: http.MethodPatch, path: UpdateAPIKeyURL, endpoint: gateway.None(h.UpdateAPIKey), access: requires(authorizer.APIKeyUpdate), noAPIKey: true},
 		{method: http.MethodDelete, path: DeleteAPIKeyURL, endpoint: gateway.Legacy(h.DeleteAPIKey), access: requires(authorizer.APIKeyDelete), noAPIKey: true},
 		{method: http.MethodPost, path: CreateAPIKeySSHIdentityURL, endpoint: gateway.Legacy(h.CreateAPIKeySSHIdentity), access: requires(authorizer.SSHIdentityManage)},
 		{method: http.MethodGet, path: ListAPIKeySSHIdentitiesURL, endpoint: gateway.Legacy(h.ListAPIKeySSHIdentities), access: requires(authorizer.SSHIdentityManage)},
@@ -147,11 +147,11 @@ func (h *Handler) publicRoutes() []route {
 
 		{method: http.MethodPost, path: RegisterUserURL, endpoint: gateway.Legacy(h.RegisterUser), access: anonymous},
 		{method: http.MethodGet, path: URLResolveInvitation, endpoint: gateway.Legacy(h.ResolveInvitation), access: anonymous},
-		{method: http.MethodPost, path: URLGenerateInvitationLink, endpoint: gateway.Legacy(h.GenerateInvitationLink), access: requires(authorizer.NamespaceAddMember), noAPIKey: true},
+		{method: http.MethodPost, path: URLGenerateInvitationLink, endpoint: gateway.One(h.GenerateInvitationLink), access: requires(authorizer.NamespaceAddMember), noAPIKey: true},
 		{method: http.MethodPatch, path: URLAcceptInvite, endpoint: gateway.Legacy(h.AcceptInvite), access: ownAccount},
 		{method: http.MethodGet, path: URLUserMembershipInvitationList, endpoint: gateway.Legacy(h.GetUserMembershipInvitationList), access: ownAccount},
 		{method: http.MethodGet, path: URLNamespaceMembershipInvitationList, endpoint: gateway.Legacy(h.GetNamespaceMembershipInvitationList), access: requires(authorizer.NamespaceEditMember)},
-		{method: http.MethodDelete, path: URLCancelMembershipInvitation, endpoint: gateway.Legacy(h.CancelMembershipInvitation), access: requires(authorizer.NamespaceRemoveMember)},
+		{method: http.MethodDelete, path: URLCancelMembershipInvitation, endpoint: gateway.None(h.CancelMembershipInvitation), access: requires(authorizer.NamespaceRemoveMember)},
 
 		{method: http.MethodGet, path: GetDeviceListURL, endpoint: gateway.Legacy(h.GetDeviceList), access: namespaceMember},
 		{method: http.MethodGet, path: GetDeviceURL, endpoint: gateway.One(h.GetDevice), access: namespaceMember},
@@ -204,19 +204,19 @@ func (h *Handler) publicRoutes() []route {
 		{method: http.MethodPut, path: UpdatePublicKeyURL, endpoint: gateway.Legacy(h.UpdatePublicKey), access: requires(authorizer.PublicKeyEdit)},
 		{method: http.MethodDelete, path: DeletePublicKeyURL, endpoint: gateway.Legacy(h.DeletePublicKey), access: requires(authorizer.PublicKeyRemove)},
 
-		{method: http.MethodGet, path: GetNamespaceURL, endpoint: gateway.Legacy(h.GetNamespace), access: namespaceMember},
+		{method: http.MethodGet, path: GetNamespaceURL, endpoint: gateway.One(h.GetNamespace), access: namespaceMember},
 		{method: http.MethodGet, path: ListNamespaceURL, endpoint: gateway.Legacy(h.GetNamespaceList), access: ownAccount},
-		{method: http.MethodPut, path: EditNamespaceURL, endpoint: gateway.Legacy(h.EditNamespace), access: requires(authorizer.NamespaceUpdate)},
-		{method: http.MethodDelete, path: DeleteNamespaceURL, endpoint: gateway.Legacy(h.DeleteNamespace), access: requires(authorizer.NamespaceDelete)},
+		{method: http.MethodPut, path: EditNamespaceURL, endpoint: gateway.One(h.EditNamespace), access: requires(authorizer.NamespaceUpdate)},
+		{method: http.MethodDelete, path: DeleteNamespaceURL, endpoint: gateway.None(h.DeleteNamespace), access: requires(authorizer.NamespaceDelete)},
 
-		{method: http.MethodGet, path: ListNamespaceMembersURL, endpoint: gateway.Legacy(h.ListNamespaceMembers), access: namespaceMember},
-		{method: http.MethodPost, path: AddNamespaceMemberURL, endpoint: gateway.Legacy(h.AddNamespaceMember), access: requires(authorizer.NamespaceAddMember)},
-		{method: http.MethodPatch, path: EditNamespaceMemberURL, endpoint: gateway.Legacy(h.EditNamespaceMember), access: requires(authorizer.NamespaceEditMember)},
-		{method: http.MethodDelete, path: RemoveNamespaceMemberURL, endpoint: gateway.Legacy(h.RemoveNamespaceMember), access: requires(authorizer.NamespaceRemoveMember)},
+		{method: http.MethodGet, path: ListNamespaceMembersURL, endpoint: gateway.List(h.ListNamespaceMembers), access: namespaceMember},
+		{method: http.MethodPost, path: AddNamespaceMemberURL, endpoint: gateway.One(h.AddNamespaceMember), access: requires(authorizer.NamespaceAddMember)},
+		{method: http.MethodPatch, path: EditNamespaceMemberURL, endpoint: gateway.None(h.EditNamespaceMember), access: requires(authorizer.NamespaceEditMember)},
+		{method: http.MethodDelete, path: RemoveNamespaceMemberURL, endpoint: gateway.One(h.RemoveNamespaceMember), access: requires(authorizer.NamespaceRemoveMember)},
 		{method: http.MethodDelete, path: LeaveNamespaceURL, endpoint: gateway.Legacy(h.LeaveNamespace), access: ownAccount},
 
-		{method: http.MethodPut, path: EditSessionRecordStatusURL, endpoint: gateway.Legacy(h.EditSessionRecordStatus), access: requires(authorizer.NamespaceEnableSessionRecord)},
-		{method: http.MethodPost, path: UpgradeNamespaceURL, endpoint: gateway.Legacy(h.UpgradeNamespace), access: requires(authorizer.NamespaceUpdate), noAPIKey: true},
+		{method: http.MethodPut, path: EditSessionRecordStatusURL, endpoint: gateway.None(h.EditSessionRecordStatus), access: requires(authorizer.NamespaceEnableSessionRecord)},
+		{method: http.MethodPost, path: UpgradeNamespaceURL, endpoint: gateway.None(h.UpgradeNamespace), access: requires(authorizer.NamespaceUpdate), noAPIKey: true},
 
 		{method: http.MethodGet, path: ListAccessPoliciesURL, endpoint: gateway.Legacy(h.ListAccessPolicies), access: requires(authorizer.AccessPolicyManage)},
 		{method: http.MethodPost, path: CreateAccessPolicyURL, endpoint: gateway.Legacy(h.CreateAccessPolicy), access: requires(authorizer.AccessPolicyManage)},

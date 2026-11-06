@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -41,10 +42,15 @@ type APIKeyService interface {
 	ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) (apiKeys []models.APIKey, count int64, err error)
 
 	// UpdateAPIKey updates an API key with the provided tenant ID and name, dropping the key's cached
-	// document so the new role is enforced on the next request. It returns an error, if any; an error from
-	// the invalidation means the key may still authenticate with its previous role until apiKeyCacheTTL
-	// lapses, so the caller must not report the update as applied.
-	UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) (err error)
+	// document so the new role is enforced on the next request. It returns ErrForbidden when sc was
+	// never constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
+	// carrying req.TenantID cannot be resolved, whatever the store's error; ErrNamespaceMemberNotFound
+	// when req.UserID is not a member; ErrRoleForbidden when that member lacks APIKeyUpdate or holds
+	// no authority over req.Role; ErrAPIKeyNotFound when no key carries req.CurrentName;
+	// ErrAPIKeyDuplicated when req.Name is taken; and the store's or the cache's error otherwise. An
+	// error from the invalidation means the key may still authenticate with its previous role until
+	// apiKeyCacheTTL lapses, so the caller must not report the update as applied.
+	UpdateAPIKey(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) (err error)
 
 	// DeleteAPIKey deletes an API key with the provided tenant ID and name, dropping the key's cached
 	// document so the key stops authenticating at once. It returns an error, if any; an error from the
@@ -141,17 +147,15 @@ func (s *service) ListAPIKeys(ctx context.Context, req *requests.ListAPIKey) ([]
 	return apiKeys, count, nil
 }
 
-func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) error {
-	sc, err := BoundTo(req.TenantID)
+func (s *service) UpdateAPIKey(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) error {
+	namespace, _, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, req.Role, authorizer.APIKeyUpdate)
 	if err != nil {
 		return err
 	}
 
-	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.Role, authorizer.APIKeyUpdate); err != nil {
-		return err
-	}
+	bounded := scope.MustBounded(namespace.TenantID)
 
-	apiKey, err := s.store.APIKeyResolve(ctx, sc, store.APIKeyNameResolver, req.CurrentName)
+	apiKey, err := s.store.APIKeyResolve(ctx, bounded, store.APIKeyNameResolver, req.CurrentName)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -162,7 +166,7 @@ func (s *service) UpdateAPIKey(ctx context.Context, req *requests.UpdateAPIKey) 
 	}
 
 	if apiKey.Name != req.Name {
-		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{Name: req.Name}); has {
+		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, bounded, &models.APIKeyConflicts{Name: req.Name}); has {
 			return NewErrAPIKeyDuplicated(conflicts)
 		}
 	}
