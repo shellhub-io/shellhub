@@ -310,7 +310,7 @@ func NewErrTagDuplicated(conflicts []string, next error) error {
 
 // NewErrTagInUse returns the conflict a tag delete gets while holders hold the tag, each described
 // as `public key "name"`, `access policy "name"`, `provisioning key "name"` or in the form a
-// [TagHolder] reports, such as the enterprise build's `firewall rule "<id>"`. The name field
+// [DeviceSelectorSource] names, such as the enterprise build's `firewall rule "<id>"`. The name field
 // carries only that comma-separated list, so the client writes the sentence around it.
 func NewErrTagInUse(holders []string) error {
 	return NewErrInvalidFields(ErrTagInUse, map[string]string{"name": strings.Join(holders, ", ")})
