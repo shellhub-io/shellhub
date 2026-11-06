@@ -49,6 +49,7 @@ const (
 	BillingCancelSubscription
 	BillingCreateSubscription
 	BillingGetSubscription
+	BillingGetCustomer
 
 	APIKeyCreate
 	APIKeyUpdate
@@ -199,6 +200,7 @@ var ownerPermissions = []Permission{
 	BillingCancelSubscription,
 	BillingCreateSubscription,
 	BillingGetSubscription,
+	BillingGetCustomer,
 
 	APIKeyCreate,
 	APIKeyUpdate,
