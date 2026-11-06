@@ -40,10 +40,12 @@ type NamespaceMembershipInvitationList struct {
 }
 
 // AcceptInvite is the request that turns an invitation into a membership. The invitee is the
-// authenticated caller, so the request carries no email of its own.
+// authenticated caller, so the request carries no email of its own. Code is the invite code from
+// the invitation link: being the account an invitation names does not, alone, admit the caller.
 type AcceptInvite struct {
 	TenantID string `param:"tenant" json:"-" validate:"required"`
 	UserID   string `identity:"id" json:"-" validate:"required"`
+	Code     string `json:"code" validate:"required"`
 }
 
 // CancelMembershipInvitation is the request to withdraw an invitation the namespace sent. UserID

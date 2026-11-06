@@ -122,18 +122,6 @@ func (s *service) resolveActingMember(ctx context.Context, sc scope.Scope, tenan
 	return namespace, member, nil
 }
 
-func (s *service) admitMember(ctx context.Context, sc scope.Scope, member *models.Member, invitation *models.MembershipInvitation) error {
-	if err := s.store.NamespaceCreateMembership(ctx, sc, member); err != nil {
-		return err
-	}
-
-	if invitation != nil {
-		return s.store.MembershipInvitationDelete(ctx, invitation)
-	}
-
-	return nil
-}
-
 func (s *service) AddNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error) {
 	namespace, active, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
 	if err != nil {
@@ -176,10 +164,10 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 			return NewErrNamespaceMemberDuplicated(passiveUser.ID, nil)
 		}
 
-		if userExists && directMembershipAllowed() {
-			member := &models.Member{ID: passiveUser.ID, AddedAt: s.clock.Now(), Role: role}
-
-			return s.admitMember(ctx, scope.MustBounded(namespace.TenantID), member, nil)
+		if userExists {
+			if grant, ok := directGrant(passiveUser.ID, namespace.TenantID, role); ok {
+				return s.admitMember(ctx, grant)
+			}
 		}
 
 		existing, err := s.store.MembershipInvitationResolve(ctx, scope.MustBounded(namespace.TenantID), passiveUser.ID)

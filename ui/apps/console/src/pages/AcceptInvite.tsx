@@ -39,6 +39,7 @@ type PostAction =
 /**
  * The page an invitation link lands on. It works signed out as well as in: an invitation may
  * arrive before the account exists, so this leads to sign-up and back rather than refusing.
+ * Accepting sends the link's code, which the server requires.
  */
 export default function AcceptInvite() {
   const [searchParams] = useSearchParams();
@@ -160,7 +161,10 @@ export default function AcceptInvite() {
     if (!tenant || !authToken) return;
     setError("");
     try {
-      await acceptInvite.mutateAsync({ path: { tenant } });
+      await acceptInvite.mutateAsync({
+        path: { tenant },
+        body: { code: invite },
+      });
       setShowConfirm(false);
       setPostAction({ kind: "joined" });
     } catch {

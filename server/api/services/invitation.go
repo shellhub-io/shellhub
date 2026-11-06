@@ -58,7 +58,13 @@ type InvitationService interface {
 	// carrying any of it in the URL.
 	ResolveInvitation(ctx context.Context, req *requests.ResolveInvitation) (*responses.ResolveInvitation, error)
 
-	// AcceptInvite adds the invited user to the namespace and consumes the invitation.
+	// AcceptInvite adds the invited user to the namespace and consumes the invitation. The request
+	// must carry the invitation's code: an invitation addressed to the caller is not enough. It
+	// returns ErrUserNotFound when the caller has no account, ErrNamespaceNotFound when the
+	// namespace does not exist, ErrNamespaceMemberDuplicated when the caller already belongs to it,
+	// and ErrNamespaceMemberNotFound when the code resolves to no pending, unexpired invitation of
+	// the caller to that namespace, or the invitation stops being pending before it is consumed.
+	// Any other store error from the transaction is returned unwrapped.
 	AcceptInvite(ctx context.Context, req *requests.AcceptInvite) error
 
 	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the copyable
@@ -143,15 +149,17 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 		return NewErrNamespaceMemberDuplicated(req.UserID, nil)
 	}
 
-	invitation, err := s.store.MembershipInvitationResolve(ctx, scope.MustBounded(n.TenantID), req.UserID)
-	if err != nil || !invitation.IsPending() || invitation.IsExpired(s.clock.Now()) {
+	grant, err := s.redeemInvitation(ctx, req.UserID, req.Code)
+	if err != nil {
 		return NewErrNamespaceMemberNotFound(req.UserID, err)
 	}
 
-	err = s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		member := &models.Member{ID: req.UserID, AddedAt: s.clock.Now(), Role: invitation.Role}
+	if grant.tenantID != n.TenantID {
+		return NewErrNamespaceMemberNotFound(req.UserID, errInvitationNotRedeemable)
+	}
 
-		return s.admitMember(ctx, scope.MustBounded(n.TenantID), member, invitation)
+	err = s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		return s.admitMember(ctx, grant)
 	})
 	if errors.Is(err, store.ErrNoDocuments) {
 		return NewErrNamespaceMemberNotFound(req.UserID, err)

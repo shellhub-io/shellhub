@@ -3,7 +3,8 @@ patch:
   summary: Accept a membership invite
   description: |
     Accepts a pending membership invitation for the authenticated user.
-    The user must be logged into the account that was invited.
+    The user must be logged into the account that was invited and send the
+    invite code from the invitation link.
   tags:
     - community
     - members
@@ -13,6 +14,19 @@ patch:
     - jwt: []
   parameters:
     - $ref: ../components/parameters/path/namespaceTenantIDPath.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            code:
+              type: string
+              example: WXYZ2K7QABCD
+              description: The invite code the invitation link carries.
+          required:
+            - code
   responses:
     '200':
       description: Invitation successfully accepted

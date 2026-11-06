@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/pairingcode"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -15,10 +14,11 @@ import (
 
 // RegisterUser creates a user account. When the registration carries a valid invitation (an invite
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
-// account and — if the code resolves — joins the namespace in the same step. Open self-registration
-// is a capability (cloud only); community and enterprise are invite-only.
+// account and, if the code resolves to that invitee, joins the namespace in the same step. Open
+// self-registration is a capability (cloud only); community and enterprise are invite-only.
 func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error) {
 	req.DeviceCode = pairingcode.Normalize(req.DeviceCode)
+	req.Sig = pairingcode.Normalize(req.Sig)
 
 	if req.Sig != "" {
 		if membership, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil {
@@ -118,15 +118,15 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		},
 	}
 
-	var membership *models.MembershipInvitation
+	var grant *membershipGrant
 
 	if req.Sig != "" {
-		if m, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil && m.UserID == invitation.ID {
-			membership = m
+		if g, err := s.redeemInvitation(ctx, invitation.ID, req.Sig); err == nil {
+			grant = &g
 			user.Status = models.UserStatusConfirmed
 
 			if nonAdminProvisioningAllowed() {
-				if invitedBy, err := s.store.UserResolve(ctx, store.UserIDResolver, membership.InvitedBy); err == nil && !invitedBy.Admin {
+				if invitedBy, err := s.store.UserResolve(ctx, store.UserIDResolver, g.invitation.InvitedBy); err == nil && !invitedBy.Admin {
 					user.AwaitingApproval = true
 				}
 			}
@@ -145,9 +145,8 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 			return err
 		}
 
-		if membership != nil {
-			member := &models.Member{ID: user.ID, AddedAt: s.clock.Now(), Role: membership.Role}
-			if err := s.admitMember(ctx, scope.MustBounded(membership.TenantID), member, membership); err != nil {
+		if grant != nil {
+			if err := s.admitMember(ctx, *grant); err != nil {
 				return err
 			}
 		}
