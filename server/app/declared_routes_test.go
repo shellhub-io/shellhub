@@ -60,11 +60,11 @@ func TestRequireDeclaredRoutes(t *testing.T) {
 		t.Run(string(edition), func(t *testing.T) {
 			router := assembledRouter(t, edition)
 
-			require.NoError(t, requireDeclaredRoutes(router, edition))
+			require.NoError(t, requireDeclaredRoutes(router))
 
 			router.GET("/api/undeclared", func(c *echo.Context) error { return c.NoContent(http.StatusOK) })
 
-			assert.ErrorContains(t, requireDeclaredRoutes(router, edition), "GET /api/undeclared")
+			assert.ErrorContains(t, requireDeclaredRoutes(router), "GET /api/undeclared")
 		})
 	}
 }

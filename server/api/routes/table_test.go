@@ -12,23 +12,28 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
-	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
-	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
-	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var editions = []envs.Edition{envs.Community, envs.Enterprise, envs.Cloud}
 
 var pathParam = regexp.MustCompile(`:[^/]+`)
 
-func tableFor(t *testing.T, edition envs.Edition) []route {
+var (
+	ownAccount      = routetable.OwnAccount.String()
+	pathCode        = routetable.PathCode.String()
+	namespaceMember = routetable.NamespaceMember.String()
+	permission      = routetable.Requires(authorizer.DeviceRename).String()
+)
+
+func tableFor(t *testing.T, edition envs.Edition) []routetable.Route {
 	t.Helper()
 
 	handler := NewHandler(serviceMocks.NewMockService(t))
@@ -37,42 +42,18 @@ func tableFor(t *testing.T, edition envs.Edition) []route {
 	return handler.publicRoutes()
 }
 
-var mountedOutsideTheTable = map[string]string{
-	echo.RouteAny + " /mcp":         "the MCP server replays each tool call against the table's own routes",
-	echo.RouteAny + " /mcp/*":       "the MCP server replays each tool call against the table's own routes",
-	"GET /ssh/connection":           "the SSH server's web terminal, mounted by sshhttp.Register",
-	"GET /ssh/revdial":              "the agent's reverse dial, mounted by sshhttp.Register",
-	"GET /agent/connection":         "the agent's connection, mounted by sshhttp.Register",
-	"POST /api/sessions/:uid/close": "the SSH server closes its own sessions, mounted by sshhttp.Register",
-}
-
 func address(method, path string) string {
 	return method + " " + pathParam.ReplaceAllString(path, ":")
 }
 
-func unstatedAccess(table []route) []string {
-	var found []string
-
-	for _, r := range table {
-		switch {
-		case r.access.kind == accessUnstated:
-			found = append(found, r.method+" "+r.path+" states no access")
-		case r.access.kind == accessPermission && len(r.access.permissions) == 0:
-			found = append(found, r.method+" "+r.path+" requires no permission")
-		}
-	}
-
-	return found
-}
-
-func duplicateAddresses(table []route) []string {
+func duplicateAddresses(table []routetable.Route) []string {
 	var found []string
 
 	seen := make(map[string]bool)
 	for _, r := range table {
-		key := address(r.method, r.path)
+		key := address(r.Method, r.Path)
 		if seen[key] {
-			found = append(found, r.method+" "+r.path+" is mounted twice")
+			found = append(found, r.Method+" "+r.Path+" is mounted twice")
 		}
 
 		seen[key] = true
@@ -81,42 +62,25 @@ func duplicateAddresses(table []route) []string {
 	return found
 }
 
-func mountedOutside(mounted echo.Routes, table []route, exempt map[string]string) []string {
-	listed := make(map[string]bool)
-	for _, r := range table {
-		listed[r.method+" "+publicAPIPrefix+r.path] = true
+func mountedWithRecordingEndpoints(t *testing.T, table []routetable.Route, recording gateway.Endpoint) *echo.Echo {
+	t.Helper()
+
+	for i := range table {
+		table[i].Endpoint = recording
 	}
 
-	var found []string
+	router := echo.New()
+	router.HTTPErrorHandler = handlers.NewErrors(nil)
+	router.Use(gateway.WithContext())
+	require.NoError(t, routetable.Mount(router.Group(publicAPIPrefix), nil, table))
 
-	for _, m := range mounted {
-		key := m.Method + " " + m.Path
-		if !listed[key] && exempt[key] == "" {
-			found = append(found, key+" is mounted outside the route table")
-		}
-	}
-
-	return found
+	return router
 }
 
 func TestEveryRouteStatesItsAccess(t *testing.T) {
 	for _, edition := range editions {
-		assert.Empty(t, unstatedAccess(tableFor(t, edition)), edition)
+		assert.NoError(t, routetable.Mount(echo.New().Group(publicAPIPrefix), nil, tableFor(t, edition)), edition)
 	}
-}
-
-func TestUnstatedAccessFlagsARowThatStatesNone(t *testing.T) {
-	table := []route{
-		{method: http.MethodGet, path: "/unstated"},
-		{method: http.MethodGet, path: "/no-permission", access: requires()},
-		{method: http.MethodGet, path: "/anonymous", access: anonymous},
-		{method: http.MethodGet, path: "/permission", access: requires(authorizer.DeviceRename)},
-	}
-
-	assert.Equal(t, []string{
-		"GET /unstated states no access",
-		"GET /no-permission requires no permission",
-	}, unstatedAccess(table))
 }
 
 func TestNoRouteIsMountedTwice(t *testing.T) {
@@ -126,46 +90,29 @@ func TestNoRouteIsMountedTwice(t *testing.T) {
 }
 
 func TestDuplicateAddressesFlagsTheSameAddressUnderAnotherParameterName(t *testing.T) {
-	table := []route{
-		{method: http.MethodGet, path: "/devices/:uid"},
-		{method: http.MethodGet, path: "/devices/:id"},
-		{method: http.MethodPost, path: "/devices/:id"},
+	table := []routetable.Route{
+		{Method: http.MethodGet, Path: "/devices/:uid"},
+		{Method: http.MethodGet, Path: "/devices/:id"},
+		{Method: http.MethodPost, Path: "/devices/:id"},
 	}
 
 	assert.Equal(t, []string{"GET /devices/:id is mounted twice"}, duplicateAddresses(table))
 }
 
-func TestEveryRouteTheRouterMountsIsInTheTableOrExemptByName(t *testing.T) {
+func TestEveryRouteTheRouterMountsIsInATableOrDeclared(t *testing.T) {
 	for _, edition := range editions {
 		service := serviceMocks.NewMockService(t)
-		authn := routesmiddleware.NewAuthenticator(service)
-		router := newTestRouter(t, service, WithAuthentication(authn), WithEdition(edition))
-		sshhttp.Register(router, authn, dialer.NewDialer(nil, nil, clock.New()), service, session.NewRegistry(), &sshhttp.Config{})
+		router := newTestRouter(t, service, WithAuthentication(routesmiddleware.NewAuthenticator(service)), WithEdition(edition))
 
 		mounted := router.Router().Routes()
-		assert.Empty(t, mountedOutside(mounted, tableFor(t, edition), mountedOutsideTheTable), edition)
+		assert.Empty(t, routetable.Undeclared(mounted, Declared()), edition)
 
-		for exempt := range mountedOutsideTheTable {
+		for declared := range Declared() {
 			assert.True(t, slices.ContainsFunc(mounted, func(m echo.RouteInfo) bool {
-				return m.Method+" "+m.Path == exempt
-			}), "%s: %s is exempt but not mounted", edition, exempt)
+				return routetable.Address(m.Method, m.Path) == declared
+			}), "%s: %s is declared but not mounted", edition, declared)
 		}
 	}
-}
-
-func TestMountedOutsideFlagsARouteNeitherListedNorExempt(t *testing.T) {
-	router := echo.New()
-	for _, path := range []string{"/api/listed", "/api/unlisted", "/exempt", "/unexempt"} {
-		router.GET(path, func(*echo.Context) error { return nil })
-	}
-
-	table := []route{{method: http.MethodGet, path: "/listed"}}
-	exempt := map[string]string{"GET /exempt": "a reason"}
-
-	assert.ElementsMatch(t, []string{
-		"GET /api/unlisted is mounted outside the route table",
-		"GET /unexempt is mounted outside the route table",
-	}, mountedOutside(router.Router().Routes(), table, exempt))
 }
 
 func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
@@ -175,45 +122,45 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 
 	cases := []struct {
 		description string
-		applies     func(route) bool
+		applies     func(routetable.Route) bool
 		headers     map[string]string
 		caller      identity.Identity
 		pathTenant  string
 	}{
 		{
 			description: "an owner naming another namespace in the path",
-			applies: func(r route) bool {
-				return namesTheTenant(r) && r.access.kind != accessOwnAccount
+			applies: func(r routetable.Route) bool {
+				return namesTheTenant(r) && r.Access.String() != ownAccount
 			},
 			caller:     identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner},
 			pathTenant: otherTenant,
 		},
 		{
 			description: "an API key where the route blocks one",
-			applies: func(r route) bool {
-				return r.noAPIKey || r.access.kind == accessOwnAccount || r.access.kind == accessPathCode
+			applies: func(r routetable.Route) bool {
+				return r.NoAPIKey || r.Access.String() == ownAccount || r.Access.String() == pathCode
 			},
 			headers: map[string]string{"X-API-Key": "key"},
 			caller:  identity.Identity{APIKey: "key", TenantID: tenant, Role: authorizer.RoleOwner},
 		},
 		{
 			description: "a user token with no namespace on a member route",
-			applies: func(r route) bool {
-				return r.access.kind == accessNamespaceMember && !namesTheTenant(r)
+			applies: func(r routetable.Route) bool {
+				return r.Access.String() == namespaceMember && !namesTheTenant(r)
 			},
 			caller: identity.Identity{ID: "user-id"},
 		},
 		{
 			description: "a namespace member whose role holds no permission",
-			applies: func(r route) bool {
-				return r.access.kind == accessPermission
+			applies: func(r routetable.Route) bool {
+				return r.Access.String() == permission
 			},
 			caller: identity.Identity{ID: "user-id", TenantID: tenant},
 		},
 		{
 			description: "a user token with neither a namespace nor a permission",
-			applies: func(r route) bool {
-				return r.access.kind == accessPermission
+			applies: func(r routetable.Route) bool {
+				return r.Access.String() == permission
 			},
 			caller: identity.Identity{ID: "user-id"},
 		},
@@ -234,14 +181,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 				}
 
 				table := tableFor(t, edition)
-				for i := range table {
-					table[i].endpoint = recording
-				}
-
-				router := echo.New()
-				router.HTTPErrorHandler = handlers.NewErrors(nil)
-				router.Use(gateway.WithContext())
-				mount(router.Group(publicAPIPrefix), table)
+				router := mountedWithRecordingEndpoints(t, table, recording)
 
 				for _, r := range table {
 					if !tc.applies(r) {
@@ -251,7 +191,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 					covered++
 					reached = false
 
-					target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.path, func(param string) string {
+					target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
 						if param[1:] == ParamNamespaceTenant {
 							if tc.pathTenant != "" {
 								return tc.pathTenant
@@ -263,7 +203,7 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 						return "placeholder"
 					})
 
-					req := httptest.NewRequestWithContext(t.Context(), r.method, target, nil)
+					req := httptest.NewRequestWithContext(t.Context(), r.Method, target, nil)
 					for name, value := range tc.headers {
 						req.Header.Set(name, value)
 					}
@@ -272,8 +212,8 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 					rec := httptest.NewRecorder()
 					router.ServeHTTP(rec, req)
 
-					assert.False(t, reached, "%s: %s %s reached its handler", edition, r.method, r.path)
-					assert.Equal(t, http.StatusForbidden, rec.Code, "%s: %s %s", edition, r.method, r.path)
+					assert.False(t, reached, "%s: %s %s reached its handler", edition, r.Method, r.Path)
+					assert.Equal(t, http.StatusForbidden, rec.Code, "%s: %s %s", edition, r.Method, r.Path)
 				}
 			}
 
@@ -298,8 +238,8 @@ func TestAuthenticationRoutesServeAnonymousCallers(t *testing.T) {
 	}
 }
 
-func namesTheTenant(r route) bool {
-	return slices.Contains(strings.Split(r.path, "/"), ":"+ParamNamespaceTenant)
+func namesTheTenant(r routetable.Route) bool {
+	return slices.Contains(strings.Split(r.Path, "/"), ":"+ParamNamespaceTenant)
 }
 
 func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *testing.T) {
@@ -321,24 +261,17 @@ func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *test
 		}
 
 		table := tableFor(t, edition)
-		for i := range table {
-			table[i].endpoint = recording
-		}
-
-		router := echo.New()
-		router.HTTPErrorHandler = handlers.NewErrors(nil)
-		router.Use(gateway.WithContext())
-		mount(router.Group(publicAPIPrefix), table)
+		router := mountedWithRecordingEndpoints(t, table, recording)
 
 		for _, r := range table {
-			if r.access.kind != accessOwnAccount || !namesTheTenant(r) {
+			if r.Access.String() != ownAccount || !namesTheTenant(r) {
 				continue
 			}
 
 			covered++
 			reached = false
 
-			target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.path, func(param string) string {
+			target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
 				if param[1:] == ParamNamespaceTenant {
 					return otherTenant
 				}
@@ -346,13 +279,13 @@ func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *test
 				return "placeholder"
 			})
 
-			req := httptest.NewRequestWithContext(t.Context(), r.method, target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), r.Method, target, nil)
 			req = identitytest.As(req, identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner})
 
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 
-			assert.True(t, reached, "%s: %s %s answered %d", edition, r.method, r.path, rec.Code)
+			assert.True(t, reached, "%s: %s %s answered %d", edition, r.Method, r.Path, rec.Code)
 		}
 	}
 

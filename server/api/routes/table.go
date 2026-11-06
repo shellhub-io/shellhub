@@ -2,242 +2,140 @@ package routes
 
 import (
 	"net/http"
-	"strings"
 
-	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
-	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
+	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 )
 
 const publicAPIPrefix = "/api"
 
-type accessKind int
+func (h *Handler) publicRoutes() []routetable.Route {
+	table := []routetable.Route{
+		{Method: http.MethodGet, Path: HealthCheckURL, Endpoint: gateway.None(h.EvaluateHealth), Access: routetable.Anonymous, Unbounded: true},
 
-const (
-	accessUnstated accessKind = iota
-	accessAnonymous
-	accessDeviceToken
-	accessOwnAccount
-	accessNamespaceMember
-	accessPathCode
-	accessPermission
-)
+		{Method: http.MethodGet, Path: AuthLocalUserURLV2, Endpoint: gateway.Legacy(h.RenewUserToken), Access: routetable.OwnAccount},
+		{Method: http.MethodGet, Path: AuthUserTokenPublicURL, Endpoint: gateway.Legacy(h.RenewUserToken), Access: routetable.OwnAccount},
+		{Method: http.MethodPost, Path: AuthDeviceURL, Endpoint: gateway.Legacy(h.AuthDevice), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AuthDeviceChallengeURL, Endpoint: gateway.Legacy(h.CreateDeviceAuthChallenge), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AuthDeviceURLV2, Endpoint: gateway.Legacy(h.AuthDevice), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: EnrollmentCallbackURL, Endpoint: gateway.Legacy(h.EnrollmentCallback), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AuthLocalUserURL, Endpoint: gateway.Legacy(h.AuthLocalUser), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AuthLocalUserURLV2, Endpoint: gateway.Legacy(h.AuthLocalUser), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AuthPublicKeyURL, Endpoint: gateway.Legacy(h.AuthPublicKey), Access: routetable.DeviceToken},
 
-type access struct {
-	kind        accessKind
-	permissions []authorizer.Permission
-}
+		{Method: http.MethodPost, Path: CreateAPIKeyURL, Endpoint: gateway.Legacy(h.CreateAPIKey), Access: routetable.Requires(authorizer.APIKeyCreate), NoAPIKey: true},
+		{Method: http.MethodGet, Path: ListAPIKeysURL, Endpoint: gateway.Legacy(h.ListAPIKeys), Access: routetable.NamespaceMember, NoAPIKey: true},
+		{Method: http.MethodPatch, Path: UpdateAPIKeyURL, Endpoint: gateway.None(h.UpdateAPIKey), Access: routetable.Requires(authorizer.APIKeyUpdate), NoAPIKey: true},
+		{Method: http.MethodDelete, Path: DeleteAPIKeyURL, Endpoint: gateway.Legacy(h.DeleteAPIKey), Access: routetable.Requires(authorizer.APIKeyDelete), NoAPIKey: true},
+		{Method: http.MethodPost, Path: CreateAPIKeySSHIdentityURL, Endpoint: gateway.Legacy(h.CreateAPIKeySSHIdentity), Access: routetable.Requires(authorizer.SSHIdentityManage)},
+		{Method: http.MethodGet, Path: ListAPIKeySSHIdentitiesURL, Endpoint: gateway.Legacy(h.ListAPIKeySSHIdentities), Access: routetable.Requires(authorizer.SSHIdentityManage)},
 
-var (
-	anonymous       = access{kind: accessAnonymous}
-	deviceToken     = access{kind: accessDeviceToken}
-	ownAccount      = access{kind: accessOwnAccount}
-	namespaceMember = access{kind: accessNamespaceMember}
-	pathCode        = access{kind: accessPathCode}
-)
+		{Method: http.MethodPost, Path: CreateProvisioningKeyURL, Endpoint: gateway.Legacy(h.CreateProvisioningKey), Access: routetable.Requires(authorizer.ProvisioningKeyCreate), NoAPIKey: true},
+		{Method: http.MethodGet, Path: ListProvisioningKeysURL, Endpoint: gateway.Legacy(h.ListProvisioningKeys), Access: routetable.Requires(authorizer.ProvisioningKeyList), NoAPIKey: true},
+		{Method: http.MethodPatch, Path: UpdateProvisioningKeyURL, Endpoint: gateway.Legacy(h.UpdateProvisioningKey), Access: routetable.Requires(authorizer.ProvisioningKeyUpdate), NoAPIKey: true},
+		{Method: http.MethodGet, Path: RevealProvisioningKeyURL, Endpoint: gateway.Legacy(h.RevealProvisioningKey), Access: routetable.Requires(authorizer.ProvisioningKeyReveal), NoAPIKey: true},
+		{Method: http.MethodGet, Path: HistoryProvisioningKeyURL, Endpoint: gateway.Legacy(h.HistoryProvisioningKey), Access: routetable.Requires(authorizer.ProvisioningKeyList), NoAPIKey: true},
 
-func requires(permissions ...authorizer.Permission) access {
-	return access{kind: accessPermission, permissions: permissions}
-}
+		{Method: http.MethodPatch, Path: URLUpdateUser, Endpoint: gateway.Legacy(h.UpdateUser), Access: routetable.OwnAccount},
+		{Method: http.MethodPatch, Path: URLDeprecatedUpdateUser, Endpoint: gateway.Legacy(h.UpdateUser), Access: routetable.OwnAccount},
+		{Method: http.MethodPatch, Path: URLDeprecatedUpdateUserPassword, Endpoint: gateway.Legacy(h.UpdateUserPassword), Access: routetable.OwnAccount},
+		{Method: http.MethodDelete, Path: URLRevokeUserTokens, Endpoint: gateway.Legacy(h.RevokeUserTokens), Access: routetable.OwnAccount},
+		{Method: http.MethodPut, Path: URLRecordOnboardingSurvey, Endpoint: gateway.Legacy(h.RecordOnboardingSurvey), Access: routetable.OwnAccount},
 
-type route struct {
-	method    string
-	path      string
-	endpoint  gateway.Endpoint
-	access    access
-	unbounded bool
-	noAPIKey  bool
-}
+		{Method: http.MethodPost, Path: RegisterUserURL, Endpoint: gateway.Legacy(h.RegisterUser), Access: routetable.Anonymous},
+		{Method: http.MethodGet, Path: URLResolveInvitation, Endpoint: gateway.Legacy(h.ResolveInvitation), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: URLGenerateInvitationLink, Endpoint: gateway.One(h.GenerateInvitationLink), Access: routetable.Requires(authorizer.NamespaceAddMember), NoAPIKey: true},
+		{Method: http.MethodPatch, Path: URLAcceptInvite, Endpoint: gateway.Legacy(h.AcceptInvite), Access: routetable.OwnAccount},
+		{Method: http.MethodGet, Path: URLUserMembershipInvitationList, Endpoint: gateway.Legacy(h.GetUserMembershipInvitationList), Access: routetable.OwnAccount},
+		{Method: http.MethodGet, Path: URLNamespaceMembershipInvitationList, Endpoint: gateway.Legacy(h.GetNamespaceMembershipInvitationList), Access: routetable.Requires(authorizer.NamespaceEditMember)},
+		{Method: http.MethodDelete, Path: URLCancelMembershipInvitation, Endpoint: gateway.None(h.CancelMembershipInvitation), Access: routetable.Requires(authorizer.NamespaceRemoveMember)},
 
-func (r route) handler() echo.HandlerFunc {
-	return r.endpoint(gateway.Claims{Anonymous: r.access.kind == accessAnonymous, Unbounded: r.unbounded})
-}
+		{Method: http.MethodGet, Path: GetDeviceListURL, Endpoint: gateway.Legacy(h.GetDeviceList), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: GetDeviceURL, Endpoint: gateway.One(h.GetDevice), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: DeviceLocationsURL, Endpoint: gateway.Legacy(h.GetDeviceLocations), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: ResolveDeviceURL, Endpoint: gateway.Legacy(h.ResolveDevice), Access: routetable.NamespaceMember},
+		{Method: http.MethodPut, Path: UpdateDevice, Endpoint: gateway.Legacy(h.UpdateDevice), Access: routetable.Requires(authorizer.DeviceUpdate)},
+		{Method: http.MethodPatch, Path: RenameDeviceURL, Endpoint: gateway.Legacy(h.RenameDevice), Access: routetable.Requires(authorizer.DeviceRename)},
+		{Method: http.MethodGet, Path: TenantRegistrationsURL, Endpoint: gateway.Legacy(h.TenantRegistrations), Access: routetable.Requires(authorizer.DeviceStatusUpdate)},
+		{Method: http.MethodPatch, Path: UpdateDeviceStatusURL, Endpoint: gateway.Legacy(h.UpdateDeviceStatus), Access: routetable.Requires(authorizer.DeviceStatusUpdate)},
 
-func (r route) blocksAPIKey() bool {
-	return r.noAPIKey || r.access.kind == accessOwnAccount || r.access.kind == accessPathCode
-}
+		{Method: http.MethodPost, Path: CreateDeviceLoginCodeURL, Endpoint: gateway.Legacy(h.CreateDeviceLoginCode), Access: routetable.DeviceToken},
+		{Method: http.MethodGet, Path: GetDeviceAuthStatusURL, Endpoint: gateway.Legacy(h.GetDeviceAuthStatus), Access: routetable.DeviceToken},
+		{Method: http.MethodGet, Path: ResolveDeviceLoginCodeURL, Endpoint: gateway.Legacy(h.ResolveDeviceLoginCode), Access: routetable.PathCode},
 
-func (r route) tenantParam() string {
-	if r.access.kind == accessOwnAccount {
-		return ""
-	}
+		{Method: http.MethodPost, Path: CreateDevicePairingURL, Endpoint: gateway.Legacy(h.CreateDevicePairing), Access: routetable.Anonymous},
+		{Method: http.MethodGet, Path: GetDevicePairingStatusURL, Endpoint: gateway.Legacy(h.GetDevicePairingStatus), Access: routetable.Anonymous},
+		{Method: http.MethodPost, Path: AcceptDevicePairingURL, Endpoint: gateway.Legacy(h.AcceptDevicePairing), Access: routetable.PathCode},
 
-	for segment := range strings.SplitSeq(r.path, "/") {
-		if segment == ":"+ParamNamespaceTenant {
-			return ParamNamespaceTenant
-		}
-	}
+		{Method: http.MethodGet, Path: GetSSHApprovalURL, Endpoint: gateway.Legacy(h.GetSSHApproval), Access: routetable.PathCode},
+		{Method: http.MethodPost, Path: ConfirmSSHApprovalURL, Endpoint: gateway.Legacy(h.ConfirmSSHApproval), Access: routetable.PathCode},
+		{Method: http.MethodPost, Path: RejectSSHApprovalURL, Endpoint: gateway.Legacy(h.RejectSSHApproval), Access: routetable.PathCode},
+		{Method: http.MethodDelete, Path: DeleteDeviceURL, Endpoint: gateway.Legacy(h.DeleteDevice), Access: routetable.Requires(authorizer.DeviceRemove)},
+		{Method: http.MethodDelete, Path: MakeTeamDeviceURL, Endpoint: gateway.Legacy(h.MakeTeamDevice), Access: routetable.Requires(authorizer.ProvisioningKeyCreate)},
+		{Method: http.MethodPut, Path: SetDeviceCustomFieldURL, Endpoint: gateway.Legacy(h.SetDeviceCustomField), Access: routetable.Requires(authorizer.DeviceCustomFieldUpdate)},
+		{Method: http.MethodDelete, Path: DeleteDeviceCustomFieldURL, Endpoint: gateway.Legacy(h.DeleteDeviceCustomField), Access: routetable.Requires(authorizer.DeviceCustomFieldUpdate)},
 
-	return ""
-}
+		{Method: http.MethodGet, Path: URLGetTags, Endpoint: gateway.Legacy(h.GetTags), Access: routetable.NamespaceMember},
+		{Method: http.MethodPost, Path: URLCreateTag, Endpoint: gateway.Legacy(h.CreateTag), Access: routetable.Requires(authorizer.TagCreate)},
+		{Method: http.MethodPatch, Path: URLUpdateTag, Endpoint: gateway.Legacy(h.UpdateTag), Access: routetable.Requires(authorizer.TagUpdate)},
+		{Method: http.MethodDelete, Path: URLDeleteTag, Endpoint: gateway.Legacy(h.DeleteTag), Access: routetable.Requires(authorizer.TagDelete)},
+		{Method: http.MethodPost, Path: URLPushTagToDevice, Endpoint: gateway.Legacy(h.PushTagToDevice), Access: routetable.Requires(authorizer.TagCreate)},
+		{Method: http.MethodDelete, Path: URLPullTagFromDevice, Endpoint: gateway.Legacy(h.PullTagFromDevice), Access: routetable.Requires(authorizer.TagDelete)},
 
-func (r route) middleware() []echo.MiddlewareFunc {
-	var chain []echo.MiddlewareFunc
+		{Method: http.MethodGet, Path: URLOldGetTags, Endpoint: gateway.Legacy(h.GetTags), Access: routetable.NamespaceMember},
+		{Method: http.MethodPost, Path: URLOldCreateTag, Endpoint: gateway.Legacy(h.CreateTag), Access: routetable.Requires(authorizer.TagCreate)},
+		{Method: http.MethodPatch, Path: URLOldUpdateTag, Endpoint: gateway.Legacy(h.UpdateTag), Access: routetable.Requires(authorizer.TagUpdate)},
+		{Method: http.MethodDelete, Path: URLOldDeleteTag, Endpoint: gateway.Legacy(h.DeleteTag), Access: routetable.Requires(authorizer.TagDelete)},
+		{Method: http.MethodPost, Path: URLOldPushTagToDevice, Endpoint: gateway.Legacy(h.PushTagToDevice), Access: routetable.Requires(authorizer.TagCreate)},
+		{Method: http.MethodDelete, Path: URLOldPullTagFromDevice, Endpoint: gateway.Legacy(h.PullTagFromDevice), Access: routetable.Requires(authorizer.TagDelete)},
 
-	if r.blocksAPIKey() {
-		chain = append(chain, routesmiddleware.BlockAPIKey)
-	}
+		{Method: http.MethodGet, Path: GetSessionsURL, Endpoint: gateway.Legacy(h.GetSessionList), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: GetSessionURL, Endpoint: gateway.Legacy(h.GetSession), Access: routetable.NamespaceMember},
 
-	if param := r.tenantParam(); param != "" {
-		chain = append(chain, routesmiddleware.RequiresTenant(param))
-	}
+		{Method: http.MethodGet, Path: GetStatsURL, Endpoint: gateway.One(h.GetStats), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: GetSystemInfoURL, Endpoint: gateway.Legacy(h.GetSystemInfo), Access: routetable.Anonymous},
+		{Method: http.MethodGet, Path: GetSystemDownloadInstallScriptURL, Endpoint: gateway.Legacy(h.GetSystemDownloadInstallScript), Access: routetable.Anonymous},
 
-	switch r.access.kind {
-	case accessPermission:
-		chain = append(chain, routesmiddleware.RequiresAnyPermission(r.access.permissions...))
-	case accessNamespaceMember:
-		chain = append(chain, routesmiddleware.Authorize)
-	case accessUnstated, accessAnonymous, accessDeviceToken, accessOwnAccount, accessPathCode:
-	}
+		{Method: http.MethodPost, Path: CreatePublicKeyURL, Endpoint: gateway.Legacy(h.CreatePublicKey), Access: routetable.Requires(authorizer.PublicKeyCreate)},
+		{Method: http.MethodGet, Path: GetPublicKeysURL, Endpoint: gateway.Legacy(h.GetPublicKeys), Access: routetable.NamespaceMember},
+		{Method: http.MethodPut, Path: UpdatePublicKeyURL, Endpoint: gateway.Legacy(h.UpdatePublicKey), Access: routetable.Requires(authorizer.PublicKeyEdit)},
+		{Method: http.MethodDelete, Path: DeletePublicKeyURL, Endpoint: gateway.Legacy(h.DeletePublicKey), Access: routetable.Requires(authorizer.PublicKeyRemove)},
 
-	return chain
-}
+		{Method: http.MethodGet, Path: GetNamespaceURL, Endpoint: gateway.One(h.GetNamespace), Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: ListNamespaceURL, Endpoint: gateway.Legacy(h.GetNamespaceList), Access: routetable.OwnAccount},
+		{Method: http.MethodPut, Path: EditNamespaceURL, Endpoint: gateway.One(h.EditNamespace), Access: routetable.Requires(authorizer.NamespaceUpdate)},
+		{Method: http.MethodDelete, Path: DeleteNamespaceURL, Endpoint: gateway.None(h.DeleteNamespace), Access: routetable.Requires(authorizer.NamespaceDelete)},
 
-func mount(group *echo.Group, table []route) {
-	for _, r := range table {
-		group.Add(r.method, r.path, r.handler(), r.middleware()...)
-	}
-}
+		{Method: http.MethodGet, Path: ListNamespaceMembersURL, Endpoint: gateway.List(h.ListNamespaceMembers), Access: routetable.NamespaceMember},
+		{Method: http.MethodPost, Path: AddNamespaceMemberURL, Endpoint: gateway.One(h.AddNamespaceMember), Access: routetable.Requires(authorizer.NamespaceAddMember)},
+		{Method: http.MethodPatch, Path: EditNamespaceMemberURL, Endpoint: gateway.None(h.EditNamespaceMember), Access: routetable.Requires(authorizer.NamespaceEditMember)},
+		{Method: http.MethodDelete, Path: RemoveNamespaceMemberURL, Endpoint: gateway.One(h.RemoveNamespaceMember), Access: routetable.Requires(authorizer.NamespaceRemoveMember)},
+		{Method: http.MethodDelete, Path: LeaveNamespaceURL, Endpoint: gateway.Legacy(h.LeaveNamespace), Access: routetable.OwnAccount},
 
-func allow(authn *routesmiddleware.Authenticator, table []route) {
-	for _, r := range table {
-		switch r.access.kind {
-		case accessAnonymous:
-			authn.AllowAnonymous(r.method, publicAPIPrefix+r.path)
-		case accessDeviceToken:
-			authn.AllowDevice(r.method, publicAPIPrefix+r.path)
-		case accessUnstated, accessOwnAccount, accessNamespaceMember, accessPathCode, accessPermission:
-		}
-	}
-}
+		{Method: http.MethodPut, Path: EditSessionRecordStatusURL, Endpoint: gateway.None(h.EditSessionRecordStatus), Access: routetable.Requires(authorizer.NamespaceEnableSessionRecord)},
+		{Method: http.MethodPost, Path: UpgradeNamespaceURL, Endpoint: gateway.None(h.UpgradeNamespace), Access: routetable.Requires(authorizer.NamespaceUpdate), NoAPIKey: true},
 
-func (h *Handler) publicRoutes() []route {
-	table := []route{
-		{method: http.MethodGet, path: HealthCheckURL, endpoint: gateway.None(h.EvaluateHealth), access: anonymous, unbounded: true},
+		{Method: http.MethodGet, Path: ListAccessPoliciesURL, Endpoint: gateway.Legacy(h.ListAccessPolicies), Access: routetable.Requires(authorizer.AccessPolicyManage)},
+		{Method: http.MethodPost, Path: CreateAccessPolicyURL, Endpoint: gateway.Legacy(h.CreateAccessPolicy), Access: routetable.Requires(authorizer.AccessPolicyManage)},
+		{Method: http.MethodGet, Path: GetAccessPolicyURL, Endpoint: gateway.Legacy(h.GetAccessPolicy), Access: routetable.Requires(authorizer.AccessPolicyManage)},
+		{Method: http.MethodPut, Path: UpdateAccessPolicyURL, Endpoint: gateway.Legacy(h.UpdateAccessPolicy), Access: routetable.Requires(authorizer.AccessPolicyManage)},
+		{Method: http.MethodDelete, Path: DeleteAccessPolicyURL, Endpoint: gateway.Legacy(h.DeleteAccessPolicy), Access: routetable.Requires(authorizer.AccessPolicyManage)},
 
-		{method: http.MethodGet, path: AuthLocalUserURLV2, endpoint: gateway.Legacy(h.RenewUserToken), access: ownAccount},
-		{method: http.MethodGet, path: AuthUserTokenPublicURL, endpoint: gateway.Legacy(h.RenewUserToken), access: ownAccount},
-		{method: http.MethodPost, path: AuthDeviceURL, endpoint: gateway.Legacy(h.AuthDevice), access: anonymous},
-		{method: http.MethodPost, path: AuthDeviceChallengeURL, endpoint: gateway.Legacy(h.CreateDeviceAuthChallenge), access: anonymous},
-		{method: http.MethodPost, path: AuthDeviceURLV2, endpoint: gateway.Legacy(h.AuthDevice), access: anonymous},
-		{method: http.MethodPost, path: EnrollmentCallbackURL, endpoint: gateway.Legacy(h.EnrollmentCallback), access: anonymous},
-		{method: http.MethodPost, path: AuthLocalUserURL, endpoint: gateway.Legacy(h.AuthLocalUser), access: anonymous},
-		{method: http.MethodPost, path: AuthLocalUserURLV2, endpoint: gateway.Legacy(h.AuthLocalUser), access: anonymous},
-		{method: http.MethodPost, path: AuthPublicKeyURL, endpoint: gateway.Legacy(h.AuthPublicKey), access: deviceToken},
+		{Method: http.MethodGet, Path: ListSSHIdentitiesURL, Endpoint: gateway.Legacy(h.ListSSHIdentities), Access: routetable.OwnAccount},
+		{Method: http.MethodPost, Path: CreateSSHIdentityURL, Endpoint: gateway.Legacy(h.CreateSSHIdentity), Access: routetable.Requires(authorizer.SSHIdentityAdd)},
+		{Method: http.MethodPatch, Path: UpdateSSHIdentityURL, Endpoint: gateway.Legacy(h.UpdateSSHIdentity), Access: routetable.Requires(authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage)},
+		{Method: http.MethodDelete, Path: DeleteSSHIdentityURL, Endpoint: gateway.Legacy(h.DeleteSSHIdentity), Access: routetable.Requires(authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage)},
 
-		{method: http.MethodPost, path: CreateAPIKeyURL, endpoint: gateway.Legacy(h.CreateAPIKey), access: requires(authorizer.APIKeyCreate), noAPIKey: true},
-		{method: http.MethodGet, path: ListAPIKeysURL, endpoint: gateway.Legacy(h.ListAPIKeys), access: namespaceMember, noAPIKey: true},
-		{method: http.MethodPatch, path: UpdateAPIKeyURL, endpoint: gateway.None(h.UpdateAPIKey), access: requires(authorizer.APIKeyUpdate), noAPIKey: true},
-		{method: http.MethodDelete, path: DeleteAPIKeyURL, endpoint: gateway.Legacy(h.DeleteAPIKey), access: requires(authorizer.APIKeyDelete), noAPIKey: true},
-		{method: http.MethodPost, path: CreateAPIKeySSHIdentityURL, endpoint: gateway.Legacy(h.CreateAPIKeySSHIdentity), access: requires(authorizer.SSHIdentityManage)},
-		{method: http.MethodGet, path: ListAPIKeySSHIdentitiesURL, endpoint: gateway.Legacy(h.ListAPIKeySSHIdentities), access: requires(authorizer.SSHIdentityManage)},
-
-		{method: http.MethodPost, path: CreateProvisioningKeyURL, endpoint: gateway.Legacy(h.CreateProvisioningKey), access: requires(authorizer.ProvisioningKeyCreate), noAPIKey: true},
-		{method: http.MethodGet, path: ListProvisioningKeysURL, endpoint: gateway.Legacy(h.ListProvisioningKeys), access: requires(authorizer.ProvisioningKeyList), noAPIKey: true},
-		{method: http.MethodPatch, path: UpdateProvisioningKeyURL, endpoint: gateway.Legacy(h.UpdateProvisioningKey), access: requires(authorizer.ProvisioningKeyUpdate), noAPIKey: true},
-		{method: http.MethodGet, path: RevealProvisioningKeyURL, endpoint: gateway.Legacy(h.RevealProvisioningKey), access: requires(authorizer.ProvisioningKeyReveal), noAPIKey: true},
-		{method: http.MethodGet, path: HistoryProvisioningKeyURL, endpoint: gateway.Legacy(h.HistoryProvisioningKey), access: requires(authorizer.ProvisioningKeyList), noAPIKey: true},
-
-		{method: http.MethodPatch, path: URLUpdateUser, endpoint: gateway.Legacy(h.UpdateUser), access: ownAccount},
-		{method: http.MethodPatch, path: URLDeprecatedUpdateUser, endpoint: gateway.Legacy(h.UpdateUser), access: ownAccount},
-		{method: http.MethodPatch, path: URLDeprecatedUpdateUserPassword, endpoint: gateway.Legacy(h.UpdateUserPassword), access: ownAccount},
-		{method: http.MethodDelete, path: URLRevokeUserTokens, endpoint: gateway.Legacy(h.RevokeUserTokens), access: ownAccount},
-		{method: http.MethodPut, path: URLRecordOnboardingSurvey, endpoint: gateway.Legacy(h.RecordOnboardingSurvey), access: ownAccount},
-
-		{method: http.MethodPost, path: RegisterUserURL, endpoint: gateway.Legacy(h.RegisterUser), access: anonymous},
-		{method: http.MethodGet, path: URLResolveInvitation, endpoint: gateway.Legacy(h.ResolveInvitation), access: anonymous},
-		{method: http.MethodPost, path: URLGenerateInvitationLink, endpoint: gateway.One(h.GenerateInvitationLink), access: requires(authorizer.NamespaceAddMember), noAPIKey: true},
-		{method: http.MethodPatch, path: URLAcceptInvite, endpoint: gateway.Legacy(h.AcceptInvite), access: ownAccount},
-		{method: http.MethodGet, path: URLUserMembershipInvitationList, endpoint: gateway.Legacy(h.GetUserMembershipInvitationList), access: ownAccount},
-		{method: http.MethodGet, path: URLNamespaceMembershipInvitationList, endpoint: gateway.Legacy(h.GetNamespaceMembershipInvitationList), access: requires(authorizer.NamespaceEditMember)},
-		{method: http.MethodDelete, path: URLCancelMembershipInvitation, endpoint: gateway.None(h.CancelMembershipInvitation), access: requires(authorizer.NamespaceRemoveMember)},
-
-		{method: http.MethodGet, path: GetDeviceListURL, endpoint: gateway.Legacy(h.GetDeviceList), access: namespaceMember},
-		{method: http.MethodGet, path: GetDeviceURL, endpoint: gateway.One(h.GetDevice), access: namespaceMember},
-		{method: http.MethodGet, path: DeviceLocationsURL, endpoint: gateway.Legacy(h.GetDeviceLocations), access: namespaceMember},
-		{method: http.MethodGet, path: ResolveDeviceURL, endpoint: gateway.Legacy(h.ResolveDevice), access: namespaceMember},
-		{method: http.MethodPut, path: UpdateDevice, endpoint: gateway.Legacy(h.UpdateDevice), access: requires(authorizer.DeviceUpdate)},
-		{method: http.MethodPatch, path: RenameDeviceURL, endpoint: gateway.Legacy(h.RenameDevice), access: requires(authorizer.DeviceRename)},
-		{method: http.MethodGet, path: TenantRegistrationsURL, endpoint: gateway.Legacy(h.TenantRegistrations), access: requires(authorizer.DeviceStatusUpdate)},
-		{method: http.MethodPatch, path: UpdateDeviceStatusURL, endpoint: gateway.Legacy(h.UpdateDeviceStatus), access: requires(authorizer.DeviceStatusUpdate)},
-
-		{method: http.MethodPost, path: CreateDeviceLoginCodeURL, endpoint: gateway.Legacy(h.CreateDeviceLoginCode), access: deviceToken},
-		{method: http.MethodGet, path: GetDeviceAuthStatusURL, endpoint: gateway.Legacy(h.GetDeviceAuthStatus), access: deviceToken},
-		{method: http.MethodGet, path: ResolveDeviceLoginCodeURL, endpoint: gateway.Legacy(h.ResolveDeviceLoginCode), access: pathCode},
-
-		{method: http.MethodPost, path: CreateDevicePairingURL, endpoint: gateway.Legacy(h.CreateDevicePairing), access: anonymous},
-		{method: http.MethodGet, path: GetDevicePairingStatusURL, endpoint: gateway.Legacy(h.GetDevicePairingStatus), access: anonymous},
-		{method: http.MethodPost, path: AcceptDevicePairingURL, endpoint: gateway.Legacy(h.AcceptDevicePairing), access: pathCode},
-
-		{method: http.MethodGet, path: GetSSHApprovalURL, endpoint: gateway.Legacy(h.GetSSHApproval), access: pathCode},
-		{method: http.MethodPost, path: ConfirmSSHApprovalURL, endpoint: gateway.Legacy(h.ConfirmSSHApproval), access: pathCode},
-		{method: http.MethodPost, path: RejectSSHApprovalURL, endpoint: gateway.Legacy(h.RejectSSHApproval), access: pathCode},
-		{method: http.MethodDelete, path: DeleteDeviceURL, endpoint: gateway.Legacy(h.DeleteDevice), access: requires(authorizer.DeviceRemove)},
-		{method: http.MethodDelete, path: MakeTeamDeviceURL, endpoint: gateway.Legacy(h.MakeTeamDevice), access: requires(authorizer.ProvisioningKeyCreate)},
-		{method: http.MethodPut, path: SetDeviceCustomFieldURL, endpoint: gateway.Legacy(h.SetDeviceCustomField), access: requires(authorizer.DeviceCustomFieldUpdate)},
-		{method: http.MethodDelete, path: DeleteDeviceCustomFieldURL, endpoint: gateway.Legacy(h.DeleteDeviceCustomField), access: requires(authorizer.DeviceCustomFieldUpdate)},
-
-		{method: http.MethodGet, path: URLGetTags, endpoint: gateway.Legacy(h.GetTags), access: namespaceMember},
-		{method: http.MethodPost, path: URLCreateTag, endpoint: gateway.Legacy(h.CreateTag), access: requires(authorizer.TagCreate)},
-		{method: http.MethodPatch, path: URLUpdateTag, endpoint: gateway.Legacy(h.UpdateTag), access: requires(authorizer.TagUpdate)},
-		{method: http.MethodDelete, path: URLDeleteTag, endpoint: gateway.Legacy(h.DeleteTag), access: requires(authorizer.TagDelete)},
-		{method: http.MethodPost, path: URLPushTagToDevice, endpoint: gateway.Legacy(h.PushTagToDevice), access: requires(authorizer.TagCreate)},
-		{method: http.MethodDelete, path: URLPullTagFromDevice, endpoint: gateway.Legacy(h.PullTagFromDevice), access: requires(authorizer.TagDelete)},
-
-		{method: http.MethodGet, path: URLOldGetTags, endpoint: gateway.Legacy(h.GetTags), access: namespaceMember},
-		{method: http.MethodPost, path: URLOldCreateTag, endpoint: gateway.Legacy(h.CreateTag), access: requires(authorizer.TagCreate)},
-		{method: http.MethodPatch, path: URLOldUpdateTag, endpoint: gateway.Legacy(h.UpdateTag), access: requires(authorizer.TagUpdate)},
-		{method: http.MethodDelete, path: URLOldDeleteTag, endpoint: gateway.Legacy(h.DeleteTag), access: requires(authorizer.TagDelete)},
-		{method: http.MethodPost, path: URLOldPushTagToDevice, endpoint: gateway.Legacy(h.PushTagToDevice), access: requires(authorizer.TagCreate)},
-		{method: http.MethodDelete, path: URLOldPullTagFromDevice, endpoint: gateway.Legacy(h.PullTagFromDevice), access: requires(authorizer.TagDelete)},
-
-		{method: http.MethodGet, path: GetSessionsURL, endpoint: gateway.Legacy(h.GetSessionList), access: namespaceMember},
-		{method: http.MethodGet, path: GetSessionURL, endpoint: gateway.Legacy(h.GetSession), access: namespaceMember},
-
-		{method: http.MethodGet, path: GetStatsURL, endpoint: gateway.One(h.GetStats), access: namespaceMember},
-		{method: http.MethodGet, path: GetSystemInfoURL, endpoint: gateway.Legacy(h.GetSystemInfo), access: anonymous},
-		{method: http.MethodGet, path: GetSystemDownloadInstallScriptURL, endpoint: gateway.Legacy(h.GetSystemDownloadInstallScript), access: anonymous},
-
-		{method: http.MethodPost, path: CreatePublicKeyURL, endpoint: gateway.Legacy(h.CreatePublicKey), access: requires(authorizer.PublicKeyCreate)},
-		{method: http.MethodGet, path: GetPublicKeysURL, endpoint: gateway.Legacy(h.GetPublicKeys), access: namespaceMember},
-		{method: http.MethodPut, path: UpdatePublicKeyURL, endpoint: gateway.Legacy(h.UpdatePublicKey), access: requires(authorizer.PublicKeyEdit)},
-		{method: http.MethodDelete, path: DeletePublicKeyURL, endpoint: gateway.Legacy(h.DeletePublicKey), access: requires(authorizer.PublicKeyRemove)},
-
-		{method: http.MethodGet, path: GetNamespaceURL, endpoint: gateway.One(h.GetNamespace), access: namespaceMember},
-		{method: http.MethodGet, path: ListNamespaceURL, endpoint: gateway.Legacy(h.GetNamespaceList), access: ownAccount},
-		{method: http.MethodPut, path: EditNamespaceURL, endpoint: gateway.One(h.EditNamespace), access: requires(authorizer.NamespaceUpdate)},
-		{method: http.MethodDelete, path: DeleteNamespaceURL, endpoint: gateway.None(h.DeleteNamespace), access: requires(authorizer.NamespaceDelete)},
-
-		{method: http.MethodGet, path: ListNamespaceMembersURL, endpoint: gateway.List(h.ListNamespaceMembers), access: namespaceMember},
-		{method: http.MethodPost, path: AddNamespaceMemberURL, endpoint: gateway.One(h.AddNamespaceMember), access: requires(authorizer.NamespaceAddMember)},
-		{method: http.MethodPatch, path: EditNamespaceMemberURL, endpoint: gateway.None(h.EditNamespaceMember), access: requires(authorizer.NamespaceEditMember)},
-		{method: http.MethodDelete, path: RemoveNamespaceMemberURL, endpoint: gateway.One(h.RemoveNamespaceMember), access: requires(authorizer.NamespaceRemoveMember)},
-		{method: http.MethodDelete, path: LeaveNamespaceURL, endpoint: gateway.Legacy(h.LeaveNamespace), access: ownAccount},
-
-		{method: http.MethodPut, path: EditSessionRecordStatusURL, endpoint: gateway.None(h.EditSessionRecordStatus), access: requires(authorizer.NamespaceEnableSessionRecord)},
-		{method: http.MethodPost, path: UpgradeNamespaceURL, endpoint: gateway.None(h.UpgradeNamespace), access: requires(authorizer.NamespaceUpdate), noAPIKey: true},
-
-		{method: http.MethodGet, path: ListAccessPoliciesURL, endpoint: gateway.Legacy(h.ListAccessPolicies), access: requires(authorizer.AccessPolicyManage)},
-		{method: http.MethodPost, path: CreateAccessPolicyURL, endpoint: gateway.Legacy(h.CreateAccessPolicy), access: requires(authorizer.AccessPolicyManage)},
-		{method: http.MethodGet, path: GetAccessPolicyURL, endpoint: gateway.Legacy(h.GetAccessPolicy), access: requires(authorizer.AccessPolicyManage)},
-		{method: http.MethodPut, path: UpdateAccessPolicyURL, endpoint: gateway.Legacy(h.UpdateAccessPolicy), access: requires(authorizer.AccessPolicyManage)},
-		{method: http.MethodDelete, path: DeleteAccessPolicyURL, endpoint: gateway.Legacy(h.DeleteAccessPolicy), access: requires(authorizer.AccessPolicyManage)},
-
-		{method: http.MethodGet, path: ListSSHIdentitiesURL, endpoint: gateway.Legacy(h.ListSSHIdentities), access: ownAccount},
-		{method: http.MethodPost, path: CreateSSHIdentityURL, endpoint: gateway.Legacy(h.CreateSSHIdentity), access: requires(authorizer.SSHIdentityAdd)},
-		{method: http.MethodPatch, path: UpdateSSHIdentityURL, endpoint: gateway.Legacy(h.UpdateSSHIdentity), access: requires(authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage)},
-		{method: http.MethodDelete, path: DeleteSSHIdentityURL, endpoint: gateway.Legacy(h.DeleteSSHIdentity), access: requires(authorizer.SSHIdentityAdd, authorizer.SSHIdentityManage)},
-
-		{method: http.MethodPost, path: WebReauthURL, endpoint: gateway.Legacy(h.WebReauthVerify), access: ownAccount},
+		{Method: http.MethodPost, Path: WebReauthURL, Endpoint: gateway.Legacy(h.WebReauthVerify), Access: routetable.OwnAccount},
 	}
 
 	if h.edition.IsEnterpriseOrCloud() {
-		table = append(table, route{method: http.MethodPost, path: CreateNamespaceURL, endpoint: gateway.Legacy(h.CreateNamespace), access: ownAccount})
+		table = append(table, routetable.Route{Method: http.MethodPost, Path: CreateNamespaceURL, Endpoint: gateway.Legacy(h.CreateNamespace), Access: routetable.OwnAccount})
 	}
 
 	if !h.edition.IsCloud() {
-		table = append(table, route{method: http.MethodPost, path: SetupEndpoint, endpoint: gateway.Legacy(h.Setup), access: anonymous})
+		table = append(table, routetable.Route{Method: http.MethodPost, Path: SetupEndpoint, Endpoint: gateway.Legacy(h.Setup), Access: routetable.Anonymous})
 	}
 
 	return table
