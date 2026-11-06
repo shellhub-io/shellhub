@@ -1,19 +1,29 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
-import { mockUserAuth } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
 import MfaResetComplete from "../MfaResetComplete";
+
+function LoginNotice() {
+  const { state } = useLocation() as {
+    state: { notice?: string; signOut?: boolean } | null;
+  };
+  return (
+    <div>
+      Login{state?.signOut ? " after sign-out" : ""}: {state?.notice}
+    </div>
+  );
+}
 
 function renderPage() {
   return render(
     <MemoryRouter initialEntries={["/reset-mfa?id=user-1"]}>
       <Routes>
         <Route path="/reset-mfa" element={<MfaResetComplete />} />
-        <Route path="/dashboard" element={<div>Dashboard</div>} />
+        <Route path="/login" element={<LoginNotice />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -44,34 +54,36 @@ describe("MfaResetComplete", () => {
 
     await fillCode(user, "Main Email Code", "ABCDE");
     await fillCode(user, "Recovery Email Code", "FGHIJ");
-    await user.click(
-      screen.getByRole("button", { name: "Reset MFA and Login" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Reset MFA" }));
 
     expect(
       await screen.findByText(
         "Invalid verification codes. Please check and try again.",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Login/)).not.toBeInTheDocument();
   });
 
-  it("signs in carrying the onboarding survey outcome", async () => {
+  it("resets MFA and sends the user to sign in with the password", async () => {
     server.use(
-      http.put("*/api/user/mfa/reset/:userId", () =>
-        HttpResponse.json(mockUserAuth({ onboarding_survey: "pending" })),
+      http.put(
+        "*/api/user/mfa/reset/:userId",
+        () => new HttpResponse(null, { status: 200 }),
       ),
     );
+    useAuthStore.setState({ mfaToken: "pending-mfa-token" });
     const user = userEvent.setup();
     renderPage();
 
     await fillCode(user, "Main Email Code", "ABCDE");
     await fillCode(user, "Recovery Email Code", "FGHIJ");
-    await user.click(
-      screen.getByRole("button", { name: "Reset MFA and Login" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Reset MFA" }));
 
-    expect(await screen.findByText("Dashboard")).toBeInTheDocument();
-    expect(useAuthStore.getState().onboardingSurvey).toBe("pending");
+    expect(
+      await screen.findByText(
+        "Login after sign-out: MFA is off. Sign in with your password.",
+      ),
+    ).toBeInTheDocument();
+    expect(useAuthStore.getState().mfaToken).toBeNull();
   });
 });

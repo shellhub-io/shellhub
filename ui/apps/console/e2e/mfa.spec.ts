@@ -1,6 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import { getByLabelText } from "@testing-library/dom";
-import { getUserInfo, mfaRecover, requestResetMfa } from "@/client";
+import { getUserInfo, login, mfaRecover, requestResetMfa } from "@/client";
 import { isCloud, isCommunity } from "./env";
 import {
   createTeam,
@@ -55,11 +55,22 @@ async function recoverWithCode(page: Page, username: string, code: string) {
 
 type MFAUser = Awaited<ReturnType<typeof createMFAUser>>;
 
+async function passwordStep(username: string) {
+  const { response } = await login({
+    ...buildRequestContext(),
+    throwOnError: false,
+    body: { username, password },
+  });
+  const token = response?.headers.get("x-mfa-token");
+  if (!token) throw new Error(`expected an MFA token for ${username}`);
+  return token;
+}
+
 async function recoverThroughApi(username: string, code: string) {
   const { response } = await mfaRecover({
     ...buildRequestContext(),
     throwOnError: false,
-    body: { identifier: username, recovery_code: code },
+    body: { token: await passwordStep(username), recovery_code: code },
   });
   return response?.status;
 }
@@ -241,7 +252,9 @@ test.describe("MFA", () => {
   });
 
   test.describe("recovery codes", () => {
-    test("a recovery code signs in and is consumed", async ({ page }) => {
+    test("a recovery code completes the password step and is consumed", async ({
+      page,
+    }) => {
       const user = await createMFAUser();
       const [code, remaining] = user.recoveryCodes;
 
@@ -261,16 +274,11 @@ test.describe("MFA", () => {
     test("a used recovery code is rejected", async ({ page }) => {
       const user = await createMFAUser();
       const [code, remaining] = user.recoveryCodes;
-      await mfaRecover({
-        ...buildRequestContext(),
-        body: { identifier: user.username, recovery_code: code },
-      });
+      expect(await recoverThroughApi(user.username, code)).toBe(200);
 
       await recoverWithCode(page, user.username, code);
 
-      await expect(
-        page.getByText("Invalid recovery code or username"),
-      ).toBeVisible();
+      await expect(page.getByText("Invalid recovery code")).toBeVisible();
       await expect(page).toHaveURL(/\/mfa-recover$/);
       expect(await readMFA(user)).toMatchObject({ enabled: true });
       expect(await recoverThroughApi(user.username, remaining)).toBe(200);
@@ -373,18 +381,25 @@ test.describe("MFA", () => {
       await fillResetCodes(page, await readResetCodes(user));
       await page.getByRole("button", { name: "Verify and Reset MFA" }).click();
 
-      await expect(page).toHaveURL(/\/dashboard$/);
+      await expect(page).toHaveURL(/\/login$/);
+      await expect(
+        page.getByText("MFA is off. Sign in with your password."),
+      ).toBeVisible();
       expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
     });
 
-    test("the emailed link resets MFA and signs in", async ({ page }) => {
+    test("the emailed link resets MFA and the password signs in", async ({
+      page,
+    }) => {
       const user = await createMFAUser();
       const { codes, path } = await requestReset(user);
 
       await page.goto(path);
       await fillResetCodes(page, codes);
-      await page.getByRole("button", { name: "Reset MFA and Login" }).click();
+      await page.getByRole("button", { name: "Reset MFA" }).click();
 
+      await expect(page).toHaveURL(/\/login$/);
+      await fillLoginForm(page, user.username, password);
       await expect(page).toHaveURL(/\/dashboard$/);
       expect(await readMFAAfterReset(user)).toMatchObject({ enabled: false });
     });

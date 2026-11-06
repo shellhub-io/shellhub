@@ -1,13 +1,13 @@
 type: object
 properties:
-  identifier:
-    description: The same as the login identifier; can be either the user's email or username.
+  token:
+    description: The `X-MFA-Token` the password step of `authUser` returned.
     type: string
-    example: john_doe
+    example: 3e7a8c1d-5b2f-4e3a-9c6d-1f2e3d4c5b6a
   recovery_code:
-    description: One of the user's recovery codes.
+    description: One of the user's recovery codes, in place of the TOTP code.
     type: string
     example: '6DIGYYGM3JM7GXC4'
 required:
-  - identifier
+  - token
   - recovery_code

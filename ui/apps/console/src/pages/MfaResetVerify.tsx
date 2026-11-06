@@ -1,7 +1,7 @@
 import { FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { useMfaResetStore } from "../stores/mfaResetStore";
+import { mfaResetNotice, useMfaResetStore } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
@@ -44,7 +44,9 @@ export default function MfaResetVerify() {
 
     try {
       await completeMfaReset(otpMain.getValue(), otpRecovery.getValue());
-      void navigate("/dashboard");
+      void navigate("/login", {
+        state: { notice: mfaResetNotice, signOut: true },
+      });
     } catch {
       otpMain.reset();
       otpRecovery.reset();
