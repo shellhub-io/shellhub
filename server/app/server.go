@@ -488,6 +488,10 @@ func (s *Server) setupSSH(service services.Service) error {
 		return err
 	}
 
+	if err := requireDeclaredRoutes(s.router, s.env.Edition); err != nil {
+		return err
+	}
+
 	if s.env.Development() {
 		runtime.SetBlockProfileRate(1)
 		pprof.Register(s.router)
