@@ -25,15 +25,8 @@ func (c *client) GetInfo(agentVersion string) (*models.Info, error) {
 	response, err := c.http.R().
 		SetResult(&info).
 		Get("/info?agent_version=" + agentVersion)
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(info)
+	return responseResult(info, response, err)
 }
 
 // AuthDevice registers the device on the server and returns the token the agent authenticates the
@@ -140,15 +133,8 @@ func (c *client) AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (
 		SetResult(&res).
 		SetAuthToken(token).
 		Post("/api/auth/ssh")
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(res)
+	return responseResult(res, response, err)
 }
 
 func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error) {
@@ -158,15 +144,8 @@ func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, e
 		SetAuthToken(token).
 		SetResult(&res).
 		Post("/api/devices/auth/code")
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(res)
+	return responseResult(res, response, err)
 }
 
 func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
@@ -176,15 +155,8 @@ func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.
 		SetBody(req).
 		SetResult(&res).
 		Post("/api/devices/pairing")
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(res)
+	return responseResult(res, response, err)
 }
 
 func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
@@ -193,15 +165,8 @@ func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatu
 	response, err := c.http.R().
 		SetResult(&res).
 		Get("/api/devices/pairing/" + code + "/status")
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(res)
+	return responseResult(res, response, err)
 }
 
 func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {
@@ -211,15 +176,8 @@ func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, er
 		SetAuthToken(token).
 		SetResult(&res).
 		Get("/api/devices/auth/status")
-	if err != nil {
-		return nil, err
-	}
 
-	if err := ErrorFromResponse(response); err != nil {
-		return nil, err
-	}
-
-	return requireBody(res)
+	return responseResult(res, response, err)
 }
 
 // NewReverseListener creates a new reverse listener connection to ShellHub's server. This listener receives the SSH
