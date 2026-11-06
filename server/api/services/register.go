@@ -43,18 +43,13 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (
 	return s.createNewUser(ctx, &req)
 }
 
-func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
-	email := strings.ToLower(req.Email)
-	if reason := checkEmail(ctx, email); reason != "" {
-		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
-	}
-
+func (s *service) newRegistrationUser(req *requests.RegisterUser, email string) (*models.User, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	user := &models.User{
+	return &models.User{
 		Origin: models.UserOriginLocal,
 		UserData: models.UserData{
 			Name:     req.Name,
@@ -67,10 +62,20 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser)
 		EmailMarketing: req.EmailMarketing,
 		Status:         models.UserStatusNotConfirmed,
 		Preferences: models.UserPreferences{
-			PreferredNamespace: "",
-			AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
-		Admin: false,
+	}, nil
+}
+
+func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
+	email := strings.ToLower(req.Email)
+	if reason := checkEmail(ctx, email); reason != "" {
+		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
+	}
+
+	user, err := s.newRegistrationUser(req, email)
+	if err != nil {
+		return nil, err
 	}
 
 	if user.ID, err = s.store.UserCreate(ctx, user); err != nil {
@@ -101,29 +106,11 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		return nil, err
 	}
 
-	password, err := models.HashUserPassword(req.Password)
+	user, err := s.newRegistrationUser(req, strings.ToLower(invitation.Email))
 	if err != nil {
 		return nil, err
 	}
-
-	user := &models.User{
-		ID:             invitation.ID, // Use invitation ID as user ID for namespace's compatibility
-		Admin:          false,
-		Origin:         models.UserOriginLocal,
-		Status:         models.UserStatusNotConfirmed,
-		MaxNamespaces:  1,
-		EmailMarketing: req.EmailMarketing,
-		Password:       password,
-		UserData: models.UserData{
-			Email:    strings.ToLower(invitation.Email),
-			Username: strings.ToLower(req.Username),
-			Name:     req.Name,
-		},
-		CreatedAt: s.clock.Now(),
-		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-		},
-	}
+	user.ID = invitation.ID
 
 	var grant *membershipGrant
 
