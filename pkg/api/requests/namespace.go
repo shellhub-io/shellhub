@@ -28,10 +28,9 @@ type MemberList struct {
 
 // NamespaceCreate is the structure to represent the request data for create namespace endpoint.
 type NamespaceCreate struct {
-	UserID   string `identity:"id" json:"-" validate:"required"`
-	Name     string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
-	TenantID string `json:"tenant" validate:"omitempty,uuid"`
-	Type     string `json:"type" validate:"omitempty,lowercase,oneof=personal team"`
+	UserID string `identity:"id" json:"-" validate:"required"`
+	Name   string `json:"name"  validate:"required,hostname_rfc1123,excludes=."`
+	Type   string `json:"type" validate:"omitempty,lowercase,oneof=personal team"`
 }
 
 // NamespaceGet is the structure to represent the request data for get namespace endpoint.

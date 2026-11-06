@@ -58,7 +58,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title:  "fails when try to creating a namespace",
 			userID: "00000000-0000-4000-0000-000000000000",
-			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
+			req:    `{ "name": "namespace"}`,
 			requiredMocks: func() {
 				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceCreate")).Return(nil, svc.ErrNotFound).Once()
 			},
@@ -70,7 +70,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title:  "success when try to creating a namespace",
 			userID: "123",
-			req:    `{ "name": "namespace", "tenant": "36512069-be88-497a-b0ec-03ed05b1f7e7"}`,
+			req:    `{ "name": "namespace"}`,
 			requiredMocks: func() {
 				mock.On("CreateNamespace", gomock.Anything, gomock.AnythingOfType("*requests.NamespaceCreate")).Return(&models.Namespace{}, nil).Once()
 			},

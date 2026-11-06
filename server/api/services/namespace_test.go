@@ -15,7 +15,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
@@ -511,9 +510,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "fails when store user get has no documents",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -529,9 +527,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "fails when user reachs the zero namespaces",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -550,9 +547,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "fails when user reachs the max namespaces",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -585,9 +581,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "fails when the namespace owner lock cannot be taken",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -610,9 +605,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "skips the namespace owner lock when the user has no limit",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -635,9 +629,8 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			description: "fails when a namespace already exists",
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -675,9 +668,8 @@ func TestCreateNamespace(t *testing.T) {
 			description: "fails when store namespace create fails",
 			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -710,10 +702,9 @@ func TestCreateNamespace(t *testing.T) {
 						"NamespaceCreate",
 						ctx,
 						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
+							Name:  "namespace",
+							Owner: "000000000000000000000000",
+							Type:  models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -740,9 +731,8 @@ func TestCreateNamespace(t *testing.T) {
 			description: "fails when NamespaceCreate returns store.ErrDuplicate",
 			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -775,10 +765,9 @@ func TestCreateNamespace(t *testing.T) {
 						"NamespaceCreate",
 						ctx,
 						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
+							Name:  "namespace",
+							Owner: "000000000000000000000000",
+							Type:  models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -805,9 +794,8 @@ func TestCreateNamespace(t *testing.T) {
 			description: "succeeds to create a namespace",
 			edition:     envs.Community,
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -840,10 +828,9 @@ func TestCreateNamespace(t *testing.T) {
 						"NamespaceCreate",
 						ctx,
 						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
+							Name:  "namespace",
+							Owner: "000000000000000000000000",
+							Type:  models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -884,96 +871,12 @@ func TestCreateNamespace(t *testing.T) {
 			},
 		},
 		{
-			description: "succeeds to create a namespace-:-without tenant id",
-			edition:     envs.Community,
-			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "",
-			},
-			requiredMocks: func() {
-				storeMock.
-					On("NamespaceLockOwner", ctx, "000000000000000000000000").
-					Return(nil).
-					Once()
-				storeMock.
-					On("UserGetInfo", ctx, "000000000000000000000000").
-					Return(
-						&models.UserInfo{
-							OwnedNamespaces:      []models.Namespace{{}},
-							AssociatedNamespaces: []models.Namespace{},
-						},
-						nil,
-					).
-					Once()
-				storeMock.
-					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
-					Return(&models.User{
-						ID:            "000000000000000000000000",
-						MaxNamespaces: 3,
-					}, nil).
-					Once()
-				storeMock.
-					On("NamespaceConflicts", ctx, &models.NamespaceConflicts{Name: "namespace"}).
-					Return(nil, false, nil).
-					Once()
-				uuid.Fix(t, "4de9253f-4a2a-49e7-a748-26e7a009bd2e")
-				storeMock.
-					On(
-						"NamespaceCreate",
-						ctx,
-						&models.Namespace{
-							TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
-							Settings: &models.NamespaceSettings{
-								SessionRecord:          true,
-								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
-							},
-							MaxDevices: -1,
-						},
-					).
-					Return("00000000-0000-4000-0000-000000000000", nil).
-					Once()
-			},
-			expected: Expected{
-				ns: &models.Namespace{
-					TenantID: "4de9253f-4a2a-49e7-a748-26e7a009bd2e",
-					Name:     "namespace",
-					Owner:    "000000000000000000000000",
-					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
-					Settings: &models.NamespaceSettings{
-						SessionRecord:          true,
-						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
-					},
-					MaxDevices: -1,
-				},
-				err: nil,
-			},
-		},
-		{
 			description: "succeeds to create a namespace-:-env=cloud type team",
 			edition:     envs.Cloud,
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				Type:     "team",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
+				Type:   "team",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -1006,10 +909,9 @@ func TestCreateNamespace(t *testing.T) {
 						"NamespaceCreate",
 						ctx,
 						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
+							Name:  "namespace",
+							Owner: "000000000000000000000000",
+							Type:  models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
@@ -1053,10 +955,9 @@ func TestCreateNamespace(t *testing.T) {
 			description: "succeeds to create a namespace-:-env=cloud",
 			edition:     envs.Cloud,
 			req: &requests.NamespaceCreate{
-				UserID:   "000000000000000000000000",
-				Name:     "namespace",
-				TenantID: "00000000-0000-4000-0000-000000000000",
-				Type:     "",
+				UserID: "000000000000000000000000",
+				Name:   "namespace",
+				Type:   "",
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -1089,10 +990,9 @@ func TestCreateNamespace(t *testing.T) {
 						"NamespaceCreate",
 						ctx,
 						&models.Namespace{
-							TenantID: "00000000-0000-4000-0000-000000000000",
-							Name:     "namespace",
-							Owner:    "000000000000000000000000",
-							Type:     models.TypeTeam,
+							Name:  "namespace",
+							Owner: "000000000000000000000000",
+							Type:  models.TypeTeam,
 							Members: []models.Member{
 								{
 									ID:      "000000000000000000000000",
