@@ -479,7 +479,7 @@ func TestGetNamespace(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			ns, err := s.GetNamespace(ctx, tc.tenantID)
+			ns, err := s.GetNamespace(ctx, scope.MustBounded(tc.tenantID), tc.tenantID)
 			assert.Equal(t, tc.expected, Expected{ns, err})
 		})
 	}
@@ -1290,7 +1290,7 @@ func TestEditNamespace(t *testing.T) {
 				TenantParam: requests.TenantParam{Tenant: tc.tenantID},
 				Name:        tc.namespaceName,
 			}
-			namespace, err := service.EditNamespace(ctx, req)
+			namespace, err := service.EditNamespace(ctx, scope.MustBounded(tc.tenantID), req)
 
 			assert.Equal(t, tc.expected, Expected{namespace, err})
 		})
@@ -1398,7 +1398,7 @@ func TestEditSessionRecord(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			tc.mocks(ctx)
-			err := s.EditSessionRecordStatus(ctx, tc.sessionRecord, tc.tenantID)
+			err := s.EditSessionRecordStatus(ctx, scope.MustBounded(tc.tenantID), tc.sessionRecord, tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1527,7 +1527,7 @@ func TestUpgradeNamespace(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
-			err := s.UpgradeNamespace(ctx, tenantID)
+			err := s.UpgradeNamespace(ctx, scope.MustBounded(tenantID), tenantID)
 			assert.Equal(t, tc.expected, err)
 
 			storeMock.AssertExpectations(t)
@@ -1650,7 +1650,7 @@ func TestDeleteNamespace(t *testing.T) {
 
 			tc.requiredMocks(storeMock, cacheMock)
 
-			err := s.DeleteNamespace(ctx, tc.tenantID)
+			err := s.DeleteNamespace(ctx, scope.MustBounded(tc.tenantID), tc.tenantID)
 			assert.Equal(t, tc.expected, err)
 		})
 	}
@@ -1712,7 +1712,7 @@ func TestDeleteNamespaceFiresNoHookWhenItsDevicesCannotBeListed(t *testing.T) {
 
 	s := NewService(storeMock, privateKey, publicKey, cachemock.NewMockCache(t))
 
-	assert.Equal(t, errors.New("error"), s.DeleteNamespace(ctx, tenantID))
+	assert.Equal(t, errors.New("error"), s.DeleteNamespace(ctx, scope.MustBounded(tenantID), tenantID))
 	assert.False(t, fired)
 }
 
@@ -1744,6 +1744,74 @@ func TestDeleteNamespaceEndsEachDeviceItHeld(t *testing.T) {
 
 	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
 
-	require.NoError(t, s.DeleteNamespace(ctx, tenantID))
+	require.NoError(t, s.DeleteNamespace(ctx, scope.MustBounded(tenantID), tenantID))
 	assert.Equal(t, []string{"uid-1", "uid-2"}, removed)
+}
+
+func TestNamespaceServicesRefuseATenantOutsideTheirScope(t *testing.T) {
+	ctx := context.Background()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	calls := map[string]func(Service, scope.Scope) error{
+		"GetNamespace": func(s Service, sc scope.Scope) error {
+			_, err := s.GetNamespace(ctx, sc, tenantID)
+
+			return err
+		},
+		"ListNamespaceMembers": func(s Service, sc scope.Scope) error {
+			_, _, err := s.ListNamespaceMembers(ctx, sc, &requests.MemberList{TenantID: tenantID})
+
+			return err
+		},
+		"DeleteNamespace": func(s Service, sc scope.Scope) error {
+			return s.DeleteNamespace(ctx, sc, tenantID)
+		},
+		"EditNamespace": func(s Service, sc scope.Scope) error {
+			_, err := s.EditNamespace(ctx, sc, &requests.NamespaceEdit{TenantParam: requests.TenantParam{Tenant: tenantID}, Name: "renamed"})
+
+			return err
+		},
+		"EditSessionRecordStatus": func(s Service, sc scope.Scope) error {
+			return s.EditSessionRecordStatus(ctx, sc, true, tenantID)
+		},
+		"UpgradeNamespace": func(s Service, sc scope.Scope) error {
+			return s.UpgradeNamespace(ctx, sc, tenantID)
+		},
+	}
+
+	scopes := map[string]struct {
+		sc       scope.Scope
+		expected error
+	}{
+		"scope bounded to another namespace": {sc: scope.MustBounded("11111111-1111-4111-8111-111111111111"), expected: ErrNamespaceNotFound},
+		"scope nobody constructed":           {sc: scope.Scope{}, expected: ErrForbidden},
+	}
+
+	for name, call := range calls {
+		for kind, tc := range scopes {
+			t.Run(name+" with a "+kind, func(t *testing.T) {
+				s := NewService(storemock.NewMockStore(t), privateKey, publicKey, storecache.NewNullCache())
+
+				require.ErrorIs(t, call(s, tc.sc), tc.expected)
+			})
+		}
+	}
+}
+
+func TestGetNamespaceResolvesAnyTenantUnderAnUnboundedScope(t *testing.T) {
+	ctx := context.Background()
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	namespace := &models.Namespace{TenantID: tenantID, Name: "namespace"}
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).Return(namespace, nil).Once()
+
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+
+	got, err := s.GetNamespace(ctx, scope.NewUnbounded("the admin console reads any namespace"), tenantID)
+	require.NoError(t, err)
+	assert.Equal(t, namespace, got)
 }

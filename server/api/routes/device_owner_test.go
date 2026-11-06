@@ -14,6 +14,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -132,7 +133,7 @@ func TestMemberRequestsCarryTheDevicesToKeep(t *testing.T) {
 
 	t.Run("removing a member", func(t *testing.T) {
 		m := mocks.NewMockService(t)
-		m.On("RemoveNamespaceMember", gomock.Anything, gomock.MatchedBy(func(req *requests.NamespaceRemoveMember) bool {
+		m.On("RemoveNamespaceMember", gomock.Anything, scope.MustBounded(ownerTestTenant), gomock.MatchedBy(func(req *requests.NamespaceRemoveMember) bool {
 			return assert.ObjectsAreEqual([]string{"uid-1"}, req.KeepDevices)
 		})).Return(&models.Namespace{TenantID: ownerTestTenant}, nil).Once()
 
@@ -141,7 +142,7 @@ func TestMemberRequestsCarryTheDevicesToKeep(t *testing.T) {
 
 	t.Run("changing a member's role", func(t *testing.T) {
 		m := mocks.NewMockService(t)
-		m.On("UpdateNamespaceMember", gomock.Anything, gomock.MatchedBy(func(req *requests.NamespaceUpdateMember) bool {
+		m.On("UpdateNamespaceMember", gomock.Anything, scope.MustBounded(ownerTestTenant), gomock.MatchedBy(func(req *requests.NamespaceUpdateMember) bool {
 			return assert.ObjectsAreEqual([]string{"uid-1"}, req.KeepDevices)
 		})).Return(nil).Once()
 

@@ -427,7 +427,7 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
-			link, err := s.GenerateInvitationLink(ctx, req)
+			link, err := s.GenerateInvitationLink(ctx, scope.MustBounded(req.TenantID), req)
 			assert.Equal(t, tc.expected.err, err)
 			if tc.expected.hasLink {
 				assert.Contains(t, link, "shellhub.test/accept-invite?invite=")
@@ -616,7 +616,7 @@ func TestService_NamespaceMembershipInvitationList(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			tc.requiredMocks()
 
-			invitations, count, err := s.NamespaceMembershipInvitationList(ctx, req)
+			invitations, count, err := s.NamespaceMembershipInvitationList(ctx, scope.MustBounded(req.TenantID), req)
 			assert.Equal(t, tc.expected.invitations, invitations)
 			assert.Equal(t, tc.expected.count, count)
 			assert.Equal(t, tc.expected.err, err)
@@ -748,7 +748,7 @@ func TestService_CancelMembershipInvitation(t *testing.T) {
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
-			err := s.CancelMembershipInvitation(ctx, req)
+			err := s.CancelMembershipInvitation(ctx, scope.MustBounded(req.TenantID), req)
 			assert.Equal(t, tc.expected, err)
 		})
 	}

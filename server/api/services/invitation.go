@@ -61,19 +61,37 @@ type InvitationService interface {
 	// AcceptInvite adds the invited user to the namespace and consumes the invitation.
 	AcceptInvite(ctx context.Context, req *requests.AcceptInvite) error
 
-	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the
-	// copyable accept-invite link. When an existing account is added and direct membership is
-	// enabled (enterprise), the member is added directly and an empty link is returned.
-	GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error)
+	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the copyable
+	// accept-invite link. When an existing account is added and direct membership is enabled
+	// (enterprise), the member is added directly and an empty link is returned. It returns
+	// ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded to another
+	// namespace or the namespace carrying req.TenantID cannot be resolved, whatever the store's error;
+	// ErrNamespaceMemberNotFound when req.UserID is not a member; ErrRoleForbidden when that member
+	// lacks NamespaceAddMember or holds no authority over req.MemberRole; ErrNamespaceMemberDuplicated
+	// when the email already belongs to a member or holds an invitation still valid; and the store's
+	// error otherwise.
+	GenerateInvitationLink(ctx context.Context, sc scope.Scope, req *requests.GenerateInvitationLink) (string, error)
 
 	// UserMembershipInvitationList lists membership invitations for a user.
 	UserMembershipInvitationList(ctx context.Context, req *requests.UserMembershipInvitationList) ([]responses.MembershipInvitation, int64, error)
 
-	// NamespaceMembershipInvitationList lists membership invitations for a namespace.
-	NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error)
+	// NamespaceMembershipInvitationList lists membership invitations for a namespace. It returns
+	// ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded to another
+	// namespace or the namespace carrying req.TenantID cannot be resolved, whatever the store's error;
+	// ErrNamespaceMemberNotFound when req.UserID is not a member; ErrRoleForbidden when that member
+	// lacks NamespaceEditMember or holds no authority over an administrator; and the store's error
+	// otherwise.
+	NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error)
 
-	// CancelMembershipInvitation cancels a pending membership invitation.
-	CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error
+	// CancelMembershipInvitation cancels a pending membership invitation. It returns ErrForbidden when
+	// sc was never constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the
+	// namespace carrying req.TenantID cannot be resolved, whatever the store's error;
+	// ErrNamespaceMemberNotFound when req.UserID is not a member or the invitation naming
+	// req.InvitedUserID cannot be resolved, whatever the store's error, is not pending, or stops being
+	// pending before it is cancelled; ErrRoleForbidden when the acting member lacks
+	// NamespaceRemoveMember or holds no authority over the invitation's role; and the store's error
+	// otherwise.
+	CancelMembershipInvitation(ctx context.Context, sc scope.Scope, req *requests.CancelMembershipInvitation) error
 }
 
 func (s *service) ResolveInvitation(ctx context.Context, req *requests.ResolveInvitation) (*responses.ResolveInvitation, error) {
@@ -149,8 +167,8 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 	return nil
 }
 
-func (s *service) GenerateInvitationLink(ctx context.Context, req *requests.GenerateInvitationLink) (string, error) {
-	namespace, activeUser, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
+func (s *service) GenerateInvitationLink(ctx context.Context, sc scope.Scope, req *requests.GenerateInvitationLink) (string, error) {
+	namespace, activeUser, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, req.MemberRole, authorizer.NamespaceAddMember)
 	if err != nil {
 		return "", err
 	}
@@ -199,19 +217,17 @@ func (s *service) UserMembershipInvitationList(ctx context.Context, req *request
 	return res, count, nil
 }
 
-func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
-	if _, _, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleAdministrator, authorizer.NamespaceEditMember); err != nil {
-		return nil, 0, err
-	}
-
-	sc, err := BoundTo(req.TenantID)
+func (s *service) NamespaceMembershipInvitationList(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList) ([]responses.MembershipInvitation, int64, error) {
+	namespace, _, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, authorizer.RoleAdministrator, authorizer.NamespaceEditMember)
 	if err != nil {
 		return nil, 0, err
 	}
 
+	bounded := scope.MustBounded(namespace.TenantID)
+
 	invitations, count, err := s.store.NamespaceMembershipInvitationList(
 		ctx,
-		sc,
+		bounded,
 		s.store.Options().Match(&req.Filters),
 		s.store.Options().Sort(&req.Sorter),
 		s.store.Options().Paginate(&req.Paginator),
@@ -231,18 +247,15 @@ func (s *service) NamespaceMembershipInvitationList(ctx context.Context, req *re
 	return res, count, nil
 }
 
-func (s *service) CancelMembershipInvitation(ctx context.Context, req *requests.CancelMembershipInvitation) error {
-	_, activeMember, err := s.resolveActingMember(ctx, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
+func (s *service) CancelMembershipInvitation(ctx context.Context, sc scope.Scope, req *requests.CancelMembershipInvitation) error {
+	namespace, activeMember, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceRemoveMember)
 	if err != nil {
 		return err
 	}
 
-	sc, err := BoundTo(req.TenantID)
-	if err != nil {
-		return err
-	}
+	bounded := scope.MustBounded(namespace.TenantID)
 
-	invitation, err := s.store.MembershipInvitationResolve(ctx, sc, req.InvitedUserID)
+	invitation, err := s.store.MembershipInvitationResolve(ctx, bounded, req.InvitedUserID)
 	if err != nil {
 		return NewErrNamespaceMemberNotFound(req.InvitedUserID, err)
 	}

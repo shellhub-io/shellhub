@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -80,22 +82,8 @@ func (h *Handler) ListAPIKeys(c *gateway.Context) error {
 }
 
 // UpdateAPIKey renames a key or changes the role it acts with.
-func (h *Handler) UpdateAPIKey(c *gateway.Context) error {
-	req := new(requests.UpdateAPIKey)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	if err := h.service.UpdateAPIKey(c.Ctx(), req); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) UpdateAPIKey(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.UpdateAPIKey) error {
+	return h.service.UpdateAPIKey(ctx, sc, req)
 }
 
 // DeleteAPIKey revokes a key.

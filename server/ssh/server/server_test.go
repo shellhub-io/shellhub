@@ -10,6 +10,7 @@ import (
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/pires/go-proxyproto"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -70,7 +71,7 @@ func reachableDevice(t *testing.T) *servicemocks.MockService {
 	service := servicemocks.NewMockService(t)
 	service.On("LookupDevice", mock.Anything, "namespace", "device").
 		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id", Online: true}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
-	service.On("GetNamespace", mock.Anything, "tenant-id").
+	service.On("GetNamespace", mock.Anything, scope.MustBounded("tenant-id"), "tenant-id").
 		Return(&models.Namespace{Name: "namespace", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it names the session with
 
 	return service
@@ -109,7 +110,7 @@ func offlineDevice(t *testing.T) *servicemocks.MockService {
 	service := servicemocks.NewMockService(t)
 	service.On("LookupDevice", mock.Anything, "namespace", "device").
 		Return(&models.Device{UID: "device-uid", Name: "device", TenantID: "tenant-id", Online: false}, nil) //nolint:exhaustruct // NewSession reads only the fields it resolves the namespace from
-	service.On("GetNamespace", mock.Anything, "tenant-id").
+	service.On("GetNamespace", mock.Anything, scope.MustBounded("tenant-id"), "tenant-id").
 		Return(&models.Namespace{Name: "namespace", TenantID: "tenant-id"}, nil) //nolint:exhaustruct // NewSession reads only the fields it names the session with
 
 	return service

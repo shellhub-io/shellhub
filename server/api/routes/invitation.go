@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -72,23 +74,13 @@ func (h *Handler) ResolveInvitation(c *gateway.Context) error {
 
 // GenerateInvitationLink returns a fresh link for an existing invitation, for an inviter who
 // needs to send it again.
-func (h *Handler) GenerateInvitationLink(c *gateway.Context) error {
-	req := new(requests.GenerateInvitationLink)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	link, err := h.service.GenerateInvitationLink(c.Ctx(), req)
+func (h *Handler) GenerateInvitationLink(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.GenerateInvitationLink) (map[string]string, error) {
+	link, err := h.service.GenerateInvitationLink(ctx, sc, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"link": link})
+	return map[string]string{"link": link}, nil
 }
 
 // AcceptInvite joins the caller to the namespace the invitation names.
@@ -178,7 +170,12 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 		return err
 	}
 
-	invitations, count, err := h.service.NamespaceMembershipInvitationList(c.Ctx(), req)
+	sc, err := c.Scope()
+	if err != nil {
+		return err
+	}
+
+	invitations, count, err := h.service.NamespaceMembershipInvitationList(c.Ctx(), sc, req)
 	if err != nil {
 		return err
 	}
@@ -189,20 +186,6 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 }
 
 // CancelMembershipInvitation withdraws an invitation, invalidating its code.
-func (h *Handler) CancelMembershipInvitation(c *gateway.Context) error {
-	req := new(requests.CancelMembershipInvitation)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	if err := h.service.CancelMembershipInvitation(c.Ctx(), req); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) CancelMembershipInvitation(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.CancelMembershipInvitation) error {
+	return h.service.CancelMembershipInvitation(ctx, sc, req)
 }

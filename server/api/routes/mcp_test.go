@@ -90,7 +90,7 @@ func mcpToolResult(t *testing.T, rec *httptest.ResponseRecorder) (string, bool) 
 func TestMCPGetNamespaceDefaultsToCaller(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("GetNamespace", gomock.Anything, mcpCallerTenant).
+		On("GetNamespace", gomock.Anything, scope.MustBounded(mcpCallerTenant), mcpCallerTenant).
 		Return(&models.Namespace{TenantID: mcpCallerTenant, Name: "dev"}, nil).
 		Once()
 

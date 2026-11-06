@@ -570,7 +570,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "observer"}}}, nil).
 					Once()
 			},
 			expected: NewErrRoleForbidden(),
@@ -587,7 +587,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 			},
 			expected: NewErrRoleForbidden(),
@@ -604,7 +604,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "nonexistent").
@@ -632,7 +632,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
@@ -671,7 +671,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
@@ -714,7 +714,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
@@ -757,7 +757,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
@@ -782,7 +782,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{
 						{ID: "000000000000000000000000", Role: "owner"},
 					}}, nil).
 					Once()
@@ -850,7 +850,7 @@ func TestUpdateAPIKey(t *testing.T) {
 
 				storeMock.
 					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "administrator"}}}, nil).
 					Once()
 				storeMock.
 					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
@@ -879,7 +879,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			ctx := context.Background()
 			tc.requiredMocks(ctx)
 
-			err := s.UpdateAPIKey(ctx, tc.req)
+			err := s.UpdateAPIKey(ctx, scope.MustBounded(tc.req.TenantID), tc.req)
 			require.Equal(t, tc.expected, err)
 		})
 	}

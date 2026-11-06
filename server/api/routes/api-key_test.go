@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemock "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -607,6 +608,7 @@ func TestUpdateAPIKey(t *testing.T) {
 				svcMock.On(
 					"UpdateAPIKey",
 					mock.Anything,
+					scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 					&requests.UpdateAPIKey{
 						UserID:      "000000000000000000000000",
 						TenantID:    "00000000-0000-4000-0000-000000000000",
@@ -623,7 +625,7 @@ func TestUpdateAPIKey(t *testing.T) {
 			description: "succeeds",
 			name:        "dev",
 			headers:     map[string]string{"Content-Type": "application/json"},
-			caller:      identity.Identity{TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
+			caller:      identity.Identity{ID: "000000000000000000000000", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner},
 			body: map[string]string{
 				"name": "prod",
 				"role": "administrator",
@@ -632,7 +634,9 @@ func TestUpdateAPIKey(t *testing.T) {
 				svcMock.On(
 					"UpdateAPIKey",
 					mock.Anything,
+					scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 					&requests.UpdateAPIKey{
+						UserID:      "000000000000000000000000",
 						TenantID:    "00000000-0000-4000-0000-000000000000",
 						CurrentName: "dev",
 						Name:        "prod",

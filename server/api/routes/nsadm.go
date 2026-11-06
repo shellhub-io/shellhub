@@ -1,12 +1,16 @@
 package routes
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -89,140 +93,63 @@ func (h *Handler) CreateNamespace(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, responses.NamespaceFromModel(namespace))
 }
 
-// GetNamespace serves one namespace by tenant ID.
-func (h *Handler) GetNamespace(c *gateway.Context) error {
-	var req requests.NamespaceGet
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	var uid string
-	if c.ID() != nil {
-		uid = c.ID().ID
-	}
-
-	ns, err := h.service.GetNamespace(c.Ctx(), req.Tenant)
+// GetNamespace serves one namespace by tenant ID. It returns errs.ErrForbidden when the caller is a
+// user who is no longer one of its members, and otherwise NamespaceService.GetNamespace's errors:
+// ErrForbidden when sc was never constructed, and ErrNamespaceNotFound when sc is bounded to
+// another namespace or the namespace cannot be resolved.
+func (h *Handler) GetNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceGet) (*responses.Namespace, error) {
+	ns, err := h.service.GetNamespace(ctx, sc, req.Tenant)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if ns == nil {
-		return errs.NewErrNotFound(nil)
-	}
-
-	if uid != "" {
-		if _, ok := ns.FindMember(uid); !ok {
-			return errs.NewErrForbidden(nil)
+	if caller, _ := identity.FromContext(ctx); caller.ID != "" {
+		if _, ok := ns.FindMember(caller.ID); !ok {
+			return nil, errs.NewErrForbidden(nil)
 		}
 	}
 
-	return c.JSON(http.StatusOK, responses.NamespaceFromModel(ns))
+	return responses.NamespaceFromModel(ns), nil
 }
 
 // ListNamespaceMembers serves who belongs to a namespace and in what role.
-func (h *Handler) ListNamespaceMembers(c *gateway.Context) error {
-	req := new(requests.MemberList)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	req.Paginator.Normalize()
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	members, count, err := h.service.ListNamespaceMembers(c.Ctx(), req)
-	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, members)
+func (h *Handler) ListNamespaceMembers(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.MemberList) ([]models.MemberView, int64, error) {
+	return h.service.ListNamespaceMembers(ctx, sc, req)
 }
 
 // DeleteNamespace removes a namespace and everything scoped to it.
-func (h *Handler) DeleteNamespace(c *gateway.Context) error {
-	var req requests.NamespaceDelete
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.DeleteNamespace(c.Ctx(), req.Tenant); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) DeleteNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceDelete) error {
+	return h.service.DeleteNamespace(ctx, sc, req.Tenant)
 }
 
 // EditNamespace changes a namespace's own attributes, not its membership.
-func (h *Handler) EditNamespace(c *gateway.Context) error {
-	req := new(requests.NamespaceEdit)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, err := h.service.EditNamespace(c.Ctx(), req)
+func (h *Handler) EditNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceEdit) (*responses.Namespace, error) {
+	ns, err := h.service.EditNamespace(ctx, sc, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
+	return responses.NamespaceFromModel(ns), nil
 }
 
 // AddNamespaceMember invites or adds a member in the requested role.
-func (h *Handler) AddNamespaceMember(c *gateway.Context) error {
-	req := new(requests.NamespaceAddMember)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, err := h.service.AddNamespaceMember(c.Ctx(), req)
+func (h *Handler) AddNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceAddMember) (*responses.Namespace, error) {
+	ns, err := h.service.AddNamespaceMember(ctx, sc, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
+	return responses.NamespaceFromModel(ns), nil
 }
 
 // RemoveNamespaceMember removes another member from the namespace.
-func (h *Handler) RemoveNamespaceMember(c *gateway.Context) error {
-	req := new(requests.NamespaceRemoveMember)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	res, err := h.service.RemoveNamespaceMember(c.Ctx(), req)
+func (h *Handler) RemoveNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceRemoveMember) (*responses.Namespace, error) {
+	ns, err := h.service.RemoveNamespaceMember(ctx, sc, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(http.StatusOK, responses.NamespaceFromModel(res))
+	return responses.NamespaceFromModel(ns), nil
 }
 
 // LeaveNamespace removes the caller from the namespace. It is separate from removing a member
@@ -258,58 +185,18 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 }
 
 // EditNamespaceMember changes a member's role.
-func (h *Handler) EditNamespaceMember(c *gateway.Context) error {
-	req := new(requests.NamespaceUpdateMember)
-
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(req); err != nil {
-		return err
-	}
-
-	if err := h.service.UpdateNamespaceMember(c.Ctx(), req); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) EditNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceUpdateMember) error {
+	return h.service.UpdateNamespaceMember(ctx, sc, req)
 }
 
 // UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. It answers 200 with
 // no body, 404 when no namespace carries the tenant, 409 when the namespace is already new, and 403
 // to an API key or to a member who may not update the namespace.
-func (h *Handler) UpgradeNamespace(c *gateway.Context) error {
-	var req requests.UpgradeNamespace
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.UpgradeNamespace(c.Ctx(), req.Tenant); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) UpgradeNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.UpgradeNamespace) error {
+	return h.service.UpgradeNamespace(ctx, sc, req.Tenant)
 }
 
 // EditSessionRecordStatus turns session recording on or off for the namespace.
-func (h *Handler) EditSessionRecordStatus(c *gateway.Context) error {
-	var req requests.SessionEditRecordStatus
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	if err := h.service.EditSessionRecordStatus(c.Ctx(), req.SessionRecord, req.Tenant); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
+func (h *Handler) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.SessionEditRecordStatus) error {
+	return h.service.EditSessionRecordStatus(ctx, sc, req.SessionRecord, req.Tenant)
 }
