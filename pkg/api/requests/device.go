@@ -142,9 +142,4 @@ type DeviceAuth struct {
 	ProvisioningKey string          `json:"provisioning_key,omitempty"`
 	Challenge       string          `json:"challenge,omitempty" validate:"omitempty,max=128"`
 	Signature       string          `json:"signature,omitempty" validate:"omitempty,max=4096"`
-	RealIP          string          `header:"X-Real-IP" json:"-"`
-	// ForwardedHost/ForwardedProto carry the public base (set by the gateway) so a webhook-mode
-	// enrollment can build an absolute callback URL for the integrator.
-	ForwardedHost  string `header:"X-Forwarded-Host" json:"-"`
-	ForwardedProto string `header:"X-Forwarded-Proto" json:"-"`
 }

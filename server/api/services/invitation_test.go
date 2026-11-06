@@ -269,11 +269,10 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 	namespace := &models.Namespace{TenantID: "tenant", Members: []models.Member{owner}}
 
 	req := &requests.GenerateInvitationLink{
-		ForwardedHost: "elsewhere.test",
-		TenantID:      "tenant",
-		UserID:        "owner",
-		MemberEmail:   "invitee@test.com",
-		MemberRole:    authorizer.RoleOperator,
+		TenantID:    "tenant",
+		UserID:      "owner",
+		MemberEmail: "invitee@test.com",
+		MemberRole:  authorizer.RoleOperator,
 	}
 
 	type Expected struct {

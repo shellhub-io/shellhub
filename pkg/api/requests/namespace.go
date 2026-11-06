@@ -55,16 +55,12 @@ type NamespaceEdit struct {
 	} `json:"settings"`
 }
 
-// NamespaceAddMember is the request to invite an email into a namespace with a role. The forwarded
-// headers build the invitation link's host, so it points at the address the inviter reached the
-// console on.
+// NamespaceAddMember is the request to invite an email into a namespace with a role.
 type NamespaceAddMember struct {
-	ForwardedHost  string          `header:"X-Forwarded-Host" json:"-" validate:"required"`
-	ForwardedProto string          `header:"X-Forwarded-Proto" json:"-"`
-	UserID         string          `identity:"id" json:"-" validate:"required"`
-	TenantID       string          `param:"tenant" json:"-" validate:"required,uuid"`
-	MemberEmail    string          `json:"email" validate:"required"`
-	MemberRole     authorizer.Role `json:"role" validate:"required,member_role"`
+	UserID      string          `identity:"id" json:"-" validate:"required"`
+	TenantID    string          `param:"tenant" json:"-" validate:"required,uuid"`
+	MemberEmail string          `json:"email" validate:"required"`
+	MemberRole  authorizer.Role `json:"role" validate:"required,member_role"`
 }
 
 // NamespaceUpdateMember is the request to change a member's role. UserID is the caller, MemberID

@@ -113,13 +113,11 @@ func (e *enrollmentE2E) enrollWithPublicKey(t *testing.T, mac, publicKey, provis
 func (e *enrollmentE2E) enrollAs(t *testing.T, hostname, mac, publicKey, provisioningKey string) string {
 	t.Helper()
 	req := requests.DeviceAuth{
-		TenantID:       e.tenantID,
-		Hostname:       hostname,
-		Identity:       &requests.DeviceIdentity{MAC: mac},
-		Info:           &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
-		PublicKey:      publicKey,
-		ForwardedHost:  "shellhub.test",
-		ForwardedProto: "https",
+		TenantID:  e.tenantID,
+		Hostname:  hostname,
+		Identity:  &requests.DeviceIdentity{MAC: mac},
+		Info:      &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
+		PublicKey: publicKey,
 	}
 	if provisioningKey != "" {
 		req.ProvisioningKey = provisioningKey
@@ -590,8 +588,6 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 				Identity:        &requests.DeviceIdentity{MAC: fmt.Sprintf("aa:bb:cc:dd:80:%02x", i)},
 				Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 				PublicKey:       fmt.Sprintf("pk-80-%02d", i),
-				ForwardedHost:   "shellhub.test",
-				ForwardedProto:  "https",
 				ProvisioningKey: plaintextFor(0x80),
 			}
 
