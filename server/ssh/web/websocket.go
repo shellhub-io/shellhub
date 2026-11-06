@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 )
 
 func getToken(req *http.Request) (string, error) {
@@ -40,10 +42,10 @@ func getDimensions(req *http.Request) (uint16, uint16, error) {
 }
 
 func getIP(req *http.Request) (string, error) {
-	ip := req.Header.Get("X-Real-Ip")
-	if ip == "" {
+	resolved, ok := origin.FromContext(req.Context())
+	if !ok || resolved.IP == "" {
 		return "", ErrGetIP
 	}
 
-	return ip, nil
+	return resolved.IP, nil
 }

@@ -3,9 +3,12 @@ package web
 import (
 	"math"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetToken(t *testing.T) {
@@ -167,58 +170,30 @@ func TestGetDimensions(t *testing.T) {
 }
 
 func TestGetIP(t *testing.T) {
-	type Expected struct {
-		ip  string
-		err error
-	}
+	forged := http.Header{"X-Real-Ip": {"198.51.100.1"}}
 
-	tests := []struct {
-		description string
-		req         *http.Request
-		expected    Expected
-	}{
-		{
-			description: "fail when IP is not set",
-			req: &http.Request{
-				Header: http.Header{},
-			},
-			expected: Expected{
-				ip:  "",
-				err: ErrGetIP,
-			},
-		},
-		{
-			description: "fail when IP is empty on query",
-			req: &http.Request{
-				Header: map[string][]string{
-					"X-Real-Ip": {},
-				},
-			},
-			expected: Expected{
-				ip:  "",
-				err: ErrGetIP,
-			},
-		},
-		{
-			description: "success to get the IP from query",
-			req: &http.Request{
-				Header: map[string][]string{
-					"X-Real-Ip": {"192.168.1.1"},
-				},
-			},
-			expected: Expected{
-				ip:  "192.168.1.1",
-				err: nil,
-			},
-		},
-	}
+	t.Run("takes the address the router resolved, not the header", func(t *testing.T) {
+		req := httptest.NewRequestWithContext(origin.NewContext(t.Context(), origin.Origin{IP: "203.0.113.9"}), http.MethodGet, "/", nil)
+		req.Header = forged
 
-	for _, test := range tests {
-		t.Run(test.description, func(t *testing.T) {
-			ip, err := getIP(test.req)
+		ip, err := getIP(req)
+		require.NoError(t, err)
+		assert.Equal(t, "203.0.113.9", ip)
+	})
 
-			assert.Equal(t, test.expected.ip, ip)
-			assert.ErrorIs(t, err, test.expected.err)
-		})
-	}
+	t.Run("fails when the router resolved no origin", func(t *testing.T) {
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
+		req.Header = forged
+
+		ip, err := getIP(req)
+		require.ErrorIs(t, err, ErrGetIP)
+		assert.Empty(t, ip)
+	})
+
+	t.Run("fails when the resolved origin has no address", func(t *testing.T) {
+		req := httptest.NewRequestWithContext(origin.NewContext(t.Context(), origin.Origin{}), http.MethodGet, "/", nil)
+
+		_, err := getIP(req)
+		require.ErrorIs(t, err, ErrGetIP)
+	})
 }

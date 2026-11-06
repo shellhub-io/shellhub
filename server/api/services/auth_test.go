@@ -74,7 +74,6 @@ func TestAuthDevice(t *testing.T) {
 			description: "fails when tenant does not exist",
 			req: requests.DeviceAuth{
 				TenantID: "00000000-0000-4000-0000-000000000000",
-				RealIP:   "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -111,7 +110,6 @@ func TestAuthDevice(t *testing.T) {
 				TenantID: "00000000-0000-4000-0000-000000000000",
 				Hostname: "",
 				Identity: &requests.DeviceIdentity{MAC: ""},
-				RealIP:   "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -168,7 +166,6 @@ func TestAuthDevice(t *testing.T) {
 					Platform:   "native",
 				},
 				PublicKey: "",
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -215,7 +212,6 @@ func TestAuthDevice(t *testing.T) {
 				Identity:  &requests.DeviceIdentity{MAC: ""},
 				Info:      nil,
 				PublicKey: "",
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -256,7 +252,6 @@ func TestAuthDevice(t *testing.T) {
 				Info:      nil,
 				PublicKey: "",
 				Sessions:  []string{},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -306,7 +301,6 @@ func TestAuthDevice(t *testing.T) {
 				Identity:  &requests.DeviceIdentity{MAC: ""},
 				PublicKey: "",
 				Sessions:  []string{"session_1", "session_2"},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -358,7 +352,6 @@ func TestAuthDevice(t *testing.T) {
 				Identity:  &requests.DeviceIdentity{MAC: ""},
 				PublicKey: "",
 				Sessions:  []string{"session_1", "session_2"},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -417,7 +410,6 @@ func TestAuthDevice(t *testing.T) {
 				},
 				PublicKey: "",
 				Sessions:  []string{},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -475,7 +467,6 @@ func TestAuthDevice(t *testing.T) {
 				Info:      nil,
 				PublicKey: "",
 				Sessions:  []string{},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
@@ -544,7 +535,6 @@ func TestAuthDevice(t *testing.T) {
 				},
 				PublicKey: "public-key",
 				Sessions:  []string{},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -609,7 +599,6 @@ func TestAuthDevice(t *testing.T) {
 					Platform:   "linux",
 				},
 				Sessions: []string{},
-				RealIP:   "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -678,7 +667,6 @@ func TestAuthDevice(t *testing.T) {
 				},
 				PublicKey: "public-key",
 				Sessions:  []string{"session_1", "session_2"},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -762,7 +750,6 @@ func TestAuthDevice(t *testing.T) {
 				},
 				PublicKey: "public-key",
 				Sessions:  []string{},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -842,7 +829,6 @@ func TestAuthDevice(t *testing.T) {
 					Platform:   "linux",
 				},
 				Sessions: []string{},
-				RealIP:   "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "aa-bb-cc-dd-ee-ff", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -916,7 +902,6 @@ func TestAuthDevice(t *testing.T) {
 				Info:      nil,
 				PublicKey: "public-key",
 				Sessions:  []string{"session_1", "session_2"},
-				RealIP:    "127.0.0.1",
 			},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
@@ -988,7 +973,7 @@ func TestAuthDevice(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			authRes, err := service.AuthDevice(ctx, tc.req)
+			authRes, err := service.AuthDevice(ctx, tc.req, "127.0.0.1")
 			require.Equal(tt, tc.expected.res, authRes)
 			require.Equal(tt, tc.expected.err, err)
 		})
@@ -3217,7 +3202,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 
 	oversizedIP := strings.Repeat("a", 200)
 
-	t.Run("[device creation] stores an empty RemoteAddr when RealIP is not a valid IP", func(t *testing.T) {
+	t.Run("[device creation] stores an empty RemoteAddr when the client address is not a valid IP", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
@@ -3276,8 +3261,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 			PublicKey: "public-key",
 			Sessions:  []string{},
-			RealIP:    oversizedIP,
-		})
+		}, oversizedIP)
 
 		require.NoError(t, err)
 		require.Equal(t, &models.DeviceAuthResponse{
@@ -3292,7 +3276,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		storeMock.AssertExpectations(t)
 	})
 
-	t.Run("[device exists] refreshes RemoteAddr from a valid RealIP on reconnect", func(t *testing.T) {
+	t.Run("[device exists] refreshes RemoteAddr from a valid client address on reconnect", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
@@ -3332,8 +3316,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: ""},
 			PublicKey: "",
 			Sessions:  []string{},
-			RealIP:    "203.0.113.10",
-		})
+		}, "203.0.113.10")
 
 		require.NoError(t, err)
 		require.Equal(t, "reconnect-device", res.Name)
@@ -3341,7 +3324,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		storeMock.AssertExpectations(t)
 	})
 
-	t.Run("[device exists] keeps the previous RemoteAddr when RealIP is invalid on reconnect", func(t *testing.T) {
+	t.Run("[device exists] keeps the previous RemoteAddr when the client address is invalid on reconnect", func(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 		ctx := context.TODO()
@@ -3381,8 +3364,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: ""},
 			PublicKey: "",
 			Sessions:  []string{},
-			RealIP:    oversizedIP,
-		})
+		}, oversizedIP)
 
 		require.NoError(t, err)
 		require.Equal(t, "reconnect-device", res.Name)

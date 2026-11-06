@@ -400,8 +400,8 @@ func (_c *MockService_AuthCacheToken_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // AuthDevice provides a mock function for the type MockService
-func (_mock *MockService) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error) {
+	ret := _mock.Called(ctx, req, clientIP)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthDevice")
@@ -409,18 +409,18 @@ func (_mock *MockService) AuthDevice(ctx context.Context, req requests.DeviceAut
 
 	var r0 *models.DeviceAuthResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth) (*models.DeviceAuthResponse, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) (*models.DeviceAuthResponse, error)); ok {
+		return returnFunc(ctx, req, clientIP)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth) *models.DeviceAuthResponse); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.DeviceAuth, string) *models.DeviceAuthResponse); ok {
+		r0 = returnFunc(ctx, req, clientIP)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DeviceAuthResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.DeviceAuth) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.DeviceAuth, string) error); ok {
+		r1 = returnFunc(ctx, req, clientIP)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -435,11 +435,12 @@ type MockService_AuthDevice_Call struct {
 // AuthDevice is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req requests.DeviceAuth
-func (_e *MockService_Expecter) AuthDevice(ctx any, req any) *MockService_AuthDevice_Call {
-	return &MockService_AuthDevice_Call{Call: _e.mock.On("AuthDevice", ctx, req)}
+//   - clientIP string
+func (_e *MockService_Expecter) AuthDevice(ctx any, req any, clientIP any) *MockService_AuthDevice_Call {
+	return &MockService_AuthDevice_Call{Call: _e.mock.On("AuthDevice", ctx, req, clientIP)}
 }
 
-func (_c *MockService_AuthDevice_Call) Run(run func(ctx context.Context, req requests.DeviceAuth)) *MockService_AuthDevice_Call {
+func (_c *MockService_AuthDevice_Call) Run(run func(ctx context.Context, req requests.DeviceAuth, clientIP string)) *MockService_AuthDevice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -449,9 +450,14 @@ func (_c *MockService_AuthDevice_Call) Run(run func(ctx context.Context, req req
 		if args[1] != nil {
 			arg1 = args[1].(requests.DeviceAuth)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -462,7 +468,7 @@ func (_c *MockService_AuthDevice_Call) Return(deviceAuthResponse *models.DeviceA
 	return _c
 }
 
-func (_c *MockService_AuthDevice_Call) RunAndReturn(run func(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)) *MockService_AuthDevice_Call {
+func (_c *MockService_AuthDevice_Call) RunAndReturn(run func(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error)) *MockService_AuthDevice_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -54,7 +54,7 @@ func TestEvaluateEnrollment(t *testing.T) {
 				Identity: &requests.DeviceIdentity{MAC: cmp.Or(tc.identity, defaultIdentity)},
 			}
 
-			got := svc.evaluateEnrollment(context.Background(), tc.key, req, "uid", "host", tc.paired)
+			got := svc.evaluateEnrollment(context.Background(), tc.key, deviceAuth{DeviceAuth: req}, "uid", "host", tc.paired)
 			require.Equal(t, tc.expected, got)
 		})
 	}
@@ -67,11 +67,13 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 	svc := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(),
 		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(clk))
 
-	req := requests.DeviceAuth{
-		TenantID: "00000000-0000-4000-0000-000000000000",
-		Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-		Info:     &requests.DeviceInfo{ID: "debian"},
-		RealIP:   "203.0.113.7",
+	req := deviceAuth{
+		DeviceAuth: requests.DeviceAuth{
+			TenantID: "00000000-0000-4000-0000-000000000000",
+			Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
+			Info:     &requests.DeviceInfo{ID: "debian"},
+		},
+		clientIP: "203.0.113.7",
 	}
 
 	const secret = "s3cr3t"

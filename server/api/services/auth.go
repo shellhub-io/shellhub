@@ -43,6 +43,8 @@ type AuthService interface {
 	// returns its token and the identity the server assigned it. A request that signs a challenge
 	// from [AuthService.CreateDeviceAuthChallenge] proves the device holds its key, and the server
 	// refuses unsigned requests for that device until it is removed. ctx bounds every cache and store call.
+	// clientIP is the address the agent connected from, as the router resolved it; when it parses,
+	// it becomes the device's remote address and the source an enrollment records.
 	//
 	// It returns [ErrDeviceKeyVerificationRefused] for a request carrying only one of the challenge
 	// and the signature, for a challenge that this server's key did not issue, that is malformed,
@@ -63,7 +65,7 @@ type AuthService interface {
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new
 	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
 	// or legacy key, or its counters cannot be read or written.
-	AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error)
+	AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. Claims without a tenant,
 	// which servers before 0.15 minted and agents of that era reuse for the life of their process,
 	// resolve the device by UID across namespaces and read its namespace off the device. It returns
@@ -173,7 +175,7 @@ func (s *service) applyProvisioningKeyTags(ctx context.Context, deviceUID string
 	}
 }
 
-func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.ProvisioningKey, req deviceAuth, uid, hostname string, reRegistration bool) {
 	event := provisioningKeyEvent(key, req, uid, hostname)
 	event.ReRegistration = reRegistration
 
@@ -182,13 +184,13 @@ func (s *service) appendProvisioningKeyEvent(ctx context.Context, key *models.Pr
 	}
 }
 
-func provisioningKeyEvent(key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string) *models.ProvisioningKeyEvent {
+func provisioningKeyEvent(key *models.ProvisioningKey, req deviceAuth, uid, hostname string) *models.ProvisioningKeyEvent {
 	event := &models.ProvisioningKeyEvent{
 		ProvisioningKeyID: key.ID,
 		TenantID:          req.TenantID,
 		DeviceUID:         uid,
 		Hostname:          hostname,
-		SourceIP:          req.RealIP,
+		SourceIP:          req.clientIP,
 		PublicKey:         req.PublicKey,
 		Ephemeral:         key.Ephemeral,
 	}
@@ -208,7 +210,7 @@ func provisioningKeyEvent(key *models.ProvisioningKey, req requests.DeviceAuth, 
 	return event
 }
 
-func (s *service) recordUnverifiedDeviceKeyRefusal(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, uid, hostname string) {
+func (s *service) recordUnverifiedDeviceKeyRefusal(ctx context.Context, sc scope.Scope, req deviceAuth, uid, hostname string) {
 	logger := log.WithFields(log.Fields{"tenant_id": req.TenantID, "uid": uid})
 
 	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, uid)
@@ -240,7 +242,7 @@ func (s *service) recordUnverifiedDeviceKeyRefusal(ctx context.Context, sc scope
 	}
 }
 
-func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool, settings *models.NamespaceSettings) (*models.ProvisioningKey, error) {
+func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope, req deviceAuth, paired bool, settings *models.NamespaceSettings) (*models.ProvisioningKey, error) {
 	if settings.IsLegacy() {
 		return s.legacyEnrollmentKey(ctx, sc, req, paired)
 	}
@@ -248,7 +250,7 @@ func (s *service) enrollmentProvisioningKey(ctx context.Context, sc scope.Scope,
 	return s.newEnrollmentKey(ctx, sc, req, paired)
 }
 
-func (s *service) legacyEnrollmentKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
+func (s *service) legacyEnrollmentKey(ctx context.Context, sc scope.Scope, req deviceAuth, paired bool) (*models.ProvisioningKey, error) {
 	if req.ProvisioningKey != "" || paired {
 		return nil, NewErrAuthNamespaceLegacy()
 	}
@@ -256,7 +258,7 @@ func (s *service) legacyEnrollmentKey(ctx context.Context, sc scope.Scope, req r
 	return s.tenantEnrollmentKey(ctx, sc)
 }
 
-func (s *service) newEnrollmentKey(ctx context.Context, sc scope.Scope, req requests.DeviceAuth, paired bool) (*models.ProvisioningKey, error) {
+func (s *service) newEnrollmentKey(ctx context.Context, sc scope.Scope, req deviceAuth, paired bool) (*models.ProvisioningKey, error) {
 	if req.ProvisioningKey != "" {
 		sk, err := s.presentedProvisioningKey(ctx, sc, req.ProvisioningKey)
 		if errors.Is(err, errProvisioningKeyUnusable) {
@@ -307,13 +309,20 @@ func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey str
 	return sk.TenantID, nil
 }
 
-func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth) (*models.DeviceAuthResponse, error) {
-	verification, err := s.verifyDeviceKey(req)
+func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error) {
+	auth := deviceAuth{DeviceAuth: req, clientIP: clientIP}
+
+	verification, err := s.verifyDeviceKey(auth)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.authDevice(ctx, req, enrollmentOptions{verification: verification})
+	return s.authDevice(ctx, auth, enrollmentOptions{verification: verification})
+}
+
+type deviceAuth struct {
+	requests.DeviceAuth
+	clientIP string
 }
 
 const reasonTenantlessDeviceToken = "a device token minted before tokens carried a tenant names the device by UID alone, the devices table's primary key, and the server's signature vouches for that UID"
@@ -415,7 +424,7 @@ func (v keyVerification) refusedFor(deviceVerified bool) bool {
 	return v == keyUnverified && deviceVerified
 }
 
-func (s *service) verifyDeviceKey(req requests.DeviceAuth) (keyVerification, error) {
+func (s *service) verifyDeviceKey(req deviceAuth) (keyVerification, error) {
 	if req.Challenge == "" && req.Signature == "" {
 		return keyUnverified, nil
 	}
@@ -466,7 +475,7 @@ func (s *service) enrolledByPairing(ctx context.Context, sc scope.Scope, device 
 	return pairing.ID == device.ProvisioningKeyID, nil
 }
 
-func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrollment enrollmentOptions) (*models.DeviceAuthResponse, error) {
+func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enrollmentOptions) (*models.DeviceAuthResponse, error) {
 	if req.TenantID == "" && req.ProvisioningKey != "" {
 		tenantID, err := s.provisioningKeyTenant(ctx, req.ProvisioningKey)
 		if err != nil {
@@ -549,10 +558,10 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 		position := geoip.Position{}
 		remoteAddr := ""
-		if ip := net.ParseIP(req.RealIP); ip != nil {
-			remoteAddr = req.RealIP
+		if ip := net.ParseIP(req.clientIP); ip != nil {
+			remoteAddr = req.clientIP
 			if position, err = s.locator.GetPosition(ip); err != nil {
-				log.WithError(err).WithFields(log.Fields{"real_ip": req.RealIP, "tenant_id": req.TenantID}).
+				log.WithError(err).WithFields(log.Fields{"real_ip": req.clientIP, "tenant_id": req.TenantID}).
 					Warn("failed to resolve the device position")
 
 				position = geoip.Position{}
@@ -613,8 +622,8 @@ func (s *service) authDevice(ctx context.Context, req requests.DeviceAuth, enrol
 
 		revived := device.RemovedAt != nil
 
-		if ip := net.ParseIP(req.RealIP); ip != nil {
-			device.RemoteAddr = req.RealIP
+		if ip := net.ParseIP(req.clientIP); ip != nil {
+			device.RemoteAddr = req.clientIP
 		}
 
 		if device.RemovedAt != nil {

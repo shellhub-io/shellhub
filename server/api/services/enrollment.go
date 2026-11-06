@@ -88,7 +88,7 @@ const (
 	enrollPending enrollmentDecision = "pending"
 )
 
-func (s *service) evaluateEnrollment(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, paired bool) enrollmentDecision {
+func (s *service) evaluateEnrollment(ctx context.Context, key *models.ProvisioningKey, req deviceAuth, uid, hostname string, paired bool) enrollmentDecision {
 	if key == nil {
 		return enrollPending
 	}
@@ -125,7 +125,7 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.Provisioni
 	}
 }
 
-func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req requests.DeviceAuth, device *models.Device, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
+func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req deviceAuth, device *models.Device, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
 	uid := device.UID
 
 	if record {
@@ -175,7 +175,7 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 	}
 }
 
-func (s *service) recordEnrollment(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, reRegistration bool) {
+func (s *service) recordEnrollment(ctx context.Context, key *models.ProvisioningKey, req deviceAuth, uid, hostname string, reRegistration bool) {
 	if key == nil {
 		return
 	}
@@ -198,7 +198,7 @@ func (s *service) presentedProvisioningKey(ctx context.Context, sc scope.Scope, 
 	return key, nil
 }
 
-func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, req requests.DeviceAuth, uid, hostname string) bool {
+func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, req deviceAuth, uid, hostname string) bool {
 	if req.ProvisioningKey == "" {
 		return false
 	}
@@ -235,7 +235,7 @@ func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, 
 	return true
 }
 
-func (s *service) decideEnrollment(ctx context.Context, device *models.Device, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname string, record bool) {
+func (s *service) decideEnrollment(ctx context.Context, device *models.Device, key *models.ProvisioningKey, req deviceAuth, uid, hostname string, record bool) {
 	now := s.clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
@@ -259,7 +259,7 @@ func (s *service) reloadName(ctx context.Context, device *models.Device) {
 	device.Name = stored.Name
 }
 
-func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device, req requests.DeviceAuth, uid, hostname string) {
+func (s *service) reconcileEnrollment(ctx context.Context, device *models.Device, req deviceAuth, uid, hostname string) {
 	if device.ProvisioningKeyID == "" {
 		return
 	}
@@ -305,7 +305,7 @@ func signEnrollmentWebhook(secret string, body []byte) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req requests.DeviceAuth, uid string) string {
+func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req deviceAuth, uid string) string {
 	if req.ForwardedHost == "" {
 		return ""
 	}
@@ -330,7 +330,7 @@ func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req request
 	return fmt.Sprintf("%s://%s/api/devices/enroll/callback/%s", proto, req.ForwardedHost, token)
 }
 
-func claimedIdentity(req requests.DeviceAuth) string {
+func claimedIdentity(req deviceAuth) string {
 	if req.Identity == nil {
 		return ""
 	}
@@ -338,7 +338,7 @@ func claimedIdentity(req requests.DeviceAuth) string {
 	return req.Identity.MAC
 }
 
-func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.ProvisioningKey, req requests.DeviceAuth, uid, hostname, callbackURL string) (enrollmentDecision, error) {
+func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.ProvisioningKey, req deviceAuth, uid, hostname, callbackURL string) (enrollmentDecision, error) {
 	payload := enrollmentWebhookRequest{
 		TenantID:            key.TenantID,
 		ProvisioningKeyID:   key.ID,
@@ -347,7 +347,7 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 		Identity:            claimedIdentity(req),
 		Hostname:            hostname,
 		Info:                req.Info,
-		SourceIP:            req.RealIP,
+		SourceIP:            req.clientIP,
 		Timestamp:           s.clock.Now(),
 		CallbackURL:         callbackURL,
 	}

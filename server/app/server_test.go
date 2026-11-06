@@ -10,6 +10,7 @@ import (
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/telemetry"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
@@ -199,4 +200,11 @@ func TestTelemetryWriteKey(t *testing.T) {
 			assert.Equal(t, tc.key, key)
 		})
 	}
+}
+
+func TestRouterOptionsRefuseAMalformedTrustedProxyList(t *testing.T) {
+	s := &Server{env: &Env{HTTPTrustedProxies: "10.0.0.0/8 192.168.0.1"}}
+
+	_, err := s.routerOptions(t.Context(), "")
+	require.ErrorIs(t, err, origin.ErrInvalidTrust)
 }

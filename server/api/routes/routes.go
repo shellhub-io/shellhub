@@ -14,6 +14,7 @@ import (
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/sirupsen/logrus"
@@ -34,8 +35,6 @@ func DefaultHTTPHandler() http.Handler {
 	server.Validator = handlers.NewValidator()
 
 	server.HTTPErrorHandler = handlers.NewErrors(nil)
-
-	server.IPExtractor = handlers.RealIPExtractor()
 
 	server.Logger = pkgmiddleware.NewSlogLogger(logrus.NewEntry(logrus.StandardLogger()))
 
@@ -122,6 +121,16 @@ func WithEdition(edition envs.Edition) Option {
 	}
 }
 
+// WithTrustedProxies lets the peers trust lists speak for a client through X-Real-IP and
+// X-Forwarded-*. Without it only loopback may.
+func WithTrustedProxies(trust *origin.Trust) Option {
+	return func(_ *echo.Echo, handler *Handler) error {
+		handler.trust = trust
+
+		return nil
+	}
+}
+
 // WithDeviceListMaxPageSize sets the largest page a cursor read of the device list returns. A
 // larger page[size] is lowered to it, and a size below one means query.DefaultMaxPageSize.
 func WithDeviceListMaxPageSize(size int64) Option {
@@ -159,6 +168,9 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 		}
 	}
 
+	router.IPExtractor = handler.trust.ClientIP
+	router.Pre(resolveOrigin(handler.trust))
+
 	table := handler.publicRoutes()
 	mount(router.Group(publicAPIPrefix), table)
 
@@ -181,4 +193,15 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 	router.Pre(echoMiddleware.Rewrite(rootAliases))
 
 	return router, nil
+}
+
+func resolveOrigin(trust *origin.Trust) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			req := c.Request()
+			c.SetRequest(req.WithContext(origin.NewContext(req.Context(), trust.Resolve(req))))
+
+			return next(c)
+		}
+	}
 }

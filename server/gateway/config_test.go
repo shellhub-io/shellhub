@@ -44,3 +44,37 @@ func TestConfigAsksForNoACMEDNSAccountWithoutTheWildcard(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadGatewayConfigTrustsNoProxyUnlessListed(t *testing.T) {
+	t.Setenv("SHELLHUB_DOMAIN", "shellhub.example")
+
+	t.Run("the PROXY protocol without a trusted list is refused", func(t *testing.T) {
+		t.Setenv("SHELLHUB_PROXY", "true")
+		t.Setenv("SHELLHUB_PROXY_TRUSTED_IPS", "")
+
+		_, err := LoadGatewayConfig(t.Context())
+
+		var invalid validator.ValidationErrors
+		require.ErrorAs(t, err, &invalid)
+		require.Len(t, invalid, 1)
+		assert.Equal(t, "ProxyTrustedIPs", invalid[0].Field())
+	})
+
+	t.Run("the PROXY protocol trusts the listed prefixes alone", func(t *testing.T) {
+		t.Setenv("SHELLHUB_PROXY", "true")
+		t.Setenv("SHELLHUB_PROXY_TRUSTED_IPS", "10.0.0.0/8")
+
+		cfg, err := LoadGatewayConfig(t.Context())
+		require.NoError(t, err)
+		assert.Equal(t, "10.0.0.0/8", cfg.ProxyTrustedIPs)
+	})
+
+	t.Run("without the PROXY protocol an empty list stays empty", func(t *testing.T) {
+		t.Setenv("SHELLHUB_PROXY", "false")
+		t.Setenv("SHELLHUB_PROXY_TRUSTED_IPS", "")
+
+		cfg, err := LoadGatewayConfig(t.Context())
+		require.NoError(t, err)
+		assert.Empty(t, cfg.ProxyTrustedIPs)
+	})
+}

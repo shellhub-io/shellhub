@@ -314,7 +314,7 @@ func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairin
 		}
 	}
 
-	auth, err := s.authDevice(ctx, authReq, enrollmentOptions{paired: true, ownerID: ownerID, verification: keyNotAsked})
+	auth, err := s.authDevice(ctx, deviceAuth{DeviceAuth: authReq}, enrollmentOptions{paired: true, ownerID: ownerID, verification: keyNotAsked})
 	if err != nil {
 		return nil, err
 	}
