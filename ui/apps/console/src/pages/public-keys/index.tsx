@@ -38,6 +38,7 @@ import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
+import TagBadge from "@/components/common/TagBadge";
 
 function ScopeCell({ pk }: { pk: PublicKey }) {
   const isAllUsers = pk.username === ".*" || !pk.username;
@@ -50,15 +51,7 @@ function ScopeCell({ pk }: { pk: PublicKey }) {
         {pk.filter.tags.map((tag) => {
           const label =
             typeof tag === "string" ? tag : (tag as { name: string }).name;
-          return (
-            <span
-              key={label}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 text-primary text-2xs font-mono rounded"
-            >
-              <TagIcon className="w-2.5 h-2.5 shrink-0" strokeWidth={2} />
-              {label}
-            </span>
-          );
+          return <TagBadge key={label} name={label} />;
         })}
       </span>
     );
