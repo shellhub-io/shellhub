@@ -22,6 +22,7 @@ const (
 	GetDeviceListURL           = "/devices"
 	GetDeviceURL               = "/devices/:uid"
 	ResolveDeviceURL           = "/devices/resolve"
+	DeviceLocationsURL         = "/devices/locations"
 	DeleteDeviceURL            = "/devices/:uid"
 	RenameDeviceURL            = "/devices/:uid"
 	UpdateDeviceStatusURL      = "/devices/:uid/:status"
@@ -30,6 +31,8 @@ const (
 	DeleteDeviceCustomFieldURL = "/devices/:uid/custom_fields/:key"
 	MakeTeamDeviceURL          = "/devices/:uid/owner"
 )
+
+const geoipSourceHeader = "X-GeoIP-Source"
 
 const (
 	pageSizeParam  = "page[size]"
@@ -186,6 +189,42 @@ func nextDevicePageURL(c *gateway.Context, params url.Values, size int64, cursor
 // failure and a cancelled ctx alike.
 func (h *Handler) GetDevice(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceGet) (*models.Device, error) {
 	return h.service.GetDevice(ctx, sc, models.UID(req.UID))
+}
+
+// GetDeviceLocations serves the namespace's accepted devices counted by position, for drawing them
+// on a map without reading every device, and names the GeoIP database that placed them in the
+// X-GeoIP-Source header, left out when the server opened none. It answers 400 to a filter it cannot read, 403 when the
+// request carries no namespace outside the admin console, and 500 to any other failure, the
+// request's context ending while the store reads included.
+func (h *Handler) GetDeviceLocations(c *gateway.Context) error {
+	req := new(requests.DeviceLocationList)
+	if err := c.Bind(req); err != nil {
+		return err
+	}
+
+	if err := req.Filters.Unmarshal(); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
+	}
+
+	if err := query.ValidateFilters(&req.Filters, services.DeviceFilterFields); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"filter": err.Error()})
+	}
+
+	sc, err := c.AdminOrScope()
+	if err != nil {
+		return err
+	}
+
+	locations, err := h.service.ListDeviceLocations(c.Ctx(), sc, req)
+	if err != nil {
+		return err
+	}
+
+	if h.geoipSource != "" {
+		c.Response().Header().Set(geoipSourceHeader, h.geoipSource)
+	}
+
+	return c.JSON(http.StatusOK, locations)
 }
 
 // ResolveDevice serves the device matching a name or SSHID, for callers that have a name

@@ -50,6 +50,7 @@ var Groups = []Group{
 	{Name: "DeviceStore", Tests: []TestFunc{
 		(*Suite).TestDeviceList,
 		(*Suite).TestDeviceListAfter,
+		(*Suite).TestDeviceLocations,
 		(*Suite).TestDeviceResolve,
 		(*Suite).TestDeviceCreate,
 		(*Suite).TestDeviceConflicts,
@@ -65,6 +66,7 @@ var Groups = []Group{
 		(*Suite).TestDeviceSetOwner,
 		(*Suite).TestDeviceUpdateDoesNotClobberOwner,
 		(*Suite).TestDeviceListFiltersByOwner,
+		(*Suite).TestDeviceListFiltersByLocated,
 		(*Suite).TestDeviceOwnerMustBeAMember,
 		(*Suite).TestDeviceUpdateUnlessRemoved,
 	}},

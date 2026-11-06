@@ -1,6 +1,7 @@
 package query
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/shellhub-io/shellhub/pkg/uuid"
@@ -58,6 +59,7 @@ type FieldConstraints struct {
 	virtualBools FieldSet
 	values       map[string]FieldSet
 	uuids        FieldSet
+	numbers      FieldSet
 }
 
 // NewFieldConstraints returns a FieldConstraints initialized with the given
@@ -128,6 +130,16 @@ func (c FieldConstraints) WithUUIDs(names ...string) FieldConstraints {
 	return c
 }
 
+// WithNumbers returns a copy of the constraints where each named field accepts only a finite
+// number, or a string that parses as one, under gt and lt. Declare it for a field backed by a
+// numeric column: without it a word reaches the store, which cannot compare it and answers a 500
+// rather than a 400.
+func (c FieldConstraints) WithNumbers(names ...string) FieldConstraints {
+	c.numbers = NewFieldSet(names...)
+
+	return c
+}
+
 // AllowsValue reports whether value is comparable against the given field. It is true for a field
 // that declares no values, so a field carrying free text is unaffected.
 func (c FieldConstraints) AllowsValue(name, value string) bool {
@@ -163,6 +175,8 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 // ValidateFilters returns [ErrFilterPropertyInvalid] if any property filter
 // references a (field, operator) pair not in constraints, compares a field
 // against a value it does not declare (see [FieldConstraints.WithValues]),
+// compares a number field under gt or lt against anything but a finite number
+// (see [FieldConstraints.WithNumbers]),
 // carries a non-primitive Value, or exceeds the configured size limits.
 // Operator filters (and/or) are left to the store to parse.
 //
@@ -198,6 +212,10 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 		}
 
 		if prop.Operator == "bool" && !isBoolConvertible(prop.Value) {
+			return ErrFilterPropertyInvalid
+		}
+
+		if (prop.Operator == "gt" || prop.Operator == "lt") && constraints.numbers.Allows(prop.Name) && !isFiniteNumber(prop.Value) {
 			return ErrFilterPropertyInvalid
 		}
 
@@ -240,6 +258,26 @@ func isValueWithinLimits(v any) bool {
 	default:
 		return true
 	}
+}
+
+func isFiniteNumber(v any) bool {
+	var number float64
+
+	switch x := v.(type) {
+	case float64:
+		number = x
+	case string:
+		parsed, err := strconv.ParseFloat(x, 64)
+		if err != nil {
+			return false
+		}
+
+		number = parsed
+	default:
+		return false
+	}
+
+	return !math.IsNaN(number) && !math.IsInf(number, 0)
 }
 
 func isBoolConvertible(v any) bool {

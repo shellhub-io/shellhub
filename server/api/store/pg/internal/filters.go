@@ -77,6 +77,25 @@ func fromKeyVerifiedFilter(value any) (string, []any, bool, error) {
 	return `"device"."key_verified_at" IS NULL`, nil, true, nil
 }
 
+// DeviceLocated is the predicate a device with a position meets. The store keeps a device with no
+// position at 0,0, and a NULL coordinate is no position either. It reads the device table under
+// the alias "device".
+const DeviceLocated = `("device"."latitude" IS NOT NULL AND "device"."longitude" IS NOT NULL` +
+	` AND NOT ("device"."latitude" = 0 AND "device"."longitude" = 0))`
+
+func fromLocatedFilter(value any) (string, []any, bool, error) {
+	located, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
+	}
+
+	if located {
+		return DeviceLocated, nil, true, nil
+	}
+
+	return "NOT " + DeviceLocated, nil, true, nil
+}
+
 func fromClosedFilter(value any) (string, []any, bool, error) {
 	closed, err := parseBoolFilterValue(value)
 	if err != nil {
@@ -147,6 +166,10 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string, onlineCuto
 
 	if fp.Name == "key_verified" {
 		return fromKeyVerifiedFilter(fp.Value)
+	}
+
+	if fp.Name == "located" {
+		return fromLocatedFilter(fp.Value)
 	}
 
 	if fp.Name == "closed" && tableAlias == "session" {

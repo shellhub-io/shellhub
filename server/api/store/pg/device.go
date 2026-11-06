@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
+	"github.com/shellhub-io/shellhub/server/api/store/pg/internal"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 )
@@ -84,6 +85,35 @@ func (pg *Pg) DeviceList(ctx context.Context, sc scope.Scope, acceptable store.D
 	}
 
 	return devicesToModels(entities), count, nil
+}
+
+// DeviceLocations implements [store.DeviceStore].
+func (pg *Pg) DeviceLocations(ctx context.Context, sc scope.Scope, opts ...store.QueryOption) ([]models.DeviceLocation, error) {
+	locations := make([]models.DeviceLocation, 0)
+
+	ctx = context.WithValue(ctx, CtxTableAlias, "device")
+
+	selection := pg.GetConnection(ctx).
+		NewSelect().
+		TableExpr("devices AS device").
+		ColumnExpr("round(device.latitude, ?)::float8 AS latitude", models.DeviceLocationPrecision).
+		ColumnExpr("round(device.longitude, ?)::float8 AS longitude", models.DeviceLocationPrecision).
+		ColumnExpr("count(*) AS devices").
+		ColumnExpr("count(*) FILTER (WHERE device.disconnected_at IS NULL AND device.last_seen > ?) AS online", OnlineCutoff(pg.clock)).
+		Where("device.status = ?", models.DeviceStatusAccepted).
+		Where(internal.DeviceLocated).
+		GroupExpr("1, 2")
+
+	selection, err := applyScopedOptions(ctx, selection, sc, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := selection.Scan(ctx, &locations); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	return locations, nil
 }
 
 // DeviceListAfter implements [store.DeviceStore].

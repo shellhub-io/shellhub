@@ -359,7 +359,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, rpOpts...)
 
-	routerOptions, err := s.routerOptions(ctx)
+	routerOptions, err := s.routerOptions(ctx, located.source)
 	if err != nil {
 		return err
 	}
@@ -750,10 +750,11 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 	return false
 }
 
-func (s *Server) routerOptions(ctx context.Context) ([]routes.Option, error) {
+func (s *Server) routerOptions(ctx context.Context, geoipSource string) ([]routes.Option, error) {
 	opts := []routes.Option{
 		routes.WithEdition(s.env.Edition),
 		routes.WithDeviceListMaxPageSize(s.env.DeviceListMaxPageSize),
+		routes.WithGeoIPSource(geoipSource),
 	}
 
 	if s.env.SentryDSN != "" {

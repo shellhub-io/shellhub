@@ -132,6 +132,16 @@ func WithDeviceListMaxPageSize(size int64) Option {
 	}
 }
 
+// WithGeoIPSource names the GeoIP database the server locates devices with, dbip or maxmind, which
+// the device map reads from the X-GeoIP-Source header to credit it. Empty, the header is left out.
+func WithGeoIPSource(source string) Option {
+	return func(_ *echo.Echo, handler *Handler) error {
+		handler.geoipSource = source
+
+		return nil
+	}
+}
+
 // NewRouter builds the API router over service, applying each option in turn.
 // It returns a nil router and an error wrapping the option's own error when an
 // option fails, or an error when [DefaultHTTPHandler] does not build an

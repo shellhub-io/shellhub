@@ -16,6 +16,7 @@ type Handler struct {
 	edition envs.Edition
 
 	deviceListMaxPageSize int64
+	geoipSource           string
 }
 
 // NewHandler returns a handler over s with no authenticator. Until WithAuthenticator sets one,

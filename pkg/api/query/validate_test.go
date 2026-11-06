@@ -495,3 +495,38 @@ func TestFieldConstraints_WithUUIDs(t *testing.T) {
 	assert.False(t, constraints.AllowsValue("owner_id", "{11111111-1111-4111-8111-111111111111}"))
 	assert.True(t, constraints.AllowsValue("name", "not-a-uuid"), "a field not declared a uuid takes any string")
 }
+
+func TestValidateFiltersRejectsANonNumberOnANumberField(t *testing.T) {
+	allowed := NewFieldConstraints(map[string][]string{
+		"latitude":   {"gt", "lt"},
+		"removed_at": {"gt", "lt"},
+	}).WithNumbers("latitude")
+
+	property := func(name, operator string, value any) *Filters {
+		return &Filters{Data: []Filter{{
+			Type:   FilterTypeProperty,
+			Params: &FilterProperty{Name: name, Operator: operator, Value: value},
+		}}}
+	}
+
+	cases := []struct {
+		name    string
+		filters *Filters
+		wantErr error
+	}{
+		{"number with gt", property("latitude", "gt", 47.3), nil},
+		{"number with lt", property("latitude", "lt", -12.0), nil},
+		{"numeric string", property("latitude", "gt", "47.3"), nil},
+		{"word", property("latitude", "gt", "north"), ErrFilterPropertyInvalid},
+		{"bool", property("latitude", "lt", true), ErrFilterPropertyInvalid},
+		{"not a finite number", property("latitude", "gt", "NaN"), ErrFilterPropertyInvalid},
+		{"infinity", property("latitude", "lt", "Inf"), ErrFilterPropertyInvalid},
+		{"field declaring no numbers is left alone", property("removed_at", "gt", "2026-01-01"), nil},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.wantErr, ValidateFilters(tc.filters, allowed))
+		})
+	}
+}

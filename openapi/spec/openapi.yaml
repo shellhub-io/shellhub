@@ -150,6 +150,8 @@ paths:
     $ref: paths/api@devices@{uid}.yaml
   /api/devices/resolve:
     $ref: paths/api@devices@resolve.yaml
+  /api/devices/locations:
+    $ref: paths/api@devices@locations.yaml
   /api/devices/{uid}/{status}:
     $ref: paths/api@devices@{uid}@{status}.yaml
   /api/devices/{uid}/custom_fields/{key}:

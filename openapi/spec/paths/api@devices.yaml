@@ -12,6 +12,13 @@ get:
     with the `bool` or `eq` operator and matches the devices whose agent has, or
     has never, signed a server challenge with its device key.
 
+    **Filtering by position.** The `latitude` and `longitude` fields take a
+    number with the `gt` or `lt` operator and match the devices whose GeoIP
+    position lies past it. Joining the four bounds with `and` reads the devices
+    inside an area, such as a point of `GET /api/devices/locations`. A device
+    with no position is kept at 0,0, so add the `located` field, a boolean with
+    the `bool` or `eq` operator, to leave those out of an area around that point.
+
     **Deprecated filter field names.** The `filter` parameter still accepts the
     legacy Mongo-style field names `info.platform` and `identity.mac`, which are
     duplicates of `platform` and `mac` respectively. These aliases are kept for
