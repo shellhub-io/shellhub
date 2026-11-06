@@ -1044,10 +1044,11 @@ func groupCode(code string) string {
 // Next steps can use the context's snapshot to retrieve the created session.
 //
 // Every attempt is evaluated, and the session reaches the device only with the grant that
-// evaluation returned. Once connected, a grant redeems its single-use identity, and losing
-// the redemption returns ErrAccessDenied. Otherwise it returns Evaluate's error, the
-// redemption's, the registration's, the connection's, or ErrInvalidSessionState from a state
-// that cannot authenticate.
+// evaluation returned. Every grant redeems its single-use identity before it reaches the
+// device, the first one before the session registers, and losing the redemption returns
+// ErrAccessDenied. Otherwise it returns Evaluate's error, the redemption's, the
+// registration's, the connection's, or ErrInvalidSessionState from a state that cannot
+// authenticate.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
 
@@ -1069,7 +1070,7 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 			return err
 		}
 
-		return sess.join(ctx, g)
+		return sess.rejoin(ctx, g)
 	default:
 		return ErrInvalidSessionState
 	}
@@ -1092,11 +1093,23 @@ func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
 }
 
 func (s *Session) finish(ctx gliderssh.Context, g grant) error {
+	if err := s.redeem(ctx, g); err != nil {
+		return err
+	}
+
 	if err := s.register(ctx, g.principal); err != nil {
 		return err
 	}
 
 	advance(ctx, s, StateRegistered)
+
+	return s.join(ctx, g)
+}
+
+func (s *Session) rejoin(ctx gliderssh.Context, g grant) error {
+	if err := s.redeem(ctx, g); err != nil {
+		return err
+	}
 
 	return s.join(ctx, g)
 }
@@ -1120,10 +1133,6 @@ func (s *Session) redeem(ctx context.Context, g grant) error {
 
 func (s *Session) join(ctx gliderssh.Context, g grant) error {
 	if err := s.connect(ctx, g.method); err != nil {
-		return err
-	}
-
-	if err := s.redeem(ctx, g); err != nil {
 		return err
 	}
 
