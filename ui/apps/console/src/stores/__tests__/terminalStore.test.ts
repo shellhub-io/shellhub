@@ -31,6 +31,29 @@ beforeEach(() => {
     recordings: [],
     windowOrder: [],
     restoreAfterNavigation: null,
+    reconnectTarget: null,
+  });
+});
+
+describe("terminalStore connect", () => {
+  it("asks for a connection to a device with no open terminal", () => {
+    useTerminalStore.getState().connect("dev-1", "zurich-1");
+
+    expect(useTerminalStore.getState().reconnectTarget).toEqual({
+      deviceUid: "dev-1",
+      deviceName: "zurich-1",
+    });
+  });
+
+  it("brings back the device's open terminal instead of connecting again", () => {
+    const id = openTerminal();
+    useTerminalStore.getState().minimizeAll();
+
+    useTerminalStore.getState().connect("dev-1", "dev-1");
+
+    const { sessions, reconnectTarget } = useTerminalStore.getState();
+    expect(sessions.find((s) => s.id === id)?.state).toBe("shown");
+    expect(reconnectTarget).toBeNull();
   });
 });
 

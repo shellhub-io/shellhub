@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import type { Device } from "@/client";
 import { http, HttpResponse } from "msw";
-import { server } from "@/tests/msw";
+import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import {
   mockContainer as mockContainerFactory,
@@ -12,18 +12,8 @@ import {
 } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
-vi.mock("@/stores/terminalStore", () => ({
-  useTerminalStore: (
-    sel: (s: { sessions: []; restore: () => void }) => unknown,
-  ) => sel({ sessions: [], restore: vi.fn() }),
-}));
-
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
-}));
-
-vi.mock("@/components/ConnectModal", () => ({
-  default: () => <div />,
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -55,10 +45,6 @@ vi.mock("@/utils/date", () => ({
   formatDateFull: () => "Jan 15, 2024",
 }));
 
-vi.mock("@/utils/sshid", () => ({
-  buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
-}));
-
 const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -67,11 +53,12 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useParams: () => ({ uid: "test-uid" }),
     useNavigate: () => mockNavigate,
-    useSearchParams: () => [new URLSearchParams(), vi.fn()],
   };
 });
 
 import ContainerDetails from "@/pages/ContainerDetails";
+import TerminalManager from "@/components/terminal/TerminalManager";
+import { useTerminalStore } from "@/stores/terminalStore";
 
 function makeContainer(overrides: Partial<Device> = {}): Device {
   return mockContainerFactory({
@@ -109,6 +96,7 @@ function renderPage() {
 beforeEach(() => {
   vi.clearAllMocks();
   seedAuthStore();
+  useTerminalStore.setState({ sessions: [], reconnectTarget: null });
   server.use(
     http.get("*/api/containers/:uid", () => HttpResponse.json(null)),
     http.get("*/api/namespaces/:tenant", () =>
@@ -261,5 +249,29 @@ describe("ContainerDetails", () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
+
+  it("opens the connect dialog when the link asks to connect", async () => {
+    server.use(
+      http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+      http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+    );
+    setContainer();
+
+    render(
+      <>
+        <ContainerDetails />
+        <TerminalManager />
+      </>,
+      {
+        wrapper: createTestWrapper({
+          initialEntries: ["/containers/test-uid?connect=true"],
+        }),
+      },
+    );
+
+    expect(
+      await screen.findByRole("dialog", { name: "Connect" }),
+    ).toBeInTheDocument();
   });
 });

@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import RenameSection from "@/components/common/RenameSection";
 import {
@@ -22,11 +21,10 @@ import { useTerminalStore } from "../stores/terminalStore";
 import { useActionDialog } from "../hooks/useActionDialog";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useContainerActionRunner } from "@/hooks/useContainerActionRunner";
-import ConnectModal from "../components/ConnectModal";
 import CopyButton from "../components/common/CopyButton";
 import { buildSshid } from "../utils/sshid";
 import RestrictedAction from "../components/common/RestrictedAction";
-import { useHasPermission } from "@/hooks/useHasPermission";
+import { useConnectFromLink } from "@/hooks/useConnectFromLink";
 import TagsSection from "@/components/common/TagsSection";
 import PageLoader from "@/components/common/PageLoader";
 import IdentityCard from "@/components/common/IdentityCard";
@@ -43,7 +41,6 @@ import ResourceNotFound from "@/components/common/ResourceNotFound";
 export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const { data: container, isLoading, error } = useQuery(
     getContainerOptions({ path: { uid: uid! } }),
@@ -51,11 +48,7 @@ export default function ContainerDetails() {
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
-  const existingSession = useTerminalStore((s) =>
-    s.sessions.find((sess) => sess.deviceUid === uid),
-  );
-  const restoreTerminal = useTerminalStore((s) => s.restore);
-  const [connectOpen, setConnectOpen] = useState(false);
+  const connect = useTerminalStore((s) => s.connect);
 
   const renameMutation = useRenameContainer();
   const addTagMutation = useAddContainerTag();
@@ -66,26 +59,8 @@ export default function ContainerDetails() {
     },
   });
   const runContainerAction = useContainerActionRunner();
-  const canConnect = useHasPermission("device:connect");
 
-  const wantsAutoConnect =
-    canConnect && searchParams.get("connect") === "true" && container?.online;
-
-  const shouldAutoConnect = wantsAutoConnect && !existingSession;
-  const [autoConnectDone, setAutoConnectDone] = useState(false);
-  if (shouldAutoConnect && !autoConnectDone) {
-    setAutoConnectDone(true);
-    setConnectOpen(true);
-  }
-  if (!shouldAutoConnect && autoConnectDone) {
-    setAutoConnectDone(false);
-  }
-
-  useEffect(() => {
-    if (wantsAutoConnect && existingSession) {
-      restoreTerminal(existingSession.id);
-    }
-  }, [wantsAutoConnect, existingSession, restoreTerminal]);
+  useConnectFromLink(container);
 
   if (isLoading) {
     return <PageLoader label="Loading container details" />;
@@ -183,13 +158,7 @@ export default function ContainerDetails() {
               <RestrictedAction action="device:connect">
                 <Button
                   variant="success"
-                  onClick={() => {
-                    if (existingSession) {
-                      restoreTerminal(existingSession.id);
-                    } else {
-                      setConnectOpen(true);
-                    }
-                  }}
+                  onClick={() => connect(container.uid, container.name)}
                   disabled={!container.online}
                   icon={
                     <ChevronDoubleRightIcon
@@ -326,14 +295,6 @@ export default function ContainerDetails() {
           removeTag={removeTagMutation.mutateAsync}
         />
       </Card>
-
-      <ConnectModal
-        open={connectOpen}
-        onClose={() => setConnectOpen(false)}
-        deviceUid={container.uid}
-        deviceName={container.name}
-        sshid={sshid}
-      />
 
       {containerActions.action && (
         <ActionDialog

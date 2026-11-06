@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import type { Device } from "@/client";
-import { createTestWrapper } from "@/tests/wrapper";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
   mockProvisioningKey,
@@ -13,22 +13,12 @@ import {
 } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
-vi.mock("@/stores/terminalStore", () => ({
-  useTerminalStore: (
-    sel: (s: { sessions: []; restore: () => void }) => unknown,
-  ) => sel({ sessions: [], restore: vi.fn() }),
-}));
-
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
 vi.mock("@/components/common/PlatformBadge", () => ({
   default: ({ platform }: { platform: string }) => <span>{platform}</span>,
-}));
-
-vi.mock("@/components/ConnectModal", () => ({
-  default: () => <div />,
 }));
 
 vi.mock("@/components/common/RestrictedAction", () => ({
@@ -60,10 +50,6 @@ vi.mock("@/utils/date", () => ({
   formatDateFull: () => "Jan 15, 2024",
 }));
 
-vi.mock("@/utils/sshid", () => ({
-  buildSshid: (ns: string, name: string) => `${ns}.${name}@localhost`,
-}));
-
 const mockNavigate = vi.fn();
 
 vi.mock("react-router-dom", async (importOriginal) => {
@@ -72,11 +58,13 @@ vi.mock("react-router-dom", async (importOriginal) => {
     ...actual,
     useParams: () => ({ uid: "test-uid" }),
     useNavigate: () => mockNavigate,
-    useSearchParams: () => [new URLSearchParams(), vi.fn()],
   };
 });
 
 import DeviceDetails from "@/pages/DeviceDetails";
+import TerminalManager from "@/components/terminal/TerminalManager";
+import { useTerminalStore } from "@/stores/terminalStore";
+import type { QueryClient } from "@tanstack/react-query";
 
 function makeDevice(overrides: Partial<Device> = {}): Device {
   return mockDeviceFactory({
@@ -112,6 +100,21 @@ function renderPage() {
   return render(<DeviceDetails />, {
     wrapper: createTestWrapper({ initialEntries: ["/devices/test-uid"] }),
   });
+}
+
+function renderLinkedPage(queryClient?: QueryClient) {
+  return render(
+    <>
+      <DeviceDetails />
+      <TerminalManager />
+    </>,
+    {
+      wrapper: createTestWrapper({
+        initialEntries: ["/devices/test-uid?connect=true"],
+        queryClient,
+      }),
+    },
+  );
 }
 
 beforeEach(() => {
@@ -320,6 +323,60 @@ describe("DeviceDetails", () => {
       capturedOnSuccess!("accept");
 
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("connecting from a link", () => {
+    beforeEach(() => {
+      useTerminalStore.setState({ sessions: [], reconnectTarget: null });
+      server.use(
+        http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+        http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+      );
+    });
+
+    it("opens the connect dialog for an online device", async () => {
+      setDevice(makeDevice());
+      renderLinkedPage();
+
+      expect(
+        await screen.findByRole("dialog", { name: "Connect" }),
+      ).toBeInTheDocument();
+    });
+
+    it("leaves an offline device alone", async () => {
+      setDevice(makeDevice({ online: false }));
+      renderLinkedPage();
+
+      await screen.findByRole("heading", { name: "my-device" });
+      expect(
+        screen.queryByRole("dialog", { name: "Connect" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("does not ask again once the device is renamed", async () => {
+      const user = userEvent.setup();
+      const queryClient = createTestQueryClient();
+      setDevice(makeDevice());
+      renderLinkedPage(queryClient);
+
+      const dialog = await screen.findByRole("dialog", { name: "Connect" });
+      await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("dialog", { name: "Connect" }),
+        ).not.toBeInTheDocument(),
+      );
+
+      setDevice(makeDevice({ name: "renamed" }));
+      await queryClient.invalidateQueries();
+
+      expect(
+        await screen.findByRole("heading", { name: "renamed" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("dialog", { name: "Connect" }),
+      ).not.toBeInTheDocument();
     });
   });
 });

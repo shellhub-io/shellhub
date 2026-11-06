@@ -8,7 +8,6 @@ import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
 import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
-import ConnectModal from "@/components/ConnectModal";
 import ManageTagsModal from "@/components/ManageTagsModal";
 import CopyButton from "@/components/common/CopyButton";
 import PlatformBadge from "@/components/common/PlatformBadge";
@@ -100,11 +99,6 @@ export default function Devices() {
   const removeDeviceTag = useRemoveDeviceTag();
   const renameDevice = useRenameDevice();
   const canRename = useHasPermission("device:rename");
-  const [connectTarget, setConnectTarget] = useState<{
-    uid: string;
-    name: string;
-    sshid: string;
-  } | null>(null);
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -223,21 +217,7 @@ export default function Devices() {
                 }
                 onClick={(e) => {
                   e.stopPropagation();
-                  const existing = useTerminalStore
-                    .getState()
-                    .sessions.find((s) => s.deviceUid === device.uid);
-                  if (existing) {
-                    useTerminalStore.getState().restore(existing.id);
-                  } else {
-                    const sshid = nsName
-                      ? buildSshid(nsName, device.name)
-                      : device.uid;
-                    setConnectTarget({
-                      uid: device.uid,
-                      name: device.name,
-                      sshid,
-                    });
-                  }
+                  useTerminalStore.getState().connect(device.uid, device.name);
                 }}
               >
                 Connect
@@ -360,14 +340,6 @@ export default function Devices() {
             )}
           </div>
         }
-      />
-
-      <ConnectModal
-        open={!!connectTarget}
-        onClose={() => setConnectTarget(null)}
-        deviceUid={connectTarget?.uid ?? ""}
-        deviceName={connectTarget?.name ?? ""}
-        sshid={connectTarget?.sshid ?? ""}
       />
 
       <ManageTagsModal

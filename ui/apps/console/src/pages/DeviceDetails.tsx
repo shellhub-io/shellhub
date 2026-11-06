@@ -1,10 +1,4 @@
-import { useEffect, useState } from "react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { LABEL_BASE } from "@/utils/styles";
 import {
@@ -31,7 +25,6 @@ import { useAuthStore } from "../stores/authStore";
 import { useTerminalStore } from "../stores/terminalStore";
 import ActionDialog from "@/components/common/ActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
-import ConnectModal from "../components/ConnectModal";
 import CopyButton from "../components/common/CopyButton";
 import PlatformBadge from "../components/common/PlatformBadge";
 import { buildSshid } from "../utils/sshid";
@@ -44,6 +37,7 @@ import TimelineCard from "@/components/common/TimelineCard";
 import TagsSection from "@/components/common/TagsSection";
 import RenameSection from "@/components/common/RenameSection";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { useConnectFromLink } from "@/hooks/useConnectFromLink";
 import CustomFieldsSection from "./devices/CustomFieldsSection";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
@@ -55,19 +49,13 @@ import ResourceNotFound from "@/components/common/ResourceNotFound";
 export default function DeviceDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { device, isLoading, error } = useDevice(uid ?? "");
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { provisioningKeys } = useProvisioningKeys();
-  const existingSession = useTerminalStore((s) =>
-    s.sessions.find((sess) => sess.deviceUid === uid),
-  );
-  const restoreTerminal = useTerminalStore((s) => s.restore);
-  const [connectOpen, setConnectOpen] = useState(false);
+  const connect = useTerminalStore((s) => s.connect);
   const renameMutation = useRenameDevice();
   const canRename = useHasPermission("device:rename");
-  const canConnect = useHasPermission("device:connect");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useActionDialog({
@@ -77,25 +65,7 @@ export default function DeviceDetails() {
   });
   const runDeviceAction = useDeviceActionRunner();
 
-  const wantsAutoConnect =
-    canConnect && searchParams.get("connect") === "true" && device?.online;
-
-  const shouldAutoConnect = wantsAutoConnect && !existingSession;
-
-  const [autoConnectDone, setAutoConnectDone] = useState(false);
-  if (shouldAutoConnect && !autoConnectDone) {
-    setAutoConnectDone(true);
-    setConnectOpen(true);
-  }
-  if (!shouldAutoConnect && autoConnectDone) {
-    setAutoConnectDone(false);
-  }
-
-  useEffect(() => {
-    if (wantsAutoConnect && existingSession) {
-      restoreTerminal(existingSession.id);
-    }
-  }, [wantsAutoConnect, existingSession, restoreTerminal]);
+  useConnectFromLink(device);
 
   if (isLoading) {
     return <PageLoader label="Loading device details" />;
@@ -197,13 +167,7 @@ export default function DeviceDetails() {
               <RestrictedAction action="device:connect">
                 <Button
                   variant="success"
-                  onClick={() => {
-                    if (existingSession) {
-                      restoreTerminal(existingSession.id);
-                    } else {
-                      setConnectOpen(true);
-                    }
-                  }}
+                  onClick={() => connect(device.uid, device.name)}
                   disabled={!device.online}
                   icon={
                     <ChevronDoubleRightIcon
@@ -375,14 +339,6 @@ export default function DeviceDetails() {
           />
         </Card>
       </div>
-
-      <ConnectModal
-        open={connectOpen}
-        onClose={() => setConnectOpen(false)}
-        deviceUid={device.uid}
-        deviceName={device.name}
-        sshid={sshid}
-      />
 
       {actionsController.action && (
         <ActionDialog
