@@ -10,6 +10,8 @@ import { sidebar, flattenItems } from "../data/sidebar";
 import { websiteUrl, docsUrl } from "../data/links";
 import CommandPalette from "../components/CommandPalette.astro";
 import UnreleasedBanner from "../components/UnreleasedBanner.astro";
+import SeoHead from "../components/SeoHead.astro";
+import { homeGraph } from "../lib/seo";
 
 const sections = sidebar.map(section => ({
   label: section.label,
@@ -23,8 +25,12 @@ const sections = sidebar.map(section => ({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ShellHub Documentation</title>
-    <meta name="description" content="Official documentation for ShellHub — centralized SSH access to Linux devices over the internet." />
+    <SeoHead
+      title="ShellHub Documentation"
+      description="Official ShellHub documentation: install the agent, reach Linux devices behind NAT and firewalls over SSH, manage access, and self-host the server."
+      type="website"
+      structuredData={homeGraph()}
+    />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="bg-background text-text-primary font-sans antialiased">

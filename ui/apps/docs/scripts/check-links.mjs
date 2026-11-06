@@ -27,6 +27,7 @@ function routeFor(root, file) {
   const path = relative(root, file).split(sep).join("/");
   if (path === "index.html") return "/";
   if (path.endsWith("/index.html")) return `/${path.slice(0, -10)}`;
+  if (path.endsWith(".html")) return `/${path.slice(0, -5)}`;
   return `/${path}`;
 }
 

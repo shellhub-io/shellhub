@@ -4,6 +4,9 @@ import * as path from "node:path";
 export default defineConfig({
   test: {
     environment: "node",
+    provide: {
+      fixtures: path.resolve(import.meta.dirname, "test/fixtures"),
+    },
   },
   resolve: {
     alias: {

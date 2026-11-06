@@ -38,6 +38,16 @@ function site(files) {
 }
 
 describe("checkLinks", () => {
+  it("resolves extensionless links against pages built as files", () => {
+    const root = site({
+      "connect.html": '<a href="/manage/devices#tags">Devices</a><a href="ssh-clients">Clients</a>',
+      "manage/devices.html": '<h2 id="tags">Tags</h2>',
+      "ssh-clients.html": "<h1>Clients</h1>",
+    });
+
+    expect(checkLinks(root)).toEqual([]);
+  });
+
   it("accepts local routes, fragments, assets, and external URLs", () => {
     const root = site({
       "index.html": '<a href="/guide/#install">Guide</a><a href="https://example.com">External</a>',

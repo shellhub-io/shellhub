@@ -1,17 +1,18 @@
 ---
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { sidebar, flattenItems } from "../data/sidebar";
+import { normalizePath } from "../lib/seo";
+
+const currentPath = normalizePath(Astro.url.pathname);
 
 const allItems = sidebar.flatMap(section =>
   flattenItems(section.items).map(item => ({
     label: item.label,
     href: item.href,
     section: section.label,
+    current: normalizePath(item.href) === currentPath,
   }))
 );
-
-const rawPath = Astro.url.pathname.replace(/\/$/, "");
-const currentPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
 ---
 
 <div class="cmd-palette" id="cmd-palette">
@@ -26,7 +27,7 @@ const currentPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
   </div>
 </div>
 
-<script define:vars={{ allItems, currentPath }}>
+<script define:vars={{ allItems }}>
   const palette = document.getElementById("cmd-palette");
   const overlay = document.getElementById("cmd-overlay");
   const input = document.getElementById("cmd-input");
@@ -63,7 +64,7 @@ const currentPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
         html += `<div class="cmd-section">${section}</div>`;
       }
       const sel = i === selectedIdx ? " cmd-item--sel" : "";
-      const cur = item.href.replace(/\/$/, "") === currentPath ? " cmd-item--cur" : "";
+      const cur = item.current ? " cmd-item--cur" : "";
       html += `<a href="${item.href}" class="cmd-item${sel}${cur}" data-i="${i}">
         <span>${item.label}</span>
         ${cur ? '<span class="cmd-badge">current</span>' : ""}

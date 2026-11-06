@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { parseDocument } from "yaml";
 
 const fields = ["layout", "title", "description"];
+const optional = { schema: ["faq"] };
 
 function report(file, reason, place) {
   const message = file.message(reason, place);
@@ -41,8 +42,14 @@ export default function remarkLintDocsFrontmatter() {
       }
     }
 
-    for (const field of Object.keys(frontmatter)) {
-      if (!fields.includes(field)) report(file, `Unexpected frontmatter field ${field}`, node);
+    for (const [field, value] of Object.entries(frontmatter)) {
+      if (Object.hasOwn(optional, field)) {
+        if (!optional[field].includes(value)) {
+          report(file, `Expected ${field} to be one of ${optional[field].join(", ")}`, node);
+        }
+      } else if (!fields.includes(field)) {
+        report(file, `Unexpected frontmatter field ${field}`, node);
+      }
     }
 
     if (

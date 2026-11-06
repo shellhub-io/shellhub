@@ -1,0 +1,57 @@
+---
+import {
+  SITE,
+  SOCIAL_IMAGE,
+  TITLE_SUFFIX,
+  absoluteUrl,
+  isIndexable,
+  isStableChannel,
+  jsonLd,
+  markdownPath,
+} from "../lib/seo";
+
+interface Props {
+  title: string;
+  description?: string;
+  type?: "website" | "article";
+  structuredData?: object;
+  markdown?: boolean;
+}
+
+const {
+  title,
+  description,
+  type = "article",
+  structuredData,
+  markdown = false,
+} = Astro.props;
+
+const stable = isStableChannel(import.meta.env.PUBLIC_DOCS_CHANNEL);
+const index = stable && isIndexable(Astro.url.pathname);
+const canonical = absoluteUrl(Astro.url.pathname);
+const image = `${SITE}${SOCIAL_IMAGE}`;
+---
+
+<title>{title}</title>
+{description && <meta name="description" content={description} />}
+<meta name="robots" content={index ? "index, follow, max-image-preview:large, max-snippet:-1" : "noindex, follow"} />
+{index && <link rel="canonical" href={canonical} />}
+{markdown && <link rel="alternate" type="text/markdown" title="Markdown" href={markdownPath(Astro.url.pathname)} />}
+<link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={TITLE_SUFFIX} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="ShellHub Documentation" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+<meta name="twitter:image" content={image} />
+
+{structuredData && <script type="application/ld+json" set:html={jsonLd(structuredData)} />}
