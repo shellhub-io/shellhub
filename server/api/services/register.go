@@ -43,6 +43,18 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (
 	return s.createNewUser(ctx, &req)
 }
 
+func registrationCreateError(err error) error {
+	if errors.Is(err, store.ErrDuplicate) {
+		if field, ok := store.DuplicatedField(err); ok {
+			return NewErrUserDuplicated([]string{field}, err)
+		}
+
+		return NewErrUserDuplicated([]string{}, err)
+	}
+
+	return NewErrUserCreate(err)
+}
+
 func (s *service) newRegistrationUser(req *requests.RegisterUser, email string) (*models.User, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
@@ -79,15 +91,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser)
 	}
 
 	if user.ID, err = s.store.UserCreate(ctx, user); err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(err); ok {
-				return nil, NewErrUserDuplicated([]string{field}, err)
-			}
-
-			return nil, NewErrUserDuplicated([]string{}, err)
-		}
-
-		return nil, NewErrUserCreate(err)
+		return nil, registrationCreateError(err)
 	}
 
 	if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
@@ -147,15 +151,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return nil
 	}); txErr != nil {
-		if errors.Is(txErr, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(txErr); ok {
-				return nil, NewErrUserDuplicated([]string{field}, txErr)
-			}
-
-			return nil, NewErrUserDuplicated([]string{}, txErr)
-		}
-
-		return nil, NewErrUserCreate(txErr)
+		return nil, registrationCreateError(txErr)
 	}
 
 	if user.AwaitingApproval {
