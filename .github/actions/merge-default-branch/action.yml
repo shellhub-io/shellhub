@@ -1,0 +1,41 @@
+name: Merge default branch
+description: >-
+  Merge the default branch into a checkout of a paired branch, so the paired repository is built
+  the way it will be once both pull requests merge, as GitHub builds the pull request's own merge
+  ref. Fails when the two do not merge cleanly.
+
+inputs:
+  path:
+    description: Path of the checkout.
+    required: true
+  ref:
+    description: The branch checked out. The step does nothing when it is the default branch.
+    required: true
+  default-branch:
+    description: Branch to merge in.
+    required: false
+    default: master
+  token:
+    description: Token authorising the fetch. Required when the repository is private.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        REF: ${{ inputs.ref }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        TOKEN: ${{ inputs.token }}
+        MERGE: ${{ github.action_path }}/merge.sh
+      run: |
+        if [[ -n "$TOKEN" ]]; then
+          BASIC=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          echo "::add-mask::$BASIC"
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $BASIC"
+        fi
+        bash "$MERGE" "$REF" "$DEFAULT_BRANCH"
