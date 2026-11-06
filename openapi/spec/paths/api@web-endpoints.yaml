@@ -1,7 +1,10 @@
 get:
   operationId: listWebEndpoints
   summary: List web endpoints
-  description: List web endpoints.
+  description: |
+    List web endpoints.
+
+    An endpoint's address reaches the device's service without further credentials, so listing requires a role that may connect to devices: operator, administrator or owner. Any other role gets `403`.
   tags:
     - cloud
     - web-endpoints
