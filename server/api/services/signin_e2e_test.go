@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -57,8 +59,13 @@ func TestSignIn(t *testing.T) {
 	}
 
 	samlEnabled := true
+	samlBroken := false
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), WithClock(provider.Clock()))
 	svc.AllowSignInMethod(models.UserAuthMethodSAML, func(context.Context) error {
+		if samlBroken {
+			return errors.New("the identity provider's metadata cannot be parsed")
+		}
+
 		if !samlEnabled {
 			return NewErrAuthMethodNotAllowed(models.UserAuthMethodSAML.String())
 		}
@@ -184,4 +191,99 @@ func TestSignIn(t *testing.T) {
 		require.ErrorIs(t, err, ErrAuthUnathorized)
 		assert.Nil(t, res)
 	})
+
+	renewals := []struct {
+		description  string
+		username     string
+		change       func(*models.User)
+		impersonated bool
+		localOff     bool
+		samlOff      bool
+		samlBroken   bool
+		expected     error
+	}{
+		{
+			description: "renews the token of a user the sign-in policy still admits",
+			username:    "renew-allowed",
+		},
+		{
+			description: "refuses to renew while the instance has the user's only method off",
+			username:    "renew-local-off",
+			localOff:    true,
+			expected:    ErrAuthUnathorized,
+		},
+		{
+			description: "renews while another method of the user is on",
+			username:    "renew-saml-on",
+			change: func(u *models.User) {
+				u.Preferences.AuthMethods = []models.UserAuthMethod{models.UserAuthMethodLocal, models.UserAuthMethodSAML}
+			},
+			localOff: true,
+		},
+		{
+			description: "refuses to renew while every method of the user is off",
+			username:    "renew-all-off",
+			change: func(u *models.User) {
+				u.Preferences.AuthMethods = []models.UserAuthMethod{models.UserAuthMethodLocal, models.UserAuthMethodSAML}
+			},
+			localOff: true,
+			samlOff:  true,
+			expected: ErrAuthUnathorized,
+		},
+		{
+			description: "renews by a later method while an earlier one's check fails",
+			username:    "renew-saml-broken",
+			change: func(u *models.User) {
+				u.Preferences.AuthMethods = []models.UserAuthMethod{models.UserAuthMethodSAML, models.UserAuthMethodLocal}
+			},
+			samlBroken: true,
+		},
+		{
+			description: "refuses to renew for a user with no sign-in method",
+			username:    "renew-no-method",
+			change:      func(u *models.User) { u.Preferences.AuthMethods = nil },
+			expected:    ErrAuthUnathorized,
+		},
+		{
+			description: "refuses to renew for a user who has not confirmed the account",
+			username:    "renew-unconfirmed",
+			change:      func(u *models.User) { u.Status = models.UserStatusNotConfirmed },
+			expected:    ErrAuthUnathorized,
+		},
+		{
+			description: "refuses to renew for a user an administrator has not approved",
+			username:    "renew-unapproved",
+			change:      func(u *models.User) { u.AwaitingApproval = true },
+			expected:    ErrAuthUnathorized,
+		},
+		{
+			description:  "renews an impersonated token whatever the user's sign-in policy",
+			username:     "renew-impersonated",
+			change:       func(u *models.User) { u.AwaitingApproval = true },
+			impersonated: true,
+			localOff:     true,
+		},
+	}
+
+	for _, tc := range renewals {
+		t.Run(tc.description, func(t *testing.T) {
+			id := newUser(t, tc.username, tc.change)
+
+			setLocalSignIn(t, !tc.localOff)
+			samlEnabled = !tc.samlOff
+			samlBroken = tc.samlBroken
+
+			res, err := svc.RenewUserToken(ctx, &requests.RenewUserToken{UserID: id, Impersonated: tc.impersonated})
+			if tc.expected != nil {
+				require.ErrorIs(t, err, tc.expected)
+				assert.Nil(t, res)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.NotEmpty(t, res.Token)
+			assert.Equal(t, tc.impersonated, res.Impersonated)
+		})
+	}
 }
