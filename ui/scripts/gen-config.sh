@@ -24,6 +24,16 @@ require_bool() {
 
 require_bool SHELLHUB_WEB_ENDPOINTS "${SHELLHUB_WEB_ENDPOINTS:-false}"
 
+SHELLHUB_MAP_STYLE="${SHELLHUB_MAP_STYLE:-outline}"
+
+case "$SHELLHUB_MAP_STYLE" in
+    outline|openfreemap|http://*|https://*) ;;
+    *)
+        echo "🚫 ERROR: invalid SHELLHUB_MAP_STYLE '$SHELLHUB_MAP_STYLE': must be outline, openfreemap, or an http(s) URL to a map style." >&2
+        exit 1
+        ;;
+esac
+
 json_string() {
     printf '%s' "$1" |
         tr -d '\000-\010\013\014\016-\037' |
@@ -44,6 +54,7 @@ cat > "$OUTPUT" <<EOF
   "webEndpoints": ${SHELLHUB_WEB_ENDPOINTS:-false},
   "stripePublishableKey": "$(json_string "${SHELLHUB_STRIPE_PUBLISHABLE_KEY:-}")",
   "chatwootWebsiteToken": "$(json_string "${SHELLHUB_CHATWOOT_WEBSITE_TOKEN:-}")",
-  "chatwootBaseUrl": "$(json_string "${SHELLHUB_CHATWOOT_BASEURL:-}")"
+  "chatwootBaseUrl": "$(json_string "${SHELLHUB_CHATWOOT_BASEURL:-}")",
+  "mapStyle": "$(json_string "$SHELLHUB_MAP_STYLE")"
 }
 EOF

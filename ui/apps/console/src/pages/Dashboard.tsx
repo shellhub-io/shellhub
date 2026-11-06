@@ -1,34 +1,135 @@
-import {
-  ClockIcon,
-  Squares2X2Icon,
-  CheckCircleIcon,
-  SignalIcon,
-} from "@heroicons/react/24/outline";
+import { Link } from "react-router-dom";
+import { Squares2X2Icon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
+import { Card } from "@shellhub/design-system/primitives";
 import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { useAuthStore } from "@/stores/authStore";
-import { useTenantRegistrationQueue } from "@/hooks/useProvisioningKeyEvents";
+import { useDeviceLocations } from "@/hooks/useDeviceRequests";
 import PageHeader from "@/components/common/PageHeader";
-import StatCard from "@/components/common/StatCard";
 import CopyButton from "@/components/common/CopyButton";
 import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
-import { Card } from "@shellhub/design-system/primitives";
+import { formatCount } from "@/utils/count";
+import LocationsMap from "./device-map/LocationsMap";
+
+interface Figure {
+  label: string;
+  value: string;
+  detail?: string;
+  accent?: string;
+  to?: string;
+}
+
+function FigureCell({ label, value, detail, accent, to }: Figure) {
+  const body = (
+    <>
+      <span className="block text-3xs font-mono font-semibold uppercase tracking-label text-text-muted">
+        {label}
+      </span>
+      <span className="mt-1 flex items-baseline gap-2">
+        <span
+          className={cn(
+            "font-mono text-2xl font-semibold tabular-nums",
+            accent ?? "text-text-primary",
+          )}
+        >
+          {value}
+        </span>
+        {detail && (
+          <span className="font-mono text-xs text-text-muted">{detail}</span>
+        )}
+      </span>
+    </>
+  );
+
+  if (!to) return <div className="px-5 py-3">{body}</div>;
+
+  return (
+    <Link
+      to={to}
+      className="block px-5 py-3 transition-colors hover:bg-hover-medium"
+    >
+      {body}
+    </Link>
+  );
+}
+
+function FigureStrip({
+  figures,
+  mapAvailable,
+}: {
+  figures: Figure[];
+  mapAvailable: boolean;
+}) {
+  return (
+    <div className="absolute left-4 top-4 z-10 flex divide-x divide-border overflow-hidden rounded-xl border border-border bg-surface/95 shadow-float backdrop-blur">
+      {figures.map((figure) => (
+        <FigureCell key={figure.label} {...figure} />
+      ))}
+      {mapAvailable ? (
+        <Link
+          to="/dashboard/map"
+          className="flex items-center px-5 text-xs font-medium text-primary transition-colors hover:bg-hover-medium"
+        >
+          View full map &rarr;
+        </Link>
+      ) : (
+        <span
+          aria-disabled="true"
+          className="flex cursor-not-allowed items-center px-5 text-xs font-medium text-text-muted opacity-60"
+        >
+          View full map &rarr;
+        </span>
+      )}
+    </div>
+  );
+}
 
 /**
- * The namespace dashboard: device counts and recent sessions.
+ * The namespace dashboard: the device counts laid over a map of where the devices are, and the
+ * recent sessions.
  */
 export default function Dashboard() {
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading } = useStats();
-  const queue = useTenantRegistrationQueue();
-  const pendingAction = !queue.allowed
-    ? undefined
-    : {
-        label: "Review pending",
-        to: queue.reachable ? "/devices/pending" : "/devices/add/fleet",
-      };
+  const {
+    locations,
+    source,
+    isLoading: locationsLoading,
+    error: locationsError,
+  } = useDeviceLocations();
 
   if (statsLoading) return null;
+
+  const accepted = stats?.registered_devices ?? 0;
+  const online = stats?.online_devices ?? 0;
+  const offline = Math.max(0, accepted - online);
+  const share = (count: number) =>
+    stats && accepted > 0
+      ? `${Math.round((count / accepted) * 100)}%`
+      : undefined;
+  const mapAvailable = locations.length > 0 && !locationsError;
+  const mapNotice = locationsError
+    ? "Could not load device positions."
+    : !locationsLoading && !mapAvailable
+      ? "No device has a position yet. Positions come from the address each device connects from."
+      : undefined;
+  const figures: Figure[] = [
+    {
+      label: "Online",
+      value: stats ? formatCount(online) : "--",
+      detail: share(online),
+      accent: "text-accent-green",
+      to: "/devices",
+    },
+    {
+      label: "Offline",
+      value: stats ? formatCount(offline) : "--",
+      detail: share(offline),
+      accent: "text-text-secondary",
+      to: "/devices",
+    },
+  ];
 
   return (
     <div>
@@ -50,40 +151,15 @@ export default function Dashboard() {
         )}
       </PageHeader>
 
-      <div className="mb-4">
-        <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted mb-4">
-          Devices
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-        <div className="animate-slide-up" style={{ animationDelay: "0ms" }}>
-          <StatCard
-            icon={<CheckCircleIcon className="w-7 h-7" />}
-            title="Accepted Devices"
-            value={stats?.registered_devices ?? "--"}
-            action={{ label: "View all devices", to: "/devices" }}
-          />
-        </div>
-        <div className="animate-slide-up" style={{ animationDelay: "80ms" }}>
-          <StatCard
-            icon={<SignalIcon className="w-7 h-7" />}
-            title="Online Devices"
-            value={stats?.online_devices ?? "--"}
-            action={{ label: "View all devices", to: "/devices" }}
-            accent="text-accent-green"
-          />
-        </div>
-        <div className="animate-slide-up" style={{ animationDelay: "160ms" }}>
-          <StatCard
-            icon={<ClockIcon className="w-7 h-7" />}
-            title="Pending Devices"
-            value={stats?.pending_devices ?? "--"}
-            action={pendingAction}
-            accent="text-accent-yellow"
-          />
-        </div>
-      </div>
+      <section className="relative mb-10 h-[26rem] overflow-hidden rounded-xl border border-border bg-card animate-slide-up">
+        <LocationsMap locations={locations} source={source} mode="all" />
+        <FigureStrip figures={figures} mapAvailable={mapAvailable} />
+        {mapNotice && (
+          <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border bg-surface/95 px-4 py-1.5 text-xs text-text-secondary shadow-float backdrop-blur">
+            {mapNotice}
+          </p>
+        )}
+      </section>
 
       <RecentSessionsTable />
     </div>

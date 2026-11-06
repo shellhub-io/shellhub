@@ -18,6 +18,7 @@ export interface ClientConfig {
   stripePublishableKey: string;
   chatwootWebsiteToken: string;
   chatwootBaseUrl: string;
+  mapStyle: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export const defaultConfig: ClientConfig = {
   stripePublishableKey: "",
   chatwootWebsiteToken: "",
   chatwootBaseUrl: "",
+  mapStyle: "outline",
 };
 
 let cached: ClientConfig = defaultConfig;
