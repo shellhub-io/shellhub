@@ -127,9 +127,23 @@ func (dc *DockerCompose) MoveWebEndpointLastAccessBack(t *testing.T, address str
 func (dc *DockerCompose) ListWebEndpoints(t *testing.T) []WebEndpoint {
 	t.Helper()
 
+	return listWebEndpoints(t, dc.R(t.Context()))
+}
+
+// ListWebEndpointsAs is [DockerCompose.ListWebEndpoints] as the bearer of token instead of the
+// token [DockerCompose.JWT] installed.
+func (dc *DockerCompose) ListWebEndpointsAs(t *testing.T, token string) []WebEndpoint {
+	t.Helper()
+
+	return listWebEndpoints(t, dc.Anonymous(t.Context()).SetAuthToken(token))
+}
+
+func listWebEndpoints(t *testing.T, req *resty.Request) []WebEndpoint {
+	t.Helper()
+
 	endpoints := []WebEndpoint{}
 
-	resp, err := dc.R(t.Context()).
+	resp, err := req.
 		SetQueryParam("per_page", "100").
 		SetResult(&endpoints).
 		Get("/api/web-endpoints")
@@ -159,9 +173,23 @@ func (dc *DockerCompose) PostTunnel(ctx context.Context, uid string, body Tunnel
 func (dc *DockerCompose) ListTunnels(t *testing.T, uid string) []Tunnel {
 	t.Helper()
 
+	return listTunnels(t, dc.R(t.Context()), uid)
+}
+
+// ListTunnelsAs is [DockerCompose.ListTunnels] as the bearer of token instead of the token
+// [DockerCompose.JWT] installed.
+func (dc *DockerCompose) ListTunnelsAs(t *testing.T, uid, token string) []Tunnel {
+	t.Helper()
+
+	return listTunnels(t, dc.Anonymous(t.Context()).SetAuthToken(token), uid)
+}
+
+func listTunnels(t *testing.T, req *resty.Request, uid string) []Tunnel {
+	t.Helper()
+
 	tunnels := []Tunnel{}
 
-	resp, err := dc.R(t.Context()).
+	resp, err := req.
 		SetQueryParam("per_page", "100").
 		SetResult(&tunnels).
 		Get("/api/devices/" + uid + "/tunnels")
