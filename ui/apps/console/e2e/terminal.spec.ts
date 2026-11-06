@@ -33,7 +33,7 @@ import {
   switchNamespace,
   createManualProvisioningKey,
 } from "./helpers";
-import { enableMFA, fillDigits, mfaSecret, signInWithMFA, totp } from "./mfa";
+import { enableMFA, fillDigits, signInWithMFA, totp } from "./mfa";
 import { buildShortId, password, runInServer, startAgent } from "./seed";
 import {
   type AnswerOptions,
@@ -494,13 +494,13 @@ test.describe("Re-authentication", () => {
     const team = await createTeam();
     await requireReauth(team);
     const device = await createDevice(team);
-    await enableMFA(team.owner.token);
-    await signInWithMFA(page, team.owner.username);
+    const { secret } = await enableMFA(team.owner.token);
+    await signInWithMFA(page, team.owner.username, secret);
 
     await connectWithBrowserKey(page, device.name);
     const dialog = reauthDialog(page);
     await dialog.getByRole("button", { name: "Continue" }).click();
-    await fillDigits(page, totp(mfaSecret, 1));
+    await fillDigits(page, totp(secret, 1));
     await dialog.getByRole("button", { name: "Re-authenticate" }).click();
 
     await expectShell(page, device.name);

@@ -1,13 +1,9 @@
 import { type Page, expect } from "@playwright/test";
-import { createHmac, randomUUID } from "node:crypto";
-import { enableMfa, updateUser } from "@/client";
+import { createHmac } from "node:crypto";
+import { enableMfa, generateMfa, updateUser } from "@/client";
 import { buildRequestContext } from "./api";
 import { signIn } from "./helpers";
 import { buildRandomEmail, password } from "./seed";
-
-export const mfaSecret = "JBSWY3DPEHPK3PXP";
-
-const recoveryCodeCount = 6;
 
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
@@ -47,15 +43,16 @@ export async function reachCodePrompt(page: Page, username: string) {
   await expect(page).toHaveURL(/\/mfa-login$/);
 }
 
-export async function signInWithMFA(page: Page, username: string) {
+export async function signInWithMFA(
+  page: Page,
+  username: string,
+  secret: string,
+) {
   await reachCodePrompt(page, username);
-  await fillDigits(page, totp(mfaSecret));
+  await fillDigits(page, totp(secret));
   await page.getByRole("button", { name: "Verify" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
 }
-
-export const buildRecoveryCode = () =>
-  randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase();
 
 export async function setRecoveryEmail(token: string, recoveryEmail: string) {
   await updateUser({
@@ -66,28 +63,18 @@ export async function setRecoveryEmail(token: string, recoveryEmail: string) {
 
 export async function enableMFA(
   token: string,
-  {
-    recoveryEmail = buildRandomEmail("recovery"),
-    recoveryCodes = [] as string[],
-  } = {},
+  { recoveryEmail = buildRandomEmail("recovery") } = {},
 ) {
   await setRecoveryEmail(token, recoveryEmail);
-  const codes = [
-    ...recoveryCodes,
-    ...Array.from(
-      { length: recoveryCodeCount - recoveryCodes.length },
-      buildRecoveryCode,
-    ),
-  ];
+  const { data: generated } = await generateMfa({
+    ...buildRequestContext({ token }),
+    throwOnError: true,
+  });
   const enable = async () => {
     const { response } = await enableMfa({
       ...buildRequestContext({ token }),
       throwOnError: false,
-      body: {
-        secret: mfaSecret,
-        code: totp(mfaSecret, -1),
-        recovery_codes: codes,
-      },
+      body: { code: totp(generated.secret, -1) },
     });
     return response?.status;
   };
@@ -95,5 +82,9 @@ export async function enableMFA(
   let status = await enable();
   if (status === 403) status = await enable();
   expect(status, "enabling MFA").toBe(200);
-  return { recoveryEmail, recoveryCodes: codes };
+  return {
+    recoveryEmail,
+    recoveryCodes: generated.recovery_codes,
+    secret: generated.secret,
+  };
 }

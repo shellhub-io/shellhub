@@ -2,8 +2,8 @@ put:
   operationId: enableMFA
   summary: Enable MFA
   description: |
-    Enable MFA for a user. The secret and recovery codes must be created by the
-    generateMFA endpoint. Users with MFA already enabled cannot override their
+    Enable MFA for a user with the secret and recovery codes the user's last
+    generateMFA call created, within 30 minutes of it. Users with MFA already enabled cannot override their
     MFA credentials; in these cases, a user must disable MFA before proceeding.
     The recovery e-mail must be a valid value in order to enable the MFA.
   tags:
