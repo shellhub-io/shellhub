@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
+	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
@@ -26,10 +27,13 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// BlockAPIKey blocks request using API keys to continue.
+// BlockAPIKey refuses with [routes.ErrForbidden] a request whose resolved identity authenticated
+// with an API key, a namespace's or the instance's. It reads the identity the authenticator put on
+// the request's context, never the request's headers, so it refuses exactly the credentials the
+// authenticator honoured. A request with no identity passes, leaving it to the authenticator.
 func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		if key := c.Request().Header.Get("X-API-Key"); key != "" {
+		if caller, ok := identity.FromContext(c.Request().Context()); ok && caller.APIKey != "" {
 			return routes.NewErrForbidden(nil)
 		}
 
