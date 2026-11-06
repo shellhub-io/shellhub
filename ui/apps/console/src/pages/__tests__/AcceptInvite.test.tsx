@@ -142,7 +142,17 @@ describe("AcceptInvite", () => {
       });
     });
 
-    it("accepts and switches namespace using the resolved tenant", async () => {
+    it("accepts with the link's code and switches namespace using the resolved tenant", async () => {
+      let accepted: unknown;
+      server.use(
+        http.patch(
+          "*/api/namespaces/:tenant/invitations/accept",
+          async ({ request }) => {
+            accepted = await request.json();
+            return new HttpResponse(null, { status: 204 });
+          },
+        ),
+      );
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
       await user.click(
@@ -158,6 +168,7 @@ describe("AcceptInvite", () => {
           screen.getByRole("heading", { name: /you're in/i }),
         ).toBeInTheDocument(),
       );
+      expect(accepted).toEqual({ code: INVITE_CODE });
     });
   });
 

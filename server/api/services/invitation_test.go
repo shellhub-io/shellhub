@@ -118,9 +118,30 @@ func TestService_AcceptInvite(t *testing.T) {
 
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 	future := now.Add(time.Hour)
-	past := now.Add(-time.Hour)
 
-	req := &requests.AcceptInvite{TenantID: "tenant", UserID: "user"}
+	req := &requests.AcceptInvite{TenantID: "tenant", UserID: "user", Code: "wxyz-2k7q-abcd"}
+
+	callerExists := func() {
+		storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
+			Return(&models.User{ID: "user"}, nil).Once()
+	}
+	namespaceExists := func() {
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+			Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
+	}
+	codeResolves := func(invitation *models.MembershipInvitation) {
+		storeMock.On("MembershipInvitationResolveBySig", ctx, "WXYZ2K7QABCD").
+			Return(invitation, nil).Once()
+	}
+	pendingFor := func(userID, tenantID string) *models.MembershipInvitation {
+		return &models.MembershipInvitation{
+			TenantID:  tenantID,
+			UserID:    userID,
+			Status:    models.MembershipInvitationStatusPending,
+			Role:      authorizer.RoleOperator,
+			ExpiresAt: &future,
+		}
+	}
 
 	cases := []struct {
 		description   string
@@ -138,8 +159,7 @@ func TestService_AcceptInvite(t *testing.T) {
 		{
 			description: "fails when the namespace does not exist",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
+				callerExists()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
@@ -148,8 +168,7 @@ func TestService_AcceptInvite(t *testing.T) {
 		{
 			description: "fails when the user is already a member",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
+				callerExists()
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
 					Return(&models.Namespace{
 						TenantID: "tenant",
@@ -159,51 +178,40 @@ func TestService_AcceptInvite(t *testing.T) {
 			expected: NewErrNamespaceMemberDuplicated("user", nil),
 		},
 		{
-			description: "fails when the invitation is not pending",
+			description: "fails when the code resolves to no pending invitation",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
-					Return(&models.MembershipInvitation{
-						Status:    models.MembershipInvitationStatusCancelled,
-						ExpiresAt: &future,
-					}, nil).Once()
+				callerExists()
+				namespaceExists()
+				storeMock.On("MembershipInvitationResolveBySig", ctx, "WXYZ2K7QABCD").
+					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: NewErrNamespaceMemberNotFound("user", nil),
+			expected: NewErrNamespaceMemberNotFound("user", errors.Join(errInvitationNotRedeemable, store.ErrNoDocuments)),
 		},
 		{
-			description: "fails when the invitation is expired",
+			description: "fails when the code belongs to another user's invitation",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
-					Return(&models.MembershipInvitation{
-						Status:    models.MembershipInvitationStatusPending,
-						ExpiresAt: &past,
-					}, nil).Once()
+				callerExists()
+				namespaceExists()
+				codeResolves(pendingFor("someone-else", "tenant"))
 			},
-			expected: NewErrNamespaceMemberNotFound("user", nil),
+			expected: NewErrNamespaceMemberNotFound("user", errInvitationNotRedeemable),
+		},
+		{
+			description: "fails when the code invites the caller to another namespace",
+			requiredMocks: func() {
+				callerExists()
+				namespaceExists()
+				codeResolves(pendingFor("user", "other-tenant"))
+			},
+			expected: NewErrNamespaceMemberNotFound("user", errInvitationNotRedeemable),
 		},
 		{
 			description: "fails when the invitation stops being pending before it is consumed",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				invitation := &models.MembershipInvitation{
-					TenantID:  "tenant",
-					UserID:    "user",
-					Status:    models.MembershipInvitationStatusPending,
-					Role:      authorizer.RoleOperator,
-					ExpiresAt: &future,
-				}
-				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
-					Return(invitation, nil).Once()
+				callerExists()
+				namespaceExists()
+				invitation := pendingFor("user", "tenant")
+				codeResolves(invitation)
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{
@@ -216,21 +224,12 @@ func TestService_AcceptInvite(t *testing.T) {
 			expected: NewErrNamespaceMemberNotFound("user", store.ErrNoDocuments),
 		},
 		{
-			description: "succeeds joining the namespace and consuming the invitation",
+			description: "succeeds joining the namespace with the invitation's role and consuming the invitation",
 			requiredMocks: func() {
-				storeMock.On("UserResolve", ctx, store.UserIDResolver, "user").
-					Return(&models.User{ID: "user"}, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
-					Return(&models.Namespace{TenantID: "tenant"}, nil).Once()
-				invitation := &models.MembershipInvitation{
-					TenantID:  "tenant",
-					UserID:    "user",
-					Status:    models.MembershipInvitationStatusPending,
-					Role:      authorizer.RoleOperator,
-					ExpiresAt: &future,
-				}
-				storeMock.On("MembershipInvitationResolve", ctx, scope.MustBounded("tenant"), "user").
-					Return(invitation, nil).Once()
+				callerExists()
+				namespaceExists()
+				invitation := pendingFor("user", "tenant")
+				codeResolves(invitation)
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(_ context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{

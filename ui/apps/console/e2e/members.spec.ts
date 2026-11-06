@@ -50,6 +50,12 @@ import {
   loginAs,
 } from "./api";
 
+function inviteCode(link: string) {
+  const code = new URL(link).searchParams.get("invite");
+  if (!code) throw new Error(`expected an invite code in ${link}`);
+  return code;
+}
+
 async function createTeamWithMemberKey() {
   const team = await createTeamWithMember("administrator");
   const { name, key } = await createApiKey(team.member.token);
@@ -173,7 +179,11 @@ test.describe("invitations", () => {
     const { link } = await invite(owner.token, tenant, invitee.email);
 
     const { token } = await loginAs(invitee.username, password);
-    await acceptInvite({ ...buildRequestContext({ token }), path: { tenant } });
+    await acceptInvite({
+      ...buildRequestContext({ token }),
+      path: { tenant },
+      body: { code: inviteCode(link) },
+    });
 
     await expectInvitationPage(browser, link, "Invitation Unavailable");
   });
