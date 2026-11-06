@@ -39,11 +39,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the namespace was not found",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -59,11 +58,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member is not on the namespace",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -84,11 +82,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member outranks the invited role but cannot add members",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -109,11 +106,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the passive role is owner",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleOwner,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleOwner,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -139,11 +135,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the active member's role cannot act over passive member's role",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleAdministrator,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleAdministrator,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -169,11 +164,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "succeeds inviting a brand-new email via the invitation flow",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				ns := &models.Namespace{
@@ -220,11 +214,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when a concurrent invite created the pending invitation first",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
@@ -263,11 +256,10 @@ func TestService_AddNamespaceMember(t *testing.T) {
 		{
 			description: "fails when the expired invitation stops being pending before it is resent",
 			req: &requests.NamespaceAddMember{
-				ForwardedHost: "localhost",
-				UserID:        "000000000000000000000000",
-				TenantID:      "00000000-0000-4000-0000-000000000000",
-				MemberEmail:   "john.doe@test.com",
-				MemberRole:    authorizer.RoleObserver,
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				MemberEmail: "john.doe@test.com",
+				MemberRole:  authorizer.RoleObserver,
 			},
 			requiredMocks: func(ctx context.Context) {
 				expired := now.Add(-time.Hour)
@@ -1638,11 +1630,10 @@ func TestService_AddNamespaceMember_LowercasesEmail(t *testing.T) {
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
-		ForwardedHost: "localhost",
-		UserID:        "000000000000000000000000",
-		TenantID:      ns.TenantID,
-		MemberEmail:   "Jane@Test.com",
-		MemberRole:    authorizer.RoleObserver,
+		UserID:      "000000000000000000000000",
+		TenantID:    ns.TenantID,
+		MemberEmail: "Jane@Test.com",
+		MemberRole:  authorizer.RoleObserver,
 	})
 
 	require.NoError(t, err)
@@ -1744,11 +1735,10 @@ func TestService_AddNamespaceMember_DirectMembershipFiresNoHook(t *testing.T) {
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
-		ForwardedHost: "localhost",
-		UserID:        "000000000000000000000000",
-		TenantID:      ns.TenantID,
-		MemberEmail:   "invitee@test.com",
-		MemberRole:    authorizer.RoleObserver,
+		UserID:      "000000000000000000000000",
+		TenantID:    ns.TenantID,
+		MemberEmail: "invitee@test.com",
+		MemberRole:  authorizer.RoleObserver,
 	})
 
 	require.NoError(t, err)
