@@ -279,23 +279,21 @@ export default function DeviceDetails() {
           <dl className="space-y-3">
             <InfoItem
               label="Operating System"
-              value={device.info?.pretty_name ?? ""}
+              value={device.info?.pretty_name}
             />
             <InfoItem
               label="Architecture"
-              value={device.info?.arch ?? ""}
+              value={device.info?.arch}
               mono
             />
             <InfoItem label="Platform">
-              {device.info?.platform ? (
+              {device.info?.platform && (
                 <PlatformBadge platform={device.info.platform} />
-              ) : (
-                <span className="text-sm text-text-muted">—</span>
               )}
             </InfoItem>
             <InfoItem
               label="Agent Version"
-              value={device.info?.version ?? ""}
+              value={device.info?.version}
               mono
             />
           </dl>

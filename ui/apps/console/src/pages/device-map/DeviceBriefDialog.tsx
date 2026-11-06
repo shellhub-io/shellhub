@@ -81,35 +81,27 @@ export default function DeviceBriefDialog({
 
       <dl className="mt-5 grid grid-cols-2 gap-4">
         <InfoItem label="Platform">
-          {device.info?.platform ? (
+          {device.info?.platform && (
             <span className="inline-flex items-center gap-2">
               <PlatformBadge platform={device.info.platform} />
               <span className="font-mono text-xs text-text-muted">
                 {device.info.arch}
               </span>
             </span>
-          ) : (
-            <span className="text-sm text-text-muted">—</span>
           )}
         </InfoItem>
-        <InfoItem
-          label="Agent Version"
-          value={device.info?.version ?? ""}
-          mono
-        />
+        <InfoItem label="Agent Version" value={device.info?.version} mono />
         <InfoItem
           label="Last Seen"
           value={formatRelative(device.last_seen)}
         />
         <InfoItem label="Tags">
-          {tags.length > 0 ? (
+          {tags.length > 0 && (
             <span className="flex flex-wrap gap-1">
               {tags.map((tag) => (
                 <TagBadge key={tag} name={tag} />
               ))}
             </span>
-          ) : (
-            <span className="text-sm text-text-muted">—</span>
           )}
         </InfoItem>
       </dl>

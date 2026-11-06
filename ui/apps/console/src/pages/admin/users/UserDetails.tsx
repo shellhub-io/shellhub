@@ -152,7 +152,7 @@ export default function UserDetails() {
             <InfoItem label="Email" value={user.email} />
             <InfoItem
               label="Recovery Email"
-              value={user.recovery_email ?? ""}
+              value={user.recovery_email}
             />
             <InfoItem label="Status">
               <UserStatusChip status={userStatus} />

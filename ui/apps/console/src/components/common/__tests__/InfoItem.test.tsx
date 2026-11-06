@@ -48,6 +48,12 @@ describe("InfoItem", () => {
   });
 
   describe("children mode", () => {
+    it("renders an em-dash when the children render nothing", () => {
+      renderInfoItem(<InfoItem label="Tags">{false}</InfoItem>);
+
+      expect(screen.getByRole("definition")).toHaveTextContent("—");
+    });
+
     it("renders children inside dd", () => {
       renderInfoItem(
         <InfoItem label="Status">
