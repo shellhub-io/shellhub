@@ -57,6 +57,10 @@ jobs:
               - 'ui/scripts/e2e.sh'
               - 'tests/ui/e2e.bats'
               - '.github/workflows/checks.yml'
+            merge-default-branch:
+              - '.github/actions/merge-default-branch/**'
+              - 'tests/actions/merge-default-branch.bats'
+              - '.github/workflows/checks.yml'
             comment-scan:
               - 'devscripts/comment-scan'
               - 'tests/devscripts/comment-scan.bats'
@@ -249,6 +253,14 @@ jobs:
       - name: Run comment-scan tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.comment-scan == 'true' }}
         run: bats tests/devscripts/comment-scan.bats
+
+      - name: Lint the merge-default-branch script
+        if: ${{ !cancelled() && steps.shellcheck.outcome == 'success' && steps.changes.outputs.merge-default-branch == 'true' }}
+        run: shellcheck .github/actions/merge-default-branch/merge.sh
+
+      - name: Run the merge-default-branch tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.merge-default-branch == 'true' }}
+        run: bats tests/actions/merge-default-branch.bats
 
       - name: Run the compose wrapper tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.wrapper == 'true' }}

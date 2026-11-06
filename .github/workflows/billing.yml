@@ -111,6 +111,14 @@ jobs:
           path: shellhub
           persist-credentials: false
 
+      - name: Merge shellhub master into the paired shellhub branch
+        if: github.event_name == 'repository_dispatch'
+        uses: ./workflow/.github/actions/merge-default-branch
+        with:
+          path: shellhub
+          ref: ${{ steps.refs.outputs.shellhub }}
+          token: ${{ github.token }}
+
       - name: Check out cloud source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

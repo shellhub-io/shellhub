@@ -265,6 +265,14 @@ jobs:
           path: cloud
           persist-credentials: false
 
+      - name: Merge cloud master into the paired cloud branch
+        if: steps.cloud-access.outputs.granted == 'true'
+        uses: ./shellhub/.github/actions/merge-default-branch
+        with:
+          path: cloud
+          ref: ${{ steps.cloud-branch.outputs.ref }}
+          token: ${{ steps.cloud-token.outputs.token }}
+
       - name: Restore the Go caches
         if: steps.changes.outputs.go == 'true'
         uses: ./shellhub/.github/actions/go-cache
