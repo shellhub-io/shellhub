@@ -15,6 +15,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/worker"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	responses0 "github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -4116,8 +4117,8 @@ func (_c *MockService_GetStats_Call) RunAndReturn(run func(ctx context.Context, 
 }
 
 // GetSystemInfo provides a mock function for the type MockService
-func (_mock *MockService) GetSystemInfo(ctx context.Context, req *requests.GetSystemInfo) (*responses0.SystemInfo, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) GetSystemInfo(ctx context.Context, reached origin.Origin) (*responses0.SystemInfo, error) {
+	ret := _mock.Called(ctx, reached)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSystemInfo")
@@ -4125,18 +4126,18 @@ func (_mock *MockService) GetSystemInfo(ctx context.Context, req *requests.GetSy
 
 	var r0 *responses0.SystemInfo
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GetSystemInfo) (*responses0.SystemInfo, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, origin.Origin) (*responses0.SystemInfo, error)); ok {
+		return returnFunc(ctx, reached)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.GetSystemInfo) *responses0.SystemInfo); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, origin.Origin) *responses0.SystemInfo); ok {
+		r0 = returnFunc(ctx, reached)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*responses0.SystemInfo)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.GetSystemInfo) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, origin.Origin) error); ok {
+		r1 = returnFunc(ctx, reached)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4150,20 +4151,20 @@ type MockService_GetSystemInfo_Call struct {
 
 // GetSystemInfo is a helper method to define mock.On call
 //   - ctx context.Context
-//   - req *requests.GetSystemInfo
-func (_e *MockService_Expecter) GetSystemInfo(ctx any, req any) *MockService_GetSystemInfo_Call {
-	return &MockService_GetSystemInfo_Call{Call: _e.mock.On("GetSystemInfo", ctx, req)}
+//   - reached origin.Origin
+func (_e *MockService_Expecter) GetSystemInfo(ctx any, reached any) *MockService_GetSystemInfo_Call {
+	return &MockService_GetSystemInfo_Call{Call: _e.mock.On("GetSystemInfo", ctx, reached)}
 }
 
-func (_c *MockService_GetSystemInfo_Call) Run(run func(ctx context.Context, req *requests.GetSystemInfo)) *MockService_GetSystemInfo_Call {
+func (_c *MockService_GetSystemInfo_Call) Run(run func(ctx context.Context, reached origin.Origin)) *MockService_GetSystemInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *requests.GetSystemInfo
+		var arg1 origin.Origin
 		if args[1] != nil {
-			arg1 = args[1].(*requests.GetSystemInfo)
+			arg1 = args[1].(origin.Origin)
 		}
 		run(
 			arg0,
@@ -4178,7 +4179,7 @@ func (_c *MockService_GetSystemInfo_Call) Return(systemInfo *responses0.SystemIn
 	return _c
 }
 
-func (_c *MockService_GetSystemInfo_Call) RunAndReturn(run func(ctx context.Context, req *requests.GetSystemInfo) (*responses0.SystemInfo, error)) *MockService_GetSystemInfo_Call {
+func (_c *MockService_GetSystemInfo_Call) RunAndReturn(run func(ctx context.Context, reached origin.Origin) (*responses0.SystemInfo, error)) *MockService_GetSystemInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7342,8 +7343,8 @@ func (_c *MockService_Setup_Call) RunAndReturn(run func(ctx context.Context, req
 }
 
 // SystemDownloadInstallScript provides a mock function for the type MockService
-func (_mock *MockService) SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript) (string, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript, reached origin.Origin) (string, error) {
+	ret := _mock.Called(ctx, req, reached)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SystemDownloadInstallScript")
@@ -7351,16 +7352,16 @@ func (_mock *MockService) SystemDownloadInstallScript(ctx context.Context, req *
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript) (string, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript, origin.Origin) (string, error)); ok {
+		return returnFunc(ctx, req, reached)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript) string); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SystemInstallScript, origin.Origin) string); ok {
+		r0 = returnFunc(ctx, req, reached)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SystemInstallScript) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *requests.SystemInstallScript, origin.Origin) error); ok {
+		r1 = returnFunc(ctx, req, reached)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -7375,11 +7376,12 @@ type MockService_SystemDownloadInstallScript_Call struct {
 // SystemDownloadInstallScript is a helper method to define mock.On call
 //   - ctx context.Context
 //   - req *requests.SystemInstallScript
-func (_e *MockService_Expecter) SystemDownloadInstallScript(ctx any, req any) *MockService_SystemDownloadInstallScript_Call {
-	return &MockService_SystemDownloadInstallScript_Call{Call: _e.mock.On("SystemDownloadInstallScript", ctx, req)}
+//   - reached origin.Origin
+func (_e *MockService_Expecter) SystemDownloadInstallScript(ctx any, req any, reached any) *MockService_SystemDownloadInstallScript_Call {
+	return &MockService_SystemDownloadInstallScript_Call{Call: _e.mock.On("SystemDownloadInstallScript", ctx, req, reached)}
 }
 
-func (_c *MockService_SystemDownloadInstallScript_Call) Run(run func(ctx context.Context, req *requests.SystemInstallScript)) *MockService_SystemDownloadInstallScript_Call {
+func (_c *MockService_SystemDownloadInstallScript_Call) Run(run func(ctx context.Context, req *requests.SystemInstallScript, reached origin.Origin)) *MockService_SystemDownloadInstallScript_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -7389,9 +7391,14 @@ func (_c *MockService_SystemDownloadInstallScript_Call) Run(run func(ctx context
 		if args[1] != nil {
 			arg1 = args[1].(*requests.SystemInstallScript)
 		}
+		var arg2 origin.Origin
+		if args[2] != nil {
+			arg2 = args[2].(origin.Origin)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -7402,7 +7409,7 @@ func (_c *MockService_SystemDownloadInstallScript_Call) Return(s string, err err
 	return _c
 }
 
-func (_c *MockService_SystemDownloadInstallScript_Call) RunAndReturn(run func(ctx context.Context, req *requests.SystemInstallScript) (string, error)) *MockService_SystemDownloadInstallScript_Call {
+func (_c *MockService_SystemDownloadInstallScript_Call) RunAndReturn(run func(ctx context.Context, req *requests.SystemInstallScript, reached origin.Origin) (string, error)) *MockService_SystemDownloadInstallScript_Call {
 	_c.Call.Return(run)
 	return _c
 }

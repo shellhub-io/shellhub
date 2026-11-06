@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +42,7 @@ func TestRootAliasesReachCanonicalRoutes(t *testing.T) {
 			target:      "/install.sh",
 			mock: func(service *serviceMocks.MockService) {
 				service.
-					On("SystemDownloadInstallScript", mock.Anything, mock.Anything).
+					On("SystemDownloadInstallScript", mock.Anything, mock.Anything, mock.Anything).
 					Return("#!/bin/sh", nil).
 					Once()
 			},
@@ -51,7 +52,7 @@ func TestRootAliasesReachCanonicalRoutes(t *testing.T) {
 			target:      "/kickstart.sh",
 			mock: func(service *serviceMocks.MockService) {
 				service.
-					On("SystemDownloadInstallScript", mock.Anything, mock.Anything).
+					On("SystemDownloadInstallScript", mock.Anything, mock.Anything, mock.Anything).
 					Return("#!/bin/sh", nil).
 					Once()
 			},
@@ -62,11 +63,10 @@ func TestRootAliasesReachCanonicalRoutes(t *testing.T) {
 			mock: func(service *serviceMocks.MockService) {
 				service.
 					On("SystemDownloadInstallScript", mock.Anything, &requests.SystemInstallScript{
-						Host:              "example.com",
 						TenantID:          "00000000-0000-4000-0000-000000000000",
 						PreferredHostname: "host",
 						PreferredIdentity: "00:11:22:33:44:55",
-					}).
+					}, origin.Origin{IP: "192.0.2.1", Host: "example.com", Scheme: "http"}).
 					Return("#!/bin/sh", nil).
 					Once()
 			},

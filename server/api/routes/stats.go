@@ -26,16 +26,7 @@ func (h *Handler) GetStats(ctx context.Context, sc scope.Scope, _ gateway.Actor,
 // GetSystemInfo serves what the instance is and how to reach it. It is reachable
 // unauthenticated, so the UI can configure itself before anyone logs in.
 func (h *Handler) GetSystemInfo(c *gateway.Context) error {
-	req := new(requests.GetSystemInfo)
-	if err := c.Bind(req); err != nil {
-		return err
-	}
-
-	if req.Host == "" {
-		req.Host = c.Request().Host
-	}
-
-	info, err := h.service.GetSystemInfo(c.Ctx(), req)
+	info, err := h.service.GetSystemInfo(c.Ctx(), c.Origin())
 	if err != nil {
 		return err
 	}
@@ -55,13 +46,9 @@ func (h *Handler) GetSystemDownloadInstallScript(c *gateway.Context) error {
 		return err
 	}
 
-	if req.Host == "" {
-		req.Host = c.Request().Host
-	}
-
 	c.Response().Header().Add("Content-Type", "text/x-shellscript")
 
-	data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req)
+	data, err := h.service.SystemDownloadInstallScript(c.Ctx(), req, c.Origin())
 	if err != nil {
 		return err
 	}

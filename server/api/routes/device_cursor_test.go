@@ -211,7 +211,7 @@ func TestGetDeviceListCursorModeHeaders(t *testing.T) {
 		}, linked.Query())
 	})
 
-	t.Run("links to the address the client reached the gateway on", func(t *testing.T) {
+	t.Run("links to the address a trusted proxy says the client reached", func(t *testing.T) {
 		next := query.Cursor{CreatedAt: time.Date(2026, 1, 10, 12, 0, 0, 0, time.UTC), ID: "d2"}
 
 		cases := []struct {
@@ -240,7 +240,7 @@ func TestGetDeviceListCursorModeHeaders(t *testing.T) {
 					Once()
 
 				req := newDeviceListRequest(t, "/api/devices?page[size]=1")
-				req.RemoteAddr = "172.18.0.5:40000"
+				req.RemoteAddr = "127.0.0.1:40000"
 				req.Host = tc.host
 				req.Header.Set("X-Forwarded-Proto", tc.proto)
 				if tc.port != "" {

@@ -13,6 +13,7 @@ import (
 	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,77 +23,89 @@ import (
 func TestBuildInstallOverrides(t *testing.T) {
 	cases := []struct {
 		description string
+		reached     origin.Origin
 		req         *requests.SystemInstallScript
 		contains    []string
 		excludes    []string
 	}{
 		{
 			description: "injects SERVER_ADDRESS from host and forwarded proto",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com", Scheme: "https"},
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 		},
 		{
 			description: "defaults the scheme to https when not forwarded",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com"},
+			reached:     origin.Origin{Host: "cloud.example.com"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 		},
 		{
 			description: "appends a non-standard forwarded port",
-			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "8443", Scheme: "https"},
+			reached:     origin.Origin{Host: "localhost", Port: "8443", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:8443'"},
 		},
 		{
 			description: "omits the default port for the scheme",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com", ForwardedPort: "443", Scheme: "https"},
+			reached:     origin.Origin{Host: "cloud.example.com", Port: "443", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://cloud.example.com'"},
 			excludes:    []string{":443"},
 		},
 		{
 			description: "keeps the http scheme when forwarded",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com", Scheme: "http"},
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "http"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://cloud.example.com'"},
 		},
 		{
 			description: "omits the default http port 80",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com", ForwardedPort: "80", Scheme: "http"},
+			reached:     origin.Origin{Host: "cloud.example.com", Port: "80", Scheme: "http"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://cloud.example.com'"},
 			excludes:    []string{":80"},
 		},
 		{
 			description: "appends a non-standard http port",
-			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "8080", Scheme: "http"},
+			reached:     origin.Origin{Host: "localhost", Port: "8080", Scheme: "http"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://localhost:8080'"},
 		},
 		{
 			description: "keeps a port carried inline on the host (direct access, no forwarded port)",
-			req:         &requests.SystemInstallScript{Host: "localhost:8080"},
+			reached:     origin.Origin{Host: "localhost:8080"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:8080'"},
 		},
 		{
 			description: "prefers the forwarded port over an inline host port",
-			req:         &requests.SystemInstallScript{Host: "localhost:8080", ForwardedPort: "9000", Scheme: "https"},
+			reached:     origin.Origin{Host: "localhost:8080", Port: "9000", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://localhost:9000'"},
 		},
 		{
 			description: "appends port 443 when scheme is http (non-default for http)",
-			req:         &requests.SystemInstallScript{Host: "localhost", ForwardedPort: "443", Scheme: "http"},
+			reached:     origin.Origin{Host: "localhost", Port: "443", Scheme: "http"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://localhost:443'"},
 		},
 		{
 			description: "keeps the brackets of an IPv6 host on the default port",
-			req:         &requests.SystemInstallScript{Host: "[::1]:443", Scheme: "https"},
+			reached:     origin.Origin{Host: "[::1]:443", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://[::1]'"},
 		},
 		{
 			description: "brackets an IPv6 host once with a forwarded port",
-			req:         &requests.SystemInstallScript{Host: "[::1]", ForwardedPort: "8080", Scheme: "http"},
+			reached:     origin.Origin{Host: "[::1]", Port: "8080", Scheme: "http"},
+			req:         &requests.SystemInstallScript{},
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://[::1]:8080'"},
 		},
 		{
 			description: "injects the optional query overrides when present",
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
-				Host:              "cloud.example.com",
-				Scheme:            "https",
 				TenantID:          "00000000-0000-4000-0000-000000000000",
 				PreferredHostname: "my-host",
 			},
@@ -103,14 +116,15 @@ func TestBuildInstallOverrides(t *testing.T) {
 		},
 		{
 			description: "omits optional overrides that are absent",
-			req:         &requests.SystemInstallScript{Host: "cloud.example.com", Scheme: "https"},
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			excludes:    []string{"TENANT_ID=", "PREFERRED_HOSTNAME=", "PREFERRED_IDENTITY="},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
-			out := buildInstallOverrides(tc.req)
+			out := buildInstallOverrides(tc.req, tc.reached)
 
 			assert.Equal(tt, "\n", out[:1], "the block is spliced onto install.sh's comment line, so it must open with a newline")
 
@@ -260,13 +274,14 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 
 	cases := []struct {
 		description string
+		reached     origin.Origin
 		req         *requests.SystemInstallScript
 		want        map[string]string
 	}{
 		{
 			description: "keeps a command substitution in the tenant id unexpanded",
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
-				Host: "cloud.example.com", Scheme: "https",
 				TenantID: "x$(touch pwned)",
 			},
 			want: map[string]string{
@@ -276,8 +291,8 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 		},
 		{
 			description: "keeps backticks in the preferred hostname unexpanded",
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
-				Host: "cloud.example.com", Scheme: "https",
 				PreferredHostname: "host`touch pwned`",
 			},
 			want: map[string]string{
@@ -287,8 +302,8 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 		},
 		{
 			description: "keeps a quote break in the preferred identity from opening a statement",
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
-				Host: "cloud.example.com", Scheme: "https",
 				PreferredIdentity: "a\"\ntouch pwned\n#",
 			},
 			want: map[string]string{
@@ -298,8 +313,8 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 		},
 		{
 			description: "keeps a single quote in a value from closing the quoting",
+			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
-				Host: "cloud.example.com", Scheme: "https",
 				PreferredHostname: "it's'$(touch pwned)'",
 			},
 			want: map[string]string{
@@ -309,9 +324,8 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 		},
 		{
 			description: "keeps a command substitution in the forwarded host unexpanded",
-			req: &requests.SystemInstallScript{
-				Host: "cloud.example.com$(touch pwned)", Scheme: "https",
-			},
+			reached:     origin.Origin{Host: "cloud.example.com$(touch pwned)", Scheme: "https"},
+			req:         &requests.SystemInstallScript{},
 			want: map[string]string{
 				"SERVER_ADDRESS": "https://cloud.example.com$(touch pwned)",
 			},
@@ -323,7 +337,7 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 			dir := tt.TempDir()
 
 			//nolint:gosec // G204: running the generated prologue under a shell is the assertion
-			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req)+probe)
+			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req, tc.reached)+probe)
 			cmd.Dir = dir
 			cmd.Env = []string{"PATH=" + os.Getenv("PATH")} //nolint:forbidigo // the shell under test needs the runner's PATH to find its tools
 
@@ -364,12 +378,10 @@ func TestInstallScriptRendersAValidShellScript(t *testing.T) {
 	require.NoError(t, err)
 
 	script := renderInstallScript(string(template), &requests.SystemInstallScript{
-		Host:              "cloud.example.com$(touch pwned)",
-		Scheme:            "https",
 		TenantID:          "x$(touch pwned)",
 		PreferredHostname: "host`touch pwned`",
 		PreferredIdentity: "a'\"\ntouch pwned\n#",
-	})
+	}, origin.Origin{Host: "cloud.example.com$(touch pwned)", Scheme: "https"})
 
 	require.NotContains(t, script, "{{.Overrides}}", "the marker must be replaced, not left in the served script")
 
