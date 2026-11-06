@@ -74,6 +74,7 @@ type mfaUser struct {
 	email         string
 	recoveryEmail string
 	username      string
+	recoveryCodes []string
 }
 
 func newMFAUser(t *testing.T, compose *environment.DockerCompose, username string) mfaUser {
@@ -98,11 +99,13 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 
 	generated := struct {
-		Secret string `json:"secret"`
+		Secret        string   `json:"secret"`
+		RecoveryCodes []string `json:"recovery_codes"`
 	}{}
 	resp, err = asBearer(t, compose, user.token).SetResult(&generated).Get("/api/user/mfa/generate")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	user.recoveryCodes = generated.RecoveryCodes
 
 	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(generated.Secret)
 	require.NoError(t, err)
