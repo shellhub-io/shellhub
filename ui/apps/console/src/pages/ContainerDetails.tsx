@@ -247,17 +247,17 @@ export default function ContainerDetails() {
           <dl className="space-y-3">
             <InfoItem
               label="Image"
-              value={container.info?.pretty_name ?? ""}
+              value={container.info?.pretty_name}
               mono
             />
             <InfoItem
               label="Architecture"
-              value={container.info?.arch ?? ""}
+              value={container.info?.arch}
               mono
             />
             <InfoItem
               label="Agent Version"
-              value={container.info?.version ?? ""}
+              value={container.info?.version}
               mono
             />
           </dl>

@@ -14,7 +14,8 @@ interface InfoItemProps {
 
 /**
  * A labelled value in a detail panel. mono is for anything a user may compare character by
- * character, such as a hash or an address.
+ * character, such as a hash or an address. Children replace the value; a muted dash stands in when
+ * neither gives anything to show.
  */
 export default function InfoItem({
   label,
@@ -33,19 +34,22 @@ export default function InfoItem({
         {label}
       </dt>
       <dd aria-labelledby={labelId} className="flex items-center gap-1 mt-0.5">
-        {children ?? (
-          <>
-            <span
-              className={cn(
-                "text-sm text-text-primary",
-                mono ? "font-mono text-xs" : "font-medium",
-              )}
-            >
-              {display || "—"}
-            </span>
-            {copyable && value && <CopyButton text={value} />}
-          </>
-        )}
+        {children ||
+          (display ? (
+            <>
+              <span
+                className={cn(
+                  "text-sm text-text-primary",
+                  mono ? "font-mono text-xs" : "font-medium",
+                )}
+              >
+                {display}
+              </span>
+              {copyable && value && <CopyButton text={value} />}
+            </>
+          ) : (
+            <span className="text-sm text-text-muted">—</span>
+          ))}
       </dd>
     </div>
   );
