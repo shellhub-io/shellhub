@@ -136,6 +136,82 @@ func TestDeviceTagLinkFollowsTheRulesSelectingByTheTag(t *testing.T) {
 	}
 }
 
+func TestDeviceRenameFollowsTheRulesSelectingByName(t *testing.T) {
+	webKey := models.PublicKey{PublicKeyFields: models.PublicKeyFields{Name: "web", Filter: models.PublicKeyFilter{Hostname: "web-.*"}}}
+
+	cases := []struct {
+		description string
+		role        authorizer.Role
+		from, to    string
+		publicKeys  []models.PublicKey
+		extra       []DeviceSelector
+		renamed     bool
+	}{
+		{
+			description: "an operator renames a device no name pattern tells apart from its new name",
+			role:        authorizer.RoleOperator,
+			from:        "db-1",
+			to:          "db-2",
+			publicKeys:  []models.PublicKey{webKey},
+			renamed:     true,
+		},
+		{
+			description: "an operator does not rename a device out of a public key's name pattern",
+			role:        authorizer.RoleOperator,
+			from:        "web-1",
+			to:          "db-1",
+			publicKeys:  []models.PublicKey{webKey},
+		},
+		{
+			description: "an operator does not rename a device into a registered rule's name pattern",
+			role:        authorizer.RoleOperator,
+			from:        "db-1",
+			to:          "prod-db-1",
+			extra:       []DeviceSelector{{Name: `firewall rule "rule1"`, Hostname: "prod-.*"}},
+		},
+		{
+			description: "an administrator renames a device across every pattern it may edit",
+			role:        authorizer.RoleAdministrator,
+			from:        "web-1",
+			to:          "prod-db-1",
+			publicKeys:  []models.PublicKey{webKey},
+			extra:       []DeviceSelector{{Name: `firewall rule "rule1"`, Hostname: "prod-.*"}},
+			renamed:     true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			ctx := asRole(tc.role)
+			device := &models.Device{UID: selectorDeviceUID, Name: tc.from, TenantID: "tenant1"}
+
+			storeMock := storemock.NewMockStore(t)
+			storeMock.On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, selectorDeviceUID).Return(device, nil).Once()
+			storeMock.On("AccessPolicyList", ctx, mock.Anything).Return([]models.AccessPolicy{}, int64(0), nil).Maybe()
+			storeMock.On("PublicKeyList", ctx, mock.Anything).Return(tc.publicKeys, int64(len(tc.publicKeys)), nil).Maybe()
+
+			if tc.renamed {
+				storeMock.On("DeviceConflicts", ctx, mock.Anything, mock.Anything).Return(nil, false, nil).Once()
+				storeMock.On("DeviceUpdate", ctx, mock.Anything).Return(nil).Once()
+			}
+
+			service := NewService(storeMock, privateKey, publicKey, nil, WithDeviceSelectorSource(firewallSelectors(tc.extra...)))
+
+			err := service.RenameDevice(ctx, models.UID(selectorDeviceUID), tc.to, "tenant1")
+
+			if tc.renamed {
+				require.NoError(t, err)
+				assert.Equal(t, tc.to, device.Name)
+
+				return
+			}
+
+			require.ErrorIs(t, err, ErrDeviceSelectorOutOfReach)
+			storeMock.AssertNotCalled(t, "DeviceUpdate", mock.Anything, mock.Anything)
+		})
+	}
+}
+
 func TestDeviceSelectorSourceNamesAPermissionThatSetsItApart(t *testing.T) {
 	cases := []struct {
 		description string
@@ -144,6 +220,7 @@ func TestDeviceSelectorSourceNamesAPermissionThatSetsItApart(t *testing.T) {
 	}{
 		{"a permission only administrators hold", authorizer.FirewallEdit, true},
 		{"the permission that moves tags", authorizer.TagCreate, false},
+		{"the permission that renames devices", authorizer.DeviceRename, false},
 		{"a permission every role that moves tags holds", authorizer.DeviceStatusUpdate, false},
 		{"a permission no role holds", authorizer.Permission(-1), false},
 	}

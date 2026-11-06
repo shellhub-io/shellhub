@@ -1065,6 +1065,8 @@ func TestRenameDevice(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	storeMock.On("PublicKeyList", mock.Anything, mock.Anything).Return([]models.PublicKey{}, int64(0), nil).Maybe()
+	storeMock.On("AccessPolicyList", mock.Anything, mock.Anything).Return([]models.AccessPolicy{}, int64(0), nil).Maybe()
 
 	cases := []struct {
 		name          string
@@ -2589,6 +2591,8 @@ func TestDeviceUpdate(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	queryOptionsMock := storemock.NewMockQueryOptions(t)
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	storeMock.On("PublicKeyList", mock.Anything, mock.Anything).Return([]models.PublicKey{}, int64(0), nil).Maybe()
+	storeMock.On("AccessPolicyList", mock.Anything, mock.Anything).Return([]models.AccessPolicy{}, int64(0), nil).Maybe()
 
 	cases := []struct {
 		description   string

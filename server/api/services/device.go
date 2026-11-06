@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -102,8 +103,12 @@ type DeviceService interface {
 
 	// RenameDevice stores name, lowercased, as the name of the device uid in the namespace tenant. A
 	// name that differs only in case is left as it is. It returns ErrDeviceNotFound when the
-	// namespace has no device uid and ErrDeviceDuplicated when another accepted device in the
-	// namespace holds the name. This method is deprecated, use [DeviceService#UpdateDevice] instead.
+	// namespace has no device uid, ErrDeviceDuplicated when another accepted device in the
+	// namespace holds the name, and ErrDeviceSelectorOutOfReach when the new name moves the device
+	// into or out of the name pattern of a [DeviceSelector] whose source's EditPermission the role
+	// of the caller identity on ctx lacks. A ctx carrying no identity holds no permission. Any
+	// failure listing those rules is returned unchanged. This method is deprecated, use
+	// [DeviceService#UpdateDevice] instead.
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
@@ -425,8 +430,20 @@ func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant
 }
 
 func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *models.Device, name string) error {
-	conflictsTarget := &models.DeviceConflicts{Name: strings.ToLower(name)}
+	lowered := strings.ToLower(name)
+
+	outOfReach, err := s.selectorsOutOfReach(ctx, sc)
+	if err != nil {
+		return err
+	}
+
+	if slices.ContainsFunc(outOfReach, func(d DeviceSelector) bool { return d.tellsApart(device.Name, lowered) }) {
+		return NewErrDeviceSelectorOutOfReach()
+	}
+
+	conflictsTarget := &models.DeviceConflicts{Name: lowered}
 	conflictsTarget.Distinct(device)
+
 	_, has, err := s.store.DeviceConflicts(ctx, sc, conflictsTarget)
 	if err != nil {
 		return err
@@ -436,7 +453,7 @@ func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *mode
 		return NewErrDeviceDuplicated(name, nil)
 	}
 
-	device.Name = strings.ToLower(name)
+	device.Name = lowered
 	if err := s.store.DeviceUpdate(ctx, device); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			return NewErrDeviceDuplicated(name, err)

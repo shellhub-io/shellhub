@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/cache"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -25,14 +26,25 @@ func (d DeviceSelector) holdsTag(tagID string) bool {
 	return slices.Contains(d.TagIDs, tagID)
 }
 
+func (d DeviceSelector) tellsApart(from, to string) bool {
+	if d.Hostname == "" {
+		return false
+	}
+
+	before, errBefore := models.MatchPattern(d.Hostname, from)
+	after, errAfter := models.MatchPattern(d.Hostname, to)
+
+	return errBefore != nil || errAfter != nil || before != after
+}
+
 // DeviceSelectorSource lists one kind of rule that picks devices, such as access policies or the
-// enterprise firewall rules. Those rules read the tags of a device, so moving one changes what the
-// rule covers. A caller moves a tag a rule holds on or off a device only when its role holds the
-// source's EditPermission, and a tag a rule of any source holds is not deleted.
+// enterprise firewall rules. Those rules read the tags and the name of a device, so changing either
+// changes what the rule covers. A caller moves a tag a rule holds on or off a device, or renames a
+// device into or out of a rule's pattern, only when its role holds the source's EditPermission.
 type DeviceSelectorSource interface {
 	// EditPermission is the permission under which the source's rules are edited. [NewService] panics
-	// when no owner holds it, or when every role that moves tags holds it: such a role could change
-	// what the rule covers without editing it.
+	// when no owner holds it, or when every role that moves tags or renames devices holds it: such a
+	// role could change what the rule covers without editing it.
 	EditPermission() authorizer.Permission
 	// DeviceSelectors returns every rule of the source in sc, or an error when they cannot be
 	// listed. A store read through ctx joins the caller's transaction when there is one, and an
@@ -60,14 +72,14 @@ func DeviceSelectorSourceFactory() DeviceSelectorSourceFactoryFunc {
 
 // WithDeviceSelectorSource adds a kind of rule that picks devices to those the core store holds.
 // [NewService] panics when no owner holds the source's EditPermission, or when every role that
-// moves tags holds it.
+// moves tags or renames devices holds it.
 func WithDeviceSelectorSource(source DeviceSelectorSource) Option {
 	return func(service *APIService) {
 		service.selectorSources = append(service.selectorSources, source)
 	}
 }
 
-var deviceSelectorInputs = []authorizer.Permission{authorizer.TagCreate, authorizer.TagDelete}
+var deviceSelectorInputs = []authorizer.Permission{authorizer.TagCreate, authorizer.TagDelete, authorizer.DeviceRename, authorizer.DeviceUpdate}
 
 func mustSetApart(source DeviceSelectorSource) {
 	edit := source.EditPermission()
@@ -82,7 +94,7 @@ func mustSetApart(source DeviceSelectorSource) {
 		return changesInputs && !role.HasPermission(edit)
 	})
 	if !setsApart {
-		panic(fmt.Sprintf("device selector source %T is edited under a permission every role that moves tags holds", source))
+		panic(fmt.Sprintf("device selector source %T is edited under a permission every role that moves tags or renames devices holds", source))
 	}
 }
 
