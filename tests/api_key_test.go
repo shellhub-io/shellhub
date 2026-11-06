@@ -49,6 +49,11 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 		path        string
 	}{
 		{
+			description: "fetching the user token",
+			method:      http.MethodGet,
+			path:        "/api/auth/user",
+		},
+		{
 			description: "switching to a namespace token",
 			method:      http.MethodGet,
 			path:        "/api/auth/token/" + ShellHubNamespace,
@@ -180,10 +185,10 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 }
 
 // TestEditionRoutesThatRefuseAPIKeys covers the routes the enterprise and cloud editions add that
-// refuse a namespace API key whatever its role: creating a namespace, MFA, the vault, re-authenticating
-// a web terminal, and each edition's own account routes, SAML re-authentication on enterprise and
-// email confirmation and password recovery on cloud. Each edition runs its own stack. The community
-// routes are covered by [TestRoutesThatRefuseAPIKeys].
+// refuse a namespace API key whatever its role: creating a namespace, MFA, the vault,
+// re-authenticating a web terminal, and each edition's own account routes, SAML re-authentication
+// on enterprise and email confirmation, password recovery and account deletion on cloud. Each
+// edition runs its own stack. The community routes are covered by [TestRoutesThatRefuseAPIKeys].
 func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
 	t.Parallel()
 
@@ -222,6 +227,7 @@ func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
 				{http.MethodPost, "/api/user/confirm_account"},
 				{http.MethodPost, "/api/user/recover_password"},
 				{http.MethodPost, "/api/user/any/update_password"},
+				{http.MethodDelete, "/api/user"},
 			},
 		},
 	}
