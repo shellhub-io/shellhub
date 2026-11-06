@@ -39,6 +39,13 @@ func seedUser(t *testing.T, ctx context.Context, db *bun.DB, id, name string) {
 func seedNamespace(t *testing.T, ctx context.Context, db *bun.DB, id, name, ownerID string, createdAt time.Time) {
 	t.Helper()
 
+	var tenantsIssued bool
+	require.NoError(t, db.NewRaw("SELECT to_regclass('public.issued_tenants') IS NOT NULL").Scan(ctx, &tenantsIssued))
+
+	if tenantsIssued {
+		execSQL(t, ctx, db, "INSERT INTO issued_tenants (id, created_at) VALUES (?, ?)", id, createdAt)
+	}
+
 	execSQL(t, ctx, db, `
 		INSERT INTO namespaces
 		    (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions)

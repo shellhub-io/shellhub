@@ -55,12 +55,17 @@ type NamespaceStore interface {
 	// It returns the namespace or an error if any.
 	NamespaceGetPreferred(ctx context.Context, userID string) (*models.Namespace, error)
 
-	// NamespaceCreate stores a namespace and returns its tenant ID. It always stores it as new,
-	// clearing namespace.Settings.Legacy on the caller's struct; only NamespaceUpgrade writes the
-	// flag. It seeds the owner's access policy, enrolling the owner as a member when
-	// namespace.Members omits them, appending to the slice the caller passed, because that policy
-	// has a foreign key to the membership row. It joins the transaction ctx carries, so the
-	// caller's rollback also removes the namespace.
+	// NamespaceCreate stores a namespace and returns its tenant ID, minting one into
+	// namespace.TenantID when it is empty. A tenant ID is issued once: one that any namespace held
+	// since migration 057, the deleted ones included, returns ErrDuplicate, as does a name another
+	// namespace holds; the IDs of namespaces deleted before 057 were never recorded and can be
+	// issued again. It returns ErrNamespaceSingle once the instance is bound to its namespace, and
+	// the database's error otherwise. It always stores it as new, clearing
+	// namespace.Settings.Legacy on the caller's struct; only NamespaceUpgrade writes the flag. It
+	// seeds the owner's access policy, enrolling the owner as a member when namespace.Members omits
+	// them, appending to the slice the caller passed, because that policy has a foreign key to the
+	// membership row. It joins the transaction ctx carries, so the caller's rollback also removes
+	// the namespace.
 	NamespaceCreate(ctx context.Context, namespace *models.Namespace) (string, error)
 
 	// NamespaceLockOwner blocks until no other transaction holds the namespace ownership lock of

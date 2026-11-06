@@ -17,9 +17,6 @@ import (
 // closed because their device was removed. The enterprise admin API deletes in the process that
 // holds the tunnel, which counts the eviction before the delete answers. The community admin CLI
 // runs apart from that process, so its deletion reaches the tunnel on the device's next heartbeat.
-// A second device authorizes by hand before the deletion, so its authorization is cached, and again
-// once the owner and the namespace are created anew: it comes back pending only if the deletion
-// evicted that entry.
 func TestAdminDeletesCloseTunnels(t *testing.T) {
 	t.Parallel()
 
@@ -29,7 +26,6 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 		description string
 		edition     environment.Edition
 		delete      func(t *testing.T, compose *environment.DockerCompose, admin *models.UserAuthResponse)
-		ownerGone   bool
 		onHeartbeat bool
 	}{
 		{
@@ -55,7 +51,6 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 			},
-			ownerGone: true,
 		},
 		{
 			description: "deleting its owner through the admin CLI",
@@ -65,7 +60,6 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 
 				compose.DeleteUser(t, ShellHubUsername)
 			},
-			ownerGone:   true,
 			onHeartbeat: true,
 		},
 	}
@@ -75,9 +69,6 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 			compose, admin := newAdministeredTunnelEnvironment(t, t.Context(), tc.edition)
 
 			startAcceptedAgent(t, t.Context(), compose)
-
-			cached := newDeviceAuthRequest(t, "cached", "02:00:00:00:03:25")
-			uid := authDevice(t, compose, cached).UID
 
 			evicted, err := compose.ServerMetric(t, evictedTunnels)
 			require.NoError(t, err)
@@ -99,19 +90,6 @@ func TestAdminDeletesCloseTunnels(t *testing.T) {
 				require.NoError(t, err)
 				assert.InDelta(t, 1, evicted, 0)
 			}
-
-			if tc.ownerGone {
-				compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
-			}
-
-			ownNamespace(t, t.Context(), compose, legacyNamespace)
-
-			authDevice(t, compose, cached)
-
-			device, resp, err := compose.GetDevice(t.Context(), uid)
-			require.NoError(t, err)
-			require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-			assert.Equal(t, models.DeviceStatusPending, device.Status)
 		})
 	}
 }
