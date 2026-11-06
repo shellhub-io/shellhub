@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -15,101 +14,39 @@ import (
 )
 
 func TestGetStats(t *testing.T) {
-	storeMock := mocks.NewMockStore(t)
-
-	ctx := context.Background()
-
 	cases := []struct {
 		description   string
-		req           *requests.GetStats
+		sc            scope.Scope
 		expectedStats *models.Stats
 		expectedError error
-		requiredMocks func()
 	}{
 		{
-			description: "fail when store returns error",
-			req: &requests.GetStats{
-				TenantID: "00000000-0000-4000-0000-000000000000",
-			},
-			expectedStats: nil,
+			description:   "reads the counts within a namespace",
+			sc:            scope.MustBounded("00000000-0000-4000-0000-000000000000"),
+			expectedStats: &models.Stats{RegisteredDevices: 3, OnlineDevices: 2, ActiveSessions: 5, PendingDevices: 1},
+		},
+		{
+			description:   "reads the counts across the instance when the scope spans it",
+			sc:            scope.NewUnbounded("test"),
+			expectedStats: &models.Stats{RegisteredDevices: 10, OnlineDevices: 5, ActiveSessions: 15, PendingDevices: 2, RejectedDevices: 1},
+		},
+		{
+			description:   "returns the store's error",
+			sc:            scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 			expectedError: errors.New("store error"),
-			requiredMocks: func() {
-				storeMock.
-					On("GetStats", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000")).
-					Return(nil, errors.New("store error")).
-					Once()
-			},
-		},
-		{
-			description: "success when getting stats without tenantID",
-			req: &requests.GetStats{
-				TenantID: "",
-			},
-			expectedStats: &models.Stats{
-				RegisteredDevices: 10,
-				OnlineDevices:     5,
-				ActiveSessions:    15,
-				PendingDevices:    2,
-				RejectedDevices:   1,
-			},
-			expectedError: nil,
-			requiredMocks: func() {
-				storeMock.On("GetStats", gomock.Anything, scope.NewUnbounded("instance-wide statistics deliberately aggregate every namespace")).
-					Return(
-						&models.Stats{
-							RegisteredDevices: 10,
-							OnlineDevices:     5,
-							ActiveSessions:    15,
-							PendingDevices:    2,
-							RejectedDevices:   1,
-						},
-						nil,
-					).
-					Once()
-			},
-		},
-		{
-			description: "success when getting stats with tenantID",
-			req: &requests.GetStats{
-				TenantID: "00000000-0000-4000-0000-000000000000",
-			},
-			expectedStats: &models.Stats{
-				RegisteredDevices: 3,
-				OnlineDevices:     2,
-				ActiveSessions:    5,
-				PendingDevices:    1,
-				RejectedDevices:   0,
-			},
-			expectedError: nil,
-			requiredMocks: func() {
-				storeMock.
-					On("GetStats", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000")).
-					Return(
-						&models.Stats{
-							RegisteredDevices: 3,
-							OnlineDevices:     2,
-							ActiveSessions:    5,
-							PendingDevices:    1,
-							RejectedDevices:   0,
-						},
-						nil,
-					).
-					Once()
-			},
 		},
 	}
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
-
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			tc.requiredMocks()
+			storeMock := mocks.NewMockStore(t)
+			storeMock.On("GetStats", gomock.Anything, tc.sc).Return(tc.expectedStats, tc.expectedError).Once()
 
-			stats, err := s.GetStats(ctx, tc.req)
+			s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+
+			stats, err := s.GetStats(context.Background(), tc.sc)
 			assert.Equal(t, tc.expectedStats, stats)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
-
-	storeMock.AssertExpectations(t)
 }

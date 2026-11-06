@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/responses"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -73,70 +74,48 @@ func TestGetSystemInfo(t *testing.T) {
 }
 
 func TestGetStats(t *testing.T) {
-	mock := mocks.NewMockService(t)
+	const tenant = "00000000-0000-4000-0000-000000000000"
 
 	cases := []struct {
 		title          string
-		reqStats       *models.Stats
-		headers        map[string]string
 		caller         identity.Identity
+		requiredMocks  func(mock *mocks.MockService)
 		expectedStatus int
-		requiredMocks  func()
 	}{
 		{
-			title: "success when try to get stats without tenantID",
-			reqStats: &models.Stats{
-				RegisteredDevices: 10,
-				OnlineDevices:     5,
-				ActiveSessions:    20,
-				PendingDevices:    3,
-				RejectedDevices:   2,
-			},
-			headers: map[string]string{"Content-Type": "application/json"},
-			caller:  identity.Identity{Role: authorizer.RoleOwner},
-			requiredMocks: func() {
-				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: ""}).Return(&models.Stats{}, nil)
+			title:  "serves the stats of the caller's namespace",
+			caller: identity.Identity{ID: "user", Role: authorizer.RoleOwner, TenantID: tenant},
+			requiredMocks: func(mock *mocks.MockService) {
+				mock.On("GetStats", gomock.Anything, scope.MustBounded(tenant)).Return(&models.Stats{RegisteredDevices: 3}, nil).Once()
 			},
 			expectedStatus: http.StatusOK,
 		},
 		{
-			title: "success when try to get stats with tenantID",
-			reqStats: &models.Stats{
-				RegisteredDevices: 5,
-				OnlineDevices:     2,
-				ActiveSessions:    10,
-				PendingDevices:    1,
-				RejectedDevices:   0,
-			},
-			headers: map[string]string{"Content-Type": "application/json"},
-			caller:  identity.Identity{Role: authorizer.RoleOwner, TenantID: "00000000-0000-4000-0000-000000000000"},
-			requiredMocks: func() {
-				mock.On("GetStats", gomock.Anything, &requests.GetStats{TenantID: "00000000-0000-4000-0000-000000000000"}).Return(&models.Stats{}, nil)
-			},
-			expectedStatus: http.StatusOK,
+			title:          "refuses an instance administrator with no namespace",
+			caller:         identity.Identity{ID: "admin", Admin: true},
+			requiredMocks:  func(*mocks.MockService) {},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			title:          "refuses an identity with no namespace",
+			caller:         identity.Identity{Role: authorizer.RoleOwner},
+			requiredMocks:  func(*mocks.MockService) {},
+			expectedStatus: http.StatusForbidden,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks()
+			mock := mocks.NewMockService(t)
+			tc.requiredMocks(mock)
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/stats", nil)
-
-			for key, value := range tc.headers {
-				req.Header.Set(key, value)
-			}
-
 			req = identitytest.As(req, tc.caller)
 
 			rec := httptest.NewRecorder()
-
-			e := newTestRouter(t, mock)
-			e.ServeHTTP(rec, req)
+			newTestRouter(t, mock).ServeHTTP(rec, req)
 
 			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
 		})
 	}
-
-	mock.AssertExpectations(t)
 }

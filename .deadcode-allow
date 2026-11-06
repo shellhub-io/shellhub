@@ -1,0 +1,1 @@
+pkg/api/requests/stats.go GetStats the stats route now takes its scope from the gateway; the type goes once the request-struct changes in flight land
