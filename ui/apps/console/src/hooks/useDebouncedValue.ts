@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 
 /**
- * Returns a debounced copy of `value` that updates `delayMs` after the input
- * stops changing.
+ * Returns a debounced copy of `value`. The first value is returned at once;
+ * later values arrive once `value` has stayed the same for `delayMs`. A change
+ * to `value` or `delayMs` cancels the pending update and restarts the timer.
  *
- * Use only with **primitive** values (string, number, boolean). Object or array
- * inputs reset the timer on every render that produces a fresh reference,
- * defeating the debounce. For non-primitives, debounce a stable derived key
- * instead (e.g. `JSON.stringify`).
+ * Objects and arrays must keep a stable reference between changes. A fresh
+ * reference on every render restarts the timer.
  */
 export function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);

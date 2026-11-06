@@ -17,7 +17,7 @@ import {
   useTerminalThemeStore,
   type TerminalThemeColors,
 } from "@/stores/terminalThemeStore";
-import { useSettledValue } from "@/hooks/useSettledValue";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   nextPlayerControls,
   useSessionPlayerStore,
@@ -188,17 +188,17 @@ export default function SessionPlayer({
   const [notice, setNotice] = useState<string | null>(null);
   const noticeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const colors = useSettledValue(
+  const colors = useDebouncedValue(
     useTerminalThemeStore((s) => s.theme.colors),
     LOOK_SETTLE_MS,
   );
   const controls = useSessionPlayerStore((s) => s.controls);
   const setControls = useSessionPlayerStore((s) => s.setControls);
-  const fontFamily = useSettledValue(
+  const fontFamily = useDebouncedValue(
     useTerminalThemeStore((s) => s.fontFamilyWithFallback),
     LOOK_SETTLE_MS,
   );
-  const fontSize = useSettledValue(
+  const fontSize = useDebouncedValue(
     useTerminalThemeStore((s) => s.fontSize),
     LOOK_SETTLE_MS,
   );
