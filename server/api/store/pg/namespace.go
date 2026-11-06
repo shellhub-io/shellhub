@@ -50,6 +50,11 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 	if err := pg.inTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
+		issued := &entity.IssuedTenant{ID: namespace.TenantID, CreatedAt: namespace.CreatedAt}
+		if _, err := db.NewInsert().Model(issued).Exec(ctx); err != nil {
+			return fromSQLError(err)
+		}
+
 		nsEntity := entity.NamespaceFromModel(namespace)
 		if _, err := db.NewInsert().Model(nsEntity).Exec(ctx); err != nil {
 			return fromSQLError(err)

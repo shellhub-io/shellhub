@@ -2,10 +2,15 @@ WITH input AS (
     SELECT :'tenant'::uuid AS tenant, :'name'::varchar AS name, :'owner'::varchar AS owner, :'max_devices'::integer AS max_devices, :'announcement'::text AS announcement
 ), owner AS (
     SELECT id FROM users WHERE username = (SELECT owner FROM input)
+), issued AS (
+    INSERT INTO issued_tenants (id, created_at)
+    SELECT input.tenant, now()
+    FROM input, owner
+    RETURNING id
 ), namespace AS (
     INSERT INTO namespaces (id, created_at, updated_at, scope, name, owner_id, max_devices, record_sessions, connection_announcement, legacy)
-    SELECT input.tenant, now(), now(), 'team', input.name, owner.id, input.max_devices, true, input.announcement, true
-    FROM input, owner
+    SELECT issued.id, now(), now(), 'team', input.name, owner.id, input.max_devices, true, input.announcement, true
+    FROM input, owner, issued
     RETURNING id
 ), membership AS (
     INSERT INTO memberships (user_id, namespace_id, created_at, updated_at, role)

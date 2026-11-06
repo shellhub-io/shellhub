@@ -82,8 +82,6 @@ func TestLeaveNamespace(t *testing.T) {
 // server's count of tunnels closed because their device was removed. The API deletes in the
 // process that holds the tunnel, which counts the eviction before the delete answers. The admin CLI
 // runs apart from that process, so its deletion reaches the tunnel on the device's next heartbeat.
-// A second device authorizes by hand before the deletion, so its authorization is cached, and again
-// once the namespace is created anew: it comes back pending only if the deletion evicted that entry.
 func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 	t.Parallel()
 
@@ -121,9 +119,6 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 
 			startAcceptedAgent(t, t.Context(), compose)
 
-			cached := newDeviceAuthRequest(t, "cached", "02:00:00:00:03:24")
-			uid := authDevice(t, compose, cached).UID
-
 			evicted, err := compose.ServerMetric(t, evictedTunnels)
 			require.NoError(t, err)
 			require.Zero(t, evicted)
@@ -144,15 +139,6 @@ func TestDeleteNamespaceClosesItsTunnels(t *testing.T) {
 				require.NoError(t, err)
 				assert.InDelta(t, 1, evicted, 0)
 			}
-
-			compose.NewLegacyNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
-
-			authDevice(t, compose, cached)
-
-			device, resp, err := compose.GetDevice(t.Context(), uid)
-			require.NoError(t, err)
-			require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-			assert.Equal(t, models.DeviceStatusPending, device.Status)
 		})
 	}
 }

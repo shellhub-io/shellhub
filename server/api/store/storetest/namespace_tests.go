@@ -613,6 +613,27 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
+	t.Run("a deleted namespace's tenant is never assigned again", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+		tenantID := s.CreateNamespace(t, WithOwner(userID), WithNamespaceName("retired"))
+
+		require.NoError(t, st.NamespaceDelete(ctx, &models.Namespace{TenantID: tenantID}))
+
+		_, err := st.NamespaceCreate(ctx, &models.Namespace{
+			TenantID:   tenantID,
+			Name:       "successor",
+			Owner:      userID,
+			MaxDevices: -1,
+			Settings:   &models.NamespaceSettings{SessionRecord: true},
+		})
+		require.ErrorIs(t, err, store.ErrDuplicate)
+
+		_, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
 	t.Run("fails when namespace does not exist", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
