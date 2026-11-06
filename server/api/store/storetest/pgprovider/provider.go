@@ -63,15 +63,18 @@ func NewProviderAt(ctx context.Context, version int) (*Provider, error) {
 	return provider, nil
 }
 
-// ApplyNext runs the migration following the one the provider is at and reports the migration's own
-// error. A failed transactional migration leaves neither its changes nor its record, so the
+// ApplyNext runs the migration following the one the provider is at, the next number that exists, and
+// reports the migration's own error, or an error when no migration follows the provider's version. A failed transactional migration leaves neither its changes nor its record, so the
 // provider stays at its version and a later ApplyNext runs it again.
 func (p *Provider) ApplyNext(ctx context.Context) error {
 	if err := p.describesItsDatabase(); err != nil {
 		return err
 	}
 
-	next := p.version + 1
+	next, err := migrationAfter(p.version)
+	if err != nil {
+		return err
+	}
 
 	through, err := migrationsThrough(next)
 	if err != nil {
@@ -116,7 +119,12 @@ func (p *Provider) Rollback(ctx context.Context) error {
 		return fmt.Errorf("rolled back %s, want migration %s alone", group.Migrations, want)
 	}
 
-	p.version--
+	previous, err := migrationBefore(p.version)
+	if err != nil {
+		return err
+	}
+
+	p.version = previous
 
 	return nil
 }
@@ -159,6 +167,40 @@ func apply(ctx context.Context, db *bun.DB, through []migrator.Migration, versio
 	}
 
 	return nil
+}
+
+func migrationAfter(version int) (int, error) {
+	for _, migration := range migrations.All {
+		number, err := strconv.Atoi(migration.Name)
+		if err != nil {
+			return 0, err
+		}
+
+		if number > version {
+			return number, nil
+		}
+	}
+
+	return 0, fmt.Errorf("no migration after %03d", version)
+}
+
+func migrationBefore(version int) (int, error) {
+	previous := 0
+
+	for _, migration := range migrations.All {
+		number, err := strconv.Atoi(migration.Name)
+		if err != nil {
+			return 0, err
+		}
+
+		if number >= version {
+			break
+		}
+
+		previous = number
+	}
+
+	return previous, nil
 }
 
 func migrationsThrough(version int) ([]migrator.Migration, error) {
