@@ -25,6 +25,7 @@ import ActionDialog from "@/components/common/ActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
 import PlatformBadge from "../components/common/PlatformBadge";
 import SshidCard from "@/components/common/SshidCard";
+import { normalizeDeviceTags } from "@/utils/deviceTags";
 import RestrictedAction from "../components/common/RestrictedAction";
 import PageLoader from "@/components/common/PageLoader";
 import IdentityCard from "@/components/common/IdentityCard";
@@ -82,11 +83,7 @@ export default function DeviceDetails() {
     provisioningKeys,
   );
 
-  const tags: string[] = Array.isArray(device.tags)
-    ? device.tags.map((t) =>
-        typeof t === "object" && t !== null && "name" in t ? t.name : String(t),
-      )
-    : [];
+  const { tags } = normalizeDeviceTags(device);
 
   const statusColor =
     device.status === "accepted"
