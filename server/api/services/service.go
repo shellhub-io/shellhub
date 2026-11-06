@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/validator"
+	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -49,6 +50,8 @@ type service struct {
 
 	telemetry                      TelemetrySender
 	telemetryDisabledByEnvironment bool
+
+	webhookDispatcher worker.Client
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -75,6 +78,7 @@ type Service interface {
 	APIKeyService
 	InstanceAPIKeyService
 	ProvisioningKeyService
+	WebhookService
 	FirewallService
 	LicenseService
 	BillingService
@@ -177,8 +181,8 @@ func WithDevelopmentMode(development bool) Option {
 	}
 }
 
-// WithEnrollmentWebhookCIDRs lets a provisioning key webhook reach the given prefixes, which the
-// SSRF guard refuses otherwise. See ParseEnrollmentWebhookCIDRs.
+// WithEnrollmentWebhookCIDRs lets provisioning key webhooks and namespace webhooks reach the given
+// prefixes, which the SSRF guard refuses otherwise. See webhook.ParseCIDRs.
 func WithEnrollmentWebhookCIDRs(prefixes []netip.Prefix) Option {
 	return func(service *APIService) {
 		service.webhookCIDRs = prefixes
@@ -197,6 +201,14 @@ func WithTelemetry(sender TelemetrySender) Option {
 func WithTelemetryDisabledByEnvironment() Option {
 	return func(service *APIService) {
 		service.telemetryDisabledByEnvironment = true
+	}
+}
+
+// WithWebhookDispatcher submits TaskWebhookDelivery through client after a change records an
+// event. Without it deliveries wait for the next sweep.
+func WithWebhookDispatcher(client worker.Client) Option {
+	return func(service *APIService) {
+		service.webhookDispatcher = client
 	}
 }
 

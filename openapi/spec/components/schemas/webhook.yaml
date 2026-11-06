@@ -1,0 +1,44 @@
+type: object
+properties:
+  id:
+    type: string
+    format: uuid
+    description: The webhook's ID.
+    example: 6f1c2b3a-0000-4000-8000-000000000001
+  tenant_id:
+    type: string
+    format: uuid
+    description: The tenant ID of the namespace the webhook belongs to.
+    example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  url:
+    type: string
+    format: uri
+    description: Where ShellHub POSTs each event.
+    example: https://hooks.example.com/shellhub
+  events:
+    type: array
+    description: The event types sent to the webhook.
+    items:
+      $ref: webhookEventType.yaml
+  enabled:
+    type: boolean
+    description: |
+      Whether the webhook is sent events. A disabled webhook records no new
+      events, and its waiting deliveries are sent once it is enabled again.
+    example: true
+  created_at:
+    type: string
+    format: date-time
+    example: 2026-10-21T12:00:00Z
+  updated_at:
+    type: string
+    format: date-time
+    example: 2026-10-21T12:00:00Z
+required:
+  - id
+  - tenant_id
+  - url
+  - events
+  - enabled
+  - created_at
+  - updated_at

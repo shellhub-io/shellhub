@@ -18,6 +18,7 @@ type Store interface {
 	APIKeyStore
 	InstanceAPIKeyStore
 	ProvisioningKeyStore
+	WebhookStore
 	TransactionStore
 	SystemStore
 	MembershipInvitationStore

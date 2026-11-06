@@ -564,7 +564,15 @@ func TestUserDelete(t *testing.T) {
 					Once()
 				mock.On("NamespaceDeleteMany", ctx, []string{"10000000-0000-0000-0000-000000000000", "20000000-0000-0000-0000-000000000000"}).Return(int64(2), nil).Once()
 				for _, v := range namespaceMember {
-					mock.On("NamespaceDepartMember", ctx, scope.MustBounded(v.TenantID), "507f191e810c19729de860ea", store.MemberDeparture{}).Return(&models.MemberDeparted{}, nil).Once()
+					mock.On("NamespaceDepartMember", ctx, scope.MustBounded(v.TenantID), "507f191e810c19729de860ea", store.MemberDeparture{}).
+						Return(&models.MemberDeparted{TenantID: v.TenantID, RemovedDevices: []string{"paired-uid"}}, nil).
+						Once()
+					mock.On("DeviceResolve", ctx, scope.MustBounded(v.TenantID), store.DeviceUIDResolver, "paired-uid").
+						Return(&models.Device{UID: "paired-uid", TenantID: v.TenantID, Status: models.DeviceStatusRemoved}, nil).
+						Once()
+					mock.On("WebhookEventRecord", ctx, testifymock.MatchedBy(func(event *models.WebhookEvent) bool {
+						return event.Type == models.WebhookEventDeviceRemoved && event.TenantID == v.TenantID
+					})).Return(int64(1), nil).Once()
 				}
 
 				deleted := mock.On("UserDelete", ctx, user).Return(nil).Once()

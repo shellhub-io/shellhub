@@ -1,0 +1,8 @@
+type: string
+description: A device event a webhook can subscribe to, one for each status a device enters.
+enum:
+  - device.pending
+  - device.accepted
+  - device.rejected
+  - device.removed
+example: device.accepted

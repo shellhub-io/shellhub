@@ -1,4 +1,5 @@
 import {
+  BoltIcon,
   Cog6ToothIcon,
   CommandLineIcon,
   CreditCardIcon,
@@ -6,6 +7,7 @@ import {
 import { Navigate, useLocation } from "react-router-dom";
 import SectionedLayout from "@/components/settings/SectionedLayout";
 import { useNavSectionTitle } from "@/components/layout/navSections";
+import { useHasPermission } from "@/hooks/useHasPermission";
 import { isCloud } from "@/env";
 
 /**
@@ -15,9 +17,13 @@ import { isCloud } from "@/env";
 export default function SettingsLayout() {
   const sectionTitle = useNavSectionTitle("/settings");
   const { pathname, hash } = useLocation();
+  const canListWebhooks = useHasPermission("webhook:list");
   const sections = [
     { to: "general", label: "General", icon: Cog6ToothIcon },
     { to: "ssh", label: "SSH", icon: CommandLineIcon },
+    ...(canListWebhooks
+      ? [{ to: "webhooks", label: "Webhooks", icon: BoltIcon }]
+      : []),
     ...(isCloud()
       ? [{ to: "billing", label: "Billing", icon: CreditCardIcon }]
       : []),
@@ -33,7 +39,7 @@ export default function SettingsLayout() {
       icon={<Cog6ToothIcon className="w-6 h-6" />}
       overline={sectionTitle}
       title="Settings"
-      description="How this namespace is named, reached over SSH and billed"
+      description="How this namespace is named, reached over SSH, reports device changes and is billed"
       sections={sections}
     />
   );

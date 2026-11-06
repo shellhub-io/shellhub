@@ -52,11 +52,20 @@ func (s *service) DeviceCleanup() worker.CronHandler {
 }
 
 // EphemeralCleanup removes devices enrolled with an ephemeral provisioning key that have stayed offline
-// past their own per-device timeout. It runs on its own, more frequent schedule than the daily
-// removed-device cleanup.
+// past their own per-device timeout, and records a device.removed event for each one that was not
+// already removed, in one transaction. It runs on its own, more frequent schedule than the daily
+// removed-device cleanup. It returns the store's error when listing or deleting the devices,
+// recording an event or decrementing a namespace's device count fails; the transaction then rolls
+// back, so nothing is deleted or recorded.
 func (s *service) EphemeralCleanup() worker.CronHandler {
 	return func(ctx context.Context) error {
-		return s.store.WithTransaction(ctx, s.ephemeralCleanup())
+		if err := s.store.WithTransaction(ctx, s.ephemeralCleanup()); err != nil {
+			return err
+		}
+
+		s.nudgeWebhookDelivery(ctx)
+
+		return nil
 	}
 }
 
@@ -378,6 +387,21 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			log.WithError(err).Error("Failed to delete offline ephemeral devices")
 
 			return err
+		}
+
+		listed := make(map[string]models.Device, len(devices))
+		for _, device := range devices {
+			listed[device.UID] = device
+		}
+
+		for _, deletedDevice := range deleted {
+			if deletedDevice.Status == models.DeviceStatusRemoved {
+				continue
+			}
+
+			if err := s.recordDeviceEvent(ctx, models.WebhookEventDeviceRemoved, s.removedDevice(listed[deletedDevice.UID])); err != nil {
+				return err
+			}
 		}
 
 		deletedPerTenant := make(map[string]map[models.DeviceStatus]int64)

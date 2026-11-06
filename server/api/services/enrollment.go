@@ -3,82 +3,23 @@ package services
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
-	"net/netip"
 	"slices"
 	"strings"
 	"time"
 
-	"code.dny.dev/ssrf"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/webhook"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
-
-// ParseEnrollmentWebhookCIDRs parses the comma-separated prefixes a provisioning key webhook may
-// reach, for WithEnrollmentWebhookCIDRs. It logs and skips an invalid prefix rather than failing.
-func ParseEnrollmentWebhookCIDRs(raw string) []netip.Prefix {
-	var prefixes []netip.Prefix
-
-	for cidr := range strings.SplitSeq(raw, ",") {
-		cidr = strings.TrimSpace(cidr)
-		if cidr == "" {
-			continue
-		}
-
-		prefix, err := netip.ParsePrefix(cidr)
-		if err != nil {
-			log.WithError(err).WithField("cidr", cidr).Warn("ignoring invalid webhook allowed CIDR")
-
-			continue
-		}
-
-		prefixes = append(prefixes, prefix)
-	}
-
-	return prefixes
-}
-
-func enrollmentWebhookClient(allowed []netip.Prefix) *http.Client {
-	opts := []ssrf.Option{ssrf.WithAnyPort()}
-
-	var v4, v6 []netip.Prefix
-
-	for _, prefix := range allowed {
-		if prefix.Addr().Is4() {
-			v4 = append(v4, prefix)
-		} else {
-			v6 = append(v6, prefix)
-		}
-	}
-
-	if len(v4) > 0 {
-		opts = append(opts, ssrf.WithAllowedV4Prefixes(v4...))
-	}
-
-	if len(v6) > 0 {
-		opts = append(opts, ssrf.WithAllowedV6Prefixes(v6...))
-	}
-
-	guard := ssrf.New(opts...)
-
-	return &http.Client{
-		Transport: &http.Transport{
-			DialContext: (&net.Dialer{Control: guard.Safe}).DialContext,
-		},
-	}
-}
 
 type enrollmentDecision string
 
@@ -298,13 +239,6 @@ type enrollmentWebhookResponse struct {
 	Reason   string `json:"reason,omitempty"`
 }
 
-func signEnrollmentWebhook(secret string, body []byte) string {
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
-
-	return hex.EncodeToString(mac.Sum(nil))
-}
-
 func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req requests.DeviceAuth, uid string) string {
 	if req.ForwardedHost == "" {
 		return ""
@@ -366,9 +300,9 @@ func (s *service) callEnrollmentWebhook(ctx context.Context, key *models.Provisi
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("X-ShellHub-Signature", signEnrollmentWebhook(key.WebhookSecret, body))
+	httpReq.Header.Set("X-ShellHub-Signature", webhook.Sign(key.WebhookSecret, body))
 
-	client := enrollmentWebhookClient(s.webhookCIDRs)
+	client := webhook.NewClient(s.webhookCIDRs)
 	defer client.CloseIdleConnections()
 
 	resp, err := client.Do(httpReq)

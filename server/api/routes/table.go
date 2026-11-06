@@ -125,6 +125,14 @@ func (h *Handler) publicRoutes() []route {
 		{method: http.MethodGet, path: RevealProvisioningKeyURL, endpoint: gateway.Legacy(h.RevealProvisioningKey), access: requires(authorizer.ProvisioningKeyReveal), noAPIKey: true},
 		{method: http.MethodGet, path: HistoryProvisioningKeyURL, endpoint: gateway.Legacy(h.HistoryProvisioningKey), access: requires(authorizer.ProvisioningKeyList), noAPIKey: true},
 
+		{method: http.MethodPost, path: CreateWebhookURL, endpoint: gateway.Legacy(h.CreateWebhook), access: requires(authorizer.WebhookCreate), noAPIKey: true},
+		{method: http.MethodGet, path: ListWebhooksURL, endpoint: gateway.Legacy(h.ListWebhooks), access: requires(authorizer.WebhookList)},
+		{method: http.MethodGet, path: GetWebhookURL, endpoint: gateway.Legacy(h.GetWebhook), access: requires(authorizer.WebhookList)},
+		{method: http.MethodPatch, path: UpdateWebhookURL, endpoint: gateway.Legacy(h.UpdateWebhook), access: requires(authorizer.WebhookUpdate), noAPIKey: true},
+		{method: http.MethodDelete, path: DeleteWebhookURL, endpoint: gateway.Legacy(h.DeleteWebhook), access: requires(authorizer.WebhookDelete)},
+		{method: http.MethodGet, path: RevealWebhookSecretURL, endpoint: gateway.Legacy(h.RevealWebhookSecret), access: requires(authorizer.WebhookReveal), noAPIKey: true},
+		{method: http.MethodGet, path: ListWebhookDeliveriesURL, endpoint: gateway.Legacy(h.ListWebhookDeliveries), access: requires(authorizer.WebhookList)},
+
 		{method: http.MethodPatch, path: URLUpdateUser, endpoint: gateway.Legacy(h.UpdateUser), access: ownAccount},
 		{method: http.MethodPatch, path: URLDeprecatedUpdateUser, endpoint: gateway.Legacy(h.UpdateUser), access: ownAccount},
 		{method: http.MethodPatch, path: URLDeprecatedUpdateUserPassword, endpoint: gateway.Legacy(h.UpdateUserPassword), access: ownAccount},

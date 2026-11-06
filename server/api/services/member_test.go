@@ -769,6 +769,8 @@ func TestService_RemoveNamespaceMember(t *testing.T) {
 	}
 
 	storeMock := storemock.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 
 	cases := []struct {
 		description   string
@@ -1256,6 +1258,8 @@ func TestService_LeaveNamespace(t *testing.T) {
 	}
 
 	storeMock := storemock.NewMockStore(t)
+	runTransactionsInline(storeMock)
+	ignoreWebhookEvents(storeMock)
 	cacheMock := cachemock.NewMockCache(t)
 
 	cases := []struct {
