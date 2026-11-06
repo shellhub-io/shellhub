@@ -15,7 +15,6 @@ func Entities() []any {
 		(*InstanceAPIKey)(nil),
 		(*Membership)(nil),
 		(*Namespace)(nil),
-		(*PrivateKey)(nil),
 		(*ProvisioningKey)(nil),
 		(*PublicKey)(nil),
 		(*Session)(nil),

@@ -673,8 +673,8 @@ func (_c *MockService_AuthLocalUser_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // AuthPublicKey provides a mock function for the type MockService
-func (_mock *MockService) AuthPublicKey(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
-	ret := _mock.Called(ctx, req)
+func (_mock *MockService) AuthPublicKey(ctx context.Context, device models.UID, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error) {
+	ret := _mock.Called(ctx, device, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AuthPublicKey")
@@ -682,18 +682,18 @@ func (_mock *MockService) AuthPublicKey(ctx context.Context, req requests.Public
 
 	var r0 *models.PublicKeyAuthResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)); ok {
-		return returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)); ok {
+		return returnFunc(ctx, device, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, requests.PublicKeyAuth) *models.PublicKeyAuthResponse); ok {
-		r0 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID, requests.PublicKeyAuth) *models.PublicKeyAuthResponse); ok {
+		r0 = returnFunc(ctx, device, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.PublicKeyAuthResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, requests.PublicKeyAuth) error); ok {
-		r1 = returnFunc(ctx, req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, models.UID, requests.PublicKeyAuth) error); ok {
+		r1 = returnFunc(ctx, device, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -707,24 +707,30 @@ type MockService_AuthPublicKey_Call struct {
 
 // AuthPublicKey is a helper method to define mock.On call
 //   - ctx context.Context
+//   - device models.UID
 //   - req requests.PublicKeyAuth
-func (_e *MockService_Expecter) AuthPublicKey(ctx any, req any) *MockService_AuthPublicKey_Call {
-	return &MockService_AuthPublicKey_Call{Call: _e.mock.On("AuthPublicKey", ctx, req)}
+func (_e *MockService_Expecter) AuthPublicKey(ctx any, device any, req any) *MockService_AuthPublicKey_Call {
+	return &MockService_AuthPublicKey_Call{Call: _e.mock.On("AuthPublicKey", ctx, device, req)}
 }
 
-func (_c *MockService_AuthPublicKey_Call) Run(run func(ctx context.Context, req requests.PublicKeyAuth)) *MockService_AuthPublicKey_Call {
+func (_c *MockService_AuthPublicKey_Call) Run(run func(ctx context.Context, device models.UID, req requests.PublicKeyAuth)) *MockService_AuthPublicKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 requests.PublicKeyAuth
+		var arg1 models.UID
 		if args[1] != nil {
-			arg1 = args[1].(requests.PublicKeyAuth)
+			arg1 = args[1].(models.UID)
+		}
+		var arg2 requests.PublicKeyAuth
+		if args[2] != nil {
+			arg2 = args[2].(requests.PublicKeyAuth)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -735,7 +741,7 @@ func (_c *MockService_AuthPublicKey_Call) Return(publicKeyAuthResponse *models.P
 	return _c
 }
 
-func (_c *MockService_AuthPublicKey_Call) RunAndReturn(run func(ctx context.Context, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)) *MockService_AuthPublicKey_Call {
+func (_c *MockService_AuthPublicKey_Call) RunAndReturn(run func(ctx context.Context, device models.UID, req requests.PublicKeyAuth) (*models.PublicKeyAuthResponse, error)) *MockService_AuthPublicKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1704,68 +1710,6 @@ func (_c *MockService_CreateNamespace_Call) Return(namespace1 *models.Namespace,
 }
 
 func (_c *MockService_CreateNamespace_Call) RunAndReturn(run func(ctx context.Context, namespace *requests.NamespaceCreate) (*models.Namespace, error)) *MockService_CreateNamespace_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// CreatePrivateKey provides a mock function for the type MockService
-func (_mock *MockService) CreatePrivateKey(ctx context.Context) (*models.PrivateKey, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreatePrivateKey")
-	}
-
-	var r0 *models.PrivateKey
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*models.PrivateKey, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *models.PrivateKey); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.PrivateKey)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockService_CreatePrivateKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePrivateKey'
-type MockService_CreatePrivateKey_Call struct {
-	*mock.Call
-}
-
-// CreatePrivateKey is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockService_Expecter) CreatePrivateKey(ctx any) *MockService_CreatePrivateKey_Call {
-	return &MockService_CreatePrivateKey_Call{Call: _e.mock.On("CreatePrivateKey", ctx)}
-}
-
-func (_c *MockService_CreatePrivateKey_Call) Run(run func(ctx context.Context)) *MockService_CreatePrivateKey_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_CreatePrivateKey_Call) Return(privateKey *models.PrivateKey, err error) *MockService_CreatePrivateKey_Call {
-	_c.Call.Return(privateKey, err)
-	return _c
-}
-
-func (_c *MockService_CreatePrivateKey_Call) RunAndReturn(run func(ctx context.Context) (*models.PrivateKey, error)) *MockService_CreatePrivateKey_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5713,6 +5657,74 @@ func (_c *MockService_MakeTeamDevice_Call) Return(err error) *MockService_MakeTe
 }
 
 func (_c *MockService_MakeTeamDevice_Call) RunAndReturn(run func(ctx context.Context, tenantID string, uid string) error) *MockService_MakeTeamDevice_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// MintDeviceSigner provides a mock function for the type MockService
+func (_mock *MockService) MintDeviceSigner(ctx context.Context, device models.UID) (*rsa.PrivateKey, error) {
+	ret := _mock.Called(ctx, device)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MintDeviceSigner")
+	}
+
+	var r0 *rsa.PrivateKey
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) (*rsa.PrivateKey, error)); ok {
+		return returnFunc(ctx, device)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) *rsa.PrivateKey); ok {
+		r0 = returnFunc(ctx, device)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*rsa.PrivateKey)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, models.UID) error); ok {
+		r1 = returnFunc(ctx, device)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_MintDeviceSigner_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MintDeviceSigner'
+type MockService_MintDeviceSigner_Call struct {
+	*mock.Call
+}
+
+// MintDeviceSigner is a helper method to define mock.On call
+//   - ctx context.Context
+//   - device models.UID
+func (_e *MockService_Expecter) MintDeviceSigner(ctx any, device any) *MockService_MintDeviceSigner_Call {
+	return &MockService_MintDeviceSigner_Call{Call: _e.mock.On("MintDeviceSigner", ctx, device)}
+}
+
+func (_c *MockService_MintDeviceSigner_Call) Run(run func(ctx context.Context, device models.UID)) *MockService_MintDeviceSigner_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 models.UID
+		if args[1] != nil {
+			arg1 = args[1].(models.UID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_MintDeviceSigner_Call) Return(privateKey *rsa.PrivateKey, err error) *MockService_MintDeviceSigner_Call {
+	_c.Call.Return(privateKey, err)
+	return _c
+}
+
+func (_c *MockService_MintDeviceSigner_Call) RunAndReturn(run func(ctx context.Context, device models.UID) (*rsa.PrivateKey, error)) *MockService_MintDeviceSigner_Call {
 	_c.Call.Return(run)
 	return _c
 }

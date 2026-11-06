@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/authctx"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
@@ -124,8 +125,9 @@ func (h *Handler) CreateUserToken(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// AuthPublicKey authenticates by SSH key, which is how the SSH gateway checks a key the
-// client offered before opening a session.
+// AuthPublicKey signs for the key the SSH gateway minted to log in to the calling device, which is
+// how that device's agent tells the gateway's login apart; a key minted for any other device is
+// refused.
 func (h *Handler) AuthPublicKey(c *gateway.Context) error {
 	var req requests.PublicKeyAuth
 	if err := c.Bind(&req); err != nil {
@@ -136,7 +138,7 @@ func (h *Handler) AuthPublicKey(c *gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthPublicKey(c.Ctx(), req)
+	res, err := h.service.AuthPublicKey(c.Ctx(), models.UID(c.DeviceUID()), req)
 	if err != nil {
 		return err
 	}

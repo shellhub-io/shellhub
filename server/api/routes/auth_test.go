@@ -533,7 +533,7 @@ func TestAuthPublicKey(t *testing.T) {
 					Fingerprint: "fingerprint",
 					Data:        "data",
 				}
-				mock.On("AuthPublicKey", gomock.Anything, req).Return(&models.PublicKeyAuthResponse{}, nil).Once()
+				mock.On("AuthPublicKey", gomock.Anything, models.UID("device-uid"), req).Return(&models.PublicKeyAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.PublicKeyAuthResponse{},
@@ -562,6 +562,7 @@ func TestAuthPublicKey(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/auth/ssh", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
+			req = identitytest.As(req, identity.Identity{DeviceUID: "device-uid", TenantID: "00000000-0000-4000-0000-000000000000"})
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)

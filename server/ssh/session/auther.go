@@ -2,8 +2,6 @@ package session
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/pem"
 	"errors"
 	"time"
 
@@ -20,19 +18,12 @@ import (
 type authFunc func(context.Context, *Session, *gossh.ClientConfig) error
 
 func mintEphemeralSigner(ctx context.Context, session *Session, config *gossh.ClientConfig) error {
-	privateKey, err := session.service.CreatePrivateKey(ctx)
+	key, err := session.service.MintDeviceSigner(ctx, models.UID(session.Device.UID))
 	if err != nil {
 		return err
 	}
 
-	block, _ := pem.Decode(privateKey.Data)
-
-	parsed, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		return err
-	}
-
-	signer, err := gossh.NewSignerFromKey(parsed)
+	signer, err := gossh.NewSignerFromKey(key)
 	if err != nil {
 		return err
 	}
