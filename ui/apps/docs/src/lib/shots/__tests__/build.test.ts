@@ -1,13 +1,17 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, rmSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { JSDOM } from "jsdom";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, inject, it } from "vitest";
 import type { ShotManifest } from "@/lib/shots/manifest";
 
-const fixture = fileURLToPath(
-  new URL("../../../../test/fixtures/shots-site", import.meta.url),
-);
+declare module "vitest" {
+  export interface ProvidedContext {
+    fixtures: string;
+  }
+}
+
+const fixture = join(inject("fixtures"), "shots-site");
 
 let manifest: ShotManifest;
 
@@ -34,7 +38,7 @@ describe("shots integration, over a real astro build", () => {
         route: "/",
         viewport: { width: 800, height: 600 },
         edition: "ce",
-        usedBy: ["/one/"],
+        usedBy: ["/one"],
       },
       {
         id: "device-list",
@@ -42,14 +46,14 @@ describe("shots integration, over a real astro build", () => {
         viewport: { width: 1440, height: 900 },
         edition: "ce",
         of: { role: "table" },
-        usedBy: ["/one/", "/two/"],
+        usedBy: ["/one", "/two"],
       },
       {
         id: "session-list",
         route: "/sessions",
         viewport: { width: 1440, height: 900 },
         edition: "enterprise",
-        usedBy: ["/two/"],
+        usedBy: ["/two"],
       },
     ]);
   });

@@ -1,6 +1,9 @@
 ---
 import { GithubIcon, ShellHubLogo } from "@shellhub/design-system/primitives";
-import { websiteUrl } from "../../data/links";
+import SeoHead from "@/components/SeoHead.astro";
+import { websiteUrl } from "@/data/links";
+import { sidebar } from "@/data/sidebar";
+import { pageGraph, pageTitle } from "@/lib/seo";
 
 /**
  * The API reference, rendered from the specification this site publishes.
@@ -22,8 +25,11 @@ const editions = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>API Reference - ShellHub Docs</title>
-    <meta name="description" content="Every route an API key can call, per edition." />
+    <SeoHead
+      title={pageTitle("API Reference")}
+      description="ShellHub HTTP API reference: every route an API key can call in Community, Cloud and Enterprise, rendered from the OpenAPI specification."
+      structuredData={pageGraph({ pathname: Astro.url.pathname, title: "API Reference", sections: sidebar })}
+    />
     <link rel="icon" href="/favicon.ico" />
     <style is:inline>
       :root {

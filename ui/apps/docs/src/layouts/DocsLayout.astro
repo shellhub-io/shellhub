@@ -10,25 +10,37 @@ import { sidebar, flattenItems } from "../data/sidebar";
 import { websiteUrl } from "../data/links";
 import CommandPalette from "../components/CommandPalette.astro";
 import UnreleasedBanner from "../components/UnreleasedBanner.astro";
+import SeoHead from "../components/SeoHead.astro";
+import { isIndexable, normalizePath, pageGraph, pageTitle } from "../lib/seo";
 
-interface Props {
+interface Page {
   title: string;
   description?: string;
+  schema?: "faq";
 }
 
-const { title, description } = Astro.props;
+type Props = Page | { frontmatter: Page };
+
+const page: Page = "frontmatter" in Astro.props ? Astro.props.frontmatter : Astro.props;
+const { title, description, schema } = page;
+const indexable = isIndexable(Astro.url.pathname);
+const structuredData = pageGraph({
+  pathname: Astro.url.pathname,
+  title,
+  description,
+  sections: sidebar,
+});
 
 const defaultCollapsed = new Set<string>();
 
-const rawPath = Astro.url.pathname.replace(/\/$/, "");
-const currentPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+const currentPath = normalizePath(Astro.url.pathname);
 
 const currentSection = sidebar.find(s =>
-  flattenItems(s.items).some(i => i.href.replace(/\/$/, "") === currentPath)
+  flattenItems(s.items).some(i => normalizePath(i.href) === currentPath)
 );
 
 const allPages = sidebar.flatMap(s => flattenItems(s.items));
-const currentIndex = allPages.findIndex(p => p.href.replace(/\/$/, "") === currentPath);
+const currentIndex = allPages.findIndex(p => normalizePath(p.href) === currentPath);
 const prevPage = currentIndex > 0 ? allPages[currentIndex - 1] : null;
 const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1] : null;
 
@@ -38,8 +50,12 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} - ShellHub Docs</title>
-    {description && <meta name="description" content={description} />}
+    <SeoHead
+      title={pageTitle(title)}
+      description={description}
+      structuredData={indexable ? structuredData : undefined}
+      markdown={indexable}
+    />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="bg-background text-text-primary font-sans antialiased">
@@ -89,7 +105,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
         <nav class="flex flex-col gap-4">
           {sidebar.map((section) => {
             const sectionId = section.label.toLowerCase().replace(/\s+/g, "-");
-            const sectionHasActive = flattenItems(section.items).some(i => i.href.replace(/\/$/, "") === currentPath);
+            const sectionHasActive = flattenItems(section.items).some(i => normalizePath(i.href) === currentPath);
             const isCollapsed = sectionHasActive ? false : defaultCollapsed.has(section.label);
             const Icon = section.icon;
             return (
@@ -111,7 +127,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
               <ul class="list-none p-0 m-0 overflow-hidden border-l border-white/[0.06]">
                 {section.items.map((item) => {
                   if (item.href && !item.items) {
-                    const isActive = currentPath === item.href.replace(/\/$/, "");
+                    const isActive = currentPath === normalizePath(item.href);
                     return (
                       <li>
                         <a
@@ -130,9 +146,9 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
                   }
                   const groupId = item.label.toLowerCase().replace(/\s+/g, "-");
                   const hasActivePage =
-                    (item.href && currentPath === item.href.replace(/\/$/, "")) ||
+                    (item.href && currentPath === normalizePath(item.href)) ||
                     (item.items ?? []).some((child: any) =>
-                      currentPath === child.href.replace(/\/$/, "")
+                      currentPath === normalizePath(child.href)
                     );
                   return (
                     <li>
@@ -142,7 +158,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
                             href={item.href}
                             class:list={[
                               "block flex-1 text-[13.5px] no-underline py-[6px] transition-colors duration-150",
-                              currentPath === item.href.replace(/\/$/, "")
+                              currentPath === normalizePath(item.href)
                                 ? "text-text-primary font-medium"
                                 : "text-text-secondary hover:text-text-primary",
                             ]}
@@ -174,7 +190,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
                         data-collapsed={hasActivePage ? "false" : "true"}
                       >
                         {(item.items ?? []).map((child: any) => {
-                          const isActive = currentPath === child.href.replace(/\/$/, "");
+                          const isActive = currentPath === normalizePath(child.href);
                           return (
                             <li>
                               <a
@@ -204,7 +220,7 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
       </aside>
 
       <main class="col-span-12 md:col-span-9 xl:col-span-7 min-w-0 pt-10 pb-20 animate-slide-up" id="docs-scroll">
-        <article class="prose">
+        <article class="prose" data-schema={schema}>
           <slot />
         </article>
 
