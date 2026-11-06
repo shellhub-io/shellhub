@@ -320,3 +320,77 @@ func localSignInOn() *models.System {
 		Authentication: &models.SystemAuthentication{Local: &models.SystemAuthenticationLocal{Enabled: true}},
 	}
 }
+
+func TestService_RegisterUser_accountDefaults(t *testing.T) {
+	ctx := context.TODO()
+	req := requests.RegisterUser{
+		Name: "Alice", Username: "ALICE", Email: "Request@Example.com", Password: "secret123", EmailMarketing: true,
+	}
+	runTx := func(txCtx context.Context, cb store.TransactionCb) error { return cb(txCtx) }
+
+	cases := []struct {
+		description   string
+		requiredMocks func(storeMock *storemock.MockStore)
+		expectedID    string
+		expectedEmail string
+	}{
+		{
+			description: "builds an open registration from the normalized request email",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationEmailResolver, "request@example.com").
+					Return(nil, store.ErrNoDocuments).Once()
+			},
+			expectedID:    "",
+			expectedEmail: "request@example.com",
+		},
+		{
+			description: "builds an invited registration from the normalized invitation email and keeps the invitation ID",
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				invitation := &models.UserInvitation{
+					ID: "invitee", Email: "Invite@Example.com", Status: models.UserInvitationStatusPending,
+				}
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationEmailResolver, "request@example.com").
+					Return(invitation, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(runTx).Once()
+				storeMock.On("UserInvitationUpdate", ctx, invitation).Return(nil).Once()
+			},
+			expectedID:    "invitee",
+			expectedEmail: "invite@example.com",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			override(t, &openSignupEnabled, true)
+			override(t, &userRegisteredHooks, nil)
+			hashMock := hashmock.NewMockHasher(t)
+			hash.Set(t, hashMock)
+			hashMock.On("Do", "secret123").Return("hashed-password", nil).Once()
+
+			storeMock := storemock.NewMockStore(t)
+			tc.requiredMocks(storeMock)
+			storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
+				Run(func(args mock.Arguments) {
+					user, ok := args.Get(1).(*models.User)
+					require.True(t, ok)
+					assert.Equal(t, &models.User{
+						ID:             tc.expectedID,
+						Origin:         models.UserOriginLocal,
+						UserData:       models.UserData{Name: "Alice", Email: tc.expectedEmail, Username: "alice"},
+						Password:       models.UserPassword{Plain: "secret123", Hash: "hashed-password"},
+						CreatedAt:      now,
+						MaxNamespaces:  1,
+						EmailMarketing: true,
+						Status:         models.UserStatusNotConfirmed,
+						Preferences:    models.UserPreferences{AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal}},
+					}, user)
+				}).Return("created-user", nil).Once()
+
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
+			_, err := s.RegisterUser(ctx, req)
+			require.NoError(t, err)
+		})
+	}
+}
