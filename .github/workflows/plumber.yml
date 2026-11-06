@@ -1,0 +1,30 @@
+name: Plumber
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plumber:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: getplumber/plumber@ebc213aa45dccd233ce5c2630f0aafa8e8d650c5 # v0.7.18
+        with:
+          upload-sarif: ${{ github.event.pull_request.head.repo.fork != true }}
+          score-push: true
+          min-points: 85

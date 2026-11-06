@@ -16,6 +16,7 @@
   <a href="LICENSE.md"><img src="https://img.shields.io/github/license/shellhub-io/shellhub" alt="Apache 2.0 license"></a>
   <a href="https://hub.docker.com/r/shellhubio/agent"><img src="https://img.shields.io/docker/pulls/shellhubio/agent" alt="Docker pulls"></a>
   <a href="https://github.com/shellhub-io/shellhub/actions/workflows/qa.yml"><img src="https://github.com/shellhub-io/shellhub/actions/workflows/qa.yml/badge.svg" alt="QA"></a>
+  <a href="https://score.getplumber.io/github.com/shellhub-io/shellhub"><img src="https://score.getplumber.io/github.com/shellhub-io/shellhub.svg" alt="Plumber score"></a>
 </p>
 
 <p align="center">
