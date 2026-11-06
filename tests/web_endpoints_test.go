@@ -11,6 +11,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -686,6 +687,31 @@ func testWebEndpointRoles(t *testing.T, compose *environment.DockerCompose, devi
 			assert.Equal(t, service.name, requireDeviceAnswer(t, compose, endpoint.FullAddress, "/").Name)
 		})
 	}
+
+	t.Run("a member without the device connect permission cannot read an endpoint's address", func(t *testing.T) {
+		require.False(t, authorizer.RoleObserver.HasPermission(authorizer.DeviceConnect))
+
+		member := newMember(t, compose, "web-reader", authorizer.RoleObserver)
+
+		for _, path := range []string{"/api/web-endpoints", "/api/devices/" + device.UID + "/tunnels"} {
+			resp, err := compose.Anonymous(t.Context()).SetAuthToken(member.Token).Get(path)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode(), "GET %s: %s", path, resp.String())
+		}
+	})
+
+	t.Run("a member with the device connect permission reads an endpoint's address", func(t *testing.T) {
+		require.True(t, authorizer.RoleOperator.HasPermission(authorizer.DeviceConnect))
+
+		member := newMember(t, compose, "web-connector", authorizer.RoleOperator)
+
+		assert.True(t, slices.ContainsFunc(compose.ListWebEndpointsAs(t, member.Token), func(e environment.WebEndpoint) bool {
+			return e.Address == endpoint.Address
+		}))
+		assert.True(t, slices.ContainsFunc(compose.ListTunnelsAs(t, device.UID, member.Token), func(e environment.Tunnel) bool {
+			return e.Address == endpoint.Address
+		}))
+	})
 }
 
 func awaitDeviceStatus(t *testing.T, compose *environment.DockerCompose, uid string, status models.DeviceStatus) {
