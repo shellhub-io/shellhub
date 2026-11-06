@@ -40,21 +40,9 @@ func qualifyColumn(column, tableAlias string) bun.Ident {
 }
 
 func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, error) {
-	var isOnline bool
-
-	switch v := value.(type) {
-	case bool:
-		isOnline = v
-	case float64:
-		isOnline = v != 0
-	case string:
-		var err error
-		isOnline, err = strconv.ParseBool(v)
-		if err != nil {
-			return "", nil, false, err
-		}
-	default:
-		return "", nil, false, ErrUnsupportedBoolType
+	isOnline, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
 	}
 
 	if isOnline {
@@ -266,23 +254,13 @@ func fromEq(column string, value any, tableAlias string) (string, []any) {
 }
 
 func fromBool(column string, value any, tableAlias string) (string, []any, error) {
-	var boolValue bool
+	if v, ok := value.(int); ok {
+		value = v != 0
+	}
 
-	switch v := value.(type) {
-	case int:
-		boolValue = v != 0
-	case float64:
-		boolValue = v != 0
-	case string:
-		var err error
-		boolValue, err = strconv.ParseBool(v)
-		if err != nil {
-			return "", nil, err
-		}
-	case bool:
-		boolValue = v
-	default:
-		return "", nil, ErrUnsupportedBoolType
+	boolValue, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, err
 	}
 
 	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
