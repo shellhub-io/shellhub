@@ -66,7 +66,7 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	require.NoError(t, err)
 
 	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()))
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()), WithIssuer("https://shellhub.example.com"))
 
 	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }
@@ -346,7 +346,7 @@ func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:50", plaintextFor(0x50))
 	require.Equal(t, models.DeviceStatusPending, e.status(t, uid), "defer lands the device pending")
-	require.NotEmpty(t, callbackURL, "a callback URL must be offered to the integrator")
+	require.True(t, strings.HasPrefix(callbackURL, "https://shellhub.example.com/api/devices/enroll/callback/"), "the callback URL is under the public URL: %s", callbackURL)
 
 	token := callbackURL[strings.LastIndex(callbackURL, "/")+1:]
 

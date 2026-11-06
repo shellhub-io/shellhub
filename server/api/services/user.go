@@ -21,7 +21,7 @@ type UserService interface {
 	// open sign-up whose email an [OnEmailCheck] hook refuses yields [ErrBadRequest] whose fields
 	// map "email" to the hook's reason; an invited account is not checked, since the invitation
 	// fixed its email.
-	RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error)
+	RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error)
 
 	// UpdateUser updates the user's data, such as email and username, and a password change revokes
 	// every token the user holds. It returns [ErrUserNotFound] when the user cannot be resolved,

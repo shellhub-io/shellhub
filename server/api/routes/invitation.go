@@ -38,7 +38,7 @@ func (h *Handler) RegisterUser(c *gateway.Context) error {
 		return err
 	}
 
-	authInfo, err := h.service.RegisterUser(c.Ctx(), req, c.Request().Header.Get("X-Forwarded-Host"), c.Request().Header.Get("X-Forwarded-Proto"))
+	authInfo, err := h.service.RegisterUser(c.Ctx(), req)
 	if err != nil {
 		return err
 	}

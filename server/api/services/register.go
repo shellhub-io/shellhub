@@ -17,14 +17,14 @@ import (
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
 // account and — if the code resolves — joins the namespace in the same step. Open self-registration
 // is a capability (cloud only); community and enterprise are invite-only.
-func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
+func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error) {
 	req.DeviceCode = pairingcode.Normalize(req.DeviceCode)
 
 	if req.Sig != "" {
 		if membership, err := s.store.MembershipInvitationResolveBySig(ctx, req.Sig); err == nil {
 			invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationIDResolver, membership.UserID)
 			if err == nil && invitation.Status == models.UserInvitationStatusPending {
-				return s.createInvitedUser(ctx, &req, invitation, forwardedHost, forwardedProto)
+				return s.createInvitedUser(ctx, &req, invitation)
 			}
 		}
 	}
@@ -34,13 +34,13 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser, f
 	}
 
 	if invitation, err := s.store.UserInvitationGet(ctx, store.UserInvitationEmailResolver, strings.ToLower(req.Email)); err == nil && invitation.Status == models.UserInvitationStatusPending {
-		return s.createInvitedUser(ctx, &req, invitation, forwardedHost, forwardedProto)
+		return s.createInvitedUser(ctx, &req, invitation)
 	}
 
-	return s.createNewUser(ctx, &req, forwardedHost, forwardedProto)
+	return s.createNewUser(ctx, &req)
 }
 
-func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
+func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
 	email := strings.ToLower(req.Email)
 	if reason := checkEmail(ctx, email); reason != "" {
 		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
@@ -82,14 +82,14 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser,
 		return nil, NewErrUserCreate(err)
 	}
 
-	if err := fireUserRegistered(ctx, user, req.DeviceCode, forwardedHost, forwardedProto); err != nil {
+	if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
 	return nil, nil
 }
 
-func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation, forwardedHost, forwardedProto string) (*models.UserAuthResponse, error) {
+func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterUser, invitation *models.UserInvitation) (*models.UserAuthResponse, error) {
 	if invitation.Status != models.UserInvitationStatusPending {
 		return nil, errors.New("invitation already accepted")
 	}
@@ -182,7 +182,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return res, nil
 	case models.UserStatusNotConfirmed:
-		if err := fireUserRegistered(ctx, user, req.DeviceCode, forwardedHost, forwardedProto); err != nil {
+		if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 

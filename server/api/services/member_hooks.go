@@ -9,9 +9,9 @@ import (
 
 // MembershipInvitedHookFn is called after a membership invitation is created or refreshed and
 // the transaction has committed. It receives the fully-populated notification (invitation
-// signature, expiry, recipient email + name, forwarded proto + host) — everything the email
-// needs, assembled by the intake flow. Cloud uses it to deliver the invitation email; the hook
-// runs outside the DB transaction, so a delivery failure never rolls back the (successful) invite.
+// signature, expiry, recipient email + name), assembled by the intake flow: everything the email
+// needs besides the public URL its link starts at. Cloud uses it to deliver the invitation email;
+// the hook runs outside the DB transaction, so a delivery failure never rolls back the invite.
 type MembershipInvitedHookFn func(ctx context.Context, notification *models.MembershipInvitationNotification) error
 
 var membershipInvitedHooks []MembershipInvitedHookFn

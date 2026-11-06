@@ -1691,12 +1691,10 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
 	_, err := s.AddNamespaceMember(ctx, scope.MustBounded(ns.TenantID), &requests.NamespaceAddMember{
-		ForwardedHost:  "localhost",
-		ForwardedProto: "https",
-		UserID:         "000000000000000000000000",
-		TenantID:       ns.TenantID,
-		MemberEmail:    "Invitee@Test.com",
-		MemberRole:     authorizer.RoleObserver,
+		UserID:      "000000000000000000000000",
+		TenantID:    ns.TenantID,
+		MemberEmail: "Invitee@Test.com",
+		MemberRole:  authorizer.RoleObserver,
 	})
 
 	require.NoError(t, err)
@@ -1704,8 +1702,6 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	require.NotNil(t, created)
 	assert.Equal(t, "invitee@test.com", got.RecipientEmail)
 	assert.Equal(t, "Invitee Person", got.RecipientName)
-	assert.Equal(t, "https", got.ForwardedProto)
-	assert.Equal(t, "localhost", got.ForwardedHost)
 	assert.Equal(t, now.Add(7*24*time.Hour), got.ExpiresAt)
 	assert.Equal(t, created.Sig, got.Signature)
 	assert.NotEmpty(t, got.Signature)

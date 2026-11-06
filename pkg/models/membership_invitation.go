@@ -80,8 +80,4 @@ type MembershipInvitationNotification struct {
 	// RecipientName is the invitee's display name, empty for a not-yet-registered invitee (exactly
 	// as before).
 	RecipientName string `json:"recipient_name"`
-	// ForwardedProto and ForwardedHost come from the originating request's X-Forwarded-* headers and
-	// build the accept-invite link in the email.
-	ForwardedProto string `json:"forwarded_proto"`
-	ForwardedHost  string `json:"forwarded_host"`
 }

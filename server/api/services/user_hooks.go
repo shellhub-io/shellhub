@@ -11,7 +11,7 @@ import (
 // uses it to send the confirmation code, whose validity it decides. deviceCode is the canonical
 // pairing code of the device the registration started from, or empty. It runs outside any
 // transaction and its failure is non-fatal (registration succeeds; the user can request a resend).
-type UserRegisteredHookFn func(ctx context.Context, user *models.User, deviceCode, forwardedHost, forwardedProto string) error
+type UserRegisteredHookFn func(ctx context.Context, user *models.User, deviceCode string) error
 
 var userRegisteredHooks []UserRegisteredHookFn
 
@@ -25,9 +25,9 @@ func OnUserRegistered(fn UserRegisteredHookFn) {
 	userRegisteredHooks = append(userRegisteredHooks, fn)
 }
 
-func fireUserRegistered(ctx context.Context, user *models.User, deviceCode, forwardedHost, forwardedProto string) error {
+func fireUserRegistered(ctx context.Context, user *models.User, deviceCode string) error {
 	for _, fn := range userRegisteredHooks {
-		if err := fn(ctx, user, deviceCode, forwardedHost, forwardedProto); err != nil {
+		if err := fn(ctx, user, deviceCode); err != nil {
 			return fmt.Errorf("user registered hook failed: %w", err)
 		}
 	}

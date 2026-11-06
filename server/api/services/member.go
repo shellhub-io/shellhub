@@ -140,14 +140,14 @@ func (s *service) AddNamespaceMember(ctx context.Context, sc scope.Scope, req *r
 		return nil, err
 	}
 
-	if _, err := s.intakeMembership(ctx, namespace, active.ID, req.MemberEmail, req.MemberRole, req.ForwardedHost, req.ForwardedProto); err != nil {
+	if _, err := s.intakeMembership(ctx, namespace, active.ID, req.MemberEmail, req.MemberRole); err != nil {
 		return nil, err
 	}
 
 	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 }
 
-func (s *service) intakeMembership(ctx context.Context, namespace *models.Namespace, invitedBy, email string, role authorizer.Role, forwardedHost, forwardedProto string) (*models.MembershipInvitation, error) {
+func (s *service) intakeMembership(ctx context.Context, namespace *models.Namespace, invitedBy, email string, role authorizer.Role) (*models.MembershipInvitation, error) {
 	email = strings.ToLower(email)
 
 	var (
@@ -213,8 +213,6 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 			ExpiresAt:      *invitation.ExpiresAt,
 			RecipientEmail: email,
 			RecipientName:  recipientName,
-			ForwardedProto: forwardedProto,
-			ForwardedHost:  forwardedHost,
 		}
 
 		if err := fireMembershipInvited(ctx, notification); err != nil {

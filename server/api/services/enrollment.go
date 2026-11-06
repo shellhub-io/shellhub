@@ -110,7 +110,7 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.Provisioni
 
 		return enrollReject
 	case models.ProvisioningKeyModeWebhook:
-		callbackURL := s.enrollmentCallbackURL(key, req, uid)
+		callbackURL := s.enrollmentCallbackURL(key, uid)
 
 		decision, err := s.callEnrollmentWebhook(ctx, key, req, uid, hostname, callbackURL)
 		if err != nil {
@@ -305,16 +305,7 @@ func signEnrollmentWebhook(secret string, body []byte) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req deviceAuth, uid string) string {
-	if req.ForwardedHost == "" {
-		return ""
-	}
-
-	proto := req.ForwardedProto
-	if proto == "" {
-		proto = "https"
-	}
-
+func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, uid string) string {
 	ttl := time.Duration(key.WebhookCallbackTTLOrDefault()) * time.Second
 	token, err := jwttoken.EncodeEnrollmentDecisionClaims(jwttoken.EnrollmentDecisionClaims{
 		DeviceUID:         uid,
@@ -327,7 +318,7 @@ func (s *service) enrollmentCallbackURL(key *models.ProvisioningKey, req deviceA
 		return ""
 	}
 
-	return fmt.Sprintf("%s://%s/api/devices/enroll/callback/%s", proto, req.ForwardedHost, token)
+	return s.issuer + "/api/devices/enroll/callback/" + token
 }
 
 func claimedIdentity(req deviceAuth) string {
