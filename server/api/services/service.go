@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"net/netip"
+	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -193,7 +194,8 @@ func WithTelemetryDisabledByEnvironment() Option {
 }
 
 // NewService builds the service layer over store, signing tokens with the given key pair, which
-// the caller loads with LoadKeys. It panics when privKey is nil.
+// the caller loads with LoadKeys. It panics when privKey is nil, or when no owner holds a
+// [DeviceSelectorSource]'s EditPermission or every role that moves tags holds it.
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	service := &APIService{
 		service: &service{
@@ -214,6 +216,10 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 
 	for _, option := range options {
 		option(service)
+	}
+
+	for _, source := range slices.Concat(service.coreSelectorSources(), service.selectorSources) {
+		mustSetApart(source)
 	}
 
 	service.challengeKey = deviceAuthChallengeKey(privKey)

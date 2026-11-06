@@ -55,6 +55,12 @@ func (r Role) Assignable() bool {
 	return false
 }
 
+// AssignableRoles returns every role a person can be given, the ones [Role.Assignable] accepts,
+// from the most privileged down.
+func AssignableRoles() []Role {
+	return []Role{RoleOwner, RoleAdministrator, RoleOperator, RoleObserver}
+}
+
 // String converts the given role to its corresponding string. Every role outside the four
 // assignable ones, RoleInvalid included, converts to the empty string, so a caller that must
 // tell an absent role from a real one tests the Role itself rather than this result.
