@@ -310,7 +310,8 @@ func NewErrTagDuplicated(conflicts []string, next error) error {
 }
 
 // NewErrDeviceSelectorOutOfReach returns the refusal a caller gets for moving a tag on or off a
-// device when a rule its role may not edit selects devices by that tag.
+// device, or renaming a device, when that changes which devices a rule selects and its role may not
+// edit the rule.
 func NewErrDeviceSelectorOutOfReach() error {
 	return NewErrForbidden(ErrDeviceSelectorOutOfReach, nil)
 }

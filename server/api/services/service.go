@@ -195,7 +195,8 @@ func WithTelemetryDisabledByEnvironment() Option {
 
 // NewService builds the service layer over store, signing tokens with the given key pair, which
 // the caller loads with LoadKeys. It panics when privKey is nil, or when no owner holds a
-// [DeviceSelectorSource]'s EditPermission or every role that moves tags holds it.
+// [DeviceSelectorSource]'s EditPermission or every role that moves tags or renames devices holds
+// it.
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	service := &APIService{
 		service: &service{
