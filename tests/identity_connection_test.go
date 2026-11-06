@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -83,6 +84,49 @@ func TestSSHIdentityConnection(t *testing.T) {
 		requireRefusedAtAuth(t, compose, sshid, signer)
 
 		compose.AwaitServerLogLine(t, mark, deadIdentityLog, `error="ssh access denied by policy"`)
+	})
+
+	t.Run("a single-use identity authenticates one of its concurrent logins", func(t *testing.T) {
+		key, signer := newAPIKeyIdentity(t, compose, "contended", true)
+		grant(t, compose, &requests.AccessPolicyCreate{
+			Name:    "contended",
+			Subject: apiKeySubject(key.ID),
+			Filter:  requests.AccessPolicyFilter{All: true},
+			Logins:  []string{"*"},
+		})
+
+		const logins = 8
+
+		start := make(chan struct{})
+		results := make(chan error, logins)
+
+		var wg sync.WaitGroup
+		for range logins {
+			spare, _ := newSigner(t)
+
+			wg.Go(func() {
+				<-start
+				results <- dialSSH(t.Context(), compose.SSHAddress(), sshid, []ssh.Signer{signer, spare}, nil, nil)
+			})
+		}
+
+		close(start)
+		wg.Wait()
+		close(results)
+
+		authenticated := 0
+		for err := range results {
+			if err != nil {
+				require.ErrorContains(t, err, "unable to authenticate")
+
+				continue
+			}
+
+			authenticated++
+		}
+
+		assert.Equal(t, 1, authenticated)
+		requireRecent(t, apiKeyIdentity(t, compose, "contended").ConsumedAt)
 	})
 
 	t.Run("every connection stamps the identity's last use", func(t *testing.T) {
