@@ -11,7 +11,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
@@ -39,9 +38,10 @@ var namespaceFilterColumns = map[string]string{
 // settings that apply to everything inside one.
 type NamespaceService interface {
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error)
-	// CreateNamespace creates a namespace owned by the requesting user. For a user with a
-	// namespace limit, concurrent calls count and insert one at a time, so the limit holds under
-	// parallel requests, and a call waiting on another returns ctx's error when ctx ends first. It
+	// CreateNamespace creates a namespace owned by the requesting user, under a tenant ID the store
+	// issues. For a user with a namespace limit, concurrent calls count and insert one at a time,
+	// so the limit holds under parallel requests, and a call waiting on another returns ctx's
+	// error when ctx ends first. It
 	// returns ErrUserNotFound when the user cannot be resolved, whatever the store's error;
 	// ErrNamespaceCreationIsForbidden when the user may own no namespace; ErrNamespaceLimitReached
 	// when the user already owns as many as the limit allows; ErrNamespaceDuplicated when the name
@@ -149,8 +149,7 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
 			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
 		},
-		TenantID: req.TenantID,
-		Type:     models.NewDefaultType(),
+		Type: models.NewDefaultType(),
 	}
 
 	if models.IsTypeTeam(req.Type) {
@@ -159,17 +158,14 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 		ns.Type = models.TypePersonal
 	}
 
-	if req.TenantID == "" {
-		ns.TenantID = uuid.Generate()
-	}
-
 	if s.edition.IsCloud() {
 		ns.MaxDevices = 3
 	} else {
 		ns.MaxDevices = -1
 	}
 
-	if _, err := s.store.NamespaceCreate(ctx, ns); err != nil {
+	tenantID, err := s.store.NamespaceCreate(ctx, ns)
+	if err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			return nil, NewErrNamespaceDuplicated(err)
 		}
@@ -180,6 +176,8 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 
 		return nil, NewErrNamespaceCreateStore(err)
 	}
+
+	ns.TenantID = tenantID
 
 	return ns, nil
 }
