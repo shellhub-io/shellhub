@@ -12,9 +12,9 @@ var _ Locator = (*nullGeoLite)(nil)
 
 var _ io.Closer = (*nullGeoLite)(nil)
 
-// NewNullGeoLite returns a no-op [Locator] that resolves every IP to an empty
-// result. It is the Community Edition fallback; the real MaxMind-backed locator
-// lives in the cloud/enterprise build.
+// NewNullGeoLite returns a no-op [Locator] that resolves every IP to an empty country and the
+// zero Position, never failing. The server falls back to it in every edition when no GeoIP
+// database opens.
 func NewNullGeoLite() Locator {
 	return &nullGeoLite{}
 }

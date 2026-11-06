@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
+	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/publicurl"
 	"github.com/shellhub-io/shellhub/pkg/telemetry"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
@@ -134,6 +135,16 @@ type Env struct {
 
 	// SSHPort is the SSH port the instance reports to its clients.
 	SSHPort string `env:"SHELLHUB_SSH_PORT"`
+
+	// GeoIPUpdate lets the server fetch DB-IP's monthly database when it holds an older one. Off,
+	// the server makes no request of its own for GeoIP and keeps the database it has.
+	GeoIPUpdate bool `env:"SHELLHUB_GEOIP_UPDATE,default=true"`
+
+	// GeoIPDatabase picks the GeoIP database: dbip, the one the image carries; maxmind, GeoLite2
+	// with the MaxMind licence or mirror, falling back to dbip when it cannot load; or fake, for
+	// development, which places devices on private addresses in real cities. Any other value
+	// stops the server from starting.
+	GeoIPDatabase string `env:"SHELLHUB_GEOIP_DATABASE,default=dbip"`
 
 	// OpenAPIValidation is the raw response validation mode; see envs.OpenAPIValidationMode.
 	OpenAPIValidation string `env:"SHELLHUB_OPENAPI_VALIDATION"`
@@ -294,10 +305,16 @@ func (s *Server) Setup(ctx context.Context) error {
 		return errors.Join(errors.New("failed to reconcile instance binding"), err)
 	}
 
-	servicesOptions, err := s.serviceOptions(ctx)
+	located, err := s.chooseLocator(ctx)
 	if err != nil {
 		return err
 	}
+
+	if located.keepFresh != nil {
+		go located.keepFresh(ctx)
+	}
+
+	servicesOptions := []services.Option{services.WithLocator(located.locator)}
 
 	if factory := services.BillingFactory(); factory != nil {
 		log.Info("Billing provider factory registered; initializing billing provider")
@@ -321,7 +338,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions, leOpts...)
 
-	feOpts, err := s.firewallEvaluatorOption(ctx, store, cache)
+	feOpts, err := s.firewallEvaluatorOption(ctx, store, cache, located.locator)
 	if err != nil {
 		return err
 	}
@@ -619,23 +636,21 @@ func (s *Server) telemetryWriteKey() (string, bool) {
 	}
 }
 
-func (s *Server) serviceOptions(ctx context.Context) ([]services.Option, error) {
-	opts := []services.Option{}
-
-	if factory := services.LocatorFactory(); factory != nil {
-		locator, err := factory(ctx)
-		if err != nil {
-			return nil, errors.Join(errors.New("failed to initialize GeoIP locator"), err)
-		}
-
-		if locator != nil {
-			log.Info("GeoIP locator initialized successfully")
-
-			opts = append(opts, services.WithLocator(locator))
-		}
+func (s *Server) chooseLocator(ctx context.Context) (chosenLocator, error) {
+	chosen, err := newLocator(ctx, locatorConfig{
+		database:    s.env.GeoIPDatabase,
+		factory:     services.LocatorFactory(),
+		downloadDir: geoipDownloadDir,
+		bakedDir:    geoipBakedDir,
+		update:      s.env.GeoIPUpdate,
+		updateURL:   geoip.DBIPDownloadURL,
+		clock:       s.clock,
+	})
+	if err != nil {
+		return chosenLocator{}, errors.Join(errors.New("failed to initialize GeoIP locator"), err)
 	}
 
-	return opts, nil
+	return chosen, nil
 }
 
 func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
@@ -692,13 +707,13 @@ func (s *Server) tagHolderOption(ctx context.Context, st store.Store, c cache.Ca
 	return nil, nil
 }
 
-func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
+func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache, locator geoip.Locator) ([]services.Option, error) {
 	factory := services.FirewallEvaluatorFactory()
 	if factory == nil {
 		return nil, nil
 	}
 
-	fe, err := factory(ctx, st, c)
+	fe, err := factory(ctx, st, c, locator)
 	if err != nil {
 		return nil, errors.Join(errors.New("init firewall evaluator"), err)
 	}

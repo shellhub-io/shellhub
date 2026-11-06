@@ -31,6 +31,24 @@ COPY ./server/go.mod ./server/go.sum ./
 RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
     go mod download
 
+FROM base AS geoip
+
+ARG DBIP_DOWNLOAD_URL=https://download.db-ip.com/free
+
+RUN apk add --no-cache curl
+
+COPY ./server/geoip /go/src/github.com/shellhub-io/shellhub/server/geoip
+
+RUN --mount=type=cache,id=shellhub-go-mod,target=/go/pkg/mod,sharing=shared \
+    --mount=type=cache,id=shellhub-go-build,target=/root/.cache/go-build,sharing=shared \
+    go build -o /geoip-check ./geoip/check
+
+ARG DBIP_MONTH
+
+RUN echo "DB-IP City Lite for ${DBIP_MONTH:-the month of the build}" && \
+    DBIP_DOWNLOAD_URL="$DBIP_DOWNLOAD_URL" sh ./geoip/fetch.sh /usr/share/shellhub/geoip && \
+    /geoip-check /usr/share/shellhub/geoip/dbip-city-lite-*.mmdb
+
 FROM base AS builder
 
 ARG EDITION=community
@@ -84,6 +102,7 @@ FROM tools AS development
 COPY --from=base /go/src/github.com/shellhub-io/shellhub /go/src/github.com/shellhub-io/shellhub
 
 COPY ./server/entrypoint-dev.sh /entrypoint.sh
+COPY --from=geoip /usr/share/shellhub/geoip /usr/share/shellhub/geoip
 
 WORKDIR /go/src/github.com/shellhub-io/shellhub/server
 
@@ -101,5 +120,6 @@ RUN apk add --no-cache curl && \
 
 COPY --from=builder /server /server
 COPY --from=builder /templates /templates
+COPY --from=geoip /usr/share/shellhub/geoip /usr/share/shellhub/geoip
 
 ENTRYPOINT ["/server", "server"]
