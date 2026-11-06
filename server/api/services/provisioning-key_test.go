@@ -706,7 +706,9 @@ func TestAppendProvisioningKeyEvent(t *testing.T) {
 		storeMock.On("ProvisioningKeyEventCreate", mock.Anything, mock.MatchedBy(func(e *models.ProvisioningKeyEvent) bool {
 			return e.ProvisioningKeyID == "digest" && e.TenantID == tenant && e.DeviceUID == "uid-1" &&
 				e.Hostname == "web-01" && e.Identity == "00:1a:2b:3c:4d:5e" && e.SourceIP == "203.0.113.7" &&
-				e.Ephemeral && e.ReRegistration && e.Info != nil && e.Info.Arch == "amd64"
+				e.Ephemeral && e.ReRegistration && e.Info != nil && e.Info.Arch == "amd64" &&
+				e.Info.ID == "debian" && e.Info.PrettyName == "Debian GNU/Linux 12" &&
+				e.Info.Version == "v0.18.0" && e.Info.Platform == "docker"
 		})).Return(nil).Once()
 
 		s := NewService(storeMock, privateKey, &privateKey.PublicKey, storecache.NewNullCache())

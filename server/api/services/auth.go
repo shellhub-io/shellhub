@@ -165,15 +165,7 @@ func provisioningKeyEvent(key *models.ProvisioningKey, req deviceAuth, uid, host
 
 	event.Identity = claimedIdentity(req)
 
-	if req.Info != nil {
-		event.Info = &models.DeviceInfo{
-			ID:         req.Info.ID,
-			PrettyName: req.Info.PrettyName,
-			Version:    req.Info.Version,
-			Arch:       req.Info.Arch,
-			Platform:   req.Info.Platform,
-		}
-	}
+	event.Info = deviceInfoFromRequest(req.Info)
 
 	return event
 }
@@ -556,15 +548,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			device.KeyVerifiedAt = &keyVerifiedAt
 		}
 
-		if req.Info != nil {
-			device.Info = &models.DeviceInfo{
-				ID:         req.Info.ID,
-				PrettyName: req.Info.PrettyName,
-				Version:    req.Info.Version,
-				Arch:       req.Info.Arch,
-				Platform:   req.Info.Platform,
-			}
-		}
+		device.Info = deviceInfoFromRequest(req.Info)
 
 		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
 			return nil, NewErrDeviceCreate(models.Device{}, err)
@@ -646,13 +630,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 		}
 
 		if req.Info != nil {
-			device.Info = &models.DeviceInfo{
-				ID:         req.Info.ID,
-				PrettyName: req.Info.PrettyName,
-				Version:    req.Info.Version,
-				Arch:       req.Info.Arch,
-				Platform:   req.Info.Platform,
-			}
+			device.Info = deviceInfoFromRequest(req.Info)
 		}
 
 		update := s.store.DeviceUpdateUnlessRemoved
