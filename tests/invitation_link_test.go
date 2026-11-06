@@ -19,7 +19,9 @@ const invitationLifetime = 7 * 24 * time.Hour
 
 // TestInvitationLink covers the link an invitation to a namespace travels by: it resolves for seven
 // days, is refused once it expires, and generating it again then issues a fresh link while the old
-// one stays refused. Each case invites its own namespace, so the namespace holds one invitation.
+// one stays refused; a link still valid is not generated again; and accepting the invitation takes
+// the code the link carries. Each case invites its own namespace, so the namespace holds one
+// invitation.
 func TestInvitationLink(t *testing.T) {
 	t.Parallel()
 
@@ -66,6 +68,33 @@ func TestInvitationLink(t *testing.T) {
 		assert.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
 		assert.Equal(t, http.StatusOK, resolveInvitation(t, compose, link).StatusCode())
 	})
+
+	t.Run("accepting an invitation takes the code its link carries", func(t *testing.T) {
+		namespace := newInvitingNamespace(t, compose, "invitation-code")
+		username := "accepting"
+		email := username + "@ossystems.com.br"
+		compose.NewUser(t, username, email, ShellHubPassword)
+		link := generateInvitationLink(t, compose, namespace, email)
+		token := compose.AuthUser(t, username, ShellHubPassword).Token
+
+		accept := func(body map[string]string) *resty.Response {
+			resp, err := asBearer(t, compose, token).
+				SetBody(body).
+				Patch("/api/namespaces/" + namespace.tenant + "/invitations/accept")
+			require.NoError(t, err)
+
+			return resp
+		}
+
+		resp := accept(map[string]string{})
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+
+		resp = accept(map[string]string{"code": "WXYZ2K7QABCD"})
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode(), resp.String())
+
+		resp = accept(map[string]string{"code": inviteCode(t, link)})
+		assert.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
 }
 
 type invitingNamespace struct {
@@ -106,16 +135,22 @@ func generateInvitationLink(t *testing.T, compose *environment.DockerCompose, na
 	return generated.Link
 }
 
-func resolveInvitation(t *testing.T, compose *environment.DockerCompose, link string) *resty.Response {
+func inviteCode(t *testing.T, link string) string {
 	t.Helper()
 
 	parsed, err := url.Parse(link)
 	require.NoError(t, err)
 
-	invite := parsed.Query().Get("invite")
-	require.NotEmpty(t, invite, "the link %s carries no invite code", link)
+	code := parsed.Query().Get("invite")
+	require.NotEmpty(t, code, "the link %s carries no invite code", link)
 
-	resp, err := compose.Anonymous(t.Context()).SetQueryParam("invite", invite).Get("/api/invitations/resolve")
+	return code
+}
+
+func resolveInvitation(t *testing.T, compose *environment.DockerCompose, link string) *resty.Response {
+	t.Helper()
+
+	resp, err := compose.Anonymous(t.Context()).SetQueryParam("invite", inviteCode(t, link)).Get("/api/invitations/resolve")
 	require.NoError(t, err)
 
 	return resp
