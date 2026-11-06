@@ -22,6 +22,7 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { inviteSchema, type InviteFormValues } from "./setup/schemas";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
+import { isCloud } from "@/env";
 
 type Branch =
   | "loading"
@@ -39,7 +40,8 @@ type PostAction =
 /**
  * The page an invitation link lands on. It works signed out as well as in: an invitation may
  * arrive before the account exists, so this leads to sign-up and back rather than refusing.
- * Accepting sends the link's code, which the server requires.
+ * Accepting sends the link's code, which the server requires. On Cloud a sign-up from the link
+ * still confirms its email, so it continues on the confirmation page.
  */
 export default function AcceptInvite() {
   const [searchParams] = useSearchParams();
@@ -151,6 +153,12 @@ export default function AcceptInvite() {
 
     if (token) {
       setPostAction({ kind: "joined", token });
+      return;
+    }
+
+    if (isCloud()) {
+      const confirm = new URLSearchParams({ identifier: inviteEmail });
+      void navigate(`/confirm-account?${confirm.toString()}`);
       return;
     }
 

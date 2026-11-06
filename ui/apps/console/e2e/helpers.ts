@@ -26,6 +26,9 @@ import { buildRequestContext, loginAs } from "./api";
 export const directMembershipReason =
   "enterprise adds existing users directly, without an invitation link";
 
+export const inviteConfirmationReason =
+  "only the cloud holds an invited sign-up for the emailed confirmation";
+
 export const singleNamespaceReason =
   "community binds the instance to a single namespace";
 

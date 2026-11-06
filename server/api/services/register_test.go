@@ -36,14 +36,20 @@ func TestService_RegisterUser(t *testing.T) {
 	}
 
 	type Expected struct {
-		hasToken bool
-		err      error
+		hasToken          bool
+		confirmationsSent int
+		err               error
+	}
+
+	withStatus := func(status models.UserStatus) any {
+		return mock.MatchedBy(func(u *models.User) bool { return u.Status == status })
 	}
 
 	cases := []struct {
 		description          string
 		openSignup           bool
 		nonAdminProvisioning bool
+		emailConfirmation    bool
 		req                  requests.RegisterUser
 		requiredMocks        func(storeMock *storemock.MockStore)
 		expected             Expected
@@ -55,7 +61,7 @@ func TestService_RegisterUser(t *testing.T) {
 				Name: "Alice", Username: "alice", Email: "alice@test.com", Password: "secret123",
 			},
 			requiredMocks: func(_ *storemock.MockStore) {},
-			expected:      Expected{false, NewErrAuthForbidden()},
+			expected:      Expected{false, 0, NewErrAuthForbidden()},
 		},
 		{
 			description: "refuses an unresolved sig with no email even when open signup is on",
@@ -67,7 +73,7 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "STALECODE123").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: Expected{false, NewErrAuthForbidden()},
+			expected: Expected{false, 0, NewErrAuthForbidden()},
 		},
 		{
 			description: "completes an invited account by email match when open signup is on",
@@ -87,10 +93,10 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
 			},
-			expected: Expected{false, nil},
+			expected: Expected{false, 0, nil},
 		},
 		{
-			description: "completes an invited account with a sig, joining the namespace and returning a token",
+			description: "completes an invited account with a sig confirmed when no email confirmation is wired, joining the namespace and returning a token",
 			req: requests.RegisterUser{
 				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
 			},
@@ -106,7 +112,7 @@ func TestService_RegisterUser(t *testing.T) {
 					}, nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(runTx).Once()
-				storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
+				storeMock.On("UserCreate", ctx, withStatus(models.UserStatusConfirmed)).
 					Return("invitee", nil).Once()
 				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
@@ -120,7 +126,37 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("NamespaceGetPreferred", ctx, "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
 			},
-			expected: Expected{true, nil},
+			expected: Expected{true, 0, nil},
+		},
+		{
+			description:       "completes an invited account with a sig not confirmed when an email confirmation is wired, joining the namespace and sending the confirmation",
+			openSignup:        true,
+			emailConfirmation: true,
+			req: requests.RegisterUser{
+				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
+			},
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				membership := &models.MembershipInvitation{
+					UserID: "invitee", TenantID: "tenant", InvitedBy: "owner", Role: authorizer.RoleOperator,
+				}
+				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
+					Return(membership, nil).Twice()
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
+					Return(&models.UserInvitation{
+						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
+					}, nil).Once()
+				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(runTx).Once()
+				storeMock.On("UserCreate", ctx, withStatus(models.UserStatusNotConfirmed)).
+					Return("invitee", nil).Once()
+				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
+					Return(nil).Once()
+				storeMock.On("NamespaceCreateMembership", ctx, scope.MustBounded("tenant"), &models.Member{
+					ID: "invitee", AddedAt: now, Role: authorizer.RoleOperator,
+				}).Return(nil).Once()
+				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
+			},
+			expected: Expected{false, 1, nil},
 		},
 		{
 			description:          "sets awaiting-approval for a sig registration invited by a non-admin (enterprise)",
@@ -142,7 +178,9 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(&models.User{ID: "namespace-admin", Admin: false}, nil).Once()
 				storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
 					Return(runTx).Once()
-				storeMock.On("UserCreate", ctx, mock.MatchedBy(func(u *models.User) bool { return u.AwaitingApproval })).
+				storeMock.On("UserCreate", ctx, mock.MatchedBy(func(u *models.User) bool {
+					return u.AwaitingApproval && u.Status == models.UserStatusConfirmed
+				})).
 					Return("invitee", nil).Once()
 				storeMock.On("UserInvitationUpdate", ctx, mock.MatchedBy(isAccepted)).
 					Return(nil).Once()
@@ -150,7 +188,7 @@ func TestService_RegisterUser(t *testing.T) {
 					Return(nil).Once()
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
 			},
-			expected: Expected{false, nil},
+			expected: Expected{false, 0, nil},
 		},
 		{
 			description: "returns the conflicting field when the invited user's username is duplicated",
@@ -175,6 +213,7 @@ func TestService_RegisterUser(t *testing.T) {
 			},
 			expected: Expected{
 				false,
+				0,
 				NewErrUserDuplicated([]string{"username"}, errors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "username"})),
 			},
 		},
@@ -185,6 +224,16 @@ func TestService_RegisterUser(t *testing.T) {
 			override(t, &openSignupEnabled, tc.openSignup)
 			override(t, &nonAdminProvisioningEnabled, tc.nonAdminProvisioning)
 
+			confirmationsSent := 0
+			override(t, &userRegisteredHooks, nil)
+			if tc.emailConfirmation {
+				OnUserRegistered(func(context.Context, *models.User, string) error {
+					confirmationsSent++
+
+					return nil
+				})
+			}
+
 			fixUUID(t)
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
@@ -193,6 +242,7 @@ func TestService_RegisterUser(t *testing.T) {
 
 			res, err := s.RegisterUser(ctx, tc.req)
 			assert.Equal(t, tc.expected.err, err)
+			assert.Equal(t, tc.expected.confirmationsSent, confirmationsSent)
 			if tc.expected.hasToken {
 				assert.NotNil(t, res)
 				assert.NotEmpty(t, res.Token)

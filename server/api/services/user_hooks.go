@@ -15,8 +15,10 @@ type UserRegisteredHookFn func(ctx context.Context, user *models.User, deviceCod
 
 var userRegisteredHooks []UserRegisteredHookFn
 
-// OnUserRegistered registers a hook that fires after a not-confirmed user is created.
-// It must be called during package init, before the server starts handling requests.
+// OnUserRegistered registers a hook that fires after a not-confirmed user is created. Registering
+// one declares that the hook delivers an email confirmation, so from then on every registration,
+// an invited one included, creates the account not confirmed. It must be called during package
+// init, before the server starts handling requests.
 func OnUserRegistered(fn UserRegisteredHookFn) {
 	if fn == nil {
 		panic("services: OnUserRegistered called with nil hook")
@@ -33,6 +35,10 @@ func fireUserRegistered(ctx context.Context, user *models.User, deviceCode strin
 	}
 
 	return nil
+}
+
+func emailConfirmationWired() bool {
+	return len(userRegisteredHooks) > 0
 }
 
 var openSignupEnabled bool

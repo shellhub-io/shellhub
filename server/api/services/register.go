@@ -15,7 +15,10 @@ import (
 // RegisterUser creates a user account. When the registration carries a valid invitation (an invite
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
 // account and, if the code resolves to that invitee, joins the namespace in the same step. Open
-// self-registration is a capability (cloud only); community and enterprise are invite-only.
+// self-registration is a capability (cloud only); community and enterprise are invite-only. The
+// invite code never proves control of the email, since the inviter holds it too: when an email
+// confirmation is wired through OnUserRegistered, every new account waits for it and no token is
+// returned.
 func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error) {
 	req.DeviceCode = pairingcode.Normalize(req.DeviceCode)
 	req.Sig = pairingcode.Normalize(req.Sig)
@@ -123,7 +126,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 	if req.Sig != "" {
 		if g, err := s.redeemInvitation(ctx, invitation.ID, req.Sig); err == nil {
 			grant = &g
-			user.Status = models.UserStatusConfirmed
+			user.Status = invitedAccountStatus()
 
 			if nonAdminProvisioningAllowed() {
 				if invitedBy, err := s.store.UserResolve(ctx, store.UserIDResolver, g.invitation.InvitedBy); err == nil && !invitedBy.Admin {
@@ -189,4 +192,12 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 	default:
 		return nil, errors.New("invalid user status")
 	}
+}
+
+func invitedAccountStatus() models.UserStatus {
+	if !emailConfirmationWired() {
+		return models.UserStatusConfirmed
+	}
+
+	return models.UserStatusNotConfirmed
 }
