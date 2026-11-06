@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import { createTestWrapper } from "@/tests/wrapper";
 import { VALID_JWT } from "@/tests/seedAuthStore";
+import { getConfig, defaultConfig } from "@/env";
 import AcceptInvite from "../AcceptInvite";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -58,6 +59,7 @@ function renderPage(search = VALID_PARAMS) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getConfig).mockReturnValue({ ...defaultConfig });
   useAuthStore.setState({
     token: null,
     user: null,
@@ -277,7 +279,30 @@ describe("AcceptInvite", () => {
       });
     });
 
-    it("shows the Waiting for Approval screen when no token is returned", async () => {
+    it("continues to the email confirmation on Cloud when no token is returned", async () => {
+      vi.mocked(getConfig).mockReturnValue({
+        ...defaultConfig,
+        edition: "cloud",
+      });
+      mockSignUp.mockResolvedValue(null);
+      const user = userEvent.setup();
+      renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /you've been invited/i });
+      await fillForm(user);
+      await user.click(screen.getByRole("button", { name: /join namespace/i }));
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          "/confirm-account?identifier=alice%40example.com",
+        ),
+      );
+    });
+
+    it("shows the Waiting for Approval screen when no token is returned off Cloud", async () => {
+      vi.mocked(getConfig).mockReturnValue({
+        ...defaultConfig,
+        edition: "enterprise",
+      });
       mockSignUp.mockResolvedValue(null);
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);

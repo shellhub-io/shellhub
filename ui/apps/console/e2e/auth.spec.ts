@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { listNamespaceMembers, removeNamespaceMember } from "@/client";
-import { accountLockoutBaseMs, adminUser, isEnterprise } from "./env";
+import { accountLockoutBaseMs, adminUser, isCloud, isEnterprise } from "./env";
 import {
   activeViewTab,
   signIn,
   fillLoginForm,
   directMembershipReason,
+  inviteConfirmationReason,
   signUpFromInvite,
   createTeamWithMember,
   signOut,
@@ -156,6 +157,7 @@ test.describe("accept invitation", () => {
   });
 
   test("new user — sign-up form, create account + join", async ({ page }) => {
+    test.skip(isCloud, inviteConfirmationReason);
     const id = buildShortId();
     const { link } = await invite(
       adminToken,

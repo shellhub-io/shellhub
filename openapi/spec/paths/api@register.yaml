@@ -48,9 +48,10 @@ post:
                 **For standard registration processes, this field should be
                 ignored.** 
 
-                A unique signature included in an invitation email. This is
-                used to automatically confirm the user's registration without
-                requiring an additional confirmation email.
+                The invite code from an invitation link. It completes the
+                invited account and joins the invitation's namespace. It does
+                not confirm the email: on Cloud the account still waits for the
+                emailed confirmation code.
             device_code:
               type: string
               pattern: '^[2-9A-HJKMNP-TV-Za-hjkmnp-tv-z-]+$'
@@ -69,16 +70,20 @@ post:
   responses:
     '200':
       description: |
-        Invitation-based registration where the user is auto-confirmed.
-        Returns session credentials so the client can log in immediately.
+        Invitation-based registration on an edition without email
+        confirmation (Community, and Enterprise when an administrator sent
+        the invitation). Returns session credentials so the client can log
+        in immediately.
       content:
         application/json:
           schema:
             $ref: ../components/schemas/userAuth.yaml
     '204':
       description: |
-        Open registration completed. The account requires email confirmation
-        before the user can log in.
+        Registration completed, but the account cannot sign in yet: on
+        Cloud it waits for the emailed confirmation code, and on Enterprise an
+        account a non-administrator invited waits for an administrator's
+        approval.
     '400':
       description: |
         The request is invalid. On Cloud, an open sign-up whose email domain is

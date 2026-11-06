@@ -28,6 +28,8 @@ import {
   signIn,
   signInAndOpen,
   directMembershipReason,
+  inviteConfirmationReason,
+  readConfirmationCode,
   signUpFromInvite,
   singleNamespaceReason,
   switchNamespace,
@@ -120,6 +122,7 @@ test.describe("invitations", () => {
     browser,
   }) => {
     test.skip(isEnterprise, pendingApprovalReason);
+    test.skip(isCloud, inviteConfirmationReason);
     const { owner, tenant } = await createTeam();
     const email = buildRandomEmail("invitee");
     const username = `e2e-invitee-${buildShortId()}`;
@@ -130,6 +133,27 @@ test.describe("invitations", () => {
     await expect(page.getByRole("heading", { name: "You're in" })).toBeVisible({
       timeout: 15000,
     });
+    await expectInvitationPage(browser, link, "Invitation Unavailable");
+    const { tenant: joined } = await loginAs(username, password);
+    expect(joined).toBe(tenant);
+  });
+
+  test("signing up through an invitation joins once the emailed confirmation is followed", async ({
+    page,
+    browser,
+  }) => {
+    test.skip(!isCloud, inviteConfirmationReason);
+    const { owner, tenant } = await createTeam();
+    const email = buildRandomEmail("invitee");
+    const username = `e2e-invitee-${buildShortId()}`;
+    const { link } = await invite(owner.token, tenant, email);
+
+    await signUpFromInvite(page, link, username);
+
+    await expect(page).toHaveURL(/\/confirm-account/, { timeout: 15000 });
+    const confirmation = await readConfirmationCode(email);
+    await page.goto(confirmation.link);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expectInvitationPage(browser, link, "Invitation Unavailable");
     const { tenant: joined } = await loginAs(username, password);
     expect(joined).toBe(tenant);

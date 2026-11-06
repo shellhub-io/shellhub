@@ -13,9 +13,9 @@ type RegisterUser struct {
 	Password       string `json:"password" validate:"required,password"`
 	EmailMarketing bool   `json:"email_marketing"`
 
-	// Sig is the invitation code from the accept-invite link. When present, it proves
-	// the email was already validated (the invitee clicked the link) and identifies the
-	// invitation. It's a human-readable pairing code, not a UUID.
+	// Sig is the invitation code from the accept-invite link. It identifies the invitation and
+	// joins its namespace, but it does not prove control of the email: the inviter holds the same
+	// link. It's a human-readable pairing code, not a UUID.
 	Sig string `json:"sig" validate:"omitempty"`
 
 	// DeviceCode is the pairing code of a device waiting to be accepted, when the registration

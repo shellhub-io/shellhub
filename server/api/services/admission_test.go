@@ -108,4 +108,27 @@ func TestAdmission_sourceRules(t *testing.T) {
 			assert.Equal(t, "admission.go", use.file, use.String())
 		}
 	})
+
+	t.Run("only invitedAccountStatus and the setup confirm an account", func(t *testing.T) {
+		uses := scanPackageSource(t, func(stack []ast.Node, _ sourceUse) bool {
+			if !isSelector(stack[len(stack)-1], "models", "UserStatusConfirmed") {
+				return false
+			}
+
+			switch parent := stack[len(stack)-2].(type) {
+			case *ast.BinaryExpr:
+				return parent.Op != token.EQL && parent.Op != token.NEQ
+			case *ast.CaseClause:
+				return false
+			default:
+				return true
+			}
+		})
+
+		allowed := map[string]bool{"register.go:invitedAccountStatus": true, "setup.go:setupInTransaction": true}
+		require.NotEmpty(t, uses)
+		for _, use := range uses {
+			assert.True(t, allowed[use.String()], "%s sets an account confirmed", use)
+		}
+	})
 }

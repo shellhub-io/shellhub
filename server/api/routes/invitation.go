@@ -25,8 +25,10 @@ const (
 	URLCancelMembershipInvitation        = "/namespaces/:tenant/invitations/:uid"
 )
 
-// RegisterUser completes a user account. On the invitation flow the invitee proves email ownership
-// via the invite code (sig) and the account is created confirmed, joining the namespace.
+// RegisterUser completes a user account. On the invitation flow the invite code (sig) joins the
+// account to the namespace. It answers 200 with a session only when the account is created
+// confirmed and needs no approval; otherwise it answers 204 and the account waits for the emailed
+// confirmation code (Cloud) or an administrator's approval (Enterprise, non-administrator inviter).
 func (h *Handler) RegisterUser(c *gateway.Context) error {
 	var req requests.RegisterUser
 
