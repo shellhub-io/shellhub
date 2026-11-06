@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
@@ -6,10 +6,11 @@ import {
   Spinner,
   StatusDot,
 } from "@shellhub/design-system/primitives";
-import { getDevices, getDevicesQueryKey } from "@/client";
+import { getDevices, getDevicesQueryKey, type Device } from "@/client";
 import { useLoadOnReach } from "@/hooks/useLoadOnReach";
 import { toBase64Json } from "@/utils/encoding";
 import { formatCount } from "@/utils/count";
+import DeviceBriefDialog from "./DeviceBriefDialog";
 import { boundsFilter, compactCount, type MapArea } from "./mapModel";
 
 const PAGE_SIZE = 100;
@@ -21,13 +22,14 @@ interface AreaDevicesPanelProps {
 }
 
 /**
- * The devices inside the area picked on the map, read by cursor as the list scrolls, each linking
- * to its details.
+ * The devices inside the area picked on the map, read by cursor as the list scrolls, each opening
+ * a brief of the device over the map.
  */
 export default function AreaDevicesPanel({
   area,
   onClose,
 }: AreaDevicesPanelProps) {
+  const [briefed, setBriefed] = useState<Device | null>(null);
   const filter = toBase64Json(boundsFilter(area.bounds));
   const query = { status: "accepted" as const, filter };
 
@@ -113,9 +115,10 @@ export default function AreaDevicesPanel({
         <ul>
           {devices.map((device) => (
             <li key={device.uid}>
-              <Link
-                to={`/devices/${device.uid}`}
-                className="flex items-center gap-3 border-b border-border/60 px-4 py-2.5 hover:bg-hover-medium"
+              <button
+                type="button"
+                onClick={() => setBriefed(device)}
+                className="flex w-full items-center gap-3 border-b border-border/60 px-4 py-2.5 text-left hover:bg-hover-medium"
               >
                 <StatusDot online={device.online} size="sm" />
                 <span className="min-w-0 flex-1">
@@ -127,7 +130,7 @@ export default function AreaDevicesPanel({
                     {device.info?.version && ` · ${device.info.version}`}
                   </span>
                 </span>
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
@@ -142,6 +145,10 @@ export default function AreaDevicesPanel({
       <footer className="border-t border-border px-4 py-2 text-2xs font-mono text-text-muted">
         {formatCount(devices.length)} loaded
       </footer>
+
+      {briefed && (
+        <DeviceBriefDialog device={briefed} onClose={() => setBriefed(null)} />
+      )}
     </aside>
   );
 }

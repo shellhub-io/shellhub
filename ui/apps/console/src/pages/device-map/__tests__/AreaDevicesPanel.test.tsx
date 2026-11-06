@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockDevice } from "@/tests/factories";
+import { defaultHandlers } from "@/tests/handlers";
 import { decodeB64url } from "@/tests/decodeB64url";
+import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import AreaDevicesPanel from "../AreaDevicesPanel";
 import type { MapArea } from "../mapModel";
 
@@ -74,9 +77,12 @@ function servePages() {
 }
 
 function renderPanel() {
-  return render(<AreaDevicesPanel area={area} onClose={() => {}} />, {
-    wrapper: createTestWrapper({ initialEntries: ["/dashboard/map"] }),
-  });
+  return render(
+    <ClipboardProvider>
+      <AreaDevicesPanel area={area} onClose={() => {}} />
+    </ClipboardProvider>,
+    { wrapper: createTestWrapper({ initialEntries: ["/dashboard/map"] }) },
+  );
 }
 
 beforeEach(() => {
@@ -96,8 +102,8 @@ describe("AreaDevicesPanel", () => {
     renderPanel();
 
     expect(
-      await screen.findByRole("link", { name: /zurich-1/ }),
-    ).toHaveAttribute("href", "/devices/a");
+      await screen.findByRole("button", { name: /zurich-1/ }),
+    ).toBeInTheDocument();
     const filter = decodeB64url(
       requests[0].searchParams.get("filter") ?? "",
     ) as { params: { name?: string; operator?: string; value?: number } }[];
@@ -111,15 +117,28 @@ describe("AreaDevicesPanel", () => {
     ]);
   });
 
+  it("opens a brief of the device picked in the list", async () => {
+    const user = userEvent.setup();
+    servePages();
+    server.use(...defaultHandlers);
+    renderPanel();
+
+    await user.click(await screen.findByRole("button", { name: /zurich-2/ }));
+
+    expect(
+      screen.getByRole("dialog", { name: "zurich-2" }),
+    ).toBeInTheDocument();
+  });
+
   it("reads the next page by the cursor the last one handed back when the end is reached", async () => {
     const requests = servePages();
     renderPanel();
-    await screen.findByRole("link", { name: /zurich-2/ });
+    await screen.findByRole("button", { name: /zurich-2/ });
 
     reachEnd();
 
     expect(
-      await screen.findByRole("link", { name: /zurich-3/ }),
+      await screen.findByRole("button", { name: /zurich-3/ }),
     ).toBeInTheDocument();
     expect(requests[1].searchParams.get("page[after]")).toBe("cursor-1");
     expect(screen.getByText("3 loaded")).toBeInTheDocument();
@@ -128,9 +147,9 @@ describe("AreaDevicesPanel", () => {
   it("reads nothing more once a page comes back without a cursor", async () => {
     const requests = servePages();
     renderPanel();
-    await screen.findByRole("link", { name: /zurich-2/ });
+    await screen.findByRole("button", { name: /zurich-2/ });
     reachEnd();
-    await screen.findByRole("link", { name: /zurich-3/ });
+    await screen.findByRole("button", { name: /zurich-3/ });
 
     reachEnd();
 
