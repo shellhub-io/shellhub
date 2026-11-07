@@ -216,6 +216,7 @@ func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 		agent.server.Sessions.Store(id, conn)
 		agent.server.HandleConn(conn)
+		agent.server.Sessions.CompareAndDelete(id, conn)
 
 		return nil
 	}
@@ -406,6 +407,7 @@ func sshHandlerV1(ag *Agent) func(c *echo.Context) error {
 
 		ag.server.Sessions.Store(id, httpConn)
 		ag.server.HandleConn(httpConn)
+		ag.server.Sessions.CompareAndDelete(id, httpConn)
 
 		_ = conn.Close()
 
