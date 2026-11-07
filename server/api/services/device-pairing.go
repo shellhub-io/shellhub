@@ -123,15 +123,7 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 		pairing.Identity = &models.DeviceIdentity{MAC: req.Identity.MAC}
 	}
 
-	if req.Info != nil {
-		pairing.Info = &models.DeviceInfo{
-			ID:         req.Info.ID,
-			PrettyName: req.Info.PrettyName,
-			Version:    req.Info.Version,
-			Arch:       req.Info.Arch,
-			Platform:   req.Info.Platform,
-		}
-	}
+	pairing.Info = deviceInfoFromRequest(req.Info)
 
 	if err := s.cache.Set(ctx, "pairing_code/"+code, pairing, devicePairingMaxLifetime); err != nil {
 		return nil, err
