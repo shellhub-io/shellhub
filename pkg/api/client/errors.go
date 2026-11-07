@@ -69,6 +69,18 @@ func ErrorFromResponse(response Response) error {
 	}
 }
 
+func responseResult[T any](result *T, response Response, err error) (*T, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ErrorFromResponse(response); err != nil {
+		return nil, err
+	}
+
+	return requireBody(result)
+}
+
 func requireBody[T any](result *T) (*T, error) {
 	if result == nil {
 		return nil, ErrEmptyResponse
