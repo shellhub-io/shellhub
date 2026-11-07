@@ -27,7 +27,16 @@ import (
 type finishingConn struct {
 	net.Conn
 
-	ctx gliderssh.Context
+	ctx  gliderssh.Context
+	acks *quickAcks
+}
+
+func (c *finishingConn) Read(p []byte) (int, error) {
+	n, err := c.Conn.Read(p)
+
+	c.acks.afterRead(c.ctx)
+
+	return n, err
 }
 
 func (c *finishingConn) Close() error {
@@ -236,7 +245,7 @@ func NewServer(dialer dialer.TunnelDialer, service services.Service, handoff *we
 		Addr:             ":2222",
 		HandshakeTimeout: handshakeBudget,
 		ConnCallback: func(ctx gliderssh.Context, conn net.Conn) net.Conn {
-			wrapped := &finishingConn{Conn: conn, ctx: ctx}
+			wrapped := &finishingConn{Conn: conn, ctx: ctx, acks: newQuickAcks(conn)}
 
 			session.StoreConn(ctx, wrapped)
 
