@@ -43,22 +43,29 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (
 	return s.createNewUser(ctx, &req)
 }
 
-func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
-	email := strings.ToLower(req.Email)
-	if reason := checkEmail(ctx, email); reason != "" {
-		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
+func registrationCreateError(err error) error {
+	if errors.Is(err, store.ErrDuplicate) {
+		if field, ok := store.DuplicatedField(err); ok {
+			return NewErrUserDuplicated([]string{field}, err)
+		}
+
+		return NewErrUserDuplicated([]string{}, err)
 	}
 
+	return NewErrUserCreate(err)
+}
+
+func (s *service) newRegistrationUser(req *requests.RegisterUser, email string) (*models.User, error) {
 	password, err := models.HashUserPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	user := &models.User{
+	return &models.User{
 		Origin: models.UserOriginLocal,
 		UserData: models.UserData{
 			Name:     req.Name,
-			Email:    email,
+			Email:    strings.ToLower(email),
 			Username: strings.ToLower(req.Username),
 		},
 		Password:       password,
@@ -67,22 +74,24 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser)
 		EmailMarketing: req.EmailMarketing,
 		Status:         models.UserStatusNotConfirmed,
 		Preferences: models.UserPreferences{
-			PreferredNamespace: "",
-			AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
+			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
 		},
-		Admin: false,
+	}, nil
+}
+
+func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
+	email := strings.ToLower(req.Email)
+	if reason := checkEmail(ctx, email); reason != "" {
+		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
+	}
+
+	user, err := s.newRegistrationUser(req, email)
+	if err != nil {
+		return nil, err
 	}
 
 	if user.ID, err = s.store.UserCreate(ctx, user); err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(err); ok {
-				return nil, NewErrUserDuplicated([]string{field}, err)
-			}
-
-			return nil, NewErrUserDuplicated([]string{}, err)
-		}
-
-		return nil, NewErrUserCreate(err)
+		return nil, registrationCreateError(err)
 	}
 
 	if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
@@ -101,29 +110,11 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 		return nil, err
 	}
 
-	password, err := models.HashUserPassword(req.Password)
+	user, err := s.newRegistrationUser(req, invitation.Email)
 	if err != nil {
 		return nil, err
 	}
-
-	user := &models.User{
-		ID:             invitation.ID, // Use invitation ID as user ID for namespace's compatibility
-		Admin:          false,
-		Origin:         models.UserOriginLocal,
-		Status:         models.UserStatusNotConfirmed,
-		MaxNamespaces:  1,
-		EmailMarketing: req.EmailMarketing,
-		Password:       password,
-		UserData: models.UserData{
-			Email:    strings.ToLower(invitation.Email),
-			Username: strings.ToLower(req.Username),
-			Name:     req.Name,
-		},
-		CreatedAt: s.clock.Now(),
-		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-		},
-	}
+	user.ID = invitation.ID
 
 	var grant *membershipGrant
 
@@ -160,15 +151,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return nil
 	}); txErr != nil {
-		if errors.Is(txErr, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(txErr); ok {
-				return nil, NewErrUserDuplicated([]string{field}, txErr)
-			}
-
-			return nil, NewErrUserDuplicated([]string{}, txErr)
-		}
-
-		return nil, NewErrUserCreate(txErr)
+		return nil, registrationCreateError(txErr)
 	}
 
 	if user.AwaitingApproval {
