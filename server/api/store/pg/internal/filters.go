@@ -40,21 +40,9 @@ func qualifyColumn(column, tableAlias string) bun.Ident {
 }
 
 func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, error) {
-	var isOnline bool
-
-	switch v := value.(type) {
-	case bool:
-		isOnline = v
-	case float64:
-		isOnline = v != 0
-	case string:
-		var err error
-		isOnline, err = strconv.ParseBool(v)
-		if err != nil {
-			return "", nil, false, err
-		}
-	default:
-		return "", nil, false, ErrUnsupportedBoolType
+	isOnline, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, false, err
 	}
 
 	if isOnline {
@@ -204,9 +192,9 @@ func ParseFilterProperty(fp *query.FilterProperty, tableAlias string, onlineCuto
 	case "bool":
 		condition, args, err = fromBool(fp.Name, fp.Value, tableAlias)
 	case "gt":
-		condition, args, err = fromGt(fp.Name, fp.Value, tableAlias)
+		condition, args, err = fromComparison(fp.Name, fp.Value, tableAlias, ">")
 	case "lt":
-		condition, args, err = fromLt(fp.Name, fp.Value, tableAlias)
+		condition, args, err = fromComparison(fp.Name, fp.Value, tableAlias, "<")
 	case "ne":
 		condition, args = fromNe(fp.Name, fp.Value, tableAlias)
 	default:
@@ -266,34 +254,26 @@ func fromEq(column string, value any, tableAlias string) (string, []any) {
 }
 
 func fromBool(column string, value any, tableAlias string) (string, []any, error) {
-	var boolValue bool
+	if v, ok := value.(int); ok {
+		value = v != 0
+	}
 
-	switch v := value.(type) {
-	case int:
-		boolValue = v != 0
-	case float64:
-		boolValue = v != 0
-	case string:
-		var err error
-		boolValue, err = strconv.ParseBool(v)
-		if err != nil {
-			return "", nil, err
-		}
-	case bool:
-		boolValue = v
-	default:
-		return "", nil, ErrUnsupportedBoolType
+	boolValue, err := parseBoolFilterValue(value)
+	if err != nil {
+		return "", nil, err
 	}
 
 	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
 }
 
-func fromGt(column string, value any, tableAlias string) (string, []any, error) {
+func fromComparison(column string, value any, tableAlias, operator string) (string, []any, error) {
+	condition := "? " + operator + " ?"
+
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
 	case time.Time:
-		return "? > ?", []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
 	case string:
 		var num any
 		var err error
@@ -306,31 +286,7 @@ func fromGt(column string, value any, tableAlias string) (string, []any, error) 
 			}
 		}
 
-		return "? > ?", []any{qualifyColumn(column, tableAlias), num}, nil
-	default:
-		return "", nil, ErrUnsupportedNumericType
-	}
-}
-
-func fromLt(column string, value any, tableAlias string) (string, []any, error) {
-	switch v := value.(type) {
-	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
-	case time.Time:
-		return "? < ?", []any{qualifyColumn(column, tableAlias), v}, nil
-	case string:
-		var num any
-		var err error
-
-		num, err = strconv.Atoi(v)
-		if err != nil {
-			num, err = strconv.ParseFloat(v, 64)
-			if err != nil {
-				return "", nil, err
-			}
-		}
-
-		return "? < ?", []any{qualifyColumn(column, tableAlias), num}, nil
+		return condition, []any{qualifyColumn(column, tableAlias), num}, nil
 	default:
 		return "", nil, ErrUnsupportedNumericType
 	}
