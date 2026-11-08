@@ -1185,6 +1185,63 @@ func (_c *MockStore_CountRegisteredDevices_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
+// DeviceAssertNotRemoved provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error {
+	ret := _mock.Called(ctx, device)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceAssertNotRemoved")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
+		r0 = returnFunc(ctx, device)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeviceAssertNotRemoved_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceAssertNotRemoved'
+type MockStore_DeviceAssertNotRemoved_Call struct {
+	*mock.Call
+}
+
+// DeviceAssertNotRemoved is a helper method to define mock.On call
+//   - ctx context.Context
+//   - device *models.Device
+func (_e *MockStore_Expecter) DeviceAssertNotRemoved(ctx any, device any) *MockStore_DeviceAssertNotRemoved_Call {
+	return &MockStore_DeviceAssertNotRemoved_Call{Call: _e.mock.On("DeviceAssertNotRemoved", ctx, device)}
+}
+
+func (_c *MockStore_DeviceAssertNotRemoved_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceAssertNotRemoved_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.Device
+		if args[1] != nil {
+			arg1 = args[1].(*models.Device)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceAssertNotRemoved_Call) Return(err error) *MockStore_DeviceAssertNotRemoved_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeviceAssertNotRemoved_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceAssertNotRemoved_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceConflicts provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...store.QueryOption) ([]string, bool, error) {
 	var tmpRet mock.Arguments

@@ -3412,3 +3412,116 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		storeMock.AssertExpectations(t)
 	})
 }
+
+func TestAuthDevice_WritesAnExistingDeviceOnlyWhenTheAuthenticationChangesIt(t *testing.T) {
+	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
+	clk := clock.NewFixed(now)
+
+	const tenantID = "00000000-0000-4000-0000-000000000000"
+
+	auth := models.DeviceAuth{Hostname: "hostname", Identity: &models.DeviceIdentity{MAC: ""}, TenantID: tenantID}
+	uidSHA := sha256.Sum256(structhash.Dump(auth, 1))
+	uid := hex.EncodeToString(uidSHA[:])
+
+	reported := models.DeviceInfo{ID: "test", PrettyName: "Test", Version: "v0.20.0", Arch: "arch64", Platform: "native"}
+
+	stored := func(status models.DeviceStatus, remoteAddr string, info *models.DeviceInfo) *models.Device {
+		return &models.Device{UID: uid, TenantID: tenantID, Name: "hostname", Status: status, RemoteAddr: remoteAddr, Info: info}
+	}
+
+	cases := []struct {
+		description string
+		device      *models.Device
+		write       string
+		written     func(device models.Device) models.Device
+	}{
+		{
+			description: "checks without writing an accepted device it leaves unchanged",
+			device:      stored(models.DeviceStatusAccepted, "127.0.0.1", &reported),
+			write:       "DeviceAssertNotRemoved",
+			written:     func(device models.Device) models.Device { return device },
+		},
+		{
+			description: "writes an accepted device whose address changed",
+			device:      stored(models.DeviceStatusAccepted, "10.0.0.1", &reported),
+			write:       "DeviceUpdateUnlessRemoved",
+			written: func(device models.Device) models.Device {
+				device.RemoteAddr = "127.0.0.1"
+
+				return device
+			},
+		},
+		{
+			description: "writes an accepted device whose information changed",
+			device:      stored(models.DeviceStatusAccepted, "127.0.0.1", &models.DeviceInfo{ID: "test", PrettyName: "Test", Version: "v0.19.0", Arch: "arch64", Platform: "native"}),
+			write:       "DeviceUpdateUnlessRemoved",
+			written: func(device models.Device) models.Device {
+				info := reported
+				device.Info = &info
+
+				return device
+			},
+		},
+		{
+			description: "writes an accepted device that had no information",
+			device:      stored(models.DeviceStatusAccepted, "127.0.0.1", nil),
+			write:       "DeviceUpdateUnlessRemoved",
+			written: func(device models.Device) models.Device {
+				info := reported
+				device.Info = &info
+
+				return device
+			},
+		},
+		{
+			description: "writes a device that is not accepted even when nothing changed",
+			device:      stored(models.DeviceStatusRejected, "127.0.0.1", &reported),
+			write:       "DeviceUpdateUnlessRemoved",
+			written:     func(device models.Device) models.Device { return device },
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := mocks.NewMockStore(t)
+			cacheMock := mockcache.NewMockCache(t)
+			ctx := context.TODO()
+
+			expected := tc.written(*tc.device)
+
+			storeMock.
+				On("NamespaceGetWithoutMembers", ctx, tenantID).
+				Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
+				Once()
+			cacheMock.
+				On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
+				Return(nil).
+				Once()
+			storeMock.
+				On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
+				Return(tc.device, nil).
+				Once()
+			storeMock.
+				On(tc.write, ctx, &expected).
+				Return(nil).
+				Once()
+			cacheMock.
+				On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "hostname", "namespace_name": "test"}, time.Second*30).
+				Return(nil).
+				Once()
+
+			svc := NewService(store.Store(storeMock), privateKey, &privateKey.PublicKey, cacheMock, WithIssuer(testIssuer), WithClock(clk))
+
+			info := requests.DeviceInfo{ID: reported.ID, PrettyName: reported.PrettyName, Version: reported.Version, Arch: reported.Arch, Platform: reported.Platform}
+			res, err := svc.AuthDevice(ctx, requests.DeviceAuth{
+				TenantID: tenantID,
+				Hostname: "hostname",
+				Identity: &requests.DeviceIdentity{MAC: ""},
+				Info:     &info,
+				Sessions: []string{},
+			}, "127.0.0.1")
+			require.NoError(t, err)
+			assert.Equal(t, expected.Status, res.Status)
+		})
+	}
+}

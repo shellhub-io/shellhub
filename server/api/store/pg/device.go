@@ -243,6 +243,25 @@ func (pg *Pg) DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Devi
 	return pg.deviceUpdate(ctx, device, true)
 }
 
+// DeviceAssertNotRemoved implements [store.DeviceStore].
+func (pg *Pg) DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error {
+	live, err := pg.GetConnection(ctx).NewSelect().
+		Model((*entity.Device)(nil)).
+		Where("id = ?", device.UID).
+		Where("namespace_id = ?", device.TenantID).
+		Where("removed_at IS NULL").
+		Exists(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if !live {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 func (pg *Pg) deviceUpdate(ctx context.Context, device *models.Device, unlessRemoved bool) error {
 	db := pg.GetConnection(ctx)
 

@@ -564,17 +564,21 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 
 		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
 	} else {
+		unchanged := device.Status == models.DeviceStatusAccepted && device.RemovedAt == nil
+
 		if enrollment.verification.refusedFor(device.KeyVerifiedAt != nil) {
 			return nil, NewErrDeviceKeyVerificationRefused()
 		}
 
 		if enrollment.verification == keyVerified && device.KeyVerifiedAt == nil {
 			device.KeyVerifiedAt = &keyVerifiedAt
+			unchanged = false
 		}
 
 		revived := device.RemovedAt != nil
 
 		if ip := net.ParseIP(req.clientIP); ip != nil {
+			unchanged = unchanged && device.RemoteAddr == req.clientIP
 			device.RemoteAddr = req.clientIP
 		}
 
@@ -630,12 +634,19 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 		}
 
 		if req.Info != nil {
-			device.Info = deviceInfoFromRequest(req.Info)
+			info := deviceInfoFromRequest(req.Info)
+			unchanged = unchanged && device.Info != nil && *device.Info == *info
+			device.Info = info
 		}
 
-		update := s.store.DeviceUpdateUnlessRemoved
-		if revived {
+		var update func(context.Context, *models.Device) error
+		switch {
+		case unchanged:
+			update = s.store.DeviceAssertNotRemoved
+		case revived:
 			update = s.store.DeviceUpdate
+		default:
+			update = s.store.DeviceUpdateUnlessRemoved
 		}
 
 		if err := update(ctx, device); err != nil {

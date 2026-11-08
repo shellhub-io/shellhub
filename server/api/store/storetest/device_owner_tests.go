@@ -405,3 +405,62 @@ func (s *Suite) TestDeviceUpdateUnlessRemoved(t *testing.T) {
 		assert.Equal(t, models.DeviceStatusRemoved, device.Status)
 	})
 }
+
+// TestDeviceAssertNotRemoved shows the check accepts a live device and refuses one removed since it
+// was read or missing from the namespace, without writing either.
+func (s *Suite) TestDeviceAssertNotRemoved(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("accepts a device that is not removed", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		uid := s.CreateDevice(t, WithTenantID(tenantID))
+
+		device, err := st.DeviceResolve(ctx, scope.MustBounded(tenantID), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+
+		stored := device.RemoteAddr
+		device.RemoteAddr = "10.0.0.9"
+		require.NoError(t, st.DeviceAssertNotRemoved(ctx, device))
+
+		device, err = st.DeviceResolve(ctx, scope.MustBounded(tenantID), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+		assert.Equal(t, stored, device.RemoteAddr, "the check must not write the device")
+	})
+
+	t.Run("refuses a device removed since it was read", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID, memberID := s.ownedDeviceFixture(t)
+		uid := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(memberID))
+		s.CreateDevice(t, WithTenantID(tenantID))
+		sc := scope.MustBounded(tenantID)
+
+		stale, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+
+		_, err = st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{KeepMembership: true})
+		require.NoError(t, err)
+
+		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, stale), store.ErrNoDocuments)
+
+		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+		assert.Equal(t, models.DeviceStatusRemoved, device.Status, "the check must not write the stale snapshot back")
+	})
+
+	t.Run("refuses a device read from another namespace", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		uid := s.CreateDevice(t, WithTenantID(tenantID))
+
+		device, err := st.DeviceResolve(ctx, scope.MustBounded(tenantID), store.DeviceUIDResolver, string(uid))
+		require.NoError(t, err)
+
+		device.TenantID = s.CreateNamespace(t)
+		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, device), store.ErrNoDocuments)
+	})
+}
