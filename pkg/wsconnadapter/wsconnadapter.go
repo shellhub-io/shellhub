@@ -208,9 +208,11 @@ func (a *Adapter) Read(b []byte) (int, error) {
 		}
 	}
 
-	a.Logger.WithError(err).
-		WithField("bytes", bytesRead).
-		Trace("bytes read from wsconnadapter")
+	if a.Logger.Logger.IsLevelEnabled(log.TraceLevel) {
+		a.Logger.WithError(err).
+			WithField("bytes", bytesRead).
+			Trace("bytes read from wsconnadapter")
+	}
 
 	return bytesRead, err
 }
@@ -231,9 +233,11 @@ func (a *Adapter) Write(b []byte) (int, error) {
 	bytesWritten, err := nextWriter.Write(b)
 	_ = nextWriter.Close()
 
-	a.Logger.WithError(err).
-		WithField("bytes", bytesWritten).
-		Trace("bytes written from wsconnadapter")
+	if a.Logger.Logger.IsLevelEnabled(log.TraceLevel) {
+		a.Logger.WithError(err).
+			WithField("bytes", bytesWritten).
+			Trace("bytes written from wsconnadapter")
+	}
 
 	return bytesWritten, err
 }
