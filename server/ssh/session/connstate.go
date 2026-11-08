@@ -2,12 +2,14 @@ package session
 
 import (
 	"net"
+	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	log "github.com/sirupsen/logrus"
 )
 
 type snapshot struct {
+	mu      sync.Mutex
 	session *Session
 	state   State
 }
@@ -81,11 +83,17 @@ func getSnapshot(ctx gliderssh.Context) *snapshot {
 }
 
 func (s *snapshot) save(session *Session, state State) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.session = session
 	s.state = state
 }
 
 func (s *snapshot) retrieve() (*Session, State) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	return s.session, s.state
 }
 
