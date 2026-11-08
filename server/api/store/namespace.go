@@ -33,6 +33,15 @@ type NamespaceStore interface {
 	// It returns the resolved namespace if found and an error, if any.
 	NamespaceResolve(ctx context.Context, resolver NamespaceResolver, value string) (*models.Namespace, error)
 
+	// NamespaceGetWithoutMembers fetches the namespace whose tenant ID is tenantID, with its settings
+	// and counters but without its memberships, which NamespaceResolve loads with each member's user
+	// for callers that never read them.
+	//
+	// It returns [ErrNoDocuments] when no namespace matches the tenant ID, including one that is not a
+	// UUID, ctx's error when ctx ends, and an error wrapping [ErrInternal] for any other database
+	// failure.
+	NamespaceGetWithoutMembers(ctx context.Context, tenantID string) (*models.Namespace, error)
+
 	// NamespaceGetDeviceLimit returns the namespace's device ceiling and its accepted-device
 	// count. It exists so the device-limit check does not have to go through NamespaceResolve,
 	// which carries every membership and its user for callers that never read them.

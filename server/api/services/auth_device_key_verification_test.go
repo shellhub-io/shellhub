@@ -125,7 +125,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 
 		device := &models.Device{UID: uid, Name: hostname, TenantID: tenantID, Status: models.DeviceStatusAccepted}
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).Return(nil).Once()
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(device, nil).Once()
@@ -157,7 +157,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 
 		device := &models.Device{UID: uid, Name: hostname, TenantID: tenantID, Status: models.DeviceStatusAccepted}
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).
 			Run(func(args testifymock.Arguments) {
@@ -187,7 +187,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).Return(nil).Once()
 		storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
@@ -205,7 +205,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).
 			Run(func(args testifymock.Arguments) {
@@ -229,7 +229,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Once()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).
 			Run(func(args testifymock.Arguments) {
@@ -261,7 +261,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 		storeMock := mocks.NewMockStore(t)
 		cacheMock := mockcache.NewMockCache(t)
 
-		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		storeMock.On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test"}, nil).Twice()
 		cacheMock.On("Get", ctx, deviceAuthCacheKey(uid), testifymock.Anything).
 			Run(func(args testifymock.Arguments) {

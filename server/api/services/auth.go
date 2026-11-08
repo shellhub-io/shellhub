@@ -445,7 +445,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 		req.TenantID = tenantID
 	}
 
-	namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
+	namespace, err := s.store.NamespaceGetWithoutMembers(ctx, req.TenantID)
 	if err != nil {
 		return nil, NewErrNamespaceNotFound(req.TenantID, err)
 	}

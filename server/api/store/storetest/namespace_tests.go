@@ -213,6 +213,48 @@ func (s *Suite) TestNamespaceGetDeviceLimit(t *testing.T) {
 	})
 }
 
+// TestNamespaceGetWithoutMembers shows the read returns what NamespaceResolve returns minus the
+// members, and ErrNoDocuments for an unknown or malformed tenant ID.
+func (s *Suite) TestNamespaceGetWithoutMembers(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("returns the namespace as NamespaceResolve does, without its members", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		s.CreateNamespace(t)
+
+		resolved, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
+		require.NoError(t, err)
+		require.NotEmpty(t, resolved.Members)
+
+		ns, err := st.NamespaceGetWithoutMembers(ctx, tenantID)
+		require.NoError(t, err)
+
+		assert.Empty(t, ns.Members)
+
+		resolved.Members = ns.Members
+		assert.Equal(t, resolved, ns)
+	})
+
+	t.Run("returns ErrNoDocuments for non-existent tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		ns, err := st.NamespaceGetWithoutMembers(ctx, "00000000-0000-0000-0000-000000000000")
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, ns)
+	})
+
+	t.Run("returns ErrNoDocuments for malformed tenant ID", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		ns, err := st.NamespaceGetWithoutMembers(ctx, "83176492-e6cl-43d7-922e-ee01c3693e26")
+		require.ErrorIs(t, err, store.ErrNoDocuments)
+		assert.Nil(t, ns)
+	})
+}
+
 // TestNamespaceGetPreferred tests getting user's preferred namespace
 func (s *Suite) TestNamespaceGetPreferred(t *testing.T) {
 	ctx := context.Background()

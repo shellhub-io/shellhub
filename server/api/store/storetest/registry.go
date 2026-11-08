@@ -34,6 +34,7 @@ var Groups = []Group{
 		(*Suite).TestNamespaceList,
 		(*Suite).TestNamespaceResolve,
 		(*Suite).TestNamespaceGetDeviceLimit,
+		(*Suite).TestNamespaceGetWithoutMembers,
 		(*Suite).TestNamespaceGetPreferred,
 		(*Suite).TestNamespaceCreate,
 		(*Suite).TestNamespaceCreateDuplicate,
