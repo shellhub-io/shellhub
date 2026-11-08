@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
@@ -47,6 +48,36 @@ func (s *Suite) TestDeviceList(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(4), count)
 		assert.Len(t, devices, 4)
+	})
+
+	t.Run("orders devices tied on the sort column by the tiebreak in the same direction", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		seen := s.Clock().Now()
+		uids := []string{
+			string(s.CreateDevice(t, WithDeviceLastSeen(seen))),
+			string(s.CreateDevice(t, WithDeviceLastSeen(seen))),
+			string(s.CreateDevice(t, WithDeviceLastSeen(seen))),
+		}
+		slices.Sort(uids)
+
+		for _, order := range []string{query.OrderAsc, query.OrderDesc} {
+			devices, _, err := st.DeviceList(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceAcceptableIfNotAccepted,
+				st.Options().Sort(&query.Sorter{By: "last_seen", Order: order, Tiebreak: "id"}))
+			require.NoError(t, err)
+
+			listed := make([]string, len(devices))
+			for i, device := range devices {
+				listed[i] = device.UID
+			}
+
+			expected := slices.Clone(uids)
+			if order == query.OrderDesc {
+				slices.Reverse(expected)
+			}
+
+			assert.Equal(t, expected, listed, order)
+		}
 	})
 
 	t.Run("succeeds when devices are found with pagination", func(t *testing.T) {

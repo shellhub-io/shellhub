@@ -72,7 +72,7 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 		direction := sortDirection(sorter.Order)
 
 		if sorter.Tiebreak != "" {
-			wrapper.query = wrapper.query.OrderExpr("? ?, ? DESC", qualifyCol(sorter.By), direction, qualifyCol(sorter.Tiebreak))
+			wrapper.query = wrapper.query.OrderExpr("? ?, ? ?", qualifyCol(sorter.By), direction, qualifyCol(sorter.Tiebreak), direction)
 		} else {
 			wrapper.query = wrapper.query.OrderExpr("? ?", qualifyCol(sorter.By), direction)
 		}
