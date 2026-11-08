@@ -4154,6 +4154,74 @@ func (_c *MockStore_NamespaceGetPreferred_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
+// NamespaceGetWithoutMembers provides a mock function for the type MockStore
+func (_mock *MockStore) NamespaceGetWithoutMembers(ctx context.Context, tenantID string) (*models.Namespace, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NamespaceGetWithoutMembers")
+	}
+
+	var r0 *models.Namespace
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.Namespace, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.Namespace); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.Namespace)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NamespaceGetWithoutMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceGetWithoutMembers'
+type MockStore_NamespaceGetWithoutMembers_Call struct {
+	*mock.Call
+}
+
+// NamespaceGetWithoutMembers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockStore_Expecter) NamespaceGetWithoutMembers(ctx any, tenantID any) *MockStore_NamespaceGetWithoutMembers_Call {
+	return &MockStore_NamespaceGetWithoutMembers_Call{Call: _e.mock.On("NamespaceGetWithoutMembers", ctx, tenantID)}
+}
+
+func (_c *MockStore_NamespaceGetWithoutMembers_Call) Run(run func(ctx context.Context, tenantID string)) *MockStore_NamespaceGetWithoutMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetWithoutMembers_Call) Return(namespace *models.Namespace, err error) *MockStore_NamespaceGetWithoutMembers_Call {
+	_c.Call.Return(namespace, err)
+	return _c
+}
+
+func (_c *MockStore_NamespaceGetWithoutMembers_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*models.Namespace, error)) *MockStore_NamespaceGetWithoutMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NamespaceIncrementDeviceCount provides a mock function for the type MockStore
 func (_mock *MockStore) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error {
 	ret := _mock.Called(ctx, sc, status, count)

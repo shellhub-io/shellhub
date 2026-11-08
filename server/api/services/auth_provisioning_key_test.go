@@ -72,7 +72,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			req:         requests.DeviceAuth{TenantID: tenant, Hostname: "d", Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"}, Info: &requests.DeviceInfo{}, PublicKey: "pk", ProvisioningKey: "bad-key"},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("d", "aa:bb:cc:dd:ee:ff", "pk")
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
+				storeMock.On("NamespaceGetWithoutMembers", ctx, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, testifymock.Anything, store.ProvisioningKeyIDResolver, badDigest).Return(nil, store.ErrNoDocuments).Once()
@@ -84,7 +84,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			req:         requests.DeviceAuth{TenantID: tenant, Hostname: "d", Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"}, Info: &requests.DeviceInfo{}, PublicKey: "pk", ProvisioningKey: "bad-key"},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("d", "aa:bb:cc:dd:ee:ff", "pk")
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
+				storeMock.On("NamespaceGetWithoutMembers", ctx, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, testifymock.Anything, store.ProvisioningKeyIDResolver, badDigest).Return(&models.ProvisioningKey{ID: badDigest, TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true}, nil).Once()
@@ -96,7 +96,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			req:         requests.DeviceAuth{TenantID: tenant, Hostname: "d", Identity: &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"}, Info: &requests.DeviceInfo{}, PublicKey: "pk"},
 			requiredMocks: func(ctx context.Context) {
 				uid := toUID("d", "aa:bb:cc:dd:ee:ff", "pk")
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).Once()
+				storeMock.On("NamespaceGetWithoutMembers", ctx, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(&models.ProvisioningKey{ID: "legacydigest", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Mode: models.ProvisioningKeyModeManual}, nil).Once()
@@ -292,7 +292,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 				uid := toUID("fleet-a", "aa:bb:cc:dd:ee:01", "pk")
 				key := &models.ProvisioningKey{ID: keyDigest, TenantID: tenant, Type: models.ProvisioningKeyTypeUser, Mode: models.ProvisioningKeyModeManual, Reusable: true}
 				storeMock.On("ProvisioningKeyResolve", ctx, unbounded, store.ProvisioningKeyIDResolver, keyDigest).Return(key, nil).Once()
-				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
+				storeMock.On("NamespaceGetWithoutMembers", ctx, tenant).Return(&models.Namespace{TenantID: tenant, Name: "test"}, nil).Once()
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, scope.MustBounded(tenant), store.ProvisioningKeyIDResolver, keyDigest).Return(key, nil).Once()

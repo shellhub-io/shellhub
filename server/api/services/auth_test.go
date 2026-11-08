@@ -77,7 +77,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(nil, errors.New("error", "store", 0)).
 					Once()
 			},
@@ -95,7 +95,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 			},
@@ -113,7 +113,7 @@ func TestAuthDevice(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 			},
@@ -135,7 +135,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "hostname", "", "")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -172,7 +172,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -218,7 +218,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -258,7 +258,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -313,7 +313,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				storeMock.
@@ -364,7 +364,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				storeMock.
@@ -416,7 +416,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname"}
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -473,7 +473,7 @@ func TestAuthDevice(t *testing.T) {
 				device := &models.Device{UID: uid, Name: "hostname", RemovedAt: &now, Status: models.DeviceStatusRemoved}
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -540,7 +540,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -604,7 +604,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -672,7 +672,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -755,7 +755,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -834,7 +834,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "aa-bb-cc-dd-ee-ff", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -907,7 +907,7 @@ func TestAuthDevice(t *testing.T) {
 				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 				storeMock.
-					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
 					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 					Once()
 				cacheMock.
@@ -3249,7 +3249,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		uid := toUID(tenantID, "invalid-ip-device", "aa:bb:cc:dd:ee:ff", "public-key")
 
 		storeMock.
-			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.
@@ -3324,7 +3324,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		device := &models.Device{UID: uid, Name: "reconnect-device", RemoteAddr: "198.51.100.1"}
 
 		storeMock.
-			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.
@@ -3372,7 +3372,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		device := &models.Device{UID: uid, Name: "reconnect-device", RemoteAddr: "198.51.100.1"}
 
 		storeMock.
-			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			On("NamespaceGetWithoutMembers", ctx, tenantID).
 			Return(&models.Namespace{TenantID: tenantID, Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
 			Once()
 		cacheMock.

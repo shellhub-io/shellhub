@@ -198,6 +198,20 @@ func (pg *Pg) NamespaceResolve(ctx context.Context, resolver store.NamespaceReso
 	return entity.NamespaceToModel(ns), nil
 }
 
+// NamespaceGetWithoutMembers implements [store.NamespaceStore].
+func (pg *Pg) NamespaceGetWithoutMembers(ctx context.Context, tenantID string) (*models.Namespace, error) {
+	if _, err := uuid.Parse(tenantID); err != nil {
+		return nil, store.ErrNoDocuments
+	}
+
+	ns := new(entity.Namespace)
+	if err := pg.GetConnection(ctx).NewSelect().Model(ns).Where("id = ?", tenantID).Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	return entity.NamespaceToModel(ns), nil
+}
+
 // NamespaceGetDeviceLimit implements [store.NamespaceStore].
 func (pg *Pg) NamespaceGetDeviceLimit(ctx context.Context, tenantID string) (models.NamespaceDeviceLimit, error) {
 	db := pg.GetConnection(ctx)
