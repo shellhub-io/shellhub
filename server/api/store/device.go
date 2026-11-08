@@ -107,6 +107,11 @@ type DeviceStore interface {
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so
 	// writing back a snapshot taken before a removal cannot undo it.
 	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
+	// DeviceAssertNotRemoved writes nothing and returns [ErrNoDocuments] when the device is missing
+	// from its namespace or removed, the check DeviceUpdateUnlessRemoved makes, for a caller whose
+	// snapshot has nothing to write back. It reads only the device's UID and TenantID, and returns
+	// ctx's error when ctx ends and an error wrapping [ErrInternal] for any other database failure.
+	DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error
 	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is
 	// not removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a
 	// beat written late cannot bring a disconnected device back online. Each UID must appear in beats

@@ -70,6 +70,7 @@ var Groups = []Group{
 		(*Suite).TestDeviceListFiltersByLocated,
 		(*Suite).TestDeviceOwnerMustBeAMember,
 		(*Suite).TestDeviceUpdateUnlessRemoved,
+		(*Suite).TestDeviceAssertNotRemoved,
 	}},
 	{Name: "SessionStore", Tests: []TestFunc{
 		(*Suite).TestSessionList,
