@@ -102,3 +102,30 @@ func TestAuthenticableSessionWithoutAStoredConn(t *testing.T) {
 		assert.Nil(t, sess)
 	})
 }
+
+func TestSnapshotIsReadWhileTheHandshakeAdvancesIt(t *testing.T) {
+	ctx := newStubContext()
+	sess := &Session{UID: "advancing"} //nolint:exhaustruct // only the identity matters
+
+	getSnapshot(ctx)
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		for range 1000 {
+			advance(ctx, sess, StateFinished)
+		}
+	}()
+
+	for range 1000 {
+		ObtainSession(ctx)
+	}
+
+	<-done
+
+	got, state := ObtainSession(ctx)
+	assert.Same(t, sess, got)
+	assert.True(t, state.Established())
+}
