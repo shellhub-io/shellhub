@@ -38,7 +38,7 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 		{
 			description: "a heartbeat",
 			write: func(ctx context.Context, uid string) error {
-				_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: uid, At: now}})
+				_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: uid, At: now}}, 0)
 
 				return err
 			},

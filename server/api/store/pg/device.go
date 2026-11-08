@@ -362,26 +362,31 @@ func (pg *Pg) DeviceDeleteCustomField(ctx context.Context, uid, key string) erro
 }
 
 // DeviceHeartbeat implements [store.DeviceStore].
-func (pg *Pg) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat) ([]string, error) {
+func (pg *Pg) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat, skipWithin time.Duration) ([]string, error) {
 	db := pg.GetConnection(ctx)
 
 	unnestExpr, unnestIDs, unnestTimes := deviceExprUnnestBeats(beats)
 
-	updated := []string{}
-	if err := db.NewUpdate().
-		Model((*entity.Device)(nil)).
-		Set("last_seen = _data.at").
-		Set("disconnected_at = CASE WHEN device.disconnected_at > _data.at THEN device.disconnected_at END").
-		TableExpr(unnestExpr, unnestIDs, unnestTimes).
-		Where("device.id = _data.id").
-		Where("device.status <> ?", models.DeviceStatusRemoved).
-		Returning("device.id").
-		Scan(ctx, &updated); err != nil {
+	present := []string{}
+	if err := db.NewRaw(
+		`WITH _data AS (SELECT id, at FROM `+unnestExpr+`),
+		_written AS (
+			UPDATE devices AS device
+			SET last_seen = _data.at,
+				disconnected_at = CASE WHEN device.disconnected_at > _data.at THEN device.disconnected_at END
+			FROM _data
+			WHERE device.id = _data.id
+				AND device.status <> ?
+				AND (device.disconnected_at IS NOT NULL OR device.last_seen <= _data.at - make_interval(secs => ?))
+		)
+		SELECT device.id FROM devices AS device JOIN _data ON device.id = _data.id WHERE device.status <> ?`,
+		unnestIDs, unnestTimes, models.DeviceStatusRemoved, max(skipWithin, 0).Seconds(), models.DeviceStatusRemoved,
+	).Scan(ctx, &present); err != nil {
 		return nil, fromSQLError(err)
 	}
 
-	found := make(map[string]struct{}, len(updated))
-	for _, id := range updated {
+	found := make(map[string]struct{}, len(present))
+	for _, id := range present {
 		found[id] = struct{}{}
 	}
 

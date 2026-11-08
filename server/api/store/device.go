@@ -112,12 +112,16 @@ type DeviceStore interface {
 	// snapshot has nothing to write back. It reads only the device's UID and TenantID, and returns
 	// ctx's error when ctx ends and an error wrapping [ErrInternal] for any other database failure.
 	DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error
-	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is
-	// not removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a
-	// beat written late cannot bring a disconnected device back online. Each UID must appear in beats
-	// at most once. It returns the other uids, those deleted or removed, in the order given and never
-	// nil, or a nil gone and the store error when the update fails.
-	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat) (gone []string, err error)
+	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is not
+	// removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a beat
+	// written late cannot bring a disconnected device back online. A device with no disconnected_at
+	// whose last_seen is less than skipWithin before its beat, or after it, is left unwritten, so a
+	// skipWithin of zero or less never moves such a device's last_seen backwards. A device carrying a
+	// disconnect is written whatever its last_seen, so a late beat can still move its last_seen back.
+	// Each UID must appear in beats at most once. It returns the other uids, those deleted or removed,
+	// in the order given and never nil, whether or not their beat was written, or a nil gone and the
+	// store error when the update fails.
+	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat, skipWithin time.Duration) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
 	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.

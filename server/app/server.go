@@ -429,7 +429,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	routes.ApplyWorkerExtensions(s.worker, store, cache)
 
-	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock)
+	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock, dialer.EffectivePingInterval(time.Duration(s.sshEnv.TunnelPingInterval)))
 
 	if err := s.setupSSH(service); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
