@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -42,6 +43,13 @@ type deviceHeartbeat struct {
 // queue drops the beat instead, which costs nothing — the next one arrives well
 // within the online threshold.
 //
+// A device last written less than one beat interval and an eighth before its beat
+// is left unwritten by the store, so each tunnel is written every other beat. With
+// the 35-second default that is every 70 seconds, leaving room for one lost beat
+// inside the two-minute online window; an interval too long for that margin writes
+// every beat. A device carrying a disconnect is always written, whichever replica
+// stamped it.
+//
 // A beat for a device that was deleted or removed fires the device-removed hooks,
 // which close its tunnel. That is how a tunnel learns of a removal made by another
 // process or replica, which no hook in this one saw.
@@ -52,16 +60,19 @@ type DeviceHeartbeater struct {
 	done    chan struct{}
 	wg      sync.WaitGroup
 	dropped atomic.Uint64
+
+	skipWithin time.Duration
 }
 
-// NewDeviceHeartbeater returns a running heartbeater that stamps each beat with c's time. Call
-// Shutdown to flush what is pending and stop it.
-func NewDeviceHeartbeater(s store.Store, c clock.Clock) *DeviceHeartbeater {
+// NewDeviceHeartbeater returns a running heartbeater that stamps each beat with c's time, for
+// tunnels that beat every beatInterval. Call Shutdown to flush what is pending and stop it.
+func NewDeviceHeartbeater(s store.Store, c clock.Clock, beatInterval time.Duration) *DeviceHeartbeater {
 	h := &DeviceHeartbeater{
-		store: s,
-		clock: c,
-		queue: make(chan deviceHeartbeat, deviceHeartbeatQueueSize),
-		done:  make(chan struct{}),
+		store:      s,
+		clock:      c,
+		queue:      make(chan deviceHeartbeat, deviceHeartbeatQueueSize),
+		done:       make(chan struct{}),
+		skipWithin: deviceHeartbeatSkipWithin(beatInterval),
 	}
 
 	h.wg.Add(1)
@@ -155,7 +166,7 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
-	gone, err := h.store.DeviceHeartbeat(ctx, beats)
+	gone, err := h.store.DeviceHeartbeat(ctx, beats, h.skipWithin)
 	if err != nil {
 		log.WithError(err).
 			WithField("devices", len(beats)).
@@ -173,6 +184,14 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 
 		fireDeviceRemoved(ctx, latestByUID[uid].tenantID, uid)
 	}
+}
+
+func deviceHeartbeatSkipWithin(beatInterval time.Duration) time.Duration {
+	if 3*beatInterval+deviceHeartbeatFlushInterval > models.DeviceOnlineWindow {
+		return 0
+	}
+
+	return beatInterval + beatInterval/8
 }
 
 type deviceHeartbeatBatch struct {

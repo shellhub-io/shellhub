@@ -31,7 +31,7 @@ func (e *enrollmentE2E) acceptedDevice(t *testing.T, mac string) string {
 func (e *enrollmentE2E) connect(t *testing.T, uid string) {
 	t.Helper()
 
-	gone, err := e.st.DeviceHeartbeat(context.Background(), []store.DeviceBeat{{UID: uid, At: e.clock.Now()}})
+	gone, err := e.st.DeviceHeartbeat(context.Background(), []store.DeviceBeat{{UID: uid, At: e.clock.Now()}}, 0)
 	require.NoError(t, err)
 	require.Empty(t, gone)
 }

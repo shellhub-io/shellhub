@@ -180,11 +180,17 @@ const defaultPingInterval = 35 * time.Second
 const connectionWriteTimeout = 15 * time.Second
 
 func (m *Manager) pingInterval() time.Duration {
-	if m.PingInterval <= 0 {
+	return EffectivePingInterval(m.PingInterval)
+}
+
+// EffectivePingInterval returns how often a v2 tunnel is pinged when the manager's PingInterval
+// is configured: configured itself, or 35 seconds when it is not positive.
+func EffectivePingInterval(configured time.Duration) time.Duration {
+	if configured <= 0 {
 		return defaultPingInterval
 	}
 
-	return m.PingInterval
+	return configured
 }
 
 const pendingStreamOpens = 32
