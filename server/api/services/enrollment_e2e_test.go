@@ -37,6 +37,12 @@ type enrollmentE2E struct {
 
 func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	t.Helper()
+
+	return setupEnrollmentE2EWith(t)
+}
+
+func setupEnrollmentE2EWith(t *testing.T, options ...Option) *enrollmentE2E {
+	t.Helper()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProvider(ctx)
@@ -65,8 +71,9 @@ func setupEnrollmentE2E(t *testing.T) *enrollmentE2E {
 	})
 	require.NoError(t, err)
 
-	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(),
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()), WithIssuer("https://shellhub.example.com"))
+	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), append([]Option{
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()), WithIssuer("https://shellhub.example.com"),
+	}, options...)...)
 
 	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
 }
