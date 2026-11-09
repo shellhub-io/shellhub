@@ -93,8 +93,25 @@ function serveDevices(devices: Device[]) {
   return requests;
 }
 
+function Panel({
+  area: picked,
+  folded = false,
+}: {
+  area: MapArea;
+  folded?: boolean;
+}) {
+  return (
+    <AreaDevicesPanel
+      area={picked}
+      folded={folded}
+      onToggleFold={() => {}}
+      onClose={() => {}}
+    />
+  );
+}
+
 function renderPanel(picked = area, queryClient = createTestQueryClient()) {
-  return render(<AreaDevicesPanel area={picked} onClose={() => {}} />, {
+  return render(<Panel area={picked} />, {
     wrapper: createTestWrapper({
       queryClient,
       initialEntries: ["/dashboard/map"],
@@ -206,7 +223,9 @@ describe("AreaDevicesPanel", () => {
 
     await act(() => queryClient.refetchQueries());
 
-    expect(screen.getByRole("dialog", { name: "zurich-1" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("dialog", { name: "zurich-1" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("This area")).not.toBeInTheDocument();
   });
 
@@ -229,9 +248,11 @@ describe("AreaDevicesPanel", () => {
     const { rerender } = renderPanel({ ...area, devices: 2, online: 2 });
     await screen.findByRole("button", { name: /zurich-1/ });
 
-    rerender(<AreaDevicesPanel area={point} onClose={() => {}} />);
+    rerender(<Panel area={point} />);
 
-    expect(screen.getByRole("button", { name: /zurich-1/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /zurich-1/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Loading device")).not.toBeInTheDocument();
   });

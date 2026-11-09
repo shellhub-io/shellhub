@@ -32,7 +32,10 @@ const LOCATION_HALF_STEP = 0.5 * 10 ** -SERVER_ROUNDING_DECIMALS + EDGE_MARGIN;
  * What every map backend takes: the locations, the GeoIP database that placed them, which devices to count, the area picked, and
  * onSelect for a click on a point or cluster. Without onSelect the map has no hover or clicks.
  * Without navigable it has no panning, zooming or controls. Either way it opens once on the picked
- * area when there is one, or else on where most devices are.
+ * area when there is one, or else on where most devices are. It frames the picked area it opens
+ * on, and a navigable map each area picked, with areaPadding as it is when the map first frames or
+ * at the pick, or the full map's padding when none is given. Any framing whose padding leaves less
+ * than 64 pixels either way to frame in uses 20 pixels on every side instead, as paddingWithin does.
  */
 export interface LocationsMapProps {
   locations: DeviceLocation[];
@@ -41,6 +44,7 @@ export interface LocationsMapProps {
   selected?: Bounds;
   onSelect?: (area: MapArea) => void;
   navigable?: boolean;
+  areaPadding?: Padding;
 }
 
 /**
@@ -99,14 +103,51 @@ export const FULL_PADDING: Padding = {
 };
 
 /**
- * The padding when framing a picked area on the full map, clear of the area panel.
+ * Which of the full map's panels are folded. A folded summary card keeps its Dashboard link, its
+ * title row with the online count, its mode switch and any load error or no-position notice; a
+ * folded area panel keeps its header.
  */
-export const AREA_PADDING: Padding = {
-  top: 80,
-  right: 420,
-  bottom: 80,
-  left: 80,
-};
+export interface FoldedPanels {
+  summary: boolean;
+  area: boolean;
+}
+
+/**
+ * The padding when framing a picked area on the full map, clear of the summary card on the left
+ * and the area panel on the right. An open panel keeps its whole side clear. A folded one keeps
+ * clear only the top, deep enough for what stays of it: the area panel's header, or the summary's
+ * Dashboard link, title row and mode switch, the deeper of the two when both are folded. The
+ * summary's load error or no-position notice is not cleared: either shows only when the map holds
+ * nothing to pick.
+ */
+export function areaPadding(folded: FoldedPanels): Padding {
+  return {
+    top: Math.max(80, folded.area ? 110 : 0, folded.summary ? 160 : 0),
+    right: folded.area ? 80 : 420,
+    bottom: 80,
+    left: folded.summary ? 80 : 340,
+  };
+}
+
+const NARROW_PADDING: Padding = { top: 20, right: 20, bottom: 20, left: 20 };
+const MIN_FRAME = 64;
+
+/**
+ * The padding to frame with in a map width by height pixels: the padding given when it leaves at
+ * least 64 pixels each way to frame in, or else 20 pixels on every side. A map too narrow for its
+ * panels still frames what it is asked to, under the panels.
+ */
+export function paddingWithin(
+  padding: Padding,
+  width: number,
+  height: number,
+): Padding {
+  const roomy =
+    width - padding.left - padding.right >= MIN_FRAME &&
+    height - padding.top - padding.bottom >= MIN_FRAME;
+
+  return roomy ? padding : NARROW_PADDING;
+}
 
 const OPENFREEMAP_STYLES: Record<AppTheme, string> = {
   dark: "https://tiles.openfreemap.org/styles/dark",

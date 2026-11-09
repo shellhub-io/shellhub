@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronUpIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import {
   IconButton,
   Spinner,
@@ -18,6 +19,8 @@ const SCROLL_ROOT = "[data-area-devices]";
 
 interface AreaDevicesPanelProps {
   area: MapArea;
+  folded: boolean;
+  onToggleFold: () => void;
   onClose: () => void;
 }
 
@@ -26,12 +29,19 @@ interface AreaDevicesPanelProps {
  * a brief of the device over the map. An area that holds one device opens that device's brief
  * straight away, unless its first page holds other than one device or cannot be read, when the
  * list shows as for any area. That choice is made from the counts the panel mounts with and holds
- * for the life of the panel, whatever later counts or a later read of the area return.
+ * for the life of the panel, whatever later counts or a later read of the area return. Folded,
+ * the panel shows only its header and keeps the list, and where it was scrolled to, for unfolding;
+ * the caller holds folded, so it outlives the panel. A brief opened straight away for a one-device
+ * area opens whether or not the panel is folded.
  */
 export default function AreaDevicesPanel({
   area,
+  folded,
+  onToggleFold,
   onClose,
 }: AreaDevicesPanelProps) {
+  const listId = useId();
+  const footerId = useId();
   const [briefed, setBriefed] = useState<Device | null>(null);
   const filter = toBase64Json(boundsFilter(area.bounds));
   const query = { status: "accepted" as const, filter };
@@ -98,9 +108,19 @@ export default function AreaDevicesPanel({
   }
 
   return (
-    <aside className="absolute right-4 top-4 bottom-10 z-20 flex w-96 flex-col overflow-hidden rounded-xl border border-border bg-surface/95 shadow-float backdrop-blur animate-slide-up">
-      <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
-        <div>
+    <aside
+      className={cn(
+        "absolute right-4 top-4 z-20 flex w-96 flex-col overflow-hidden rounded-xl border border-border bg-surface/95 shadow-float backdrop-blur animate-slide-up max-sm:left-4 max-sm:top-auto max-sm:bottom-4 max-sm:w-auto",
+        !folded && "bottom-10 max-sm:h-1/2",
+      )}
+    >
+      <header
+        className={cn(
+          "flex items-start gap-1 px-4 py-3",
+          !folded && "border-b border-border",
+        )}
+      >
+        <div className="mr-auto">
           <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
             This area
           </p>
@@ -117,6 +137,21 @@ export default function AreaDevicesPanel({
           </p>
         </div>
         <IconButton
+          aria-label="Devices in this area"
+          aria-expanded={!folded}
+          aria-controls={`${listId} ${footerId}`}
+          variant="ghost"
+          size="sm"
+          onClick={onToggleFold}
+        >
+          <ChevronUpIcon
+            className={cn(
+              "h-4 w-4 transition-transform",
+              folded && "rotate-180",
+            )}
+          />
+        </IconButton>
+        <IconButton
           aria-label="Close area"
           variant="ghost"
           size="sm"
@@ -126,7 +161,12 @@ export default function AreaDevicesPanel({
         </IconButton>
       </header>
 
-      <div data-area-devices className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        id={listId}
+        data-area-devices
+        hidden={folded}
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
         {isLoading && (
           <div className="flex h-full items-center justify-center">
             <Spinner />
@@ -167,7 +207,11 @@ export default function AreaDevicesPanel({
         )}
       </div>
 
-      <footer className="border-t border-border px-4 py-2 text-2xs font-mono text-text-muted">
+      <footer
+        id={footerId}
+        hidden={folded}
+        className="border-t border-border px-4 py-2 text-2xs font-mono text-text-muted"
+      >
         {formatCount(devices.length)} loaded
       </footer>
 

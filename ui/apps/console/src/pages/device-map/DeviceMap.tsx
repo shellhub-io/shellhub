@@ -1,15 +1,20 @@
-import { useState, type CSSProperties } from "react";
+import { useId, useState, type CSSProperties } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeftIcon, MapIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  ChevronUpIcon,
+  MapIcon,
+} from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useQuery } from "@tanstack/react-query";
-import { Spinner } from "@shellhub/design-system/primitives";
+import { IconButton, Spinner } from "@shellhub/design-system/primitives";
 import { getDevices, getDevicesQueryKey } from "@/client";
 import { useDeviceLocations } from "@/hooks/useDeviceRequests";
 import { paginatedQueryOptions } from "@/api/pagination";
 import AreaDevicesPanel from "./AreaDevicesPanel";
 import LocationsMap from "./LocationsMap";
 import {
+  areaPadding,
   areaWithin,
   compactCount,
   formatBounds,
@@ -25,6 +30,25 @@ const PARTIAL_AT =
 
 function percent(share: number): string {
   return `${Math.round(share * 100)}%`;
+}
+
+const SUMMARY_FOLDED_KEY = "shellhub:deviceMap:summaryFolded";
+
+function readSummaryFolded(): boolean {
+  try {
+    return localStorage.getItem(SUMMARY_FOLDED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function storeSummaryFolded(folded: boolean) {
+  try {
+    if (folded) localStorage.setItem(SUMMARY_FOLDED_KEY, "true");
+    else localStorage.removeItem(SUMMARY_FOLDED_KEY);
+  } catch {
+    return;
+  }
 }
 
 const MODES: { value: MapMode; label: string }[] = [
@@ -65,15 +89,21 @@ function Stat({
  * brief of a point's one device. The area picked lives in the URL as ?area=west,south,east,north,
  * so a link or a reload opens the map on it once a read of the locations has succeeded; a value
  * that does not parse is ignored. The devices with no position are counted against the device
- * list, which leaves connector containers out as the map does.
+ * list, which leaves connector containers out as the map does. The summary card folds to its
+ * Dashboard link, title row, online count, mode switch and any load error or no-position notice,
+ * and stays folded across reloads where the browser lets the page store it. The area panel folds
+ * to its header and stays folded across the areas picked. A pick is framed clear of the panels as
+ * they are folded at that moment.
  */
 export default function DeviceMap() {
   const [mode, setMode] = useState<MapMode>("all");
+  const [summaryFolded, setSummaryFolded] = useState(readSummaryFolded);
+  const [areaFolded, setAreaFolded] = useState(false);
+  const summaryId = useId();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const { locations, source, isLoading, read, error } =
-    useDeviceLocations();
+  const { locations, source, isLoading, read, error } = useDeviceLocations();
   const picked = parseBounds(searchParams.get("area"));
   const area = picked && read ? areaWithin(locations, picked) : null;
   const { data: listed } = useQuery(
@@ -100,6 +130,7 @@ export default function DeviceMap() {
           );
         }}
         navigable
+        areaPadding={areaPadding({ summary: summaryFolded, area: areaFolded })}
       />
 
       <section className="absolute left-4 top-4 z-10 w-72 rounded-xl border border-border bg-surface/95 p-4 shadow-float backdrop-blur">
@@ -111,35 +142,44 @@ export default function DeviceMap() {
           Dashboard
         </Link>
         <div className="flex items-center gap-2">
-          <MapIcon className="h-5 w-5 text-primary" />
+          <MapIcon className="h-5 w-5 shrink-0 text-primary" />
           <h1 className="text-sm font-semibold text-text-primary">
             Device Map
           </h1>
-          {isLoading && <Spinner size="sm" className="ml-auto" />}
-        </div>
-        <p className="mt-1 text-2xs leading-relaxed text-text-muted">
-          Positions come from a GeoIP lookup of the address each device connects
-          from, so they are accurate to the city at best.
-        </p>
-
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <Stat label="Located" value={compactCount(located)} />
-          <Stat
-            label="Online"
-            value={compactCount(online)}
-            accent="text-accent-green"
-          />
-          <Stat
-            label="No position"
-            value={compactCount(unlocated)}
-            accent="text-text-secondary"
-          />
+          {summaryFolded && (
+            <span className="truncate font-mono text-2xs text-text-secondary">
+              <span className="text-accent-green">{compactCount(online)}</span>
+              {`/${compactCount(located)} online`}
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            {isLoading && <Spinner size="sm" />}
+            <IconButton
+              aria-label="Map details"
+              aria-expanded={!summaryFolded}
+              aria-controls={summaryId}
+              variant="ghost"
+              size="sm"
+              className="-mr-1.5"
+              onClick={() => {
+                storeSummaryFolded(!summaryFolded);
+                setSummaryFolded(!summaryFolded);
+              }}
+            >
+              <ChevronUpIcon
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  summaryFolded && "rotate-180",
+                )}
+              />
+            </IconButton>
+          </div>
         </div>
 
         <div
           role="radiogroup"
           aria-label="Devices shown"
-          className="mt-4 grid grid-cols-3 rounded-lg border border-border bg-background/60 p-0.5"
+          className="mt-3 grid grid-cols-3 rounded-lg border border-border bg-background/60 p-0.5"
         >
           {MODES.map((option) => (
             <button
@@ -158,30 +198,53 @@ export default function DeviceMap() {
           ))}
         </div>
 
-        {mode === "all" && (
-          <div className="mt-4">
-            <div
-              className="h-1.5 rounded-full bg-gradient-to-r from-accent-red via-accent-yellow to-accent-green"
-              style={
-                {
-                  "--tw-gradient-via-position": `${PARTIAL_AT}%`,
-                } as CSSProperties
-              }
+        <div id={summaryId} hidden={summaryFolded}>
+          <p className="mt-3 text-2xs leading-relaxed text-text-muted">
+            Positions come from a GeoIP lookup of the address each device
+            connects from, so they are accurate to the city at best.
+          </p>
+
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            <Stat label="Located" value={compactCount(located)} />
+            <Stat
+              label="Online"
+              value={compactCount(online)}
+              accent="text-accent-green"
             />
-            <div className="relative mt-1 h-3 font-mono text-3xs text-text-muted">
-              <span className="absolute left-0">
-                ≤{percent(OFFLINE_SHARE)} online
-              </span>
-              <span
-                className="absolute -translate-x-1/2"
-                style={{ left: `${PARTIAL_AT}%` }}
-              >
-                {percent(PARTIAL_SHARE)}
-              </span>
-              <span className="absolute right-0">{percent(ONLINE_SHARE)}</span>
-            </div>
+            <Stat
+              label="No position"
+              value={compactCount(unlocated)}
+              accent="text-text-secondary"
+            />
           </div>
-        )}
+
+          {mode === "all" && (
+            <div className="mt-4">
+              <div
+                className="h-1.5 rounded-full bg-gradient-to-r from-accent-red via-accent-yellow to-accent-green"
+                style={
+                  {
+                    "--tw-gradient-via-position": `${PARTIAL_AT}%`,
+                  } as CSSProperties
+                }
+              />
+              <div className="relative mt-1 h-3 font-mono text-3xs text-text-muted">
+                <span className="absolute left-0">
+                  ≤{percent(OFFLINE_SHARE)} online
+                </span>
+                <span
+                  className="absolute -translate-x-1/2"
+                  style={{ left: `${PARTIAL_AT}%` }}
+                >
+                  {percent(PARTIAL_SHARE)}
+                </span>
+                <span className="absolute right-0">
+                  {percent(ONLINE_SHARE)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
         {error && (
           <p className="mt-3 text-xs text-accent-red">
@@ -199,6 +262,8 @@ export default function DeviceMap() {
         <AreaDevicesPanel
           key={area.bounds.join(",")}
           area={area}
+          folded={areaFolded}
+          onToggleFold={() => setAreaFolded(!areaFolded)}
           onClose={() => {
             void navigate({ search: "" }, { replace: true });
           }}
