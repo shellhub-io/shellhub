@@ -17,10 +17,7 @@ type Device struct {
 	CreatedAt   time.Time  `bun:"created_at"`
 	UpdatedAt   time.Time  `bun:"updated_at"`
 	RemovedAt   *time.Time `bun:"removed_at"`
-	// skipupdate: owned by DeviceHeartbeat/DeviceOffline, so DeviceUpdate can't roll a device
-	// offline with a stale snapshot. Writers that must change these use those targeted paths.
-	LastSeen        time.Time `bun:"last_seen,skipupdate"`
-	DisconnectedAt  time.Time `bun:"disconnected_at,nullzero,skipupdate"`
+
 	Online          bool      `bun:",scanonly"`
 	Acceptable      bool      `bun:",scanonly"`
 	Status          string    `bun:"status"`
@@ -47,8 +44,18 @@ type Device struct {
 	LastEnrollmentAttemptAt *time.Time `bun:"last_enrollment_attempt_at,nullzero"`
 	KeyVerifiedAt           *time.Time `bun:"key_verified_at,nullzero,skipupdate"`
 
-	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
-	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
+	Namespace *Namespace      `bun:"rel:belongs-to,join:namespace_id=id"`
+	Presence  *DevicePresence `bun:"rel:has-one,join:id=device_id"`
+	Tags      []*Tag          `bun:"m2m:device_tags,join:Device=Tag"`
+}
+
+// DevicePresence is a row of device_presence. Every device has exactly one.
+type DevicePresence struct {
+	bun.BaseModel `bun:"table:device_presence,alias:presence"`
+
+	DeviceID       string    `bun:"device_id,pk"`
+	LastSeen       time.Time `bun:"last_seen"`
+	DisconnectedAt time.Time `bun:"disconnected_at,nullzero"`
 }
 
 // DeviceFromModel projects a device into its row form, defaulting an unset status to pending
@@ -65,7 +72,7 @@ func DeviceFromModel(model *models.Device) *Device {
 		CreatedAt:         model.CreatedAt,
 		UpdatedAt:         time.Time{},
 		RemovedAt:         model.RemovedAt,
-		LastSeen:          model.LastSeen,
+		Presence:          &DevicePresence{DeviceID: model.UID, LastSeen: model.LastSeen},
 		Status:            status,
 		StatusUpdatedAt:   model.StatusUpdatedAt,
 		Name:              model.Name,
@@ -84,7 +91,7 @@ func DeviceFromModel(model *models.Device) *Device {
 	}
 
 	if model.DisconnectedAt != nil {
-		device.DisconnectedAt = *model.DisconnectedAt
+		device.Presence.DisconnectedAt = *model.DisconnectedAt
 	}
 
 	if model.Identity != nil {
@@ -126,7 +133,6 @@ func DeviceToModel(entity *Device) *models.Device {
 		TenantID:          entity.NamespaceID,
 		CreatedAt:         entity.CreatedAt,
 		RemovedAt:         entity.RemovedAt,
-		LastSeen:          entity.LastSeen,
 		Status:            models.DeviceStatus(entity.Status),
 		StatusUpdatedAt:   entity.StatusUpdatedAt,
 		Name:              entity.Name,
@@ -168,9 +174,13 @@ func DeviceToModel(entity *Device) *models.Device {
 		device.Namespace = entity.Namespace.Name
 	}
 
-	if !entity.DisconnectedAt.IsZero() {
-		disconnectedAt := entity.DisconnectedAt
-		device.DisconnectedAt = &disconnectedAt
+	if entity.Presence != nil {
+		device.LastSeen = entity.Presence.LastSeen
+
+		if !entity.Presence.DisconnectedAt.IsZero() {
+			disconnectedAt := entity.Presence.DisconnectedAt
+			device.DisconnectedAt = &disconnectedAt
+		}
 	}
 
 	if len(entity.Tags) > 0 {

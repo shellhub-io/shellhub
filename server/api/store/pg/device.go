@@ -22,7 +22,7 @@ func (pg *Pg) DeviceCreate(ctx context.Context, device *models.Device) (string, 
 	device.CreatedAt = pg.clock.Now()
 
 	e := entity.DeviceFromModel(device)
-	if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
+	if _, err := db.NewInsert().With("_device", db.NewInsert().Model(e)).Model(e.Presence).Exec(ctx); err != nil {
 		return "", fromSQLError(err)
 	}
 
@@ -99,7 +99,8 @@ func (pg *Pg) DeviceLocations(ctx context.Context, sc scope.Scope, opts ...store
 		ColumnExpr("round(device.latitude, ?)::float8 AS latitude", models.DeviceLocationPrecision).
 		ColumnExpr("round(device.longitude, ?)::float8 AS longitude", models.DeviceLocationPrecision).
 		ColumnExpr("count(*) AS devices").
-		ColumnExpr("count(*) FILTER (WHERE device.disconnected_at IS NULL AND device.last_seen > ?) AS online", OnlineCutoff(pg.clock)).
+		ColumnExpr("count(*) FILTER (WHERE presence.disconnected_at IS NULL AND presence.last_seen > ?) AS online", OnlineCutoff(pg.clock)).
+		Join("JOIN device_presence AS presence ON presence.device_id = device.id").
 		Where("device.status = ?", models.DeviceStatusAccepted).
 		Where(internal.DeviceLocated).
 		GroupExpr("1, 2")
@@ -158,6 +159,7 @@ func (pg *Pg) deviceListSelect(ctx context.Context, entities *[]entity.Device, a
 		Model(entities).
 		Column("device.*").
 		Relation("Namespace").
+		Relation("Presence").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold).
 		ColumnExpr(deviceExprAcceptable(acceptable))
@@ -180,10 +182,11 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, 
 	entities := make([]entity.Device, 0)
 	err := db.NewSelect().
 		Model(&entities).
+		Relation("Presence").
 		Where("ephemeral = TRUE").
-		Where("NOT (disconnected_at IS NULL AND last_seen > ?)", OnlineCutoff(pg.clock)).
-		Where("status = ? OR disconnected_at > status_updated_at", models.DeviceStatusAccepted).
-		Where("GREATEST(last_seen, status_updated_at) + make_interval(mins => ephemeral_timeout) < ?", now).
+		Where("NOT (presence.disconnected_at IS NULL AND presence.last_seen > ?)", OnlineCutoff(pg.clock)).
+		Where("status = ? OR presence.disconnected_at > status_updated_at", models.DeviceStatusAccepted).
+		Where("GREATEST(presence.last_seen, status_updated_at) + make_interval(mins => ephemeral_timeout) < ?", now).
 		Limit(1000).
 		Scan(ctx)
 	if err != nil {
@@ -216,6 +219,7 @@ func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.
 		Where("? = ?", bun.Ident("device."+column), val).
 		Column("device.*").
 		Relation("Namespace").
+		Relation("Presence").
 		Relation("Tags").
 		ColumnExpr(onlineExpr, onlineThreshold)
 
@@ -370,17 +374,19 @@ func (pg *Pg) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat, ski
 	present := []string{}
 	if err := db.NewRaw(
 		`WITH _data AS (SELECT id, at FROM `+unnestExpr+`),
+		_present AS (
+			SELECT device.id, _data.at FROM devices AS device JOIN _data ON device.id = _data.id WHERE device.status <> ?
+		),
 		_written AS (
-			UPDATE devices AS device
-			SET last_seen = _data.at,
-				disconnected_at = CASE WHEN device.disconnected_at > _data.at THEN device.disconnected_at END
-			FROM _data
-			WHERE device.id = _data.id
-				AND device.status <> ?
-				AND (device.disconnected_at IS NOT NULL OR device.last_seen <= _data.at - make_interval(secs => ?))
+			UPDATE device_presence AS presence
+			SET last_seen = _present.at,
+				disconnected_at = CASE WHEN presence.disconnected_at > _present.at THEN presence.disconnected_at END
+			FROM _present
+			WHERE presence.device_id = _present.id
+				AND (presence.disconnected_at IS NOT NULL OR presence.last_seen <= _present.at - make_interval(secs => ?))
 		)
-		SELECT device.id FROM devices AS device JOIN _data ON device.id = _data.id WHERE device.status <> ?`,
-		unnestIDs, unnestTimes, models.DeviceStatusRemoved, max(skipWithin, 0).Seconds(), models.DeviceStatusRemoved,
+		SELECT id FROM _present`,
+		unnestIDs, unnestTimes, models.DeviceStatusRemoved, max(skipWithin, 0).Seconds(),
 	).Scan(ctx, &present); err != nil {
 		return nil, fromSQLError(err)
 	}
@@ -405,9 +411,9 @@ func (pg *Pg) DeviceOffline(ctx context.Context, uid string, disconnectedAt time
 	db := pg.GetConnection(ctx)
 
 	r, err := db.NewUpdate().
-		Model((*entity.Device)(nil)).
+		Model((*entity.DevicePresence)(nil)).
 		Set("disconnected_at = ?", disconnectedAt).
-		Where("id = ?", uid).
+		Where("device_id = ?", uid).
 		Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
@@ -426,22 +432,23 @@ func (pg *Pg) DeviceSweepStalePresence(ctx context.Context, staleBefore time.Tim
 
 	unclosedSince := func(q bun.QueryBuilder) bun.QueryBuilder {
 		return q.
-			Where("disconnected_at IS NULL").
-			Where("last_seen > 'epoch'").
-			Where("last_seen < ?", staleBefore).
-			Where("status <> ?", models.DeviceStatusRemoved)
+			Where("presence.disconnected_at IS NULL").
+			Where("presence.last_seen > 'epoch'").
+			Where("presence.last_seen < ?", staleBefore)
 	}
 
 	stale := db.NewSelect().
-		Model((*entity.Device)(nil)).
-		Column("id").
+		Model((*entity.DevicePresence)(nil)).
+		Column("presence.device_id").
+		Join("JOIN devices AS device ON device.id = presence.device_id").
+		Where("device.status <> ?", models.DeviceStatusRemoved).
 		ApplyQueryBuilder(unclosedSince).
 		Limit(limit)
 
 	r, err := db.NewUpdate().
-		Model((*entity.Device)(nil)).
+		Model((*entity.DevicePresence)(nil)).
 		Set("disconnected_at = last_seen + make_interval(secs => ?)", models.DeviceOnlineWindow.Seconds()).
-		Where("id IN (?)", stale).
+		Where("presence.device_id IN (?)", stale).
 		ApplyQueryBuilder(unclosedSince).
 		Exec(ctx)
 	if err != nil {
@@ -553,14 +560,15 @@ func OnlineCutoff(c clock.Clock) time.Time {
 
 // DeviceIsOnline reports whether the device should be considered online
 // based on the given threshold time. A device is online when it has not
-// been explicitly disconnected and was last seen after the threshold.
+// been explicitly disconnected and was last seen after the threshold. A
+// device loaded without its Presence relation reports offline.
 func DeviceIsOnline(d *entity.Device, threshold time.Time) bool {
-	return d.DisconnectedAt.IsZero() && d.LastSeen.After(threshold)
+	return d.Presence != nil && d.Presence.DisconnectedAt.IsZero() && d.Presence.LastSeen.After(threshold)
 }
 
 func deviceExprOnline(threshold time.Time) (string, time.Time) {
 	return `CASE
-		WHEN "device"."disconnected_at" IS NULL AND "device"."last_seen" > ?
+		WHEN "presence"."disconnected_at" IS NULL AND "presence"."last_seen" > ?
 		THEN true
 		ELSE false
 		END AS "online"`, threshold

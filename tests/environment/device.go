@@ -12,7 +12,7 @@ func (dc *DockerCompose) AgeDevice(t *testing.T, uid string, age time.Duration) 
 	t.Helper()
 
 	dc.updateOne(t,
-		"UPDATE devices SET created_at = created_at - :'age'::interval, status_updated_at = status_updated_at - :'age'::interval, last_seen = last_seen - :'age'::interval WHERE id = :'uid'",
+		"WITH _presence AS (UPDATE device_presence SET last_seen = last_seen - :'age'::interval WHERE device_id = :'uid') UPDATE devices SET created_at = created_at - :'age'::interval, status_updated_at = status_updated_at - :'age'::interval WHERE id = :'uid'",
 		map[string]string{"uid": uid, "age": interval(age)})
 }
 

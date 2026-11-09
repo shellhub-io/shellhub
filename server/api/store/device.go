@@ -124,7 +124,7 @@ type DeviceStore interface {
 	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat, skipWithin time.Duration) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
-	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.
+	// DeviceHeartbeat. Returns [ErrNoDocuments] if none found.
 	DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error
 
 	// DeviceSweepStalePresence stamps disconnected_at on up to limit devices whose tunnel close was

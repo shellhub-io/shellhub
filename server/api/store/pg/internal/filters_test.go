@@ -290,8 +290,8 @@ func TestParseFilterProperty_Bool(t *testing.T) {
 func TestFromOnlineFilter(t *testing.T) {
 	cutoff := time.Date(2026, 8, 12, 11, 58, 0, 0, time.UTC)
 
-	const onlineSQL = `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`
-	const offlineSQL = `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`
+	const onlineSQL = `("presence"."disconnected_at" IS NULL AND "presence"."last_seen" > ?)`
+	const offlineSQL = `("presence"."disconnected_at" IS NOT NULL OR "presence"."last_seen" <= ?)`
 
 	cases := []struct {
 		description string

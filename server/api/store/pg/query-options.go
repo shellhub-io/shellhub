@@ -61,13 +61,8 @@ func (*queryOptions) Sort(sorter *query.Sorter) store.QueryOption {
 			return ErrQueryNotFound
 		}
 
-		qualifyCol := func(col string) bun.Ident {
-			if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
-				return bun.Ident(alias + "." + col)
-			}
-
-			return bun.Ident(col)
-		}
+		alias, _ := ctx.Value(CtxTableAlias).(string)
+		qualifyCol := func(col string) bun.Ident { return internal.QualifyColumn(col, alias) }
 
 		direction := sortDirection(sorter.Order)
 

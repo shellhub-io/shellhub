@@ -346,6 +346,19 @@ func (s *Suite) TestSessionResolve(t *testing.T) {
 		assert.Equal(t, string(sessionUID), session.UID)
 		assert.Equal(t, tenantID, session.TenantID)
 	})
+
+	t.Run("resolves its device's presence", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		seen := s.Clock().Now().Add(-time.Minute)
+		sessionUID := s.CreateSession(t, WithSessionDevice(s.CreateDevice(t, WithDeviceLastSeen(seen))))
+
+		session, err := st.SessionResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.SessionUIDResolver, string(sessionUID))
+		require.NoError(t, err)
+		require.NotNil(t, session.Device)
+		assert.WithinDuration(t, seen, session.Device.LastSeen, time.Millisecond)
+		assert.True(t, session.Device.Online)
+	})
 }
 
 // TestSessionCreate tests session creation
