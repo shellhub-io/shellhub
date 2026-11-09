@@ -30,9 +30,15 @@ var errNotAdmitted = errors.New("the gateway's login names no account the device
 //
 // Vouched is the gateway's word that every login on the stream is its own: the stream's SSH user
 // is then admitted without a credential, as soon as it names an account the device admits.
+//
+// HostCertificate is the gateway's word that it accepts a host certificate signed by the device
+// key in place of the device key itself: the stream's handshake is then signed with an Ed25519
+// key the device key certified once, which costs a slow device far less than an RSA signature on
+// every connection.
 type GatewayStream struct {
-	Secret  string
-	Vouched bool
+	Secret          string
+	Vouched         bool
+	HostCertificate bool
 }
 
 // GatewayLoginConn is a stream the gateway opened for one SSH connection, with what it said in
@@ -60,6 +66,10 @@ func (s *Server) serverConfig(ctx gliderssh.Context) *gossh.ServerConfig {
 	config := &gossh.ServerConfig{ServerVersion: serverVersion(ctx)}
 
 	stream := gatewayStream(ctx)
+
+	if stream.HostCertificate && s.hostCertificate != nil {
+		config.AddHostKey(s.hostCertificate)
+	}
 
 	if stream.Vouched {
 		config.NoClientAuth = true

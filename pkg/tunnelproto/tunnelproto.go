@@ -28,15 +28,17 @@ const (
 )
 
 // Header is the JSON frame the server writes on a V2 stream before its payload. ID names the
-// session or the proxied request; Host and Port are the proxy's target. Login and Vouched are the
-// gateway's own login to a session stream, described by the server's SSHOpenTarget. Every field
-// travels as a JSON string, because released agents decode the frame into map[string]string.
+// session or the proxied request; Host and Port are the proxy's target. Login, Vouched and
+// HostCertificate are the gateway's own login to a session stream, described by the server's
+// SSHOpenTarget. Every field travels as a JSON string, because released agents decode the frame
+// into map[string]string.
 type Header struct {
-	ID      string `json:"id"`
-	Host    string `json:"host,omitempty"`
-	Port    string `json:"port,omitempty"`
-	Login   string `json:"login,omitempty"`
-	Vouched bool   `json:"vouched,omitempty,string"`
+	ID              string `json:"id"`
+	Host            string `json:"host,omitempty"`
+	Port            string `json:"port,omitempty"`
+	Login           string `json:"login,omitempty"`
+	Vouched         bool   `json:"vouched,omitempty,string"`
+	HostCertificate bool   `json:"hostcert,omitempty,string"`
 }
 
 // StatusOK is the [Reply.Status] of a proxy stream whose target the agent reached.
