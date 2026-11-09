@@ -81,6 +81,8 @@ func (a *AgentChannel) ClosedByGateway() bool {
 // Agent represents a connection to an agent.
 type Agent struct {
 	conn     net.Conn
+	connMu   sync.Mutex
+	finished bool
 	client   *gossh.Client
 	mu       sync.Mutex
 	channels map[int]*AgentChannel
@@ -753,7 +755,22 @@ func (s *Session) dropAgentConn() {
 			Debug("failed to close the tunnel stream of a handshake that did not finish")
 	}
 
+	s.agent.connMu.Lock()
 	s.agent.conn = nil
+	s.agent.connMu.Unlock()
+}
+
+func (s *Session) adoptAgentConn(conn net.Conn) bool {
+	s.agent.connMu.Lock()
+	defer s.agent.connMu.Unlock()
+
+	if s.agent.finished {
+		return false
+	}
+
+	s.agent.conn = conn
+
+	return true
 }
 
 func awaitAgentGreeting(conn net.Conn) (net.Conn, error) { //nolint:ireturn // net.Conn is what the handshake takes
@@ -788,11 +805,13 @@ func (s *Session) Online() bool {
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
 // V2 transports a multistream protocol selection is performed using the
 // ProtoSSHOpen identifier followed by a JSON envelope with the session
-// id. After this method returns s.agent.conn is the raw stream, and not yet
+// id. After a nil return s.agent.conn is the raw stream, and not yet
 // ready to be written to: the device has still to be heard from first, which
 // connect does, because a version line written before the device has read the
 // stream's header is taken into its header reader and never reaches its SSH
-// server.
+// server. It returns ErrDial joined with the dialer's error when the device cannot be reached,
+// and ErrClientClosing, having closed the new stream and asked the device to close the session,
+// when the session has finished by the time the stream arrives.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
@@ -808,7 +827,13 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 		return errors.Join(ErrDial, err)
 	}
 
-	s.agent.conn = conn
+	if !s.adoptAgentConn(conn) {
+		_ = conn.Close()
+
+		s.closingOnAgent.Go(s.closeOnAgent)
+
+		return ErrClientClosing
+	}
 
 	return nil
 }
@@ -1319,7 +1344,12 @@ func (s *Session) Finish() error {
 
 		s.Events.Close() //nolint:errcheck
 
-		if s.agent.conn != nil {
+		s.agent.connMu.Lock()
+		dialled := s.agent.conn != nil
+		s.agent.finished = true
+		s.agent.connMu.Unlock()
+
+		if dialled {
 			s.closingOnAgent.Go(s.closeOnAgent)
 		}
 
