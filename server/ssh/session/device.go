@@ -52,6 +52,7 @@ type Agent struct {
 	client   *gossh.Client
 	mu       sync.Mutex
 	channels map[int]*AgentChannel
+	spare    *spareChannel
 	finished bool
 }
 
@@ -66,9 +67,14 @@ func (a *Agent) Close() error {
 	return a.client.Close()
 }
 
-// NewAgentChannel opens a session channel on the device and sets it on seat. It returns
-// ErrSeatAlreadySet when seat already holds an agent channel, and the open's error unchanged
-// otherwise, a *gossh.OpenChannelError when the device rejects the channel.
+// NewAgentChannel opens a session channel on the device and sets it on seat.
+//
+// The first session channel takes the one the session opened on the device as soon as it
+// authenticated, which the device has usually confirmed by the time the client asks; it opens
+// another when that one failed.
+//
+// It returns ErrSeatAlreadySet when seat already holds an agent channel, and the open's error
+// unchanged otherwise, a *gossh.OpenChannelError when the device rejects the channel.
 func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	s.agent.mu.Lock()
 	defer s.agent.mu.Unlock()
@@ -77,7 +83,7 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 		return nil, ErrSeatAlreadySet
 	}
 
-	channel, requests, err := s.agent.client.OpenChannel(sessionChannelType, nil)
+	channel, requests, err := s.openOn(s.claimSpare())
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +92,24 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	s.agent.channels[seat] = a
 
 	return a, nil
+}
+
+func (s *Session) claimSpare() *spareChannel {
+	spare := s.agent.spare
+	s.agent.spare = nil
+
+	return spare
+}
+
+func (s *Session) openOn(spare *spareChannel) (gossh.Channel, <-chan *gossh.Request, error) { //nolint:ireturn // gossh.Channel is the interface x/crypto hands out
+	if spare != nil {
+		channel, requests, err := spare.take()
+		if err == nil {
+			return channel, requests, nil
+		}
+	}
+
+	return s.agent.client.OpenChannel(sessionChannelType, nil)
 }
 
 // DropAgentChannel closes the agent channel on a seat and forgets it, so a seat
@@ -125,6 +149,10 @@ func (s *Session) attachAgent(ctx gliderssh.Context, conn gossh.Conn, chans <-ch
 	close(ch)
 
 	s.agent.client = gossh.NewClient(conn, chans, ch)
+
+	s.agent.mu.Lock()
+	s.agent.spare = openSpare(s.agent.client)
+	s.agent.mu.Unlock()
 
 	clientConn, _ := ctx.Value(connCtxKey{}).(net.Conn)
 

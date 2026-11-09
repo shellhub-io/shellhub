@@ -307,6 +307,8 @@ func (r *sessionRelay) handleClientRequest(req *gossh.Request) {
 		if !r.notePty(req) {
 			return
 		}
+
+		acknowledge(r.logger, req)
 	case WindowChangeRequestType:
 		if !r.recordWindowChange(req) {
 			return
@@ -395,7 +397,9 @@ func (r *sessionRelay) forwardToAgent(req *gossh.Request) {
 	r.forwarding.Lock()
 	defer r.forwarding.Unlock()
 
-	ok, err := r.agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+	awaitsDevice := req.WantReply && req.Type != PtyRequestType
+
+	ok, err := r.agent.Channel.SendRequest(req.Type, awaitsDevice, req.Payload)
 	if err != nil {
 		r.logger.WithError(err).Error("failed to send the request from client to agent")
 		r.ptyRequested = nil
@@ -403,30 +407,26 @@ func (r *sessionRelay) forwardToAgent(req *gossh.Request) {
 		return
 	}
 
-	if req.WantReply {
+	if awaitsDevice {
 		if err := req.Reply(ok, nil); err != nil {
 			r.logger.WithError(err).Error(err)
 		}
 	}
 
-	r.recordRequestedPty(req, ok)
+	r.recordRequestedPty()
 
 	if startsDataPipe(req.Type) {
 		r.startPipe()
 	}
 }
 
-func (r *sessionRelay) recordRequestedPty(req *gossh.Request, accepted bool) {
+func (r *sessionRelay) recordRequestedPty() {
 	if r.ptyRequested == nil {
 		return
 	}
 
-	if accepted || !req.WantReply {
-		r.sess.SetSeatPty(r.seat, true)
-		r.sess.Event(PtyRequestType, *r.ptyRequested, r.seat)
-	} else {
-		r.logger.Warn("the device refused the pty; the session continues without one")
-	}
+	r.sess.SetSeatPty(r.seat, true)
+	r.sess.Event(PtyRequestType, *r.ptyRequested, r.seat)
 
 	r.ptyRequested = nil
 }

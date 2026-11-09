@@ -516,8 +516,6 @@ func (s *Session) Recorded(seat int) error {
 	})
 }
 
-const sessionChannelType = "session"
-
 func (s *Session) checkLicense(ctx context.Context) error {
 	err := s.service.EvaluateLicense(ctx)
 	switch {
