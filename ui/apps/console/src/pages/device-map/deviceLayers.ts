@@ -1,5 +1,9 @@
-import type { ExpressionSpecification, FilterSpecification } from "maplibre-gl";
-import type { FeatureCollection, Point } from "geojson";
+import type {
+  ExpressionSpecification,
+  FilterSpecification,
+  GeoJSONSource,
+} from "maplibre-gl";
+import type { FeatureCollection, GeoJsonProperties, Point } from "geojson";
 import type { DeviceLocation } from "@/client";
 import {
   LABEL_THOUSAND,
@@ -7,12 +11,16 @@ import {
   ONLINE_COLOR_STOPS,
   RADIUS_FLOOR,
   RADIUS_RANGE,
+  pointsBounds,
+  type MapArea,
   type MapMode,
   type MapPalette,
 } from "./mapModel";
 
 /**
- * The locations as GeoJSON points carrying their counts, the shape a clustered source takes.
+ * The locations as GeoJSON points, the shape a clustered source takes. Each carries its location
+ * as properties: the counts, and the exact longitude and latitude, which a rendered feature's
+ * geometry loses to tile precision.
  */
 export function toFeatureCollection(
   locations: DeviceLocation[],
@@ -25,8 +33,52 @@ export function toFeatureCollection(
         type: "Point",
         coordinates: [location.longitude, location.latitude],
       },
-      properties: { devices: location.devices, online: location.online },
+      properties: { ...location },
     })),
+  };
+}
+
+/**
+ * The area a picked point or cluster of toFeatureCollection covers: its counts, and bounds around
+ * the exact positions in its properties, a cluster's read from its leaves through source. It
+ * rejects when source cannot read the leaves. A feature must carry the properties
+ * toFeatureCollection writes, or a cluster's over them: one without them throws, and one without
+ * a position gives NaN bounds.
+ */
+export async function areaOf(
+  source: Pick<GeoJSONSource, "getClusterLeaves">,
+  feature: { properties: GeoJsonProperties },
+): Promise<MapArea> {
+  const properties = feature.properties as DeviceLocation & {
+    cluster?: boolean;
+    cluster_id?: number;
+    point_count?: number;
+  };
+
+  if (!properties.cluster || properties.cluster_id === undefined) {
+    return {
+      bounds: pointsBounds([[properties.longitude, properties.latitude]]),
+      devices: properties.devices,
+      online: properties.online,
+    };
+  }
+
+  const leaves = await source.getClusterLeaves(
+    properties.cluster_id,
+    properties.point_count ?? Infinity,
+    0,
+  );
+
+  return {
+    bounds: pointsBounds(
+      leaves.map((leaf) => {
+        const { longitude, latitude } = leaf.properties as DeviceLocation;
+
+        return [longitude, latitude];
+      }),
+    ),
+    devices: properties.devices,
+    online: properties.online,
   };
 }
 

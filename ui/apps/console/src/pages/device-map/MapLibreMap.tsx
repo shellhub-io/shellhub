@@ -5,11 +5,10 @@ import {
   NavigationControl,
   setWorkerUrl,
   type GeoJSONSource,
-  type MapGeoJSONFeature,
   type MapLayerMouseEvent,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { FeatureCollection, Point, Polygon } from "geojson";
+import type { FeatureCollection, Polygon } from "geojson";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import MapTooltip, { type MapHover } from "./MapTooltip";
 import { OUTLINE_FONT, outlineStyle } from "./outlineStyle";
@@ -23,17 +22,16 @@ import {
   MAP_MAX_ZOOM,
   modeTotal,
   STILL_PADDING,
-  pointsBounds,
   readPalette,
   worldSpanZoom,
   type Bounds,
   type LocationsMapProps,
-  type MapArea,
   type MapBackend,
   type MapMode,
   type MapPalette,
 } from "./mapModel";
 import {
+  areaOf,
   color,
   label,
   metricFilter,
@@ -157,45 +155,6 @@ function collapseAttribution(map: MapLibre) {
     .querySelector("details.maplibregl-ctrl-attrib");
   attribution?.removeAttribute("open");
   attribution?.classList.remove("maplibregl-compact-show");
-}
-
-async function areaOf(
-  source: GeoJSONSource,
-  feature: MapGeoJSONFeature,
-): Promise<MapArea> {
-  const properties = feature.properties as {
-    devices: number;
-    online: number;
-    cluster?: boolean;
-    cluster_id?: number;
-    point_count?: number;
-  };
-
-  if (!properties.cluster || properties.cluster_id === undefined) {
-    const [lng, lat] = (feature.geometry as Point).coordinates;
-
-    return {
-      bounds: pointsBounds([[lng, lat]]),
-      devices: properties.devices,
-      online: properties.online,
-    };
-  }
-
-  const leaves = await source.getClusterLeaves(
-    properties.cluster_id,
-    properties.point_count ?? Infinity,
-    0,
-  );
-
-  return {
-    bounds: pointsBounds(
-      leaves.map(
-        (leaf) => (leaf.geometry as Point).coordinates as [number, number],
-      ),
-    ),
-    devices: properties.devices,
-    online: properties.online,
-  };
 }
 
 /**
