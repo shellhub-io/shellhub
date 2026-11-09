@@ -237,7 +237,7 @@ export default function MapLibreMap({
     const map = new MapLibre({
       container,
       style: styleUrl ?? outlineStyle(palette),
-      renderWorldCopies: !outline,
+      renderWorldCopies: false,
       center: [0, 20],
       zoom: worldSpanZoom(container.clientWidth),
       maxZoom: MAP_MAX_ZOOM,
