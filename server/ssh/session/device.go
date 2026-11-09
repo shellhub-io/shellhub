@@ -137,6 +137,26 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 		return err
 	}
 
+	if warm := s.warm; warm != nil {
+		s.warm = nil
+
+		warmed := warm.deliver(cred)
+		switch {
+		case warmed.err == nil:
+			return s.adoptWarmed(ctx, warmed)
+		case warmed.final:
+			log.WithError(warmed.err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Error("Error when trying to create the client's connection")
+
+			return warmed.err
+		default:
+			log.WithError(warmed.err).
+				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Debug("the warm connection to the device failed before it could authenticate; dialling again")
+		}
+	}
+
 	return s.login(ctx, config, cred)
 }
 
@@ -170,7 +190,7 @@ func (s *Session) login(ctx gliderssh.Context, config *gossh.ClientConfig, cred 
 		return err
 	}
 
-	config.Auth = s.authMethods(ctx, cred)
+	config.Auth = s.authMethods(ctx, func() (credential, error) { return cred, nil })
 
 	conn, chans, reqs, err := gossh.NewClientConn(greeted, Addr, config)
 	if err != nil {
@@ -365,9 +385,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	}
 
 	if !s.adoptAgentConn(conn) {
-		_ = conn.Close()
-
-		s.closingOnAgent.Go(s.closeOnAgent)
+		s.abandonAgentConn(warmed{conn: conn})
 
 		return ErrClientClosing
 	}
