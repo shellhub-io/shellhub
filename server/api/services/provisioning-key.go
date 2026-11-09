@@ -168,9 +168,11 @@ type ProvisioningKeyService interface {
 	// [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when no namespace carries the tenant,
 	// [ErrNamespaceLegacy] in a legacy namespace, [ErrProvisioningKeyInvalidField] for an unknown mode
 	// or one its webhook or identity settings do not satisfy and [ErrProvisioningKeyDuplicated] when
-	// the name is taken. Any other failure returns the underlying error: the store's when the
-	// namespace cannot be read, a ctx cancelled or past its deadline included, and the store's for a
-	// tag that can be neither resolved nor created.
+	// the name is taken, also by a parallel request between the conflict check and the insert. Any
+	// other failure returns the underlying error unchanged: the store's when the namespace cannot be
+	// read, the conflict check fails, a tag can be neither resolved nor created, or the insert or the
+	// read back fails, a ctx cancelled or past its deadline included, and the encryption's when the
+	// key cannot be encrypted.
 	CreateProvisioningKey(ctx context.Context, req *requests.CreateProvisioningKey) (res *responses.CreateProvisioningKey, err error)
 
 	// RevealProvisioningKey returns the plaintext of a provisioning key, decrypted from its at-rest ciphertext. It
@@ -191,6 +193,7 @@ type ProvisioningKeyService interface {
 	// carries the tenant, [ErrNamespaceLegacy] in a legacy namespace, [ErrProvisioningKeyNotFound]
 	// when no key has the current name and [ErrProvisioningKeyForbidden] for any field on a system
 	// key or a revoked key. It returns [ErrProvisioningKeyDuplicated] for a new name already taken,
+	// also by a parallel request between the conflict check and the update,
 	// [ErrProvisioningKeyInvalidField] for an unknown mode or one its settings do not satisfy, a usage
 	// limit below the times the key was used or an expiry outside 1 to 36500 days. Any other failure
 	// returns the store's error, a ctx cancelled or past its deadline and a tag that can be neither
@@ -306,9 +309,15 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 
 		data.TagIDs = tagIDs
 
-		_, err = s.store.ProvisioningKeyCreate(ctx, data)
+		if _, err := s.store.ProvisioningKeyCreate(ctx, data); err != nil {
+			if errors.Is(err, store.ErrDuplicate) {
+				return NewErrProvisioningKeyDuplicated([]string{"name"})
+			}
 
-		return err
+			return err
+		}
+
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -464,7 +473,15 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 			provisioningKey.TagIDs = tagIDs
 		}
 
-		return s.store.ProvisioningKeyUpdate(ctx, provisioningKey)
+		if err := s.store.ProvisioningKeyUpdate(ctx, provisioningKey); err != nil {
+			if errors.Is(err, store.ErrDuplicate) {
+				return NewErrProvisioningKeyDuplicated([]string{"name"})
+			}
+
+			return err
+		}
+
+		return nil
 	})
 }
 

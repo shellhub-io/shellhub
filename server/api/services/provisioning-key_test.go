@@ -235,6 +235,52 @@ func TestCreateProvisioningKey(t *testing.T) {
 			expectedErr: errors.New("tag error"),
 		},
 		{
+			description: "fails when a parallel request takes the name between the check and the insert",
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				uuid.Fix(t, generated)
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
+					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
+				})).Return("", store.ErrDuplicate).Once()
+			},
+			expectedErr: NewErrProvisioningKeyDuplicated([]string{"name"}),
+		},
+		{
+			description: "returns the store's error when the insert fails",
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				uuid.Fix(t, generated)
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("ProvisioningKeyCreate", ctx, matchCreate(&models.ProvisioningKey{
+					ID: hashedKey, Name: "ci", TenantID: tenant, Reusable: true,
+				})).Return("", errors.New("insert error")).Once()
+			},
+			expectedErr: errors.New("insert error"),
+		},
+		{
+			description: "does not report a duplicate tag it creates as a duplicate key name",
+			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				uuid.Fix(t, generated)
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{ID: hashedKey, Name: "ci"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagCreate", ctx, &models.Tag{Name: "edge", TenantID: tenant}).
+					Return("", store.ErrDuplicate).Once()
+			},
+			expectedErr: store.ErrDuplicate,
+		},
+		{
 			description: "creates a single-use key when the usage limit is one",
 			req:         &requests.CreateProvisioningKey{TenantID: tenant, Name: "ci", UsageLimit: 1},
 			requiredMocks: func(ctx context.Context) {
@@ -533,6 +579,51 @@ func TestUpdateProvisioningKey(t *testing.T) {
 					Return(nil, errors.New("tag error")).Once()
 			},
 			expectedErr: errors.New("tag error"),
+		},
+		{
+			description: "fails when a parallel request takes the new name between the check and the update",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Name: "runners"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "runners", TenantID: tenant}).
+					Return(store.ErrDuplicate).Once()
+			},
+			expectedErr: NewErrProvisioningKeyDuplicated([]string{"name"}),
+		},
+		{
+			description: "returns the store's error when the update fails",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Name: "runners"},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
+					Return([]string{}, false, nil).Once()
+				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "runners", TenantID: tenant}).
+					Return(errors.New("update error")).Once()
+			},
+			expectedErr: errors.New("update error"),
+		},
+		{
+			description: "does not report a duplicate tag it creates as a duplicate key name",
+			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{"edge"}},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
+					Return(namespace, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(nil, store.ErrNoDocuments).Once()
+				storeMock.On("TagCreate", ctx, &models.Tag{Name: "edge", TenantID: tenant}).
+					Return("", store.ErrDuplicate).Once()
+			},
+			expectedErr: store.ErrDuplicate,
 		},
 		{
 			description: "resolves no tag when another field is rejected",
