@@ -177,6 +177,18 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 	return true
 }
 
+// GatewayLogin admits username when the container has the account and it has not expired, and
+// leaves the account on ctx under "user" for the session handlers, as the password and public
+// key checks do.
+func (a *Authenticator) GatewayLogin(ctx gliderssh.Context, username string) bool {
+	user, ok := a.admittedUser(ctx, username)
+	if ok {
+		ctx.SetValue("user", user)
+	}
+
+	return ok
+}
+
 func (a *Authenticator) admittedUser(ctx gliderssh.Context, username string) (*osauth.User, bool) {
 	passwd, err := getPasswd(ctx, a.docker, *a.container)
 	if err != nil {

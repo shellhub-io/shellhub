@@ -15,6 +15,9 @@ type Authenticator interface {
 	Password(ctx gliderssh.Context, user string, password string) bool
 	// PublicKey must be implemented to deal with public key authentication.
 	PublicKey(ctx gliderssh.Context, user string, key gliderssh.PublicKey) bool
+	// GatewayLogin admits user on the word of the gateway, which has already authorized the
+	// login. It refuses a user the device does not have or whose account has expired.
+	GatewayLogin(ctx gliderssh.Context, user string) bool
 }
 
 // Sessioner defines the session methods used by the SSH's server to deal wihth determining the type of session.

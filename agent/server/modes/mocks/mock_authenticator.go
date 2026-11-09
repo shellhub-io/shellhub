@@ -45,6 +45,63 @@ func (_m *MockAuthenticator) EXPECT() *MockAuthenticator_Expecter {
 	return &MockAuthenticator_Expecter{mock: &_m.Mock}
 }
 
+// GatewayLogin provides a mock function for the type MockAuthenticator
+func (_mock *MockAuthenticator) GatewayLogin(ctx ssh.Context, user string) bool {
+	ret := _mock.Called(ctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GatewayLogin")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func(ssh.Context, string) bool); ok {
+		r0 = returnFunc(ctx, user)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockAuthenticator_GatewayLogin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GatewayLogin'
+type MockAuthenticator_GatewayLogin_Call struct {
+	*mock.Call
+}
+
+// GatewayLogin is a helper method to define mock.On call
+//   - ctx ssh.Context
+//   - user string
+func (_e *MockAuthenticator_Expecter) GatewayLogin(ctx any, user any) *MockAuthenticator_GatewayLogin_Call {
+	return &MockAuthenticator_GatewayLogin_Call{Call: _e.mock.On("GatewayLogin", ctx, user)}
+}
+
+func (_c *MockAuthenticator_GatewayLogin_Call) Run(run func(ctx ssh.Context, user string)) *MockAuthenticator_GatewayLogin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 ssh.Context
+		if args[0] != nil {
+			arg0 = args[0].(ssh.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthenticator_GatewayLogin_Call) Return(b bool) *MockAuthenticator_GatewayLogin_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockAuthenticator_GatewayLogin_Call) RunAndReturn(run func(ctx ssh.Context, user string) bool) *MockAuthenticator_GatewayLogin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Password provides a mock function for the type MockAuthenticator
 func (_mock *MockAuthenticator) Password(ctx ssh.Context, user string, password string) bool {
 	ret := _mock.Called(ctx, user, password)

@@ -83,6 +83,8 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{
+		ConnCallback:           server.connCallback,
+		ServerConfigCallback:   server.serverConfig,
 		PasswordHandler:        server.passwordHandler,
 		PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
