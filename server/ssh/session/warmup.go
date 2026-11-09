@@ -23,6 +23,7 @@ var (
 var warmClaimWindow = 30 * time.Second
 
 type warmup struct {
+	vouched     bool
 	credentials chan credential
 	result      chan warmed
 	taken       chan struct{}
@@ -35,6 +36,7 @@ type warmed struct {
 	reqs    <-chan *gossh.Request
 	err     error
 	final   bool
+	vouched bool
 	dialled bool
 }
 
@@ -44,12 +46,16 @@ type warmed struct {
 // to the device the handshake costs overlap the client's own.
 //
 // Nothing runs on the connection before Auth has authorized the client. It waits for the
-// credential before it presents one, and it is closed when ctx ends without one. A connection no
-// client has claimed within warmClaimWindow is closed too, and the Auth that comes later dials again. When the client
+// credential before it presents one, and it is closed when ctx ends without one; the exception
+// is a stream the gateway vouches for, which the device admits during the handshake for the
+// account the client named, before the client has proven anything, and which opens no channel
+// until Auth has authorized it. A connection no client has claimed
+// within warmClaimWindow is closed too, and the Auth that comes later dials again. When the client
 // leaves without claiming it, the device is asked to close the session the stream opened. Warm
 // must be called at most once, before the first Auth, from the goroutine that runs the handshake.
 func (s *Session) Warm(ctx gliderssh.Context) {
 	w := &warmup{
+		vouched:     !s.IsLegacy(),
 		credentials: make(chan credential, 1),
 		result:      make(chan warmed, 1),
 		taken:       make(chan struct{}),
@@ -145,7 +151,7 @@ func (w *warmup) handshake(ctx gliderssh.Context, s *Session, unclaimed <-chan s
 		return warmed{err: err}
 	}
 
-	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID})
+	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID, Login: s.agentLogin, Vouched: w.vouched})
 	if err != nil {
 		if waitedOut(err) {
 			logger := log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID})
@@ -171,6 +177,8 @@ func (w *warmup) handshake(ctx gliderssh.Context, s *Session, unclaimed <-chan s
 		return warmed{err: err, final: waitedOut(err), dialled: true}
 	}
 
+	device := sniffVersion(greeted)
+
 	var delivered bool
 
 	await := sync.OnceValues(func() (credential, error) {
@@ -190,10 +198,10 @@ func (w *warmup) handshake(ctx gliderssh.Context, s *Session, unclaimed <-chan s
 		}
 	})
 
-	config.Auth = s.authMethods(ctx, await)
+	config.Auth = s.authMethods(ctx, await, device)
 	config.Timeout = 0
 
-	client, chans, reqs, err := gossh.NewClientConn(greeted, "tcp", config)
+	client, chans, reqs, err := gossh.NewClientConn(device, "tcp", config)
 	if err != nil {
 		_ = conn.Close()
 
@@ -204,7 +212,7 @@ func (w *warmup) handshake(ctx gliderssh.Context, s *Session, unclaimed <-chan s
 		_ = conn.SetDeadline(time.Time{})
 	}
 
-	return warmed{conn: conn, client: client, chans: chans, reqs: reqs, dialled: true}
+	return warmed{conn: conn, client: client, chans: chans, reqs: reqs, vouched: w.vouched && !delivered, dialled: true}
 }
 
 func waitedOut(err error) bool {

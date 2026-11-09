@@ -237,8 +237,8 @@ func TestKeyAuthMintsTheDeviceKeyForTheSessionDeviceOnTheClientContext(t *testin
 
 	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
 		User:            "user",
-		Auth:            sess.authMethods(ctx, take),
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
+		Auth:            sess.authMethods(ctx, take, &versionSniffer{}), //nolint:exhaustruct // an agent that announces nothing
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(),                  //nolint:gosec // a loopback test device whose host key is never checked
 	})
 	require.ErrorIs(t, err, context.Canceled)
 }
@@ -266,8 +266,8 @@ func TestKeyAuthMintsNoKeyForADeviceThatOffersNoKeyLogin(t *testing.T) {
 
 	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
 		User:            "user",
-		Auth:            sess.authMethods(t.Context(), take),
-		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
+		Auth:            sess.authMethods(t.Context(), take, &versionSniffer{}), //nolint:exhaustruct // an agent that announces nothing
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(),                          //nolint:gosec // a loopback test device whose host key is never checked
 	})
 	require.ErrorIs(t, err, errCredentialKind)
 }

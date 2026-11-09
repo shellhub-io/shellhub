@@ -159,6 +159,11 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 
 		warmed := warm.deliver(cred)
 		switch {
+		case warmed.err == nil && warmed.vouched && !cred.gateway:
+			warmed.close()
+
+			log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
+				Warn("the device admitted the gateway for a login that is not the gateway's own; dialling again")
 		case warmed.err == nil:
 			return s.adoptWarmed(ctx, warmed)
 		case warmed.final:
@@ -214,7 +219,9 @@ func (s *Session) login(ctx gliderssh.Context, config *gossh.ClientConfig, cred 
 		return nil, nil, nil, err
 	}
 
-	config.Auth = s.authMethods(ctx, func() (credential, error) { return cred, nil })
+	device := sniffVersion(greeted)
+	greeted = device
+	config.Auth = s.authMethods(ctx, func() (credential, error) { return cred, nil }, device)
 
 	conn, chans, reqs, err := gossh.NewClientConn(greeted, Addr, config)
 	if err != nil {
@@ -397,7 +404,7 @@ func (s *Session) Dial(ctx gliderssh.Context) error {
 	ctx.Lock()
 	defer ctx.Unlock()
 
-	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID})
+	conn, err := s.dialer.DialTo(ctx, s.Device.TenantID, s.Device.UID, dialer.SSHOpenTarget{SessionID: s.UID, Login: s.agentLogin})
 	if err != nil {
 		log.WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 			WithError(err).

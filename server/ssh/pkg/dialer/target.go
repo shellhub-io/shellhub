@@ -29,8 +29,23 @@ type Target interface {
 // for the agent to confirm the protocol first, saving a round trip to the device. The
 // confirmation is then read with the first read from the returned connection, so an agent that
 // refuses or never answers the selection surfaces there rather than from [TunnelDialer.DialTo].
+//
+// Login, when set, travels in the envelope for an agent that admits the gateway's own login: the
+// gateway then logs in with it as the password once it has authorized the client. It is a secret
+// for one stream, never something a client typed. Agents that do not know it ignore it.
+//
+// Vouched tells an agent that admits the gateway's login to admit the stream's SSH user without
+// any credential, as the gateway logs in only on behalf of a client it authorized itself. It must
+// be set only for a session whose every login to the device is the gateway's own, never one that
+// forwards a password for the device to check. Agents that do not know it ignore it.
 type SSHOpenTarget struct {
 	SessionID string
+	Login     string
+	Vouched   bool
+}
+
+func (t SSHOpenTarget) header() tunnelproto.Header {
+	return tunnelproto.Header{ID: t.SessionID, Login: t.Login, Vouched: t.Vouched} //nolint:exhaustruct // a session stream names no proxy target
 }
 
 func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
@@ -48,7 +63,7 @@ func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version Trans
 		log.Debug("preparing SSH open target for transport version 2")
 
 		selected := &lazySelection{Conn: conn, lazy: multistream.NewMSSelect(conn, tunnelproto.ProtoSSHOpen)}
-		if err := json.NewEncoder(selected).Encode(tunnelproto.Header{ID: t.SessionID}); err != nil {
+		if err := json.NewEncoder(selected).Encode(t.header()); err != nil {
 			return nil, err
 		}
 
