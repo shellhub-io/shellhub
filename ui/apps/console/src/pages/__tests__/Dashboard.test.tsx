@@ -1,15 +1,32 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { CurrentUrl } from "@/tests/CurrentUrl";
 import { mockNamespace, mockStats } from "@/tests/factories";
 import type { DeviceLocation } from "@/client";
+import type { LocationsMapProps } from "@/pages/device-map/mapModel";
 import Dashboard from "../Dashboard";
 
 vi.mock("@/pages/device-map/MapLibreMap", () => ({
-  default: () => null,
+  default: ({ onSelect }: LocationsMapProps) =>
+    onSelect ? (
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            bounds: [8.534899999, 47.3749, 8.5451, 47.3851],
+            devices: 9,
+            online: 8,
+          })
+        }
+      >
+        Pick Zurich
+      </button>
+    ) : null,
 }));
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -56,9 +73,18 @@ function serveDashboard({
 }
 
 function renderPage(queryClient = createTestQueryClient()) {
-  return render(<Dashboard />, {
-    wrapper: createTestWrapper({ initialEntries: ["/dashboard"], queryClient }),
-  });
+  return render(
+    <>
+      <Dashboard />
+      <CurrentUrl />
+    </>,
+    {
+      wrapper: createTestWrapper({
+        initialEntries: ["/dashboard"],
+        queryClient,
+      }),
+    },
+  );
 }
 
 beforeEach(() => {
@@ -95,6 +121,20 @@ describe("Dashboard", () => {
         .getAllByRole("link")
         .filter((link) => link.getAttribute("href") === "/dashboard/map"),
     ).toHaveLength(1);
+  });
+
+  it("opens the full map on the area picked on the map", async () => {
+    const user = userEvent.setup();
+    serveDashboard();
+
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: "Pick Zurich" }),
+    );
+
+    expect(screen.getByRole("status", { name: "URL" })).toHaveTextContent(
+      "/dashboard/map?area=8.5349,47.3749,8.5451,47.3851",
+    );
   });
 
   it("says no device has a position and offers no full map while none has", async () => {

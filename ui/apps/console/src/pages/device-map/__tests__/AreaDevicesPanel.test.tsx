@@ -224,6 +224,18 @@ describe("AreaDevicesPanel", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("keeps the list of an area whose count falls to one while it is open", async () => {
+    serveDevices([mockDevice({ uid: "a", name: "zurich-1" })]);
+    const { rerender } = renderPanel({ ...area, devices: 2, online: 2 });
+    await screen.findByRole("button", { name: /zurich-1/ });
+
+    rerender(<AreaDevicesPanel area={point} onClose={() => {}} />);
+
+    expect(screen.getByRole("button", { name: /zurich-1/ })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Loading device")).not.toBeInTheDocument();
+  });
+
   it("reads a picked point's devices once when it falls back to the list", async () => {
     const requests = serveDevices([
       mockDevice({ uid: "a", name: "zurich-1" }),

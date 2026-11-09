@@ -167,6 +167,7 @@ export default function MapLibreMap({
   mode,
   selected,
   onSelect,
+  navigable = false,
   backend,
 }: MapLibreMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -176,7 +177,7 @@ export default function MapLibreMap({
   const onSelectRef = useRef(onSelect);
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<MapHover | null>(null);
-  const interactive = onSelect !== undefined;
+  const clickable = onSelect !== undefined;
   const total = modeTotal(locations, mode);
   const styleUrl = backend.kind === "tiles" ? backend.styleUrl : undefined;
 
@@ -201,7 +202,14 @@ export default function MapLibreMap({
       zoom: worldSpanZoom(container.clientWidth),
       maxZoom: MAP_MAX_ZOOM,
       attributionControl: false,
-      interactive,
+      interactive: clickable || navigable,
+      dragPan: navigable,
+      scrollZoom: navigable,
+      boxZoom: navigable,
+      doubleClickZoom: navigable,
+      keyboard: navigable,
+      touchZoomRotate: navigable,
+      touchPitch: navigable,
       dragRotate: false,
       pitchWithRotate: false,
     });
@@ -214,7 +222,10 @@ export default function MapLibreMap({
       setReady(true);
     });
 
-    if (interactive) {
+    const restingCursor = navigable ? "" : "default";
+    map.getCanvas().style.cursor = restingCursor;
+
+    if (navigable) {
       const keepTheWorldSpanningTheMap = () =>
         map.setMinZoom(worldSpanZoom(container.clientWidth));
       keepTheWorldSpanningTheMap();
@@ -224,7 +235,9 @@ export default function MapLibreMap({
         new NavigationControl({ showCompass: false }),
         "bottom-left",
       );
+    }
 
+    if (clickable) {
       map.on("mousemove", CIRCLES, (event: MapLayerMouseEvent) => {
         const feature = event.features?.[0];
         if (!feature) return;
@@ -245,7 +258,7 @@ export default function MapLibreMap({
       });
 
       map.on("mouseleave", CIRCLES, () => {
-        map.getCanvas().style.cursor = "";
+        map.getCanvas().style.cursor = restingCursor;
         setHover(null);
       });
 
@@ -255,18 +268,20 @@ export default function MapLibreMap({
         if (!feature || !source) return;
 
         void areaOf(source, feature).then((area) => {
-          const [west, south, east, north] = area.bounds;
-          map.fitBounds(
-            [
-              [west, south],
-              [east, north],
-            ],
-            {
-              padding: AREA_PADDING,
-              maxZoom: MAP_MAX_ZOOM,
-              duration: 700,
-            },
-          );
+          if (navigable) {
+            const [west, south, east, north] = area.bounds;
+            map.fitBounds(
+              [
+                [west, south],
+                [east, north],
+              ],
+              {
+                padding: AREA_PADDING,
+                maxZoom: MAP_MAX_ZOOM,
+                duration: 700,
+              },
+            );
+          }
           setHover(null);
           onSelectRef.current?.(area);
         });
@@ -279,7 +294,7 @@ export default function MapLibreMap({
       mapRef.current = null;
       map.remove();
     };
-  }, [styleUrl, interactive]);
+  }, [styleUrl, clickable, navigable]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -288,24 +303,31 @@ export default function MapLibreMap({
     void map
       .getSource<GeoJSONSource>(SOURCE)
       ?.setData(toFeatureCollection(locations));
+  }, [ready, locations]);
 
-    const bounds = locationsBounds(locations);
-    if (bounds && !framedRef.current) {
-      framedRef.current = true;
-      const [west, south, east, north] = framingBounds(bounds);
-      map.fitBounds(
-        [
-          [west, south],
-          [east, north],
-        ],
-        {
-          padding: interactive ? FULL_PADDING : STILL_PADDING,
-          maxZoom: MAP_MAX_ZOOM,
-          duration: 0,
-        },
-      );
-    }
-  }, [ready, locations, interactive]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || framedRef.current) return;
+
+    const located = locationsBounds(locations);
+    const bounds = selected ?? (located && framingBounds(located));
+    if (!bounds) return;
+
+    framedRef.current = true;
+    const [west, south, east, north] = bounds;
+    const padding = navigable ? FULL_PADDING : STILL_PADDING;
+    map.fitBounds(
+      [
+        [west, south],
+        [east, north],
+      ],
+      {
+        padding: selected ? AREA_PADDING : padding,
+        maxZoom: MAP_MAX_ZOOM,
+        duration: 0,
+      },
+    );
+  }, [ready, locations, selected, navigable]);
 
   useEffect(() => {
     const map = mapRef.current;
