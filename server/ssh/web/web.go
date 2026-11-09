@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
@@ -61,6 +62,8 @@ type Config struct {
 	Issuer string
 }
 
+const credentialsTTL = 30 * time.Second
+
 // NewSSHServerBridge creates routes into a [echo.Router] to connect a webscoket to SSH using Shell session.
 //
 // authn is the API's authenticator, used to declare the WebSocket upgrade as
@@ -68,6 +71,10 @@ type Config struct {
 //
 // A web session token opens one WebSocket. The upgrade spends it before checking the terminal size
 // and the client IP, so an open that fails on either cannot be retried with the same token.
+//
+// Creating a token starts the bridge's login to the device for a client whose address the router
+// resolved, and the WebSocket claims it; what the login needs from the browser waits for the
+// WebSocket. A login no WebSocket claims within the token's 30 seconds is closed.
 //
 // It fails when the SSH server's host key cannot be read, since without it the bridge has
 // nothing to pin its connection to.
@@ -77,7 +84,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 		return err
 	}
 
-	manager := newManager(30 * time.Second)
+	manager := newManager(credentialsTTL)
 
 	if authn != nil {
 		authn.AllowAnonymous(http.MethodGet, WebsocketSSHBridgeRoute)
@@ -136,6 +143,8 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				return
 			}
 
+			plain := request
+
 			if err := request.encryptPassword(key); err != nil {
 				status := http.StatusInternalServerError
 				if errors.Is(err, rsa.ErrMessageTooLong) {
@@ -145,6 +154,10 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 				response(res, status, Fail{Error: err.Error()})
 
 				return
+			}
+
+			if ip, err := getIP(req); err == nil {
+				request.warm = startPrewarm(context.WithoutCancel(req.Context()), service, handoff, plain, Info{IP: ip}, hostKey, credentialsTTL)
 			}
 
 			manager.save(token.ID, &request)
@@ -203,6 +216,35 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 		}
 
 		go conn.KeepAlive()
+
+		if creds.warm != nil && !creds.warm.from(ip) {
+			log.WithFields(log.Fields{"device": creds.Device, "ip": ip}).
+				Info("the web terminal was opened from another address than its token was created from; logging in again")
+
+			creds.warm.expire()
+			creds.warm = nil
+		}
+
+		if creds.warm != nil {
+			logger := sessionLogger(creds, Dimensions{cols, rows}, ip)
+
+			logger.Info("handling web client request started")
+
+			defer logger.Info("handling web client request end")
+
+			connection, err := creds.warm.claim(conn)
+			if err != nil {
+				exit(err)
+
+				return
+			}
+
+			if err := serveSession(conn, connection, Dimensions{cols, rows}, logger); err != nil {
+				exit(err)
+			}
+
+			return
+		}
 
 		if err := creds.decryptPassword(magickey.GetReference()); err != nil {
 			exit(errors.Join(ErrBridgeDecryptPassword, err))
