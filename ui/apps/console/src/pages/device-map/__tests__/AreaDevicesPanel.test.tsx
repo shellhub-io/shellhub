@@ -257,6 +257,44 @@ describe("AreaDevicesPanel", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("stays open on an Escape that closes a modal drawer on its way up", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    renderPanel({ onClose });
+    const drawer = document.body.appendChild(document.createElement("div"));
+    drawer.setAttribute("role", "dialog");
+    drawer.setAttribute("aria-modal", "true");
+    drawer.tabIndex = -1;
+    drawer.addEventListener("keydown", () => {
+      drawer.setAttribute("aria-modal", "false");
+      drawer.setAttribute("inert", "");
+    });
+    onTestFinished(() => drawer.remove());
+    drawer.focus();
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("stays open on an Escape that a menu stops on its way up", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    renderPanel({ onClose });
+    const menu = document.body.appendChild(document.createElement("div"));
+    menu.setAttribute("role", "menu");
+    menu.tabIndex = -1;
+    menu.addEventListener("keydown", (event) => event.stopPropagation());
+    onTestFinished(() => menu.remove());
+    menu.focus();
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it("closes on Escape while a modal drawer sits closed and inert", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
