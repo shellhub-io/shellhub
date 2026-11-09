@@ -243,6 +243,21 @@ describe("AreaDevicesPanel", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("shows only the header of a folded area and keeps its list for unfolding", async () => {
+    servePages();
+    const { rerender } = renderPanel();
+    const device = await screen.findByRole("button", { name: /zurich-1/ });
+
+    rerender(<Panel area={area} folded />);
+
+    expect(screen.getByText("3 devices")).toBeVisible();
+    expect(device).toBeInTheDocument();
+    expect(device).not.toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Devices in this area" }),
+    ).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("keeps the list of an area whose count falls to one while it is open", async () => {
     serveDevices([mockDevice({ uid: "a", name: "zurich-1" })]);
     const { rerender } = renderPanel({ ...area, devices: 2, online: 2 });

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
@@ -13,21 +13,29 @@ import type { LocationsMapProps } from "../mapModel";
 
 const ZURICH_AREA = "8.5349,47.3749,8.5451,47.3851";
 
+const drawnMap = vi.hoisted(() => ({
+  props: undefined as LocationsMapProps | undefined,
+}));
+
 vi.mock("@/pages/device-map/MapLibreMap", () => ({
-  default: ({ onSelect }: LocationsMapProps) => (
-    <button
-      type="button"
-      onClick={() =>
-        onSelect?.({
-          bounds: [8.5349, 47.3749, 8.5451, 47.3851],
-          devices: 0,
-          online: 0,
-        })
-      }
-    >
-      Pick Zurich
-    </button>
-  ),
+  default: (props: LocationsMapProps) => {
+    drawnMap.props = props;
+
+    return (
+      <button
+        type="button"
+        onClick={() =>
+          props.onSelect?.({
+            bounds: [8.5349, 47.3749, 8.5451, 47.3851],
+            devices: 0,
+            online: 0,
+          })
+        }
+      >
+        Pick Zurich
+      </button>
+    );
+  },
 }));
 
 function serveMap({ located, listed }: { located: number; listed: number }) {
@@ -36,7 +44,14 @@ function serveMap({ located, listed }: { located: number; listed: number }) {
   server.use(
     http.get("*/api/devices/locations", () =>
       HttpResponse.json(
-        [{ latitude: 47.38, longitude: 8.54, devices: located, online: located }],
+        [
+          {
+            latitude: 47.38,
+            longitude: 8.54,
+            devices: located,
+            online: located,
+          },
+        ],
         { headers: { "X-GeoIP-Source": "dbip" } },
       ),
     ),
@@ -63,7 +78,21 @@ function renderMap(url = "/dashboard/map") {
   );
 }
 
+async function pickZurich(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("button", { name: "Pick Zurich" }));
+  await screen.findByText("10 devices");
+}
+
+function paddingGivenToMap() {
+  const padding = drawnMap.props?.areaPadding;
+  if (!padding) throw new Error("the map was drawn with no area padding");
+
+  return padding;
+}
+
 beforeEach(() => {
+  drawnMap.props = undefined;
+  localStorage.clear();
   seedAuthStore();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
     {} as WebGL2RenderingContext,
@@ -81,8 +110,12 @@ describe("DeviceMap", () => {
     expect(await within(noPosition).findByText("3")).toBeInTheDocument();
     expect(screen.queryByText("23")).not.toBeInTheDocument();
     expect(requests.length).toBeGreaterThan(0);
-    expect(requests.every((url) => url.searchParams.get("status") === "accepted")).toBe(true);
-    expect(requests.every((url) => url.searchParams.get("connector") !== "true")).toBe(true);
+    expect(
+      requests.every((url) => url.searchParams.get("status") === "accepted"),
+    ).toBe(true);
+    expect(
+      requests.every((url) => url.searchParams.get("connector") !== "true"),
+    ).toBe(true);
   });
 
   it("opens the area a link names, counting the devices the map places in it", async () => {
@@ -152,5 +185,81 @@ describe("DeviceMap", () => {
       /^\/dashboard\/map$/,
     );
     expect(screen.queryByText("This area")).not.toBeInTheDocument();
+  });
+
+  describe("folding", () => {
+    it("shows the online count in a folded summary's title row", async () => {
+      const user = userEvent.setup();
+      serveMap({ located: 10, listed: 13 });
+      renderMap();
+
+      await user.click(screen.getByRole("button", { name: "Map details" }));
+
+      const titleRow = screen.getByRole("heading", {
+        name: "Device Map",
+      }).parentElement;
+      await waitFor(() => expect(titleRow).toHaveTextContent("10/10 online"));
+    });
+
+    it("keeps the mode switch of a folded summary", async () => {
+      const user = userEvent.setup();
+      serveMap({ located: 10, listed: 13 });
+      renderMap();
+
+      await user.click(screen.getByRole("button", { name: "Map details" }));
+
+      expect(screen.getByText(/GeoIP lookup/)).not.toBeVisible();
+      expect(
+        screen.getByRole("radiogroup", { name: "Devices shown" }),
+      ).toBeVisible();
+    });
+
+    it("keeps the summary folded across a reload", async () => {
+      const user = userEvent.setup();
+      serveMap({ located: 10, listed: 13 });
+      const { unmount } = renderMap();
+
+      await user.click(screen.getByRole("button", { name: "Map details" }));
+      unmount();
+      renderMap();
+
+      expect(
+        screen.getByRole("button", { name: "Map details" }),
+      ).toHaveAttribute("aria-expanded", "false");
+      expect(screen.getByText(/GeoIP lookup/)).not.toBeVisible();
+    });
+
+    it("keeps the area panel folded when it closes and an area is picked again", async () => {
+      const user = userEvent.setup();
+      serveMap({ located: 10, listed: 13 });
+      renderMap();
+      await pickZurich(user);
+
+      await user.click(
+        screen.getByRole("button", { name: "Devices in this area" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Close area" }));
+      await pickZurich(user);
+
+      expect(
+        screen.getByRole("button", { name: "Devices in this area" }),
+      ).toHaveAttribute("aria-expanded", "false");
+    });
+
+    it("hands the map narrower side padding once both panels fold", async () => {
+      const user = userEvent.setup();
+      serveMap({ located: 10, listed: 13 });
+      renderMap();
+      await pickZurich(user);
+      const open = paddingGivenToMap();
+
+      await user.click(
+        screen.getByRole("button", { name: "Devices in this area" }),
+      );
+      await user.click(screen.getByRole("button", { name: "Map details" }));
+
+      expect(paddingGivenToMap().right).toBeLessThan(open.right);
+      expect(paddingGivenToMap().left).toBeLessThan(open.left);
+    });
   });
 });
