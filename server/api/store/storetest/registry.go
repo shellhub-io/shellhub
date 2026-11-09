@@ -68,6 +68,7 @@ var Groups = []Group{
 		(*Suite).TestDeviceUpdateDoesNotClobberOwner,
 		(*Suite).TestDeviceListFiltersByOwner,
 		(*Suite).TestDeviceListFiltersByLocated,
+		(*Suite).TestDeviceListFiltersByOnline,
 		(*Suite).TestDeviceOwnerMustBeAMember,
 		(*Suite).TestDeviceUpdateUnlessRemoved,
 		(*Suite).TestDeviceAssertNotRemoved,
