@@ -159,6 +159,8 @@ type Session struct {
 
 	warm *warmup
 
+	agentLogin string
+
 	registered bool
 	principal  models.Principal
 
@@ -365,8 +367,9 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 			WebUserID: webUserID,
 			SSHID:     fmt.Sprintf("%s@%s.%s", target.Username, namespaceName, deviceName),
 		},
-		once:  new(sync.Once),
-		seats: newSeats(),
+		once:       new(sync.Once),
+		seats:      newSeats(),
+		agentLogin: newAgentLogin(),
 		agent: &Agent{
 			channels: make(map[int]*AgentChannel),
 		},

@@ -137,3 +137,33 @@ func TestSSHOpenPipelined(t *testing.T) {
 		}
 	})
 }
+
+func TestSSHOpenEnvelope(t *testing.T) {
+	cases := []struct {
+		description string
+		target      SSHOpenTarget
+		expected    map[string]string
+	}{
+		{
+			description: "names only the session for an agent left to check the login",
+			target:      SSHOpenTarget{SessionID: "session"},
+			expected:    map[string]string{"id": "session"},
+		},
+		{
+			description: "carries the stream's secret",
+			target:      SSHOpenTarget{SessionID: "session", Login: "secret"},
+			expected:    map[string]string{"id": "session", "login": "secret"},
+		},
+		{
+			description: "vouches for the login",
+			target:      SSHOpenTarget{SessionID: "session", Login: "secret", Vouched: true},
+			expected:    map[string]string{"id": "session", "login": "secret", "vouched": "true"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			assert.Equal(t, tc.expected, tc.target.envelope())
+		})
+	}
+}

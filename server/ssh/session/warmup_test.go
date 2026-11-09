@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,6 +25,9 @@ type passwordDevice struct {
 	publicKey string
 	failFirst bool
 	silent    bool
+	version   string
+	vouchable bool
+	unknown   bool
 	stalls    bool
 
 	mu       sync.Mutex
@@ -84,12 +88,14 @@ func (d *passwordDevice) DialTo(ctx context.Context, _, _ string, target dialer.
 
 	server, device := tcpPair(d.t)
 
-	go d.serve(device)
+	open, _ := target.(dialer.SSHOpenTarget)
+
+	go d.serve(device, d.vouchable && open.Vouched)
 
 	return server, nil
 }
 
-func (d *passwordDevice) serve(device net.Conn) {
+func (d *passwordDevice) serve(device net.Conn, vouched bool) {
 	defer func() { d.ended <- struct{}{} }()
 
 	config := &gossh.ServerConfig{ //nolint:exhaustruct // a device that only takes passwords
@@ -106,6 +112,23 @@ func (d *passwordDevice) serve(device net.Conn) {
 		},
 	}
 	config.AddHostKey(d.signer)
+	config.ServerVersion = d.version
+
+	if vouched {
+		config.NoClientAuth = true
+		config.NoClientAuthCallback = func(gossh.ConnMetadata) (*gossh.Permissions, error) {
+			d.mu.Lock()
+			d.attempts = append(d.attempts, "none")
+			d.mu.Unlock()
+
+			if d.unknown {
+				return nil, errors.New("no such account")
+			}
+
+			return &gossh.Permissions{}, nil //nolint:exhaustruct // nothing to grant
+		}
+	}
+
 	conn, chans, reqs, err := gossh.NewServerConn(device, config)
 	if err != nil {
 		return
@@ -247,6 +270,7 @@ func TestWarm(t *testing.T) {
 		t.Cleanup(func() { warmClaimWindow = window })
 
 		device := newPasswordDevice(t)
+		device.vouchable = true
 		sess, ctx, _ := warmSession(t, device)
 
 		sess.Warm(ctx)
@@ -261,7 +285,7 @@ func TestWarm(t *testing.T) {
 
 		dials, attempts := device.seen()
 		assert.Equal(t, 2, dials)
-		assert.Equal(t, []string{"secret"}, attempts)
+		assert.Equal(t, []string{"none", "secret"}, attempts)
 		assert.Zero(t, device.closed(), "a client still authenticating may dial the same session again")
 	})
 
@@ -317,5 +341,48 @@ func TestWarm(t *testing.T) {
 		assert.Empty(t, attempts)
 		assert.Eventually(t, func() bool { return device.closed() == 1 }, 5*time.Second, 10*time.Millisecond,
 			"the device must be asked to close the session nobody will finish")
+	})
+
+	t.Run("takes the login a device admitted on the gateway's word for a gateway credential", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		sess, ctx, _ := warmSession(t, device)
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, gatewayCredential))
+
+		dials, attempts := device.seen()
+		assert.Equal(t, 1, dials)
+		assert.Equal(t, []string{"none"}, attempts)
+	})
+
+	t.Run("dials again when the device admitted the gateway for a password the client typed", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		sess, ctx, _ := warmSession(t, device)
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, credential{password: "secret"}))
+
+		dials, attempts := device.seen()
+		assert.Equal(t, 2, dials)
+		assert.Equal(t, []string{"none", "secret"}, attempts)
+	})
+
+	t.Run("vouches for no login in a legacy namespace", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		sess, ctx, _ := warmSession(t, device)
+		sess.Namespace.Settings = &models.NamespaceSettings{Legacy: true} //nolint:exhaustruct // only the model matters
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, credential{password: "secret"}))
+
+		dials, attempts := device.seen()
+		assert.Equal(t, 1, dials)
+		assert.Equal(t, []string{"secret"}, attempts)
 	})
 }

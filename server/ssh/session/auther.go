@@ -31,7 +31,11 @@ func (s *Session) mintSigner(ctx context.Context) (gossh.Signer, error) { //noli
 	return gossh.NewSignerFromKey(key)
 }
 
-func (s *Session) authMethods(ctx context.Context, take func() (credential, error)) []gossh.AuthMethod {
+func (s *Session) logsInAsGateway(device *versionSniffer) bool {
+	return s.agentLogin != "" && device.admitsGatewayLogin()
+}
+
+func (s *Session) authMethods(ctx context.Context, take func() (credential, error), device *versionSniffer) []gossh.AuthMethod {
 	return []gossh.AuthMethod{
 		gossh.PublicKeysCallback(func() ([]gossh.Signer, error) {
 			cred, err := take()
@@ -39,7 +43,7 @@ func (s *Session) authMethods(ctx context.Context, take func() (credential, erro
 				return nil, err
 			}
 
-			if !cred.gateway {
+			if !cred.gateway || s.logsInAsGateway(device) {
 				return nil, nil
 			}
 
@@ -58,6 +62,10 @@ func (s *Session) authMethods(ctx context.Context, take func() (credential, erro
 
 			if !cred.gateway {
 				return cred.password, nil
+			}
+
+			if s.logsInAsGateway(device) {
+				return s.agentLogin, nil
 			}
 
 			return "", errCredentialKind
