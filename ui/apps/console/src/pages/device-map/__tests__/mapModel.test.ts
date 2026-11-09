@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { DeviceLocation } from "@/client";
 import {
+  areaPadding,
   areaWithin,
   boundsFilter,
   formatBounds,
   framingBounds,
   locationsBounds,
   mapBackend,
+  paddingWithin,
   parseBounds,
   pointsBounds,
   worldSpanZoom,
@@ -116,7 +118,9 @@ describe("framingBounds", () => {
   });
 
   it("widens a single location by a quarter degree on every side", () => {
-    expect(framingBounds([8.54, 47.38, 8.54, 47.38])).toEqual([8.29, 47.13, 8.79, 47.63]);
+    expect(framingBounds([8.54, 47.38, 8.54, 47.38])).toEqual([
+      8.29, 47.13, 8.79, 47.63,
+    ]);
   });
 });
 
@@ -175,4 +179,51 @@ describe("areaWithin", () => {
 
     expect(area).toEqual({ bounds: [9, 9, 12, 12], devices: 5, online: 3 });
   });
+});
+
+describe("areaPadding", () => {
+  it.each([
+    {
+      summary: false,
+      area: false,
+      expected: { top: 80, right: 420, bottom: 80, left: 340 },
+    },
+    {
+      summary: false,
+      area: true,
+      expected: { top: 110, right: 80, bottom: 80, left: 340 },
+    },
+    {
+      summary: true,
+      area: false,
+      expected: { top: 160, right: 420, bottom: 80, left: 80 },
+    },
+    {
+      summary: true,
+      area: true,
+      expected: { top: 160, right: 80, bottom: 80, left: 80 },
+    },
+  ])(
+    "keeps clear the panels with summary folded $summary and area folded $area",
+    ({ summary, area, expected }) => {
+      expect(areaPadding({ summary, area })).toEqual(expected);
+    },
+  );
+});
+
+describe("paddingWithin", () => {
+  const padding = { top: 80, right: 420, bottom: 80, left: 340 };
+  const narrow = { top: 20, right: 20, bottom: 20, left: 20 };
+
+  it.each([
+    { width: 1400, height: 800, expected: padding },
+    { width: 824, height: 224, expected: padding },
+    { width: 823, height: 800, expected: narrow },
+    { width: 1400, height: 223, expected: narrow },
+  ])(
+    "frames a $width by $height map with the padding that fits",
+    ({ width, height, expected }) => {
+      expect(paddingWithin(padding, width, height)).toEqual(expected);
+    },
+  );
 });
