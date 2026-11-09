@@ -20,7 +20,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
-	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	log "github.com/sirupsen/logrus"
@@ -42,7 +41,11 @@ type AuthService interface {
 	// from [AuthService.CreateDeviceAuthChallenge] proves the device holds its key, and the server
 	// refuses unsigned requests for that device until it is removed. ctx bounds every cache and store call.
 	// clientIP is the address the agent connected from, as the router resolved it; when it parses,
-	// it becomes the device's remote address and the source an enrollment records.
+	// it becomes the device's remote address and the source an enrollment records, and the position
+	// the locator places it at becomes the device's position. A lookup that fails or answers 0,0
+	// stores a new device at 0,0 and leaves a known device's position as it was. A request answered
+	// from the cache, within 30 seconds of the device's last authentication, updates neither the
+	// remote address nor the position.
 	//
 	// It returns [ErrDeviceKeyVerificationRefused] for a request carrying only one of the challenge
 	// and the signature, for a challenge that this server's key did not issue, that is malformed,
@@ -516,16 +519,11 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			return nil, err
 		}
 
-		position := geoip.Position{}
+		position := models.DevicePosition{}
 		remoteAddr := ""
 		if ip := net.ParseIP(req.clientIP); ip != nil {
 			remoteAddr = req.clientIP
-			if position, err = s.locator.GetPosition(ip); err != nil {
-				log.WithError(err).WithFields(log.Fields{"real_ip": req.clientIP, "tenant_id": req.TenantID}).
-					Warn("failed to resolve the device position")
-
-				position = geoip.Position{}
-			}
+			position, _ = s.locate(req, ip)
 		}
 
 		device = &models.Device{
@@ -539,7 +537,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			PublicKey:       req.PublicKey,
 			RemoteAddr:      remoteAddr,
 			Taggable:        models.Taggable{TagIDs: []string{}, Tags: nil},
-			Position:        &models.DevicePosition{Longitude: position.Longitude, Latitude: position.Latitude},
+			Position:        &position,
 		}
 
 		device.EnrollWith(provisioningKey)
@@ -580,6 +578,11 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 		if ip := net.ParseIP(req.clientIP); ip != nil {
 			unchanged = unchanged && device.RemoteAddr == req.clientIP
 			device.RemoteAddr = req.clientIP
+
+			if position, ok := s.locate(req, ip); ok {
+				unchanged = unchanged && device.Position != nil && *device.Position == position
+				device.Position = &position
+			}
 		}
 
 		if device.RemovedAt != nil {
@@ -686,6 +689,20 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 	}
 
 	return resp, nil
+}
+
+func (s *service) locate(req deviceAuth, ip net.IP) (models.DevicePosition, bool) {
+	position, err := s.locator.GetPosition(ip)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{"real_ip": req.clientIP, "tenant_id": req.TenantID}).
+			Warn("failed to resolve the device position")
+
+		return models.DevicePosition{}, false
+	}
+
+	located := models.DevicePosition{Latitude: position.Latitude, Longitude: position.Longitude}
+
+	return located, located != models.DevicePosition{}
 }
 
 func deviceAuthCacheKey(uid string) string {
