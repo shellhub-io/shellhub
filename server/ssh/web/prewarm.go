@@ -40,7 +40,7 @@ func startPrewarm(ctx context.Context, service services.Service, handoff *webhan
 
 		logger := log.WithFields(log.Fields{"user": creds.Username, "device": creds.Device, "ip": info.IP})
 
-		p.client, p.err = dialDevice(ctx, service, handoff, p.browser, &creds, info, hostKey, gatewayAddress, logger)
+		p.client, p.err = dialDevice(ctx, service, handoff, p.browser, &creds, defaultDimensions, info, hostKey, gatewayAddress, logger)
 	}()
 
 	time.AfterFunc(ttl, p.expire)

@@ -33,7 +33,7 @@ func TestLateChannel(t *testing.T) {
 		late := newLateChannel()
 		requests := make(chan *gossh.Request)
 
-		late.resolve(&closeCountingChannel{}, requests, nil)
+		late.resolve(&closeCountingChannel{}, requests, nil, nil)
 		require.NoError(t, late.Close())
 
 		for range 3 {
@@ -55,8 +55,74 @@ func TestLateChannel(t *testing.T) {
 
 		requests := make(chan *gossh.Request)
 		close(requests)
-		late.resolve(channel, requests, nil)
+		late.resolve(channel, requests, nil, nil)
 
 		assert.Equal(t, int32(1), channel.closes.Load())
+	})
+}
+
+func TestLateChannelReplace(t *testing.T) {
+	t.Run("hands on the new channel's requests and refuses the old one's", func(t *testing.T) {
+		late := newLateChannel()
+		old := make(chan *gossh.Request)
+		replacement := make(chan *gossh.Request)
+		previous := &closeCountingChannel{}
+
+		late.resolve(previous, old, nil, nil)
+		require.True(t, late.replace(&closeCountingChannel{}, replacement, []byte("pty")))
+
+		assert.Equal(t, int32(1), previous.closes.Load(), "the replaced channel must be closed")
+		assert.Equal(t, []byte("pty"), late.startedShell())
+
+		select {
+		case old <- &gossh.Request{Type: "exit-status"}:
+		case <-time.After(5 * time.Second):
+			t.Fatal("a request from the replaced channel blocked")
+		}
+
+		close(old)
+
+		go func() { replacement <- &gossh.Request{Type: "eow@openssh.com"} }()
+
+		select {
+		case req, ok := <-late.requests:
+			require.True(t, ok, "the requests must stay open while the new channel serves")
+			assert.Equal(t, "eow@openssh.com", req.Type)
+		case <-time.After(5 * time.Second):
+			t.Fatal("the new channel's request never arrived")
+		}
+
+		close(replacement)
+
+		select {
+		case _, ok := <-late.requests:
+			assert.False(t, ok, "the requests end with the channel that replaced the old one")
+		case <-time.After(5 * time.Second):
+			t.Fatal("the requests did not end with the new channel")
+		}
+	})
+
+	t.Run("closes the replacement of a channel already closed", func(t *testing.T) {
+		late := newLateChannel()
+		late.resolve(&closeCountingChannel{}, make(chan *gossh.Request), nil, nil)
+		require.NoError(t, late.Close())
+
+		replacement := &closeCountingChannel{}
+		assert.False(t, late.replace(replacement, make(chan *gossh.Request), nil))
+		assert.Equal(t, int32(1), replacement.closes.Load())
+	})
+
+	t.Run("closes the replacement of a channel whose device side ended", func(t *testing.T) {
+		late := newLateChannel()
+		requests := make(chan *gossh.Request)
+		late.resolve(&closeCountingChannel{}, requests, nil, nil)
+		close(requests)
+
+		_, ok := <-late.requests
+		require.False(t, ok)
+
+		replacement := &closeCountingChannel{}
+		assert.False(t, late.replace(replacement, make(chan *gossh.Request), nil))
+		assert.Equal(t, int32(1), replacement.closes.Load())
 	})
 }

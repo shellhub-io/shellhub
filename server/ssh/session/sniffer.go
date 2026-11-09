@@ -58,6 +58,10 @@ func (v *versionSniffer) admitsGatewayLogin() bool {
 	return v.announces(models.AgentCapabilityGatewayLogin)
 }
 
+func (v *versionSniffer) startsShellOnOpen() bool {
+	return v.announces(models.AgentCapabilityShellOnOpen)
+}
+
 func (v *versionSniffer) announces(capability string) bool {
 	if v == nil {
 		return false

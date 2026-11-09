@@ -287,7 +287,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 	defer logger.Info("handling web client request end")
 
-	connection, err := dialDevice(ctx, service, handoff, conn, creds, info, hostKey, gatewayAddress, logger)
+	connection, err := dialDevice(ctx, service, handoff, conn, creds, dim, info, hostKey, gatewayAddress, logger)
 	if err != nil {
 		return err
 	}
@@ -295,7 +295,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	return serveSession(conn, connection, dim, logger)
 }
 
-func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, info Info, hostKey ssh.PublicKey, gateway string, logger *log.Entry) (*ssh.Client, error) {
+func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey, gateway string, logger *log.Entry) (*ssh.Client, error) {
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
@@ -309,9 +309,10 @@ func dialDevice(ctx context.Context, service services.Service, handoff *webhando
 	}
 
 	handoff.Put(user, webhandoff.Data{
-		Device: creds.Device,
-		IP:     info.IP,
-		UserID: creds.UserID,
+		Device:   creds.Device,
+		IP:       info.IP,
+		UserID:   creds.UserID,
+		Terminal: dim.ptyRequest(),
 	})
 
 	var dialer net.Dialer
@@ -400,11 +401,7 @@ func serveSession(conn *Conn, connection *ssh.Client, dim Dimensions, logger *lo
 		return err
 	}
 
-	if err := agent.RequestPty("xterm", int(dim.Rows), int(dim.Cols), ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
-	}); err != nil {
+	if ok, err := agent.SendRequest("pty-req", true, dim.ptyRequest()); err != nil || !ok {
 		logger.WithError(err).Debug("failed to request the pty on session")
 
 		return ErrPty
