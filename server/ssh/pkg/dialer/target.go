@@ -38,6 +38,10 @@ type Target interface {
 // any credential, as the gateway logs in only on behalf of a client it authorized itself. It must
 // be set only for a session whose every login to the device is the gateway's own, never one that
 // forwards a password for the device to check. Agents that do not know it ignore it.
+//
+// The envelope also tells the agent the gateway accepts a host certificate signed by the device
+// key in place of the device key itself, so the agent can sign the handshake with a cheaper key.
+// Agents that do not know it ignore it.
 type SSHOpenTarget struct {
 	SessionID string
 	Login     string
@@ -45,7 +49,7 @@ type SSHOpenTarget struct {
 }
 
 func (t SSHOpenTarget) header() tunnelproto.Header {
-	return tunnelproto.Header{ID: t.SessionID, Login: t.Login, Vouched: t.Vouched} //nolint:exhaustruct // a session stream names no proxy target
+	return tunnelproto.Header{ID: t.SessionID, Login: t.Login, Vouched: t.Vouched, HostCertificate: true} //nolint:exhaustruct // a session stream names no proxy target
 }
 
 func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
