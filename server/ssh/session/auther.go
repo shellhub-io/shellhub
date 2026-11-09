@@ -31,19 +31,36 @@ func (s *Session) mintSigner(ctx context.Context) (gossh.Signer, error) { //noli
 	return gossh.NewSignerFromKey(key)
 }
 
-func (s *Session) authMethods(ctx context.Context, cred credential) []gossh.AuthMethod {
-	if !cred.gateway {
-		return []gossh.AuthMethod{gossh.Password(cred.password)}
-	}
-
+func (s *Session) authMethods(ctx context.Context, take func() (credential, error)) []gossh.AuthMethod {
 	return []gossh.AuthMethod{
 		gossh.PublicKeysCallback(func() ([]gossh.Signer, error) {
+			cred, err := take()
+			if err != nil {
+				return nil, err
+			}
+
+			if !cred.gateway {
+				return nil, nil
+			}
+
 			signer, err := s.mintSigner(ctx)
 			if err != nil {
 				return nil, err
 			}
 
 			return []gossh.Signer{signer}, nil
+		}),
+		gossh.PasswordCallback(func() (string, error) {
+			cred, err := take()
+			if err != nil {
+				return "", err
+			}
+
+			if !cred.gateway {
+				return cred.password, nil
+			}
+
+			return "", errCredentialKind
 		}),
 	}
 }

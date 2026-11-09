@@ -157,6 +157,8 @@ type Session struct {
 
 	challenge *challenge
 
+	warm *warmup
+
 	registered bool
 	principal  models.Principal
 

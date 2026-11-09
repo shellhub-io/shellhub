@@ -233,9 +233,11 @@ func TestKeyAuthMintsTheDeviceKeyForTheSessionDeviceOnTheClientContext(t *testin
 
 	go func() { _, _, _, _ = gossh.NewServerConn(device, config) }()
 
+	take := func() (credential, error) { return g.login, nil }
+
 	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
 		User:            "user",
-		Auth:            sess.authMethods(ctx, g.login),
+		Auth:            sess.authMethods(ctx, take),
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
 	})
 	require.ErrorIs(t, err, context.Canceled)
@@ -260,12 +262,14 @@ func TestKeyAuthMintsNoKeyForADeviceThatOffersNoKeyLogin(t *testing.T) {
 
 	go func() { _, _, _, _ = gossh.NewServerConn(device, config) }()
 
+	take := func() (credential, error) { return g.login, nil }
+
 	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
 		User:            "user",
-		Auth:            sess.authMethods(t.Context(), g.login),
+		Auth:            sess.authMethods(t.Context(), take),
 		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
 	})
-	require.ErrorContains(t, err, "no supported methods remain")
+	require.ErrorIs(t, err, errCredentialKind)
 }
 
 func expectKeyAdmitted(service *servicemocks.MockService) {

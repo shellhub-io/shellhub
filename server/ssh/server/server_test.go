@@ -62,6 +62,7 @@ func stubDeps() bannerDeps {
 		evaluate: func(_ *session.Session, _ gliderssh.Context) error {
 			return nil
 		},
+		warm: func(*session.Session, gliderssh.Context) {},
 	}
 }
 

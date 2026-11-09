@@ -101,6 +101,7 @@ type Server struct {
 type bannerDeps struct {
 	newSession func(ctx gliderssh.Context, d dialer.TunnelDialer, service services.Service, handoff *webhandoff.Store, sessions *session.Registry, edition envs.Edition) (*session.Session, error)
 	evaluate   func(sess *session.Session, ctx gliderssh.Context) error
+	warm       func(sess *session.Session, ctx gliderssh.Context)
 }
 
 func defaultBannerDeps(clk clock.Clock) bannerDeps {
@@ -109,6 +110,7 @@ func defaultBannerDeps(clk clock.Clock) bannerDeps {
 			return session.NewSession(ctx, d, service, handoff, sessions, edition, clk)
 		},
 		evaluate: (*session.Session).Evaluate,
+		warm:     (*session.Session).Warm,
 	}
 }
 
@@ -171,6 +173,8 @@ func newBannerHandlerWithDeps(d dialer.TunnelDialer, service services.Service, h
 
 			return banner.Message(banner.KindAccessDenied)
 		}
+
+		deps.warm(sess, ctx)
 
 		return ""
 	}
