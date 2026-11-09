@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ChevronUpIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
@@ -50,8 +50,18 @@ export default function AreaDevicesPanel({
   const footerId = useId();
   const [briefed, setBriefed] = useState<Device | null>(null);
   const windowShown = useWindowShown();
+  const dialogOpenOnEscape = useRef(false);
+  useEffect(() => {
+    const recordOpenDialog = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        dialogOpenOnEscape.current = document.querySelector(OPEN_DIALOG) !== null;
+      }
+    };
+    document.addEventListener("keydown", recordOpenDialog, true);
+    return () => document.removeEventListener("keydown", recordOpenDialog, true);
+  }, []);
   useEscapeKey(() => {
-    if (!document.querySelector(OPEN_DIALOG)) onClose();
+    if (!dialogOpenOnEscape.current) onClose();
   }, !windowShown);
   const filter = toBase64Json(boundsFilter(area.bounds));
   const query = { status: "accepted" as const, filter };
