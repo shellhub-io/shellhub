@@ -84,7 +84,7 @@ func TestSSHOpenPipelined(t *testing.T) {
 
 		select {
 		case header := <-received:
-			assert.Equal(t, map[string]string{"id": "session"}, header)
+			assert.Equal(t, map[string]string{"id": "session", "hostcert": "true"}, header)
 		case <-time.After(5 * time.Second):
 			t.Fatal("the envelope never reached an agent that had not answered the selection")
 		}
@@ -99,7 +99,7 @@ func TestSSHOpenPipelined(t *testing.T) {
 		greeting, err := bufio.NewReader(conn).ReadString('\n')
 		require.NoError(t, err)
 		assert.Equal(t, "SSH-2.0-agent\r\n", greeting)
-		assert.Equal(t, map[string]string{"id": "session"}, <-headers)
+		assert.Equal(t, map[string]string{"id": "session", "hostcert": "true"}, <-headers)
 	})
 
 	t.Run("surfaces an agent refusing the protocol on the first read", func(t *testing.T) {
@@ -145,19 +145,19 @@ func TestSSHOpenEnvelope(t *testing.T) {
 		expected    map[string]string
 	}{
 		{
-			description: "names only the session for an agent left to check the login",
+			description: "leaves the login out for an agent left to check it",
 			target:      SSHOpenTarget{SessionID: "session"},
-			expected:    map[string]string{"id": "session"},
+			expected:    map[string]string{"id": "session", "hostcert": "true"},
 		},
 		{
 			description: "carries the stream's secret",
 			target:      SSHOpenTarget{SessionID: "session", Login: "secret"},
-			expected:    map[string]string{"id": "session", "login": "secret"},
+			expected:    map[string]string{"id": "session", "hostcert": "true", "login": "secret"},
 		},
 		{
 			description: "vouches for the login",
 			target:      SSHOpenTarget{SessionID: "session", Login: "secret", Vouched: true},
-			expected:    map[string]string{"id": "session", "login": "secret", "vouched": "true"},
+			expected:    map[string]string{"id": "session", "hostcert": "true", "login": "secret", "vouched": "true"},
 		},
 	}
 

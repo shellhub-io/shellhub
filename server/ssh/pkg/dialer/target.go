@@ -37,6 +37,10 @@ type Target interface {
 // any credential, as the gateway logs in only on behalf of a client it authorized itself. It must
 // be set only for a session whose every login to the device is the gateway's own, never one that
 // forwards a password for the device to check. Agents that do not know it ignore it.
+//
+// The envelope also tells the agent the gateway accepts a host certificate signed by the device
+// key in place of the device key itself, so the agent can sign the handshake with a cheaper key.
+// Agents that do not know it ignore it.
 type SSHOpenTarget struct {
 	SessionID string
 	Login     string
@@ -44,7 +48,7 @@ type SSHOpenTarget struct {
 }
 
 func (t SSHOpenTarget) envelope() map[string]string {
-	envelope := map[string]string{"id": t.SessionID}
+	envelope := map[string]string{"id": t.SessionID, "hostcert": "true"}
 	if t.Login != "" {
 		envelope["login"] = t.Login
 	}
