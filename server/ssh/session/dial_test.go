@@ -1,7 +1,9 @@
 package session
 
 import (
+	"io"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
@@ -37,4 +39,35 @@ func TestDialReportsAFailedTunnelAsErrDial(t *testing.T) {
 	require.ErrorIs(t, err, ErrDial)
 	require.ErrorIs(t, err, dialer.ErrNoConnection)
 	assert.Nil(t, sess.agent.conn, "a failed dial must not leave a connection behind")
+}
+
+func TestDialClosesAStreamThatArrivesAfterTheSessionFinished(t *testing.T) {
+	agent := dialertest.NewAgent(t)
+	sess := newTestSession(nil, agent)
+	sess.Events = NewEvents(sess.UID, tenantScope, nil)
+	t.Cleanup(sess.closingOnAgent.Wait)
+
+	require.NoError(t, sess.Finish())
+
+	require.ErrorIs(t, sess.Dial(newStubContext()), ErrClientClosing)
+
+	closed := make(chan error, 1)
+
+	go func() {
+		_, err := agent.OpenChannel("session")
+		closed <- err
+	}()
+
+	select {
+	case err := <-closed:
+		require.ErrorIs(t, err, io.ErrClosedPipe, "the stream dialled after Finish must be closed")
+	case <-time.After(time.Second):
+		t.Fatal("the stream dialled after Finish was left open")
+	}
+
+	sess.closingOnAgent.Wait()
+	assert.Equal(t, []dialertest.Dial{
+		{Tenant: "tenant-id", UID: "device-uid", Target: dialer.SSHOpenTarget{SessionID: "test-uid"}},
+		{Tenant: "tenant-id", UID: "device-uid", Target: dialer.SSHCloseTarget{SessionID: "test-uid"}},
+	}, agent.Dials())
 }
