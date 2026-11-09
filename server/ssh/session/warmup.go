@@ -37,6 +37,7 @@ type warmed struct {
 	err     error
 	final   bool
 	vouched bool
+	device  *versionSniffer
 	dialled bool
 }
 
@@ -130,7 +131,7 @@ func (s *Session) adoptWarmed(ctx gliderssh.Context, w warmed) error {
 		return ErrClientClosing
 	}
 
-	s.attachAgent(ctx, w.client, w.chans, w.reqs)
+	s.attachAgent(ctx, w.client, w.chans, w.reqs, w.device)
 
 	return nil
 }
@@ -212,7 +213,7 @@ func (w *warmup) handshake(ctx gliderssh.Context, s *Session, unclaimed <-chan s
 		_ = conn.SetDeadline(time.Time{})
 	}
 
-	return warmed{conn: conn, client: client, chans: chans, reqs: reqs, vouched: w.vouched && !delivered, dialled: true}
+	return warmed{conn: conn, client: client, chans: chans, reqs: reqs, vouched: w.vouched && !delivered, device: device, dialled: true}
 }
 
 func waitedOut(err error) bool {

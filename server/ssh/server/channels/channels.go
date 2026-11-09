@@ -47,6 +47,9 @@ type Session interface {
 	NewAgentChannel(seat int) (*session.AgentChannel, error)
 	NewClientChannel(newChannel gossh.NewChannel, seat int) (*session.ClientChannel, error)
 	DropAgentChannel(seat int)
+	CanStartShell(seat int) bool
+	StartShell(seat int, setup []*gossh.Request) bool
+	ReopenAgentChannel(seat int) error
 	ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel))
 	DialAgent(ctx context.Context, network, addr string) (net.Conn, error)
 	CloseAgentWrite(seat int) error

@@ -20,6 +20,7 @@ var (
 	ErrSeatNotFound            = errors.New("this seat has no agent channel")
 	ErrClientClosing           = errors.New("the client connection is closing")
 	ErrDeviceLogin             = errors.New("the device did not accept the login")
+	ErrChannelNotReopened      = errors.New("the channel cannot be opened again on the device")
 	ErrWebData                 = errors.New("failed to parse the web session data")
 	ErrLicenseBlock            = fmt.Errorf("Connection blocked: your ShellHub instance has exceeded the maximum number of devices allowed by your license. Please contact support or remove unused devices.") //nolint:all
 

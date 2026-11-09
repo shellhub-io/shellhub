@@ -120,17 +120,39 @@ type lateChannel struct {
 	channel  gossh.Channel
 	err      error
 	requests chan *gossh.Request
+	shell    []byte
+	retired  chan struct{}
+	ended    bool
+	known    chan struct{}
+	deciding sync.Once
+	willOpen bool
 	done     chan struct{}
 }
 
 func newLateChannel() *lateChannel {
-	return &lateChannel{ready: make(chan struct{}), requests: make(chan *gossh.Request), done: make(chan struct{})}
+	return &lateChannel{ready: make(chan struct{}), requests: make(chan *gossh.Request), retired: make(chan struct{}), known: make(chan struct{}), done: make(chan struct{})}
 }
 
-func (c *lateChannel) resolve(channel gossh.Channel, requests <-chan *gossh.Request, err error) {
+func (c *lateChannel) decide(startsShell bool) {
+	c.deciding.Do(func() {
+		c.willOpen = startsShell
+		close(c.known)
+	})
+}
+
+func (c *lateChannel) willStartShell() bool {
+	<-c.known
+
+	return c.willOpen
+}
+
+func (c *lateChannel) resolve(channel gossh.Channel, requests <-chan *gossh.Request, shell []byte, err error) {
+	c.decide(shell != nil)
+
 	c.mu.Lock()
-	c.channel, c.err = channel, err
+	c.channel, c.shell, c.err = channel, shell, err
 	closed := c.closed
+	retired := c.retired
 	close(c.ready)
 	c.mu.Unlock()
 
@@ -144,21 +166,64 @@ func (c *lateChannel) resolve(channel gossh.Channel, requests <-chan *gossh.Requ
 		return
 	}
 
-	go c.forward(requests)
+	go c.forward(requests, retired)
 }
 
-func (c *lateChannel) forward(requests <-chan *gossh.Request) {
-	defer close(c.requests)
+func (c *lateChannel) replace(channel gossh.Channel, requests <-chan *gossh.Request, shell []byte) bool {
+	c.mu.Lock()
+	if c.closed || c.ended || c.err != nil {
+		c.mu.Unlock()
 
+		_ = channel.Close()
+
+		return false
+	}
+
+	previous := c.channel
+	close(c.retired)
+	c.retired = make(chan struct{})
+	c.channel, c.shell = channel, shell
+	retired := c.retired
+	c.mu.Unlock()
+
+	_ = previous.Close()
+
+	go c.forward(requests, retired)
+
+	return true
+}
+
+func (c *lateChannel) forward(requests <-chan *gossh.Request, retired chan struct{}) {
 	for req := range requests {
 		select {
+		case <-retired:
+			refuse(req)
+
+			continue
+		default:
+		}
+
+		select {
 		case c.requests <- req:
+		case <-retired:
+			refuse(req)
 		case <-c.done:
-			if req.WantReply {
-				_ = req.Reply(false, nil)
-			}
+			refuse(req)
 		}
 	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.retired == retired {
+		c.ended = true
+
+		close(c.requests)
+	}
+}
+
+func refuse(req *gossh.Request) {
+	_ = req.Reply(false, nil)
 }
 
 func (c *lateChannel) wait() (gossh.Channel, error) { //nolint:ireturn // gossh.Channel is the interface x/crypto hands out
@@ -168,6 +233,13 @@ func (c *lateChannel) wait() (gossh.Channel, error) { //nolint:ireturn // gossh.
 	defer c.mu.Unlock()
 
 	return c.channel, c.err
+}
+
+func (c *lateChannel) startedShell() []byte {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.shell
 }
 
 func (c *lateChannel) failure() error {

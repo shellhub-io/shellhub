@@ -285,7 +285,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 	defer logger.Info("handling web client request end")
 
-	connection, err := dialDevice(ctx, service, handoff, conn, creds, info, hostKey)
+	connection, err := dialDevice(ctx, service, handoff, conn, creds, dim, info, hostKey)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	return serveSession(conn, connection, dim, logger)
 }
 
-func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, info Info, hostKey ssh.PublicKey) (*ssh.Client, error) {
+func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) (*ssh.Client, error) {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
@@ -313,9 +313,10 @@ func dialDevice(ctx context.Context, service services.Service, handoff *webhando
 	}
 
 	handoff.Put(user, webhandoff.Data{
-		Device: creds.Device,
-		IP:     info.IP,
-		UserID: creds.UserID,
+		Device:   creds.Device,
+		IP:       info.IP,
+		UserID:   creds.UserID,
+		Terminal: dim.ptyRequest(),
 	})
 
 	const gateway = "localhost:2222"

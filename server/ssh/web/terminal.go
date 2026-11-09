@@ -5,6 +5,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+var defaultDimensions = Dimensions{Cols: 80, Rows: 24}
+
 type terminalMode struct {
 	Key   byte
 	Value uint32

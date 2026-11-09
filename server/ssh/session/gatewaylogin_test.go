@@ -14,13 +14,14 @@ func TestVersionSniffer(t *testing.T) {
 		description string
 		stream      string
 		admits      bool
+		shell       bool
 	}{
 		{description: "an agent announcing the gateway login", stream: "SSH-2.0-ShellHub-Agent gateway-login\r\n", admits: true},
 		{description: "an agent that predates it", stream: "SSH-2.0-Go\r\n", admits: false},
 		{description: "lines ahead of the version", stream: "hello gateway-login\r\nSSH-2.0-ShellHub-Agent gateway-login\r\n", admits: true},
 		{description: "the comment past the version line", stream: "SSH-2.0-Go\r\n gateway-login\r\n", admits: false},
 		{description: "a version never finished", stream: "SSH-2.0-ShellHub-Agent gateway-login", admits: false},
-		{description: "an agent announcing both", stream: "SSH-2.0-ShellHub-Agent gateway-login shell-on-open\r\n", admits: true},
+		{description: "an agent announcing both", stream: "SSH-2.0-ShellHub-Agent gateway-login shell-on-open\r\n", admits: true, shell: true},
 		{description: "a capability inside another word", stream: "SSH-2.0-ShellHub-Agent gateway-login-shell-on-open\r\n", admits: false},
 		{description: "a capability in the software version", stream: "SSH-2.0-shell-on-open\r\n", admits: false},
 	}
@@ -48,6 +49,7 @@ func TestVersionSniffer(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.admits, sniffer.admitsGatewayLogin())
+			assert.Equal(t, tc.shell, sniffer.startsShellOnOpen())
 		})
 	}
 }

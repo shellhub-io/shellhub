@@ -161,6 +161,8 @@ type Session struct {
 
 	agentLogin string
 
+	terminal []byte
+
 	updatingRecord sync.Mutex
 
 	registered bool
@@ -301,7 +303,10 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 	}
 
 	var namespaceName, deviceName string
-	var webUserID string
+	var (
+		webUserID string
+		terminal  []byte
+	)
 	web := false
 	if target.IsSSHID() {
 		namespaceName, deviceName, err = target.SplitSSHID()
@@ -331,6 +336,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 			hos.Host = data.IP
 
 			webUserID = data.UserID
+			terminal = data.Terminal
 		}
 
 		device, err := service.GetDevice(ctx, scope.NewUnbounded(reasonSSHIDDeviceResolve), models.UID(target.Data))
@@ -372,6 +378,7 @@ func NewSession(ctx gliderssh.Context, dialer dialer.TunnelDialer, service servi
 		once:       new(sync.Once),
 		seats:      newSeats(),
 		agentLogin: newAgentLogin(),
+		terminal:   terminal,
 		agent: &Agent{
 			channels: make(map[int]*AgentChannel),
 		},

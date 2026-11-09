@@ -38,7 +38,7 @@ func startPrewarm(ctx context.Context, service services.Service, handoff *webhan
 		defer close(p.done)
 		defer cancel()
 
-		p.client, p.err = dialDevice(ctx, service, handoff, p.browser, &creds, info, hostKey)
+		p.client, p.err = dialDevice(ctx, service, handoff, p.browser, &creds, defaultDimensions, info, hostKey)
 	}()
 
 	time.AfterFunc(ttl, p.expire)

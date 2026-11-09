@@ -15,6 +15,7 @@ import (
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/devicekey"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/shellonopen"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -27,8 +28,47 @@ type AgentChannel struct {
 	// Requests is the channel to handle SSH requests.
 	Requests <-chan *gossh.Request
 
+	// Shell is the pty request the device started the shell with, for a channel built outside
+	// [Session.NewAgentChannel]. A channel from NewAgentChannel carries it on its late channel;
+	// read either through [AgentChannel.StartedShell].
+	Shell []byte
+
 	closedByGateway atomic.Bool
 	late            *lateChannel
+}
+
+// StartedShell returns the pty request the device started the channel's shell with, and whether
+// it started one: a channel [Session.StartShell] replaced, and a web terminal's first session
+// channel on a device that starts its shell on open, which takes the client's pty-req and shell
+// without the device seeing them, until [Session.ReopenAgentChannel] replaces it with one that
+// started nothing. For a channel still waiting for the device it waits, and a channel that never
+// opened started nothing. A channel built outside [Session.NewAgentChannel] reports its Shell field.
+func (a *AgentChannel) StartedShell() ([]byte, bool) {
+	if a.late != nil {
+		if _, err := a.late.wait(); err != nil {
+			return nil, false
+		}
+
+		shell := a.late.startedShell()
+
+		return shell, shell != nil
+	}
+
+	return a.Shell, a.Shell != nil
+}
+
+func canOpenShellWith(setup []*gossh.Request) bool {
+	if startedPty(setup) == nil {
+		return false
+	}
+
+	for _, req := range setup {
+		if !shellonopen.SetsUp(req.Type) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // OpenFailure returns why the channel never opened on the device, for a channel handed out
@@ -71,6 +111,8 @@ type Agent struct {
 	ready    chan struct{}
 	err      error
 	finished bool
+
+	startsShell bool
 }
 
 // Close closes the underlying ssh client connection.
@@ -115,14 +157,14 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	late := newLateChannel()
 
 	if pending {
-		go s.openLate(late)
+		go s.openLate(late, seat)
 	} else {
-		channel, requests, err := s.openOn(s.claimSpare())
+		channel, requests, shell, err := s.openOn(s.claimSpare(seat))
 		if err != nil {
 			return nil, err
 		}
 
-		late.resolve(channel, requests, nil)
+		late.resolve(channel, requests, shell, nil)
 	}
 
 	a := &AgentChannel{Channel: late, Requests: late.requests, late: late}
@@ -131,37 +173,133 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	return a, nil
 }
 
-func (s *Session) openLate(late *lateChannel) {
+func (s *Session) openLate(late *lateChannel, seat int) {
 	if err := s.awaitAgent(); err != nil {
-		late.resolve(nil, nil, err)
+		late.resolve(nil, nil, nil, err)
 
 		return
 	}
 
 	s.agent.mu.Lock()
-	spare := s.claimSpare()
+	spare := s.claimSpare(seat)
 	s.agent.mu.Unlock()
 
-	channel, requests, err := s.openOn(spare)
-	late.resolve(channel, requests, err)
+	late.decide(spare.startsShell())
+
+	channel, requests, shell, err := s.openOn(spare)
+	late.resolve(channel, requests, shell, err)
 }
 
-func (s *Session) claimSpare() *spareChannel {
+func (s *Session) claimSpare(seat int) *spareChannel {
 	spare := s.agent.spare
+	if spare == nil || (spare.shell != nil && seat != firstSeat) {
+		return nil
+	}
+
 	s.agent.spare = nil
 
 	return spare
 }
 
-func (s *Session) openOn(spare *spareChannel) (gossh.Channel, <-chan *gossh.Request, error) { //nolint:ireturn // gossh.Channel is the interface x/crypto hands out
+func (s *Session) openOn(spare *spareChannel) (gossh.Channel, <-chan *gossh.Request, []byte, error) { //nolint:ireturn // gossh.Channel is the interface x/crypto hands out
 	if spare != nil {
 		channel, requests, err := spare.take()
 		if err == nil {
-			return channel, requests, nil
+			return channel, requests, spare.shell, nil
 		}
 	}
 
-	return s.agent.client.OpenChannel(sessionChannelType, nil)
+	channel, requests, err := s.agent.client.OpenChannel(sessionChannelType, nil)
+
+	return channel, requests, nil, err
+}
+
+func (s *Session) replaceOn(late *lateChannel, data, shell []byte) error {
+	channel, requests, err := s.agent.client.OpenChannel(sessionChannelType, data)
+	if err != nil {
+		return err
+	}
+
+	if _, err := late.wait(); err != nil {
+		_ = channel.Close()
+
+		return err
+	}
+
+	if !late.replace(channel, requests, shell) {
+		return ErrChannelNotReopened
+	}
+
+	return nil
+}
+
+// StartShell replaces the device side of seat's session channel, before anything ran on it, with
+// a channel the device opens running the shell after setup (env, agent forwarding, pty), in the
+// order the client sent them. Call it only once the client's shell request has arrived, because
+// the device runs the login shell and records the login as it opens the channel. It waits for the
+// device login, and reports false, keeping the
+// channel as it was, when seat has no session channel, when the device does not start shells on
+// open, when the device already starts or started a shell on the channel, when setup holds no
+// pty or any other request, when the channel was closed or never opened, and when the device
+// refuses the open.
+func (s *Session) StartShell(seat int, setup []*gossh.Request) bool {
+	if !canOpenShellWith(setup) || !s.CanStartShell(seat) {
+		return false
+	}
+
+	channel, _ := s.agentChannel(seat)
+
+	return s.replaceOn(channel.late, shellonopen.Encode(setup), startedPty(setup)) == nil
+}
+
+// ReopenAgentChannel replaces the device side of seat's session channel with a new, plain session
+// channel, closing the one it had, so a shell the device started on open never reaches the client.
+// Requests the closed channel still delivers are refused. It returns ErrSeatNotFound when seat has
+// no channel; ErrChannelNotReopened for one that cannot be replaced, which is one already closed
+// and one whose device side already ended; the error the device login ended with, as
+// NewAgentChannel lists it; the error the channel's own open ended with, for one that never opened
+// on the device; and the error the device's channel open returns.
+func (s *Session) ReopenAgentChannel(seat int) error {
+	channel, ok := s.agentChannel(seat)
+	if !ok {
+		return ErrSeatNotFound
+	}
+
+	if channel.late == nil {
+		return ErrChannelNotReopened
+	}
+
+	if err := s.awaitAgent(); err != nil {
+		return err
+	}
+
+	return s.replaceOn(channel.late, nil, nil)
+}
+
+// CanStartShell reports whether [Session.StartShell] could replace seat's channel with one whose
+// shell the device starts on open: a session channel, on a device that announces it, whose shell
+// is not started already. It waits for the device login to pick the channel; a seat without a
+// channel and a channel whose device login failed cannot.
+func (s *Session) CanStartShell(seat int) bool {
+	channel, ok := s.agentChannel(seat)
+	if !ok || channel.late == nil {
+		return false
+	}
+
+	if channel.late.willStartShell() || channel.late.startedShell() != nil {
+		return false
+	}
+
+	return s.awaitAgent() == nil && s.agent.startsShell
+}
+
+func (s *Session) agentChannel(seat int) (*AgentChannel, bool) {
+	s.agent.mu.Lock()
+	defer s.agent.mu.Unlock()
+
+	channel, ok := s.agent.channels[seat]
+
+	return channel, ok
 }
 
 // DropAgentChannel closes the agent channel on a seat and forgets it, so a seat
@@ -196,14 +334,21 @@ func (s *Session) clientConfig() (*gossh.ClientConfig, error) {
 	}, nil
 }
 
-func (s *Session) attachAgent(ctx gliderssh.Context, conn gossh.Conn, chans <-chan gossh.NewChannel, reqs <-chan *gossh.Request) {
+func (s *Session) attachAgent(ctx gliderssh.Context, conn gossh.Conn, chans <-chan gossh.NewChannel, reqs <-chan *gossh.Request, device *versionSniffer) {
 	ch := make(chan *gossh.Request)
 	close(ch)
 
 	s.agent.client = gossh.NewClient(conn, chans, ch)
 
+	s.agent.startsShell = device.startsShellOnOpen()
+
 	s.agent.mu.Lock()
-	s.agent.spare = openSpare(s.agent.client)
+	var shell []byte
+	if s.agent.startsShell {
+		shell = s.terminal
+	}
+
+	s.agent.spare = openSpare(s.agent.client, shell)
 	s.agent.mu.Unlock()
 
 	clientConn, _ := ctx.Value(connCtxKey{}).(net.Conn)
@@ -306,12 +451,14 @@ func (s *Session) login(ctx gliderssh.Context, config *gossh.ClientConfig, cred 
 		}
 	}
 
-	s.attachAgent(ctx, conn, chans, reqs)
+	s.attachAgent(ctx, conn, chans, reqs, device)
 
 	return nil
 }
 
 const keepAliveRequestPrefix = "keepalive"
+
+const firstSeat = 0
 
 const clientChannelsCloseTimeout = 5 * time.Second
 
