@@ -600,6 +600,7 @@ func SessionSelectQuery(q *bun.SelectQuery) *bun.SelectQuery {
 	return q.
 		Relation("Device").
 		Relation("Device.Namespace").
+		Relation("Device.Presence").
 		ColumnExpr("session.*").
 		ColumnExpr("CASE WHEN active_session.session_id IS NOT NULL THEN true ELSE false END AS active").
 		ColumnExpr(`COALESCE((

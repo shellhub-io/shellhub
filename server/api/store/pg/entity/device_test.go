@@ -54,7 +54,7 @@ func TestDeviceFromModel(t *testing.T) {
 				assert.Equal(t, removedAt, *result.RemovedAt)
 				assert.Equal(t, "my-device", result.Name)
 				assert.Equal(t, "ssh-rsa AAAA...", result.PublicKey)
-				assert.Equal(t, disconnectedAt, result.DisconnectedAt)
+				assert.Equal(t, disconnectedAt, result.Presence.DisconnectedAt)
 				assert.Equal(t, "00:11:22:33:44:55", result.MAC)
 				assert.InDelta(t, 1.23, result.Longitude, 0.001)
 				assert.InDelta(t, 4.56, result.Latitude, 0.001)
@@ -64,7 +64,8 @@ func TestDeviceFromModel(t *testing.T) {
 				assert.Equal(t, "amd64", result.Arch)
 				assert.Equal(t, "linux", result.Platform)
 				assert.Equal(t, now, result.CreatedAt)
-				assert.Equal(t, now, result.LastSeen)
+				assert.Equal(t, "device-uid-1", result.Presence.DeviceID)
+				assert.Equal(t, now, result.Presence.LastSeen)
 				assert.True(t, result.UpdatedAt.IsZero())
 			},
 		},
@@ -98,7 +99,7 @@ func TestDeviceFromModel(t *testing.T) {
 				assert.InDelta(t, 0.0, result.Latitude, 0.001)
 				assert.Empty(t, result.Identifier)
 				assert.Empty(t, result.PrettyName)
-				assert.True(t, result.DisconnectedAt.IsZero())
+				assert.True(t, result.Presence.DisconnectedAt.IsZero())
 			},
 		},
 		{
@@ -180,14 +181,13 @@ func TestDeviceToModel(t *testing.T) {
 				NamespaceID:     "tenant-id-1",
 				CreatedAt:       now,
 				RemovedAt:       &removedAt,
-				LastSeen:        now,
+				Presence:        &DevicePresence{LastSeen: now, DisconnectedAt: disconnectedAt},
 				Status:          "accepted",
 				StatusUpdatedAt: statusUpdatedAt,
 				Name:            "my-device",
 				PublicKey:       "ssh-rsa AAAA...",
 				Online:          true,
 				Acceptable:      false,
-				DisconnectedAt:  disconnectedAt,
 				MAC:             "00:11:22:33:44:55",
 				Longitude:       1.23,
 				Latitude:        4.56,
@@ -252,9 +252,9 @@ func TestDeviceToModel(t *testing.T) {
 		{
 			name: "zero DisconnectedAt",
 			entity: &Device{
-				ID:             "device-uid-3",
-				Status:         "accepted",
-				DisconnectedAt: time.Time{},
+				ID:       "device-uid-3",
+				Status:   "accepted",
+				Presence: &DevicePresence{DisconnectedAt: time.Time{}},
 			},
 			check: func(t *testing.T, result *models.Device) {
 				t.Helper()
@@ -265,9 +265,9 @@ func TestDeviceToModel(t *testing.T) {
 		{
 			name: "non-zero DisconnectedAt",
 			entity: &Device{
-				ID:             "device-uid-4",
-				Status:         "accepted",
-				DisconnectedAt: disconnectedAt,
+				ID:       "device-uid-4",
+				Status:   "accepted",
+				Presence: &DevicePresence{DisconnectedAt: disconnectedAt},
 			},
 			check: func(t *testing.T, result *models.Device) {
 				t.Helper()

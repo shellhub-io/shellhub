@@ -83,8 +83,9 @@ func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (
 func buildOnlineDevicesQuery(db bun.IDB, cutoff time.Time) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("disconnected_at IS NULL").
-		Where("last_seen > ?", cutoff).
+		Join("JOIN device_presence AS presence ON presence.device_id = device.id").
+		Where("presence.disconnected_at IS NULL").
+		Where("presence.last_seen > ?", cutoff).
 		Where("status = ?", "accepted")
 }
 

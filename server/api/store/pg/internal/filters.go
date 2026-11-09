@@ -31,7 +31,13 @@ func renameFilterField(fp *query.FilterProperty, name string) *query.FilterPrope
 	return &adjusted
 }
 
-func qualifyColumn(column, tableAlias string) bun.Ident {
+// QualifyColumn returns column under tableAlias. A device's last_seen lives in its presence, so a
+// query aliased "device" must join that relation.
+func QualifyColumn(column, tableAlias string) bun.Ident {
+	if tableAlias == "device" && column == "last_seen" {
+		tableAlias = "presence"
+	}
+
 	if tableAlias != "" {
 		return bun.Ident(tableAlias + "." + column)
 	}
@@ -46,10 +52,10 @@ func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, erro
 	}
 
 	if isOnline {
-		return `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`, []any{threshold}, true, nil
+		return `("presence"."disconnected_at" IS NULL AND "presence"."last_seen" > ?)`, []any{threshold}, true, nil
 	}
 
-	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
+	return `("presence"."disconnected_at" IS NOT NULL OR "presence"."last_seen" <= ?)`, []any{threshold}, true, nil
 }
 
 func fromKeyVerifiedFilter(value any) (string, []any, bool, error) {
@@ -241,16 +247,16 @@ func fromTagsFilter(operator string, value any) (string, []any, bool, error) {
 func fromContains(column string, value any, tableAlias string) (string, []any, error) {
 	switch v := value.(type) {
 	case string:
-		return "? ILIKE ?", []any{qualifyColumn(column, tableAlias), "%" + v + "%"}, nil
+		return "? ILIKE ?", []any{QualifyColumn(column, tableAlias), "%" + v + "%"}, nil
 	case []any:
-		return "? @> ?", []any{qualifyColumn(column, tableAlias), v}, nil
+		return "? @> ?", []any{QualifyColumn(column, tableAlias), v}, nil
 	}
 
 	return "", nil, ErrUnsupportedContainsType
 }
 
 func fromEq(column string, value any, tableAlias string) (string, []any) {
-	return "? = ?", []any{qualifyColumn(column, tableAlias), value}
+	return "? = ?", []any{QualifyColumn(column, tableAlias), value}
 }
 
 func fromBool(column string, value any, tableAlias string) (string, []any, error) {
@@ -263,7 +269,7 @@ func fromBool(column string, value any, tableAlias string) (string, []any, error
 		return "", nil, err
 	}
 
-	return "? = ?", []any{qualifyColumn(column, tableAlias), boolValue}, nil
+	return "? = ?", []any{QualifyColumn(column, tableAlias), boolValue}, nil
 }
 
 func fromComparison(column string, value any, tableAlias, operator string) (string, []any, error) {
@@ -271,9 +277,9 @@ func fromComparison(column string, value any, tableAlias, operator string) (stri
 
 	switch v := value.(type) {
 	case uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
-		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{QualifyColumn(column, tableAlias), v}, nil
 	case time.Time:
-		return condition, []any{qualifyColumn(column, tableAlias), v}, nil
+		return condition, []any{QualifyColumn(column, tableAlias), v}, nil
 	case string:
 		var num any
 		var err error
@@ -286,14 +292,14 @@ func fromComparison(column string, value any, tableAlias, operator string) (stri
 			}
 		}
 
-		return condition, []any{qualifyColumn(column, tableAlias), num}, nil
+		return condition, []any{QualifyColumn(column, tableAlias), num}, nil
 	default:
 		return "", nil, ErrUnsupportedNumericType
 	}
 }
 
 func fromNe(column string, value any, tableAlias string) (string, []any) {
-	return "? <> ?", []any{qualifyColumn(column, tableAlias), value}
+	return "? <> ?", []any{QualifyColumn(column, tableAlias), value}
 }
 
 func fromCustomFieldsFilter(operator string, value any) (string, []any, bool, error) {
