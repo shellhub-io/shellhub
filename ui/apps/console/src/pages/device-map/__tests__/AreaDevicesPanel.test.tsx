@@ -1,12 +1,21 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi,
+} from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { onlineManager } from "@tanstack/react-query";
+import { onlineManager, type QueryClient } from "@tanstack/react-query";
 import { server } from "@/tests/msw";
 import type { Device } from "@/client";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { useTerminalStore } from "@/stores/terminalStore";
 import { mockDevice } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
 import { decodeB64url } from "@/tests/decodeB64url";
@@ -96,22 +105,32 @@ function serveDevices(devices: Device[]) {
 function Panel({
   area: picked,
   folded = false,
+  onClose = () => {},
 }: {
   area: MapArea;
   folded?: boolean;
+  onClose?: () => void;
 }) {
   return (
     <AreaDevicesPanel
       area={picked}
       folded={folded}
       onToggleFold={() => {}}
-      onClose={() => {}}
+      onClose={onClose}
     />
   );
 }
 
-function renderPanel(picked = area, queryClient = createTestQueryClient()) {
-  return render(<Panel area={picked} />, {
+function renderPanel({
+  picked = area,
+  queryClient = createTestQueryClient(),
+  onClose = () => {},
+}: {
+  picked?: MapArea;
+  queryClient?: QueryClient;
+  onClose?: () => void;
+} = {}) {
+  return render(<Panel area={picked} onClose={onClose} />, {
     wrapper: createTestWrapper({
       queryClient,
       initialEntries: ["/dashboard/map"],
@@ -165,6 +184,91 @@ describe("AreaDevicesPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("closes on Escape", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    renderPanel({ onClose });
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("stays open on Escape while a terminal window covers the map", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    const sessions = useTerminalStore.getState().sessions;
+    useTerminalStore.setState({
+      sessions: [
+        {
+          id: "session-1",
+          deviceUid: "device-uid",
+          deviceName: "my-device",
+          username: "root",
+          password: "",
+          state: "shown",
+          connectionStatus: "connected",
+        },
+      ],
+    });
+    onTestFinished(() => useTerminalStore.setState({ sessions }));
+    renderPanel({ onClose });
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("stays open on Escape while a brief is open over it", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    server.use(...defaultHandlers);
+    renderPanel({ onClose });
+    await user.click(await screen.findByRole("button", { name: /zurich-2/ }));
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  function mountBeside(attributes: Record<string, string>, tag = "div") {
+    const element = document.body.appendChild(document.createElement(tag));
+    for (const [name, value] of Object.entries(attributes)) {
+      element.setAttribute(name, value);
+    }
+    onTestFinished(() => element.remove());
+  }
+
+  it.each([
+    ["an open native dialog", "dialog", { open: "" }],
+    ["an open modal drawer", "div", { role: "dialog", "aria-modal": "true" }],
+  ])("stays open on Escape while %s is over it", async (_, tag, attributes) => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    renderPanel({ onClose });
+    mountBeside(attributes, tag);
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("closes on Escape while a modal drawer sits closed and inert", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    servePages();
+    renderPanel({ onClose });
+    mountBeside({ role: "dialog", "aria-modal": "true", inert: "" });
+
+    await user.keyboard("{Escape}");
+
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it("reads the next page by the cursor the last one handed back when the end is reached", async () => {
     const requests = servePages();
     renderPanel();
@@ -194,7 +298,7 @@ describe("AreaDevicesPanel", () => {
   it("opens the brief of the one device a picked point holds", async () => {
     serveDevices([mockDevice({ name: "zurich-1" })]);
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     expect(
       await screen.findByRole("dialog", { name: "zurich-1" }),
@@ -205,7 +309,7 @@ describe("AreaDevicesPanel", () => {
   it("reads a picked point's device among the accepted ones", async () => {
     const requests = serveDevices([mockDevice()]);
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     await waitFor(() => expect(requests).toHaveLength(1));
     expect(requests[0].searchParams.get("status")).toBe("accepted");
@@ -214,7 +318,7 @@ describe("AreaDevicesPanel", () => {
   it("keeps a picked point's brief open when the device is read again", async () => {
     const queryClient = createTestQueryClient();
     serveDevices([mockDevice({ name: "zurich-1" })]);
-    renderPanel(point, queryClient);
+    renderPanel({ picked: point, queryClient });
     await screen.findByRole("dialog", { name: "zurich-1" });
     serveDevices([
       mockDevice({ uid: "a", name: "zurich-1" }),
@@ -235,7 +339,7 @@ describe("AreaDevicesPanel", () => {
       mockDevice({ uid: "b", name: "zurich-2" }),
     ]);
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     expect(
       await screen.findByRole("button", { name: /zurich-2/ }),
@@ -260,7 +364,9 @@ describe("AreaDevicesPanel", () => {
 
   it("keeps the list of an area whose count falls to one while it is open", async () => {
     serveDevices([mockDevice({ uid: "a", name: "zurich-1" })]);
-    const { rerender } = renderPanel({ ...area, devices: 2, online: 2 });
+    const { rerender } = renderPanel({
+      picked: { ...area, devices: 2, online: 2 },
+    });
     await screen.findByRole("button", { name: /zurich-1/ });
 
     rerender(<Panel area={point} />);
@@ -278,7 +384,7 @@ describe("AreaDevicesPanel", () => {
       mockDevice({ uid: "b", name: "zurich-2" }),
     ]);
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     await screen.findByRole("button", { name: /zurich-2/ });
     expect(requests).toHaveLength(1);
@@ -287,7 +393,7 @@ describe("AreaDevicesPanel", () => {
   it("lists the devices of a picked point when its bounds hold none", async () => {
     serveDevices([]);
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     expect(await screen.findByText("This area")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -298,7 +404,7 @@ describe("AreaDevicesPanel", () => {
       http.get("*/api/devices", () => HttpResponse.json({}, { status: 500 })),
     );
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     expect(
       await screen.findByText("Could not load the devices in this area."),
@@ -309,7 +415,7 @@ describe("AreaDevicesPanel", () => {
   it("waits for the network to read a picked point's device", async () => {
     serveDevices([mockDevice({ name: "zurich-1" })]);
     onlineManager.setOnline(false);
-    renderPanel(point);
+    renderPanel({ picked: point });
     expect(
       await screen.findByRole("status", { name: "Loading device" }),
     ).toBeInTheDocument();
@@ -324,7 +430,7 @@ describe("AreaDevicesPanel", () => {
   it("shows it is loading the picked point's device", async () => {
     server.use(http.get("*/api/devices", () => new Promise(() => {})));
 
-    renderPanel(point);
+    renderPanel({ picked: point });
 
     expect(
       await screen.findByRole("status", { name: "Loading device" }),

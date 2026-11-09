@@ -6,6 +6,7 @@ import {
   setWorkerUrl,
   type GeoJSONSource,
   type MapLayerMouseEvent,
+  type MapMouseEvent,
 } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection, Polygon } from "geojson";
@@ -287,10 +288,19 @@ export default function MapLibreMap({
         setHover(null);
       });
 
-      map.on("click", CIRCLES, (event: MapLayerMouseEvent) => {
-        const feature = event.features?.[0];
+      map.on("click", (event: MapMouseEvent) => {
+        if (!map.getLayer(CIRCLES)) return;
+
+        const [feature] = map.queryRenderedFeatures(event.point, {
+          layers: [CIRCLES],
+        });
+        if (!feature) {
+          onSelectRef.current?.(null);
+          return;
+        }
+
         const source = map.getSource<GeoJSONSource>(SOURCE);
-        if (!feature || !source) return;
+        if (!source) return;
 
         void areaOf(source, feature).then((area) => {
           if (navigable) {

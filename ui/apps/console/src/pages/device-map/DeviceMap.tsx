@@ -124,8 +124,9 @@ export default function DeviceMap() {
         mode={mode}
         selected={area?.bounds}
         onSelect={(selected) => {
+          if (!selected && !searchParams.has("area")) return;
           void navigate(
-            { search: `?area=${formatBounds(selected.bounds)}` },
+            { search: selected ? `?area=${formatBounds(selected.bounds)}` : "" },
             { replace: true },
           );
         }}

@@ -8,6 +8,8 @@ import {
   StatusDot,
 } from "@shellhub/design-system/primitives";
 import { getDevices, getDevicesQueryKey, type Device } from "@/client";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useWindowShown } from "@/stores/terminalStore";
 import { useLoadOnReach } from "@/hooks/useLoadOnReach";
 import { toBase64Json } from "@/utils/encoding";
 import { formatCount } from "@/utils/count";
@@ -16,6 +18,8 @@ import { boundsFilter, compactCount, type MapArea } from "./mapModel";
 
 const PAGE_SIZE = 100;
 const SCROLL_ROOT = "[data-area-devices]";
+const OPEN_DIALOG =
+  'dialog[open], [role="dialog"][aria-modal="true"]:not([inert])';
 
 interface AreaDevicesPanelProps {
   area: MapArea;
@@ -32,7 +36,9 @@ interface AreaDevicesPanelProps {
  * for the life of the panel, whatever later counts or a later read of the area return. Folded,
  * the panel shows only its header and keeps the list, and where it was scrolled to, for unfolding;
  * the caller holds folded, so it outlives the panel. A brief opened straight away for a one-device
- * area opens whether or not the panel is folded.
+ * area opens whether or not the panel is folded. Escape closes the panel, folded or not, unless a
+ * dialog or drawer is open, the brief or any other, where it closes that one alone, or a terminal or
+ * recording window covers the map, where it leaves the panel alone.
  */
 export default function AreaDevicesPanel({
   area,
@@ -43,6 +49,10 @@ export default function AreaDevicesPanel({
   const listId = useId();
   const footerId = useId();
   const [briefed, setBriefed] = useState<Device | null>(null);
+  const windowShown = useWindowShown();
+  useEscapeKey(() => {
+    if (!document.querySelector(OPEN_DIALOG)) onClose();
+  }, !windowShown);
   const filter = toBase64Json(boundsFilter(area.bounds));
   const query = { status: "accepted" as const, filter };
 

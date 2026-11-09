@@ -30,7 +30,8 @@ const LOCATION_HALF_STEP = 0.5 * 10 ** -SERVER_ROUNDING_DECIMALS + EDGE_MARGIN;
 
 /**
  * What every map backend takes: the locations, the GeoIP database that placed them, which devices to count, the area picked, and
- * onSelect for a click on a point or cluster. Without onSelect the map has no hover or clicks.
+ * onSelect for a click on a point or cluster, called with null for a click anywhere else on the map
+ * (a drag is not a click). Without onSelect the map has no hover or clicks.
  * Without navigable it has no panning, zooming or controls. Either way it opens once on the picked
  * area when there is one, or else on where most devices are. It frames the picked area it opens
  * on, and a navigable map each area picked, with areaPadding as it is when the map first frames or
@@ -42,7 +43,7 @@ export interface LocationsMapProps {
   source?: GeoIPSource;
   mode: MapMode;
   selected?: Bounds;
-  onSelect?: (area: MapArea) => void;
+  onSelect?: (area: MapArea | null) => void;
   navigable?: boolean;
   areaPadding?: Padding;
 }
