@@ -26,7 +26,7 @@ func newConnectedSession(t *testing.T, tunnel dialer.TunnelDialer) (*Session, *s
 	sess.registered = true
 	t.Cleanup(sess.closingOnAgent.Wait)
 
-	require.NoError(t, sess.connect(newStubContext(), noAuth))
+	require.NoError(t, sess.connect(newStubContext(), credential{}))
 
 	return sess, service
 }

@@ -20,7 +20,7 @@ func presentKey(publicKey gliderssh.PublicKey) presentedKey {
 
 type grant struct {
 	principal models.Principal
-	method    authFunc
+	login     credential
 	redeems   string
 }
 
@@ -30,7 +30,7 @@ func identityGrant(identity *models.SSHIdentity, key presentedKey) grant {
 		principal.Kind = models.PrincipalUser
 	}
 
-	g := grant{principal: principal, method: mintEphemeralSigner, redeems: ""}
+	g := grant{principal: principal, login: gatewayCredential, redeems: ""}
 	if identity.SingleUse {
 		g.redeems = key.fingerprint
 	}
@@ -38,8 +38,8 @@ func identityGrant(identity *models.SSHIdentity, key presentedKey) grant {
 	return g
 }
 
-func (s *Session) legacyGrant(method authFunc) grant {
-	g := grant{principal: models.Principal{Kind: "", ID: ""}, method: method, redeems: ""}
+func (s *Session) legacyGrant(login credential) grant {
+	g := grant{principal: models.Principal{Kind: "", ID: ""}, login: login, redeems: ""}
 	if s.WebUserID != "" {
 		g.principal = models.Principal{Kind: models.PrincipalUser, ID: s.WebUserID}
 	}
