@@ -22,18 +22,23 @@ vi.mock("@/pages/device-map/MapLibreMap", () => ({
     drawnMap.props = props;
 
     return (
-      <button
-        type="button"
-        onClick={() =>
-          props.onSelect?.({
-            bounds: [8.5349, 47.3749, 8.5451, 47.3851],
-            devices: 0,
-            online: 0,
-          })
-        }
-      >
-        Pick Zurich
-      </button>
+      <>
+        <button
+          type="button"
+          onClick={() =>
+            props.onSelect?.({
+              bounds: [8.5349, 47.3749, 8.5451, 47.3851],
+              devices: 0,
+              online: 0,
+            })
+          }
+        >
+          Pick Zurich
+        </button>
+        <button type="button" onClick={() => props.onSelect?.(null)}>
+          Click away
+        </button>
+      </>
     );
   },
 }));
@@ -180,6 +185,20 @@ describe("DeviceMap", () => {
     expect(await screen.findByText("10 devices")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Close area" }));
+
+    expect(screen.getByRole("status", { name: "URL" })).toHaveTextContent(
+      /^\/dashboard\/map$/,
+    );
+    expect(screen.queryByText("This area")).not.toBeInTheDocument();
+  });
+
+  it("drops the picked area on a click away from every marker", async () => {
+    const user = userEvent.setup();
+    serveMap({ located: 10, listed: 13 });
+
+    renderMap(`/dashboard/map?area=${ZURICH_AREA}`);
+    expect(await screen.findByText("10 devices")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Click away" }));
 
     expect(screen.getByRole("status", { name: "URL" })).toHaveTextContent(
       /^\/dashboard\/map$/,

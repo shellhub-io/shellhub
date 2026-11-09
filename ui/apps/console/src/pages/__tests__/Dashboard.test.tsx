@@ -14,18 +14,23 @@ import Dashboard from "../Dashboard";
 vi.mock("@/pages/device-map/MapLibreMap", () => ({
   default: ({ onSelect }: LocationsMapProps) =>
     onSelect ? (
-      <button
-        type="button"
-        onClick={() =>
-          onSelect({
-            bounds: [8.534899999, 47.3749, 8.5451, 47.3851],
-            devices: 9,
-            online: 8,
-          })
-        }
-      >
-        Pick Zurich
-      </button>
+      <>
+        <button
+          type="button"
+          onClick={() =>
+            onSelect({
+              bounds: [8.534899999, 47.3749, 8.5451, 47.3851],
+              devices: 9,
+              online: 8,
+            })
+          }
+        >
+          Pick Zurich
+        </button>
+        <button type="button" onClick={() => onSelect(null)}>
+          Click away
+        </button>
+      </>
     ) : null,
 }));
 
@@ -134,6 +139,18 @@ describe("Dashboard", () => {
 
     expect(screen.getByRole("status", { name: "URL" })).toHaveTextContent(
       "/dashboard/map?area=8.5349,47.3749,8.5451,47.3851",
+    );
+  });
+
+  it("stays on the Dashboard on a click away from every marker", async () => {
+    const user = userEvent.setup();
+    serveDashboard();
+
+    renderPage();
+    await user.click(await screen.findByRole("button", { name: "Click away" }));
+
+    expect(screen.getByRole("status", { name: "URL" })).toHaveTextContent(
+      /^\/dashboard$/,
     );
   });
 

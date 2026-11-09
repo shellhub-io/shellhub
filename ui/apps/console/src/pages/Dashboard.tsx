@@ -159,6 +159,7 @@ export default function Dashboard() {
           source={source}
           mode="all"
           onSelect={(area) => {
+            if (!area) return;
             void navigate(`/dashboard/map?area=${formatBounds(area.bounds)}`);
           }}
         />
