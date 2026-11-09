@@ -97,7 +97,7 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 			return cfg.Features&ReversePortForwardFeature > 0
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			ChannelSession:     gliderssh.DefaultSessionHandler,
+			ChannelSession:     shellOnOpenHandler(gliderssh.DefaultSessionHandler),
 			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
 		},
 	}

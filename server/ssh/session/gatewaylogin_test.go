@@ -20,9 +20,9 @@ func TestVersionSniffer(t *testing.T) {
 		{description: "lines ahead of the version", stream: "hello gateway-login\r\nSSH-2.0-ShellHub-Agent gateway-login\r\n", admits: true},
 		{description: "the comment past the version line", stream: "SSH-2.0-Go\r\n gateway-login\r\n", admits: false},
 		{description: "a version never finished", stream: "SSH-2.0-ShellHub-Agent gateway-login", admits: false},
-		{description: "another word beside the capability", stream: "SSH-2.0-ShellHub-Agent gateway-login other\r\n", admits: true},
-		{description: "a capability inside another word", stream: "SSH-2.0-ShellHub-Agent gateway-login-other\r\n", admits: false},
-		{description: "a capability in the software version", stream: "SSH-2.0-gateway-login\r\n", admits: false},
+		{description: "an agent announcing both", stream: "SSH-2.0-ShellHub-Agent gateway-login shell-on-open\r\n", admits: true},
+		{description: "a capability inside another word", stream: "SSH-2.0-ShellHub-Agent gateway-login-shell-on-open\r\n", admits: false},
+		{description: "a capability in the software version", stream: "SSH-2.0-shell-on-open\r\n", admits: false},
 	}
 
 	for _, tc := range cases {

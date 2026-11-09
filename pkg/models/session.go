@@ -116,6 +116,11 @@ type SessionEvents struct {
 	Items []SessionEvent `json:"items,omitempty"`
 }
 
-// AgentCapabilityGatewayLogin is the word an agent adds to its SSH version comment on a stream
-// whose login secret it can check.
-const AgentCapabilityGatewayLogin = "gateway-login"
+const (
+	// AgentCapabilityGatewayLogin is the word an agent adds to its SSH version comment on a
+	// stream whose login secret it can check.
+	AgentCapabilityGatewayLogin = "gateway-login"
+	// AgentCapabilityShellOnOpen is the word an agent adds to its SSH version comment when it
+	// starts a shell from a session channel's open data.
+	AgentCapabilityShellOnOpen = "shell-on-open"
+)
