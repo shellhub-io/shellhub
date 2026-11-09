@@ -215,9 +215,9 @@ func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			return errors.New("failed to cast the ReadWriteCloser to net.Conn")
 		}
 
-		secret, vouched := headers["login"], headers["vouched"] == "true"
-		if secret != "" || vouched {
-			conn = &server.GatewayLoginConn{Conn: conn, GatewayStream: server.GatewayStream{Secret: secret, Vouched: vouched}}
+		secret, vouched, certificate := headers["login"], headers["vouched"] == "true", headers["hostcert"] == "true"
+		if secret != "" || vouched || certificate {
+			conn = &server.GatewayLoginConn{Conn: conn, GatewayStream: server.GatewayStream{Secret: secret, Vouched: vouched, HostCertificate: certificate}}
 		}
 
 		agent.server.Sessions.Store(id, conn)
