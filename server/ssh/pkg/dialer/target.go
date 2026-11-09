@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/multiformats/go-multistream"
 	log "github.com/sirupsen/logrus"
@@ -22,7 +23,18 @@ type Target interface {
 
 // SSHOpenTarget prepares a connection for initiating a new SSH session
 // with the agent.
-type SSHOpenTarget struct{ SessionID string }
+//
+// On V2 it writes the protocol selection and the session envelope in one go instead of waiting
+// for the agent to confirm the protocol first, saving a round trip to the device. The
+// confirmation is then read with the first read from the returned connection, so an agent that
+// refuses or never answers the selection surfaces there rather than from [TunnelDialer.DialTo].
+type SSHOpenTarget struct {
+	SessionID string
+}
+
+func (t SSHOpenTarget) envelope() map[string]string {
+	return map[string]string{"id": t.SessionID}
+}
 
 func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
@@ -38,18 +50,42 @@ func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version Trans
 	case TransportVersion2:
 		log.Debug("preparing SSH open target for transport version 2")
 
-		if err := multistream.SelectProtoOrFail(ProtoSSHOpen, conn); err != nil {
+		selected := &lazySelection{Conn: conn, lazy: multistream.NewMSSelect(conn, ProtoSSHOpen)}
+		if err := json.NewEncoder(selected).Encode(t.envelope()); err != nil {
 			return nil, err
 		}
-		if err := json.NewEncoder(conn).Encode(map[string]string{"id": t.SessionID}); err != nil {
-			return nil, err
-		}
+
+		return selected, nil
 	default:
 		return nil, fmt.Errorf("unsupported transport version: %d", version)
 	}
 
 	return conn, nil
 }
+
+// Pipelined reports whether conn came from an [SSHOpenTarget] on the V2 transport,
+// whose agent reads the stream with nothing buffered ahead of the session envelope.
+func Pipelined(conn net.Conn) bool {
+	_, ok := conn.(*lazySelection)
+
+	return ok
+}
+
+type lazySelection struct {
+	net.Conn
+	lazy multistream.LazyConn
+}
+
+func (l *lazySelection) Read(p []byte) (int, error)  { return l.lazy.Read(p) }
+func (l *lazySelection) Write(p []byte) (int, error) { return l.lazy.Write(p) }
+
+func (l *lazySelection) Close() error {
+	_ = l.Conn.SetReadDeadline(aLongTimeAgo)
+
+	return l.Conn.Close()
+}
+
+var aLongTimeAgo = time.Unix(1, 0)
 
 // SSHCloseTarget prepares a connection to request closing an existing SSH session.
 type SSHCloseTarget struct{ SessionID string }

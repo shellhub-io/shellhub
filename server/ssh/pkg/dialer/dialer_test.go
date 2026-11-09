@@ -93,8 +93,8 @@ func TestHandshakeFailsAndClosesTheStream(t *testing.T) {
 			},
 		},
 		{
-			description: "ssh open v2 protocol selection the agent never answers",
-			target:      SSHOpenTarget{SessionID: "session"},
+			description: "ssh close v2 protocol selection the agent never answers",
+			target:      SSHCloseTarget{SessionID: "session"},
 			version:     TransportVersion2,
 			ctx: func(t *testing.T) context.Context {
 				t.Helper()
@@ -179,7 +179,7 @@ func TestHandshakeReportsCancellationAsSuch(t *testing.T) {
 
 			defer cancel()
 
-			_, err := handshake(ctx, conn, tc.version, SSHOpenTarget{SessionID: "session"})
+			_, err := handshake(ctx, conn, tc.version, SSHCloseTarget{SessionID: "session"})
 			assert.ErrorIs(t, err, context.Canceled, "the caller must be able to tell a hang-up from a broken agent")
 		})
 	}
@@ -206,7 +206,7 @@ func TestHandshakeHonorsTheEarlierDeadline(t *testing.T) {
 
 	callerDeadline, _ := ctx.Deadline()
 
-	_, err := handshake(ctx, conn, TransportVersion2, SSHOpenTarget{SessionID: "session"})
+	_, err := handshake(ctx, conn, TransportVersion2, SSHCloseTarget{SessionID: "session"})
 	require.Error(t, err)
 
 	first, ok := conn.deadlineAt(0)
