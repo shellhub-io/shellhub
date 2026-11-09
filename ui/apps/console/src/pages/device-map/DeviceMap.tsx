@@ -59,9 +59,9 @@ function Stat({
 
 /**
  * The device map: every accepted device with a known position, clustered on a world map and
- * refreshed every thirty seconds. Picking a cluster or point lists the devices in it. The devices
- * with no position are counted against the device list, which leaves connector containers out as
- * the map does.
+ * refreshed every thirty seconds. Picking a cluster or point lists the devices in it, or opens the
+ * brief of a point's one device. The devices with no position are counted against the device
+ * list, which leaves connector containers out as the map does.
  */
 export default function DeviceMap() {
   const [mode, setMode] = useState<MapMode>("all");
@@ -183,7 +183,7 @@ export default function DeviceMap() {
 
       {area && (
         <AreaDevicesPanel
-          key={area.bounds.join(",")}
+          key={`${area.bounds.join(",")}:${area.devices}`}
           area={area}
           onClose={() => setArea(null)}
         />
