@@ -18,7 +18,7 @@ import (
 
 const (
 	deviceSignerTTL  = time.Minute
-	deviceSignerBits = 4096
+	deviceSignerBits = 2048
 )
 
 type deviceSigner struct {
