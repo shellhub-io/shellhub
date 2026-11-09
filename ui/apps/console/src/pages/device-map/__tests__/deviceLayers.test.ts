@@ -5,8 +5,17 @@ import {
   type StylePropertySpecification,
 } from "@maplibre/maplibre-gl-style-spec";
 import type { ExpressionSpecification } from "maplibre-gl";
-import { mockMapPalette } from "@/tests/factories";
-import { color, label, radius } from "../deviceLayers";
+import type { Feature, Point } from "geojson";
+import type { DeviceLocation } from "@/client";
+import { mockDeviceLocation, mockMapPalette } from "@/tests/factories";
+import {
+  areaOf,
+  color,
+  label,
+  radius,
+  toFeatureCollection,
+} from "../deviceLayers";
+import { pointsBounds } from "../mapModel";
 
 const palette = mockMapPalette();
 
@@ -88,5 +97,52 @@ describe("label", () => {
     { devices: 13_310, text: "13.3k" },
   ])("labels $devices devices as '$text'", ({ devices, text }) => {
     expect(drawn(label("all"), "text-field", { devices, online: 0 })).toBe(text);
+  });
+});
+
+describe("areaOf", () => {
+  const johannesburg = mockDeviceLocation({ longitude: 28.05, latitude: -26.2 });
+  const pretoria = mockDeviceLocation({ longitude: 28.19, latitude: -25.75 });
+  const TILE_DRIFT = 0.02;
+
+  function drawnAway(feature: Feature<Point>): Feature<Point> {
+    const [lng, lat] = feature.geometry.coordinates;
+
+    return {
+      ...feature,
+      geometry: {
+        type: "Point",
+        coordinates: [lng - TILE_DRIFT, lat + TILE_DRIFT],
+      },
+    };
+  }
+
+  function positionsOf(...locations: DeviceLocation[]): [number, number][] {
+    return locations.map(({ longitude, latitude }) => [longitude, latitude]);
+  }
+
+  it("bounds a picked point around its location, not where the tiles drew it", async () => {
+    const [point] = toFeatureCollection([johannesburg]).features;
+    const source = { getClusterLeaves: () => Promise.resolve([]) };
+
+    const area = await areaOf(source, drawnAway(point));
+
+    expect(area.bounds).toEqual(pointsBounds(positionsOf(johannesburg)));
+  });
+
+  it("bounds a picked cluster around its leaves' locations, not where the tiles drew them", async () => {
+    const leaves = toFeatureCollection([johannesburg, pretoria]).features.map(
+      drawnAway,
+    );
+    const source = { getClusterLeaves: () => Promise.resolve(leaves) };
+    const cluster = {
+      properties: { cluster: true, cluster_id: 7, point_count: 2, devices: 2, online: 2 },
+    };
+
+    const area = await areaOf(source, cluster);
+
+    expect(area.bounds).toEqual(
+      pointsBounds(positionsOf(johannesburg, pretoria)),
+    );
   });
 });

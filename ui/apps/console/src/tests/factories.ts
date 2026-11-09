@@ -2,6 +2,7 @@ import type {
   AcceptDevicePairingResponse,
   AccessPolicy,
   Device,
+  DeviceLocation,
   FirewallRulesResponse,
   GetLicenseResponse,
   GetSshApprovalResponses,
@@ -173,6 +174,15 @@ export function mockDevice(overrides: Partial<Device> = {}): Device {
     remote_addr: "1.2.3.4",
     ...overrides,
   };
+}
+
+/**
+ * Builds a map location for a test: one online device at 0,0 unless overridden.
+ */
+export function mockDeviceLocation(
+  overrides: Partial<DeviceLocation> = {},
+): DeviceLocation {
+  return { latitude: 0, longitude: 0, devices: 1, online: 1, ...overrides };
 }
 
 /**
