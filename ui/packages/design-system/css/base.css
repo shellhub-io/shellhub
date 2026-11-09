@@ -14,7 +14,7 @@
     --dialog-backdrop-bg: rgba(0, 0, 0, 0.4);
     --dialog-backdrop-blur: 4px;
     --dialog-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
-    --float-shadow: 0 24px 60px -4px rgba(0, 0, 0, 0.9), 0 10px 24px -4px rgba(0, 0, 0, 0.75);
+    --float-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.55), 0 4px 12px -4px rgba(0, 0, 0, 0.3);
 
     --c-background: 24 25 27;
     --c-surface: 30 33 39;
@@ -33,6 +33,7 @@
   .theme-light {
     --dialog-backdrop-bg: rgba(17, 19, 24, 0.3);
     --dialog-shadow: 0 12px 32px -8px rgba(17, 19, 24, 0.18);
+    --float-shadow: 0 16px 40px -8px rgba(17, 19, 24, 0.16), 0 4px 12px -4px rgba(17, 19, 24, 0.08);
 
     --c-background: 232 234 238;
     --c-surface: 241 242 245;
