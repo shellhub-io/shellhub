@@ -115,3 +115,7 @@ type SessionEvents struct {
 	// when the read failed.
 	Items []SessionEvent `json:"items,omitempty"`
 }
+
+// AgentCapabilityGatewayLogin is the word an agent adds to its SSH version comment on a stream
+// whose login secret it can check.
+const AgentCapabilityGatewayLogin = "gateway-login"

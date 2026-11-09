@@ -72,6 +72,11 @@ func admitsAccount(user string) bool {
 	return !osauth.AccountExpired(user)
 }
 
+// GatewayLogin admits user when the host has the account and it has not expired.
+func (a *Authenticator) GatewayLogin(_ gliderssh.Context, user string) bool {
+	return admitsAccount(user)
+}
+
 // PublicKey handles the server's SSH public key authentication when server is running in host mode.
 func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
 	if !admitsAccount(ctx.User()) {
