@@ -10,6 +10,7 @@ import {
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection, Polygon } from "geojson";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
+import "./mapControls.css";
 import MapTooltip, { type MapHover } from "./MapTooltip";
 import { OUTLINE_FONT, outlineStyle } from "./outlineStyle";
 import {
