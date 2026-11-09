@@ -46,3 +46,7 @@ func (q *quickAcks) afterRead(ctx gliderssh.Context) {
 
 	_ = q.raw.Control(acknowledgeNow)
 }
+
+func acknowledgeNow(fd uintptr) {
+	_ = syscall.SetsockoptInt(int(fd), syscall.IPPROTO_TCP, syscall.TCP_QUICKACK, 1)
+}
