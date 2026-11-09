@@ -15,10 +15,10 @@ const agentVersion = "SSH-2.0-ShellHub-Agent"
 
 func serverVersion(ctx gliderssh.Context) string {
 	if gatewayStream(ctx).Secret != "" {
-		return agentVersion + " " + models.AgentCapabilityGatewayLogin
+		return agentVersion + " " + models.AgentCapabilityGatewayLogin + " " + models.AgentCapabilityShellOnOpen
 	}
 
-	return agentVersion
+	return agentVersion + " " + models.AgentCapabilityShellOnOpen
 }
 
 type gatewayStreamKey struct{}

@@ -126,7 +126,7 @@ func TestServerConfig(t *testing.T) {
 		ctx := newSSHContext("")
 		s.connCallback(ctx, &GatewayLoginConn{GatewayStream: GatewayStream{Secret: "secret"}})
 
-		assert.Equal(t, "SSH-2.0-ShellHub-Agent gateway-login", s.serverConfig(ctx).ServerVersion)
+		assert.Equal(t, "SSH-2.0-ShellHub-Agent gateway-login shell-on-open", s.serverConfig(ctx).ServerVersion)
 	})
 
 	t.Run("does not announce the gateway login on a stream with no secret", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestServerConfig(t *testing.T) {
 		ctx := newSSHContext("")
 		s.connCallback(ctx, &net.TCPConn{})
 
-		assert.Equal(t, "SSH-2.0-ShellHub-Agent", s.serverConfig(ctx).ServerVersion,
+		assert.Equal(t, "SSH-2.0-ShellHub-Agent shell-on-open", s.serverConfig(ctx).ServerVersion,
 			"a V1 stream never carries the secret, so a password the gateway sends would match nothing")
 	})
 }
