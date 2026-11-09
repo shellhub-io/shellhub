@@ -2,7 +2,10 @@ package session
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/rand"
 	"errors"
+	"net"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -219,7 +222,50 @@ func TestKeyAuthMintsTheDeviceKeyForTheSessionDeviceOnTheClientContext(t *testin
 	g, err := AuthPublicKey(newTestSSHKey(t)).Evaluate(sess)
 	require.NoError(t, err)
 
-	require.ErrorIs(t, g.method(ctx, sess, &gossh.ClientConfig{}), context.Canceled)
+	gateway, device := tcpPair(t)
+
+	config := &gossh.ServerConfig{ //nolint:exhaustruct // only the key login matters to this test
+		PublicKeyCallback: func(gossh.ConnMetadata, gossh.PublicKey) (*gossh.Permissions, error) {
+			return nil, errors.New("no key is admitted")
+		},
+	}
+	config.AddHostKey(ed25519Signer(t))
+
+	go func() { _, _, _, _ = gossh.NewServerConn(device, config) }()
+
+	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
+		User:            "user",
+		Auth:            sess.authMethods(ctx, g.login),
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
+	})
+	require.ErrorIs(t, err, context.Canceled)
+}
+
+func TestKeyAuthMintsNoKeyForADeviceThatOffersNoKeyLogin(t *testing.T) {
+	serviceMock := servicemocks.NewMockService(t)
+
+	sess := newTestSession(serviceMock, nil)
+
+	g, err := AuthPublicKey(newTestSSHKey(t)).Evaluate(sess)
+	require.NoError(t, err)
+
+	gateway, device := tcpPair(t)
+
+	config := &gossh.ServerConfig{ //nolint:exhaustruct // only the password login matters to this test
+		PasswordCallback: func(gossh.ConnMetadata, []byte) (*gossh.Permissions, error) {
+			return nil, errors.New("no password is admitted")
+		},
+	}
+	config.AddHostKey(ed25519Signer(t))
+
+	go func() { _, _, _, _ = gossh.NewServerConn(device, config) }()
+
+	_, _, _, err = gossh.NewClientConn(gateway, "device", &gossh.ClientConfig{ //nolint:exhaustruct // only the login matters
+		User:            "user",
+		Auth:            sess.authMethods(t.Context(), g.login),
+		HostKeyCallback: gossh.InsecureIgnoreHostKey(), //nolint:gosec // a loopback test device whose host key is never checked
+	})
+	require.ErrorContains(t, err, "no supported methods remain")
 }
 
 func expectKeyAdmitted(service *servicemocks.MockService) {
@@ -232,4 +278,51 @@ func expectKeyAdmitted(service *servicemocks.MockService) {
 
 func isCancelled(ctx context.Context) bool {
 	return ctx.Err() != nil
+}
+
+func ed25519Signer(t *testing.T) gossh.Signer {
+	t.Helper()
+
+	_, key, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	signer, err := gossh.NewSignerFromKey(key)
+	require.NoError(t, err)
+
+	return signer
+}
+
+func tcpPair(t *testing.T) (net.Conn, net.Conn) {
+	t.Helper()
+
+	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	defer func() { _ = listener.Close() }()
+
+	accepted := make(chan net.Conn, 1)
+
+	go func() {
+		conn, err := listener.Accept()
+		if err != nil {
+			close(accepted)
+
+			return
+		}
+
+		accepted <- conn
+	}()
+
+	server, err := (&net.Dialer{}).DialContext(t.Context(), "tcp", listener.Addr().String())
+	require.NoError(t, err)
+
+	device, ok := <-accepted
+	require.True(t, ok)
+
+	t.Cleanup(func() {
+		_ = server.Close()
+		_ = device.Close()
+	})
+
+	return server, device
 }

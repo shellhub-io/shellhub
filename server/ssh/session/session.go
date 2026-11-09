@@ -604,7 +604,7 @@ func (s *Session) Recorded(seat int) error {
 	})
 }
 
-func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
+func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 	hostKey, err := devicekey.ParsePublicKey(s.Device.PublicKey)
 	if err != nil {
 		log.WithError(err).
@@ -626,10 +626,6 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 			return nil
 		},
 		Timeout: sshconf.ConnectTimeout,
-	}
-
-	if err := authOpt(ctx, s, config); err != nil {
-		return errors.New("fail to generate the authentication information")
 	}
 
 	const Addr = "tcp"
@@ -660,6 +656,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 		return err
 	}
+
+	config.Auth = s.authMethods(ctx, cred)
 
 	conn, chans, reqs, err := gossh.NewClientConn(greeted, Addr, config)
 	if err != nil {
@@ -1202,7 +1200,7 @@ func (s *Session) redeem(ctx context.Context, g grant) error {
 }
 
 func (s *Session) join(ctx gliderssh.Context, g grant) error {
-	if err := s.connect(ctx, g.method); err != nil {
+	if err := s.connect(ctx, g.login); err != nil {
 		return err
 	}
 

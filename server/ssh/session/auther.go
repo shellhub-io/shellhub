@@ -15,24 +15,37 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-type authFunc func(context.Context, *Session, *gossh.ClientConfig) error
+type credential struct {
+	password string
+	gateway  bool
+}
 
-func mintEphemeralSigner(ctx context.Context, session *Session, config *gossh.ClientConfig) error {
-	key, err := session.service.MintDeviceSigner(ctx, models.UID(session.Device.UID))
+var gatewayCredential = credential{password: "", gateway: true}
+
+func (s *Session) mintSigner(ctx context.Context) (gossh.Signer, error) { //nolint:ireturn // gossh.Signer is what x/crypto takes
+	key, err := s.service.MintDeviceSigner(ctx, models.UID(s.Device.UID))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	signer, err := gossh.NewSignerFromKey(key)
-	if err != nil {
-		return err
+	return gossh.NewSignerFromKey(key)
+}
+
+func (s *Session) authMethods(ctx context.Context, cred credential) []gossh.AuthMethod {
+	if !cred.gateway {
+		return []gossh.AuthMethod{gossh.Password(cred.password)}
 	}
 
-	config.Auth = []gossh.AuthMethod{
-		gossh.PublicKeys(signer),
-	}
+	return []gossh.AuthMethod{
+		gossh.PublicKeysCallback(func() ([]gossh.Signer, error) {
+			signer, err := s.mintSigner(ctx)
+			if err != nil {
+				return nil, err
+			}
 
-	return nil
+			return []gossh.Signer{signer}, nil
+		}),
+	}
 }
 
 // Auth is one authentication attempt on a session. The grant a session registers and
@@ -94,7 +107,7 @@ func AuthPublicKey(pk gliderssh.PublicKey) Auth {
 }
 
 func (*publicKeyAuth) Evaluate(session *Session) (grant, error) {
-	return session.legacyGrant(mintEphemeralSigner), nil
+	return session.legacyGrant(gatewayCredential), nil
 }
 
 func (p *publicKeyAuth) Offer(ctx context.Context, session *Session) error {
@@ -146,16 +159,8 @@ func AuthPassword(pwd string) Auth {
 	return &passwordAuth{pwd: pwd}
 }
 
-func (p *passwordAuth) method(_ context.Context, _ *Session, config *gossh.ClientConfig) error {
-	config.Auth = []gossh.AuthMethod{
-		gossh.Password(p.pwd),
-	}
-
-	return nil
-}
-
 func (p *passwordAuth) Evaluate(session *Session) (grant, error) {
-	return session.legacyGrant(p.method), nil
+	return session.legacyGrant(credential{password: p.pwd, gateway: false}), nil
 }
 
 func (*passwordAuth) Offer(context.Context, *Session) error {
@@ -238,7 +243,7 @@ func (a *approvalAuth) approved(session *Session, approver string) (grant, error
 		return grant{}, err
 	}
 
-	return grant{principal: principal, method: mintEphemeralSigner, redeems: ""}, nil
+	return grant{principal: principal, login: gatewayCredential, redeems: ""}, nil
 }
 
 type identityAuth struct {

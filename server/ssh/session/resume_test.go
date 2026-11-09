@@ -1,8 +1,6 @@
 package session
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -29,14 +27,7 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 	pubKey := newTestSSHKey(t)
 	fingerprint := gossh.FingerprintSHA256(pubKey)
 
-	gatewayKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
-
 	serviceMock := servicemocks.NewMockService(t)
-	serviceMock.EXPECT().
-		MintDeviceSigner(mock.Anything, mock.Anything).
-		Return(gatewayKey, nil).
-		Once()
 	serviceMock.EXPECT().
 		ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
 		Return(nil, false, nil).

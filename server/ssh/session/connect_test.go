@@ -1,7 +1,6 @@
 package session
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -9,10 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	gossh "golang.org/x/crypto/ssh"
 )
-
-func noAuth(context.Context, *Session, *gossh.ClientConfig) error { return nil }
 
 // TestConnectBoundsASilentAgent is the reason ConnectTimeout exists.
 //
@@ -37,7 +33,7 @@ func TestConnectBoundsASilentAgent(t *testing.T) {
 
 	start := time.Now() //nolint:forbidigo // a deadline, an elapsed-time measurement, or the clock mock itself
 
-	go func() { done <- sess.connect(newStubContext(), noAuth) }()
+	go func() { done <- sess.connect(newStubContext(), credential{}) }()
 
 	select {
 	case err := <-done:
@@ -64,7 +60,7 @@ func TestConnectWithoutTimeoutNeverGivesUp(t *testing.T) {
 	go func() {
 		defer close(returned)
 
-		done <- sess.connect(newStubContext(), noAuth)
+		done <- sess.connect(newStubContext(), credential{})
 	}()
 
 	select {
@@ -82,7 +78,7 @@ func TestConnectReachesTheAgentThroughTheTunnel(t *testing.T) {
 	agent := dialertest.NewAgent(t)
 	sess := newTestSession(nil, agent)
 
-	require.NoError(t, sess.connect(newStubContext(), noAuth))
+	require.NoError(t, sess.connect(newStubContext(), credential{}))
 
 	channel, _, err := sess.agent.client.OpenChannel("session", nil)
 	require.NoError(t, err, "the session must hold a usable SSH client after connect")
@@ -100,7 +96,7 @@ func TestConnectFailsWhenTheDeviceCannotBeDialled(t *testing.T) {
 	sess := newTestSession(nil, stub)
 	sess.Device.PublicKey = dialertest.NewAgent(t).PublicKey()
 
-	err := sess.connect(newStubContext(), noAuth)
+	err := sess.connect(newStubContext(), credential{})
 
 	require.ErrorIs(t, err, ErrDial, "a device that cannot be reached must fail the login")
 	assert.Nil(t, sess.agent.client, "a failed dial must leave no client behind")
@@ -113,7 +109,7 @@ func TestConnectRefusesAnAgentPresentingAnotherHostKey(t *testing.T) {
 	sess := newTestSession(nil, impostor)
 	sess.Device.PublicKey = dialertest.NewAgent(t).PublicKey()
 
-	err := sess.connect(newStubContext(), noAuth)
+	err := sess.connect(newStubContext(), credential{})
 
 	require.ErrorIs(t, err, ErrHostKey, "an agent presenting a key other than the device's must not be connected to")
 	assert.Nil(t, sess.agent.client, "a refused handshake must leave no client behind")
@@ -129,7 +125,7 @@ func TestConnectRefusesADeviceWithoutAUsableKey(t *testing.T) {
 			sess := newTestSession(nil, agent)
 			sess.Device.PublicKey = key
 
-			require.ErrorIs(t, sess.connect(newStubContext(), noAuth), ErrHostKey)
+			require.ErrorIs(t, sess.connect(newStubContext(), credential{}), ErrHostKey)
 			assert.Empty(t, agent.Dials(), "a device that cannot be verified must not be dialled")
 		})
 	}
