@@ -32,8 +32,13 @@ type APIKeyService interface {
 	// CreateAPIKey creates a new API key for the specified namespace. The key's plaintext is a UUID the
 	// server generates. The optional req.OptRole must be one the user has authority over, which never
 	// includes owner, or it returns ErrRoleForbidden; left out, the key takes the user's role, lowered to
-	// administrator for an owner. Only the plaintext's SHA256 digest is stored. It returns the generated
-	// plaintext, which is the only time it is readable, and an error, if any.
+	// administrator for an owner. Only the plaintext's SHA256 digest is stored, and the response is the
+	// only time the plaintext is readable. It returns ErrForbidden for an empty tenant;
+	// ErrNamespaceNotFound when the namespace cannot be resolved, whatever the store's error;
+	// ErrBadRequest for an expiry other than 30, 60, 90 or 365 days or -1; ErrAPIKeyDuplicated when the
+	// conflict check finds the name or digest taken, and naming the name when a parallel request takes
+	// it before the insert; and the store's error when the conflict check, the insert or the read back
+	// fails. A ctx cancelled or past its deadline fails the step it reaches with that step's error.
 	CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) (res *responses.CreateAPIKey, err error)
 
 	// ListAPIKeys retrieves a list of API keys within the specified tenant ID, each with the role it authenticates
@@ -47,9 +52,11 @@ type APIKeyService interface {
 	// carrying req.TenantID cannot be resolved, whatever the store's error; ErrNamespaceMemberNotFound
 	// when req.UserID is not a member; ErrRoleForbidden when that member lacks APIKeyUpdate or holds
 	// no authority over req.Role; ErrAPIKeyNotFound when no key carries req.CurrentName;
-	// ErrAPIKeyDuplicated when req.Name is taken; and the store's or the cache's error otherwise. An
-	// error from the invalidation means the key may still authenticate with its previous role until
-	// apiKeyCacheTTL lapses, so the caller must not report the update as applied.
+	// ErrAPIKeyDuplicated when req.Name is taken, also when a parallel request takes it between the
+	// conflict check and the update; and the store's or the cache's error otherwise. A ctx cancelled or
+	// past its deadline fails the step it reaches with that step's error. An error from the
+	// invalidation means the key may still authenticate with its previous role until apiKeyCacheTTL
+	// lapses, so the caller must not report the update as applied.
 	UpdateAPIKey(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) (err error)
 
 	// DeleteAPIKey deletes an API key with the provided tenant ID and name, dropping the key's cached
@@ -94,7 +101,12 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	keySum := sha256.Sum256([]byte(plaintext))
 	hashedKey := hex.EncodeToString(keySum[:])
 
-	if conflicts, has, _ := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{Digest: hashedKey, Name: req.Name}); has {
+	conflicts, has, err := s.store.APIKeyConflicts(ctx, sc, &models.APIKeyConflicts{Digest: hashedKey, Name: req.Name})
+	if err != nil {
+		return nil, err
+	}
+
+	if has {
 		return nil, NewErrAPIKeyDuplicated(conflicts)
 	}
 
@@ -107,6 +119,10 @@ func (s *service) CreateAPIKey(ctx context.Context, req *requests.CreateAPIKey) 
 	}
 
 	if _, err := s.store.APIKeyCreate(ctx, data); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return nil, NewErrAPIKeyDuplicated([]string{"name"})
+		}
+
 		return nil, err
 	}
 
@@ -166,7 +182,12 @@ func (s *service) UpdateAPIKey(ctx context.Context, sc scope.Scope, req *request
 	}
 
 	if apiKey.Name != req.Name {
-		if conflicts, has, _ := s.store.APIKeyConflicts(ctx, bounded, &models.APIKeyConflicts{Name: req.Name}); has {
+		conflicts, has, err := s.store.APIKeyConflicts(ctx, bounded, &models.APIKeyConflicts{Name: req.Name})
+		if err != nil {
+			return err
+		}
+
+		if has {
 			return NewErrAPIKeyDuplicated(conflicts)
 		}
 	}
@@ -179,6 +200,10 @@ func (s *service) UpdateAPIKey(ctx context.Context, sc scope.Scope, req *request
 	}
 
 	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return NewErrAPIKeyDuplicated([]string{"name"})
+		}
+
 		return err
 	}
 

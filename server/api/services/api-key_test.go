@@ -216,6 +216,72 @@ func TestCreateAPIKey(t *testing.T) {
 			},
 		},
 		{
+			description: "fails when the conflict check fails",
+			req: &requests.CreateAPIKey{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Role:      "owner",
+				Name:      "dev",
+				ExpiresAt: -1,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
+
+				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
+				hashedKey := hex.EncodeToString(keySum[:])
+
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
+					Return(nil, false, errors.New("error")).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: errors.New("error"),
+			},
+		},
+		{
+			description: "fails when a parallel request takes the name between the check and the insert",
+			req: &requests.CreateAPIKey{
+				TenantID:  "00000000-0000-4000-0000-000000000000",
+				Role:      "owner",
+				Name:      "dev",
+				ExpiresAt: -1,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000"}, nil).
+					Once()
+				uuid.Fix(t, "cdfd3cb0-c44e-4e54-b931-6d57713ad159")
+
+				keySum := sha256.Sum256([]byte("cdfd3cb0-c44e-4e54-b931-6d57713ad159"))
+				hashedKey := hex.EncodeToString(keySum[:])
+
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Digest: hashedKey, Name: "dev"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyCreate", ctx, &models.APIKey{
+						Digest:    hashedKey,
+						Name:      "dev",
+						TenantID:  "00000000-0000-4000-0000-000000000000",
+						Role:      "administrator",
+						ExpiresIn: -1,
+					}).
+					Return("", store.ErrDuplicate).
+					Once()
+			},
+			expected: Expected{
+				res: nil,
+				err: NewErrAPIKeyDuplicated([]string{"name"}),
+			},
+		},
+		{
 			description: "gives an owner who leaves the role out an administrator key",
 			req: &requests.CreateAPIKey{
 				TenantID:  "00000000-0000-4000-0000-000000000000",
@@ -687,6 +753,60 @@ func TestUpdateAPIKey(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("save error"),
+		},
+		{
+			description: "fails when the conflict check fails",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(&models.APIKey{Digest: "existing-id", Name: "dev", TenantID: "00000000-0000-4000-0000-000000000000", Role: "operator"}, nil).
+					Once()
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
+					Return(nil, false, errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
+		},
+		{
+			description: "fails when a parallel request takes the new name between the check and the update",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(&models.APIKey{Digest: "existing-id", Name: "dev", TenantID: "00000000-0000-4000-0000-000000000000", Role: "operator"}, nil).
+					Once()
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, &models.APIKey{Digest: "existing-id", Name: "newName", TenantID: "00000000-0000-4000-0000-000000000000", Role: "administrator"}).
+					Return(store.ErrDuplicate).
+					Once()
+			},
+			expected: NewErrAPIKeyDuplicated([]string{"name"}),
 		},
 		{
 			description: "succeeds",
