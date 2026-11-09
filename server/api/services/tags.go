@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -65,7 +66,8 @@ type TagsService interface {
 	// It returns [ErrForbidden] for an empty tenant. Any failure resolving the namespace yields
 	// [ErrNamespaceNotFound] and any failure resolving the tag by name yields [ErrTagNameNotFound].
 	// [ErrDuplicateTagName], carrying the conflicting field name(s), is returned whenever the conflict
-	// check reports the new name taken, even alongside a store failure. Any other failure in the
+	// check reports the new name taken, even alongside a store failure, and when the update finds it
+	// taken by a rename or create that ran between the check and the update. Any other failure in the
 	// conflict check, the update, the read back or the transaction itself is returned unchanged. The
 	// rename and the read back run in one transaction, so a failed read back undoes the rename. The tag
 	// is nil whenever the error is not.
@@ -229,6 +231,10 @@ func (s *service) updateTag(ctx context.Context, req *requests.UpdateTag) (*mode
 	}
 
 	if err := s.store.TagUpdate(ctx, tag); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return nil, NewErrTagDuplicated([]string{"name"}, err)
+		}
+
 		return nil, err
 	}
 
