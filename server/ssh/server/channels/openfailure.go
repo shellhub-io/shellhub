@@ -14,6 +14,12 @@ func denyRequest(logger *log.Entry, req *gossh.Request) {
 	}
 }
 
+func acknowledge(logger *log.Entry, req *gossh.Request) {
+	if err := req.Reply(true, nil); err != nil {
+		logger.WithError(err).Error("failed to acknowledge the channel request")
+	}
+}
+
 func openFailureReason(err error) gossh.RejectionReason {
 	if openErr, ok := errors.AsType[*gossh.OpenChannelError](err); ok {
 		return openErr.Reason
