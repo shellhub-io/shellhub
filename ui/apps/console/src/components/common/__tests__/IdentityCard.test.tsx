@@ -1,14 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-
-import { ClipboardProvider } from "../ClipboardProvider";
+import { createTestWrapper } from "@/tests/wrapper";
 import IdentityCard from "../IdentityCard";
 
 function renderCard(props: Partial<Parameters<typeof IdentityCard>[0]> = {}) {
   return render(
-    <ClipboardProvider>
-      <IdentityCard uid="abc-def-123" mac="aa:bb:cc:dd" remoteAddr="192.168.1.1" {...props} />
-    </ClipboardProvider>,
+    <IdentityCard uid="abc-def-123" mac="aa:bb:cc:dd" remoteAddr="192.168.1.1" {...props} />,
+    { wrapper: createTestWrapper() },
   );
 }
 

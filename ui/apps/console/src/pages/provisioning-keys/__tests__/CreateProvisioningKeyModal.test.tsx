@@ -6,7 +6,6 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import CreateProvisioningKeyModal from "../CreateProvisioningKeyModal";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 
 vi.mock("@/components/common/Modal", async () => ({
   default: (await import("@/tests/mocks")).MockModal,
@@ -17,9 +16,7 @@ const GENERATED_KEY = "da5132eb-3422-4aca-bb7f-07988e04a636";
 async function createKey() {
   const user = userEvent.setup();
   render(
-    <ClipboardProvider>
-      <CreateProvisioningKeyModal open onClose={vi.fn()} />
-    </ClipboardProvider>,
+    <CreateProvisioningKeyModal open onClose={vi.fn()} />,
     { wrapper: createTestWrapper() },
   );
 

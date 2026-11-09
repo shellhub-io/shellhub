@@ -7,7 +7,6 @@ import { server } from "@/tests/msw";
 import { defaultHandlers } from "@/tests/handlers";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { createTestWrapper } from "@/tests/wrapper";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 
 vi.mock("@/components/common/Modal", async () => ({
   default: (await import("@/tests/mocks")).MockModal,
@@ -40,9 +39,7 @@ describe("GenerateKeyModal", () => {
     const user = userEvent.setup();
 
     render(
-      <ClipboardProvider>
-        <GenerateKeyModal open onClose={vi.fn()} />
-      </ClipboardProvider>,
+      <GenerateKeyModal open onClose={vi.fn()} />,
       { wrapper: createTestWrapper() },
     );
 

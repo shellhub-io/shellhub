@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { createTestWrapper } from "@/tests/wrapper";
 import AdminAuthentication from "../Authentication";
 
 const localSpy = vi.fn();
@@ -24,7 +25,7 @@ function setSettings(settings: ReturnType<typeof mockSettings>) {
 }
 
 function renderPage() {
-  return render(<AdminAuthentication />);
+  return render(<AdminAuthentication />, { wrapper: createTestWrapper() });
 }
 
 async function settlePendingLoad() {

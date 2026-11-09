@@ -7,7 +7,6 @@ import { jsonWithTotal, server } from "@/tests/msw";
 import SSHIdentities from "../index";
 import SSHApproval from "@/pages/SSHApproval";
 import type { SshIdentity } from "@/client";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSshApproval } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -46,9 +45,7 @@ function renderList(identities: SshIdentity[]) {
 
   return render(
     <MemoryRouter>
-      <ClipboardProvider>
-        <SSHIdentities />
-      </ClipboardProvider>
+      <SSHIdentities />
     </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );
@@ -68,13 +65,11 @@ async function approveFirstKey(user: UserEvent, confirmationCode: string) {
     }),
   );
   render(
-    <ClipboardProvider>
-      <Routes>
-        <Route path="/ssh-identities" element={<SSHIdentities />}>
-          <Route path="new/:code" element={<SSHApproval flow="new" />} />
-        </Route>
-      </Routes>
-    </ClipboardProvider>,
+    <Routes>
+      <Route path="/ssh-identities" element={<SSHIdentities />}>
+        <Route path="new/:code" element={<SSHApproval flow="new" />} />
+      </Route>
+    </Routes>,
     {
       wrapper: createTestWrapper({
         initialEntries: ["/ssh-identities/new/WXYZ2K7Q"],

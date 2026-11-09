@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockProvisioningKey } from "@/tests/factories";
@@ -12,9 +11,7 @@ import Fleet from "../Fleet";
 
 function renderPage() {
   return render(
-    <ClipboardProvider>
-      <Fleet />
-    </ClipboardProvider>,
+    <Fleet />,
     {
       wrapper: createTestWrapper({
         initialEntries: ["/devices/add/fleet"],

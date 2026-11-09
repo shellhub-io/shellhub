@@ -6,7 +6,6 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import InstanceApiKeys from "../InstanceApiKeys";
 import type { InstanceApiKey } from "@/client";
 import { createTestWrapper } from "@/tests/wrapper";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { useAuthStore } from "@/stores/authStore";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -45,9 +44,7 @@ beforeEach(() => {
 
 function renderPage() {
   return render(
-    <ClipboardProvider>
-      <InstanceApiKeys />
-    </ClipboardProvider>,
+    <InstanceApiKeys />,
     {
       wrapper: createTestWrapper({
         initialEntries: ["/admin/instance-api-keys"],

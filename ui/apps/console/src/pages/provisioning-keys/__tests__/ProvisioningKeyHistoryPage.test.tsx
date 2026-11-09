@@ -12,7 +12,6 @@ import {
 } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { fullText } from "@/tests/fullText";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import ProvisioningKeyHistoryPage from "../ProvisioningKeyHistoryPage";
 
 let reveals = 0;
@@ -34,14 +33,12 @@ function renderPage(
     }),
   );
   return render(
-    <ClipboardProvider>
-      <Routes>
-        <Route
-          path="/devices/add/fleet/:id/activity"
-          element={<ProvisioningKeyHistoryPage />}
-        />
-      </Routes>
-    </ClipboardProvider>,
+    <Routes>
+      <Route
+        path="/devices/add/fleet/:id/activity"
+        element={<ProvisioningKeyHistoryPage />}
+      />
+    </Routes>,
     {
       wrapper: createTestWrapper({
         initialEntries: [`/devices/add/fleet/${key.id}/activity`],

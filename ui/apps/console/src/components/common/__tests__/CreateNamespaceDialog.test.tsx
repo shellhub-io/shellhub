@@ -6,7 +6,6 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import { getConfig, defaultConfig } from "@/env";
-import { ClipboardProvider } from "../ClipboardProvider";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
 
 const mockGetConfig = vi.mocked(getConfig);
@@ -30,9 +29,7 @@ function renderDialog(open: boolean, onClose = vi.fn()) {
   return {
     onClose,
     ...render(
-      <ClipboardProvider>
-        <CreateNamespaceDialog open={open} onClose={onClose} />
-      </ClipboardProvider>,
+      <CreateNamespaceDialog open={open} onClose={onClose} />,
       { wrapper: createTestWrapper({ initialEntries: ["/"] }) },
     ),
   };

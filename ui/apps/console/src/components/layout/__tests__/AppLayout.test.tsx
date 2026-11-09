@@ -7,7 +7,6 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { getConfig, defaultConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
 import AppLayout from "../AppLayout";
@@ -71,9 +70,7 @@ beforeEach(() => {
 
 function renderLayout(path = "/") {
   return render(
-    <ClipboardProvider>
-      <AppLayout />
-    </ClipboardProvider>,
+    <AppLayout />,
     { wrapper: createTestWrapper({ initialEntries: [path] }) },
   );
 }

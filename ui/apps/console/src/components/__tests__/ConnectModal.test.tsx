@@ -8,7 +8,6 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { setEdition } from "@/tests/edition";
 import { mockDevice, mockNamespace } from "@/tests/factories";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import ConnectModal from "@/components/ConnectModal";
 
 vi.mock("@/utils/recordings", async (importOriginal) => ({
@@ -39,15 +38,13 @@ function serveConnectApi(legacy: boolean, sessionRecord = false) {
 
 function renderModal(sshid = "dev.rustagent@localhost") {
   return render(
-    <ClipboardProvider>
-      <ConnectModal
-        open
-        onClose={vi.fn()}
-        deviceUid="dev-1"
-        deviceName="rustagent"
-        sshid={sshid}
-      />
-    </ClipboardProvider>,
+    <ConnectModal
+      open
+      onClose={vi.fn()}
+      deviceUid="dev-1"
+      deviceName="rustagent"
+      sshid={sshid}
+    />,
     { wrapper: createTestWrapper() },
   );
 }

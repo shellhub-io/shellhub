@@ -5,14 +5,11 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockNamespace } from "@/tests/factories";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import SshidCard from "../SshidCard";
 
 function renderCard() {
   render(
-    <ClipboardProvider>
-      <SshidCard uid="abc" name="zurich-1" />
-    </ClipboardProvider>,
+    <SshidCard uid="abc" name="zurich-1" />,
     { wrapper: createTestWrapper() },
   );
 }

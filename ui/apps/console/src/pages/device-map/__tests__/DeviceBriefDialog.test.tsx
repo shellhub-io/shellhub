@@ -7,17 +7,16 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockDevice, mockNamespace } from "@/tests/factories";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { useTerminalStore } from "@/stores/terminalStore";
 import TerminalManager from "@/components/terminal/TerminalManager";
 import DeviceBriefDialog from "../DeviceBriefDialog";
 
 function renderDialog(device: Device, onClose = vi.fn()) {
   render(
-    <ClipboardProvider>
+    <>
       <DeviceBriefDialog device={device} onClose={onClose} />
       <TerminalManager />
-    </ClipboardProvider>,
+    </>,
     { wrapper: createTestWrapper({ initialEntries: ["/dashboard/map"] }) },
   );
   return onClose;

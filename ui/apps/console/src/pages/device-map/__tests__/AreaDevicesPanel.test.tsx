@@ -10,7 +10,6 @@ import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockDevice } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
 import { decodeB64url } from "@/tests/decodeB64url";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import AreaDevicesPanel from "../AreaDevicesPanel";
 import type { MapArea } from "../mapModel";
 
@@ -95,17 +94,12 @@ function serveDevices(devices: Device[]) {
 }
 
 function renderPanel(picked = area, queryClient = createTestQueryClient()) {
-  return render(
-    <ClipboardProvider>
-      <AreaDevicesPanel area={picked} onClose={() => {}} />
-    </ClipboardProvider>,
-    {
-      wrapper: createTestWrapper({
-        queryClient,
-        initialEntries: ["/dashboard/map"],
-      }),
-    },
-  );
+  return render(<AreaDevicesPanel area={picked} onClose={() => {}} />, {
+    wrapper: createTestWrapper({
+      queryClient,
+      initialEntries: ["/dashboard/map"],
+    }),
+  });
 }
 
 beforeEach(() => {
