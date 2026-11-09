@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeftIcon, MapIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useQuery } from "@tanstack/react-query";
@@ -10,10 +10,12 @@ import { paginatedQueryOptions } from "@/api/pagination";
 import AreaDevicesPanel from "./AreaDevicesPanel";
 import LocationsMap from "./LocationsMap";
 import {
+  areaWithin,
   compactCount,
+  formatBounds,
   modeTotal,
   ONLINE_COLOR_STOPS,
-  type MapArea,
+  parseBounds,
   type MapMode,
 } from "./mapModel";
 
@@ -60,14 +62,20 @@ function Stat({
 /**
  * The device map: every accepted device with a known position, clustered on a world map and
  * refreshed every thirty seconds. Picking a cluster or point lists the devices in it, or opens the
- * brief of a point's one device. The devices with no position are counted against the device
+ * brief of a point's one device. The area picked lives in the URL as ?area=west,south,east,north,
+ * so a link or a reload opens the map on it once a read of the locations has succeeded; a value
+ * that does not parse is ignored. The devices with no position are counted against the device
  * list, which leaves connector containers out as the map does.
  */
 export default function DeviceMap() {
   const [mode, setMode] = useState<MapMode>("all");
-  const [area, setArea] = useState<MapArea | null>(null);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const { locations, source, isLoading, error } = useDeviceLocations();
+  const { locations, source, isLoading, read, error } =
+    useDeviceLocations();
+  const picked = parseBounds(searchParams.get("area"));
+  const area = picked && read ? areaWithin(locations, picked) : null;
   const { data: listed } = useQuery(
     paginatedQueryOptions(getDevices, getDevicesQueryKey, {
       query: { status: "accepted", page: 1, per_page: 1 },
@@ -85,7 +93,13 @@ export default function DeviceMap() {
         source={source}
         mode={mode}
         selected={area?.bounds}
-        onSelect={setArea}
+        onSelect={(selected) => {
+          void navigate(
+            { search: `?area=${formatBounds(selected.bounds)}` },
+            { replace: true },
+          );
+        }}
+        navigable
       />
 
       <section className="absolute left-4 top-4 z-10 w-72 rounded-xl border border-border bg-surface/95 p-4 shadow-float backdrop-blur">
@@ -183,9 +197,11 @@ export default function DeviceMap() {
 
       {area && (
         <AreaDevicesPanel
-          key={`${area.bounds.join(",")}:${area.devices}`}
+          key={area.bounds.join(",")}
           area={area}
-          onClose={() => setArea(null)}
+          onClose={() => {
+            void navigate({ search: "" }, { replace: true });
+          }}
         />
       )}
     </div>

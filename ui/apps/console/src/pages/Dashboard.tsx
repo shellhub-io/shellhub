@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Squares2X2Icon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Card } from "@shellhub/design-system/primitives";
@@ -10,6 +10,7 @@ import CopyButton from "@/components/common/CopyButton";
 import RecentSessionsTable from "@/components/sessions/RecentSessionsTable";
 import { formatCount } from "@/utils/count";
 import LocationsMap from "./device-map/LocationsMap";
+import { formatBounds } from "./device-map/mapModel";
 
 interface Figure {
   label: string;
@@ -86,9 +87,10 @@ function FigureStrip({
 
 /**
  * The namespace dashboard: the device counts laid over a map of where the devices are, and the
- * recent sessions.
+ * recent sessions. Picking a point or cluster on the map opens the full map on it.
  */
 export default function Dashboard() {
+  const navigate = useNavigate();
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
   const { namespace: currentNamespace } = useNamespace(tenantId);
   const { stats, isLoading: statsLoading } = useStats();
@@ -152,7 +154,14 @@ export default function Dashboard() {
       </PageHeader>
 
       <section className="relative mb-10 h-[26rem] overflow-hidden rounded-xl border border-border bg-card animate-slide-up">
-        <LocationsMap locations={locations} source={source} mode="all" />
+        <LocationsMap
+          locations={locations}
+          source={source}
+          mode="all"
+          onSelect={(area) => {
+            void navigate(`/dashboard/map?area=${formatBounds(area.bounds)}`);
+          }}
+        />
         <FigureStrip figures={figures} mapAvailable={mapAvailable} />
         {mapNotice && (
           <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-border bg-surface/95 px-4 py-1.5 text-xs text-text-secondary shadow-float backdrop-blur">

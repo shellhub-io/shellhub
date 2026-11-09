@@ -30,8 +30,9 @@ const LOCATION_HALF_STEP = 0.5 * 10 ** -SERVER_ROUNDING_DECIMALS + EDGE_MARGIN;
 
 /**
  * What every map backend takes: the locations, the GeoIP database that placed them, which devices to count, the area picked, and
- * onSelect for a click on a point or cluster. Without onSelect the map is a still picture with no
- * hover, panning, zooming or controls.
+ * onSelect for a click on a point or cluster. Without onSelect the map has no hover or clicks.
+ * Without navigable it has no panning, zooming or controls. Either way it opens once on the picked
+ * area when there is one, or else on where most devices are.
  */
 export interface LocationsMapProps {
   locations: DeviceLocation[];
@@ -39,6 +40,7 @@ export interface LocationsMapProps {
   mode: MapMode;
   selected?: Bounds;
   onSelect?: (area: MapArea) => void;
+  navigable?: boolean;
 }
 
 /**
@@ -261,6 +263,60 @@ export function pointsBounds(points: [number, number][]): Bounds {
     east + LOCATION_HALF_STEP,
     north + LOCATION_HALF_STEP,
   ];
+}
+
+const BOUNDS_DECIMALS = 4;
+
+/**
+ * Bounds as the area URL parameter carries them: west, south, east and north joined by commas,
+ * each rounded to four decimals. Rounding moves an edge by less than the margin pointsBounds
+ * leaves around a location, so the bounds still hold the locations they were drawn around.
+ */
+export function formatBounds(bounds: Bounds): string {
+  return bounds.map((edge) => Number(edge.toFixed(BOUNDS_DECIMALS))).join(",");
+}
+
+/**
+ * The bounds an area URL parameter carries, or undefined when value is missing, holds other than
+ * four numbers, has its west not before its east or its south not below its north, or has a
+ * latitude outside -90 to 90, which MapLibre throws on when it frames the bounds.
+ */
+export function parseBounds(value: string | null): Bounds | undefined {
+  const edges = value
+    ?.split(",")
+    .map((edge) => (edge.trim() === "" ? NaN : Number(edge)));
+  if (edges?.length !== 4 || !edges.every(Number.isFinite)) return undefined;
+
+  const [west, south, east, north] = edges;
+
+  const ordered = west < east && south < north;
+  const onEarth = south >= -90 && north <= 90;
+
+  return ordered && onEarth ? [west, south, east, north] : undefined;
+}
+
+/**
+ * The area of bounds over locations: the devices of every location strictly inside bounds, the
+ * same locations boundsFilter lists.
+ */
+export function areaWithin(
+  locations: DeviceLocation[],
+  bounds: Bounds,
+): MapArea {
+  const [west, south, east, north] = bounds;
+  const inside = locations.filter(
+    ({ latitude, longitude }) =>
+      latitude > south &&
+      latitude < north &&
+      longitude > west &&
+      longitude < east,
+  );
+
+  return {
+    bounds,
+    devices: modeTotal(inside, "all"),
+    online: modeTotal(inside, "online"),
+  };
 }
 
 /**

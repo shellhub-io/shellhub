@@ -25,8 +25,8 @@ interface AreaDevicesPanelProps {
  * The devices inside the area picked on the map, read by cursor as the list scrolls, each opening
  * a brief of the device over the map. An area that holds one device opens that device's brief
  * straight away, unless its first page holds other than one device or cannot be read, when the
- * list shows as for any area. That choice holds for the life of the panel, whatever a later read
- * of the area returns.
+ * list shows as for any area. That choice is made from the counts the panel mounts with and holds
+ * for the life of the panel, whatever later counts or a later read of the area return.
  */
 export default function AreaDevicesPanel({
   area,
@@ -75,12 +75,11 @@ export default function AreaDevicesPanel({
   );
 
   const devices = data?.pages.flatMap((page) => page.devices) ?? [];
-  const holdsOne = area.devices === 1;
   const [pointView, setPointView] = useState<"choosing" | "list" | Device>(
-    "choosing",
+    area.devices === 1 ? "choosing" : "list",
   );
 
-  const choosingBrief = holdsOne && pointView === "choosing";
+  const choosingBrief = pointView === "choosing";
 
   if (choosingBrief && !isPending) {
     const firstPage = data?.pages[0].devices;

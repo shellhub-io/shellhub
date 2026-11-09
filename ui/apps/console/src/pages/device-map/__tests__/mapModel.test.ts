@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { DeviceLocation } from "@/client";
 import {
+  areaWithin,
   boundsFilter,
+  formatBounds,
   framingBounds,
   locationsBounds,
   mapBackend,
+  parseBounds,
+  pointsBounds,
   worldSpanZoom,
 } from "../mapModel";
 
@@ -121,5 +125,54 @@ describe("worldSpanZoom", () => {
     expect(worldSpanZoom(512)).toBe(0);
     expect(worldSpanZoom(1024)).toBe(1);
     expect(worldSpanZoom(2048)).toBe(2);
+  });
+});
+
+describe("formatBounds", () => {
+  it("writes bounds that parse back to bounds still holding their locations", () => {
+    const locations = [at(-23.55, -46.63), at(-22.91, -43.17)];
+    const bounds = pointsBounds(
+      locations.map(({ longitude, latitude }) => [longitude, latitude]),
+    );
+
+    const parsed = parseBounds(formatBounds(bounds)) ?? [0, 0, 0, 0];
+
+    expect(areaWithin(locations, parsed).devices).toBe(2);
+  });
+});
+
+describe("parseBounds", () => {
+  it("reads west, south, east and north", () => {
+    expect(parseBounds("-46.64,-23.56,-46.62,-23.54")).toEqual([
+      -46.64, -23.56, -46.62, -23.54,
+    ]);
+  });
+
+  it.each([
+    null,
+    "",
+    "abc",
+    "1,2,3",
+    "1,2,3,4,5",
+    "1,,3,4",
+    "1,2,x,4",
+    "10,2,5,4",
+    "1,20,3,4",
+    "1,2,Infinity,4",
+    "1,2,3,100",
+    "1,-100,3,4",
+  ])("ignores %j", (value) => {
+    expect(parseBounds(value)).toBeUndefined();
+  });
+});
+
+describe("areaWithin", () => {
+  it("counts the devices of the locations strictly inside the bounds", () => {
+    const area = areaWithin(
+      [at(10, 10, 3, 1), at(11, 11, 2, 2), at(30, 30, 5), at(12, 10)],
+      [9, 9, 12, 12],
+    );
+
+    expect(area).toEqual({ bounds: [9, 9, 12, 12], devices: 5, online: 3 });
   });
 });

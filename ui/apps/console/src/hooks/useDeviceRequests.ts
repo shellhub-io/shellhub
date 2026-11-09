@@ -56,7 +56,9 @@ function geoipSourceOf(response: Response): GeoIPSource | undefined {
  * map credits. locations is empty and source undefined until the first read succeeds. A failed
  * read keeps the last successful locations and source and sets error, so a caller that must not
  * act on stale positions checks error, not only locations. source is also undefined when the
- * server names no database.
+ * server names no database. read is true while a successful read is cached: false while the first
+ * read waits for the network or after it fails, when isLoading is false, and again after entering
+ * another namespace drops the cache, until that namespace's first read succeeds.
  */
 export function useDeviceLocations() {
   const result = useQuery({
@@ -76,6 +78,7 @@ export function useDeviceLocations() {
     locations: result.data?.locations ?? [],
     source: result.data?.source,
     isLoading: result.isLoading,
+    read: result.data !== undefined,
     error: result.error,
   };
 }
