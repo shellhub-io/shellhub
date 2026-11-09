@@ -161,6 +161,8 @@ type Session struct {
 
 	agentLogin string
 
+	updatingRecord sync.Mutex
+
 	registered bool
 	principal  models.Principal
 
@@ -492,6 +494,9 @@ func (s *Session) namespaceScope() scope.Scope {
 func (s *Session) authenticate(ctx context.Context) error {
 	value := true
 
+	s.updatingRecord.Lock()
+	defer s.updatingRecord.Unlock()
+
 	return s.service.UpdateSession(ctx, s.namespaceScope(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Authenticated: &value,
 	})
@@ -521,6 +526,9 @@ func (s *Session) Recorded(seat int) error {
 	if seat, ok := s.seats.Get(seat); !ok || !seat.HasPty {
 		return ErrRecordingNoPty
 	}
+
+	s.updatingRecord.Lock()
+	defer s.updatingRecord.Unlock()
 
 	return s.service.UpdateSession(context.Background(), s.namespaceScope(), models.UID(s.UID), models.SessionUpdate{ //nolint:exhaustruct
 		Recorded: &value,
@@ -781,8 +789,14 @@ func groupCode(code string) string {
 // ErrAccessDenied. Once registered, an attempt must evaluate to the principal the session
 // registered as, or it returns ErrInvalidSessionState without reaching the device; one that
 // would need an approval returns ErrInvalidSessionState too. Otherwise it returns Evaluate's
-// error, the redemption's, the registration's, the connection's, or ErrInvalidSessionState
-// from a state that cannot authenticate.
+// error, the redemption's, the registration's, the connection's, ErrClientClosing when the
+// session finished during the login, or ErrInvalidSessionState from a state that cannot
+// authenticate.
+//
+// A gateway login on a warming connection to a non-legacy device returns nil before the device
+// accepts it. A refusal then closes the client's connection and reaches NewAgentChannel,
+// ReopenAgentChannel, DialAgent, ForwardAgent and [AgentChannel.OpenFailure] as ErrDeviceLogin,
+// or ErrClientClosing. A failure to record that session as authenticated is only logged.
 func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	sess, state := ObtainSession(ctx)
 
@@ -885,7 +899,9 @@ func (s *Session) join(ctx gliderssh.Context, g grant) error {
 		return err
 	}
 
-	if err := s.authenticate(ctx); err != nil {
+	if s.agent.ready != nil {
+		go s.authenticateOnceAttached(ctx)
+	} else if err := s.authenticate(ctx); err != nil {
 		return err
 	}
 
