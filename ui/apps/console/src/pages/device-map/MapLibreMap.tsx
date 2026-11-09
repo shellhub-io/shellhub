@@ -14,7 +14,6 @@ import "./mapControls.css";
 import MapTooltip, { type MapHover } from "./MapTooltip";
 import { OUTLINE_FONT, outlineStyle } from "./outlineStyle";
 import {
-  AREA_PADDING,
   CLUSTER_MAX_ZOOM,
   CLUSTER_RADIUS,
   FULL_PADDING,
@@ -22,6 +21,7 @@ import {
   locationsBounds,
   MAP_MAX_ZOOM,
   modeTotal,
+  paddingWithin,
   STILL_PADDING,
   readPalette,
   worldSpanZoom,
@@ -30,6 +30,7 @@ import {
   type MapBackend,
   type MapMode,
   type MapPalette,
+  type Padding,
 } from "./mapModel";
 import {
   areaOf,
@@ -150,6 +151,26 @@ function addLayers(map: MapLibre, palette: MapPalette, font: string[]) {
   });
 }
 
+function frame(
+  map: MapLibre,
+  [west, south, east, north]: Bounds,
+  padding: Padding,
+  duration: number,
+) {
+  const { clientWidth, clientHeight } = map.getContainer();
+  map.fitBounds(
+    [
+      [west, south],
+      [east, north],
+    ],
+    {
+      padding: paddingWithin(padding, clientWidth, clientHeight),
+      maxZoom: MAP_MAX_ZOOM,
+      duration,
+    },
+  );
+}
+
 function collapseAttribution(map: MapLibre) {
   const attribution = map
     .getContainer()
@@ -169,6 +190,7 @@ export default function MapLibreMap({
   selected,
   onSelect,
   navigable = false,
+  areaPadding = FULL_PADDING,
   backend,
 }: MapLibreMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -176,6 +198,7 @@ export default function MapLibreMap({
   const paletteRef = useRef<MapPalette | null>(null);
   const framedRef = useRef(false);
   const onSelectRef = useRef(onSelect);
+  const areaPaddingRef = useRef(areaPadding);
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<MapHover | null>(null);
   const clickable = onSelect !== undefined;
@@ -184,6 +207,7 @@ export default function MapLibreMap({
 
   useEffect(() => {
     onSelectRef.current = onSelect;
+    areaPaddingRef.current = areaPadding;
   });
 
   useEffect(() => {
@@ -270,18 +294,7 @@ export default function MapLibreMap({
 
         void areaOf(source, feature).then((area) => {
           if (navigable) {
-            const [west, south, east, north] = area.bounds;
-            map.fitBounds(
-              [
-                [west, south],
-                [east, north],
-              ],
-              {
-                padding: AREA_PADDING,
-                maxZoom: MAP_MAX_ZOOM,
-                duration: 700,
-              },
-            );
+            frame(map, area.bounds, areaPaddingRef.current, 700);
           }
           setHover(null);
           onSelectRef.current?.(area);
@@ -315,19 +328,8 @@ export default function MapLibreMap({
     if (!bounds) return;
 
     framedRef.current = true;
-    const [west, south, east, north] = bounds;
     const padding = navigable ? FULL_PADDING : STILL_PADDING;
-    map.fitBounds(
-      [
-        [west, south],
-        [east, north],
-      ],
-      {
-        padding: selected ? AREA_PADDING : padding,
-        maxZoom: MAP_MAX_ZOOM,
-        duration: 0,
-      },
-    );
+    frame(map, bounds, selected ? areaPaddingRef.current : padding, 0);
   }, [ready, locations, selected, navigable]);
 
   useEffect(() => {
