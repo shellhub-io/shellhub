@@ -1,13 +1,13 @@
 import type { ComponentProps } from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
+import { createTestWrapper } from "@/tests/wrapper";
 import InstallStep from "../InstallStep";
 
 const { origin } = window.location;
 
 const renderInstallStep = (props: ComponentProps<typeof InstallStep> = {}) =>
-  render(<InstallStep {...props} />, { wrapper: ClipboardProvider });
+  render(<InstallStep {...props} />, { wrapper: createTestWrapper() });
 
 describe("InstallStep", () => {
   it.each([

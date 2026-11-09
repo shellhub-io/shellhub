@@ -6,7 +6,6 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockLegacyNamespace, mockNamespace } from "@/tests/factories";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import { useAuthStore } from "@/stores/authStore";
 import Interactive from "../Interactive";
@@ -24,10 +23,10 @@ function serveNamespace(legacy: boolean) {
 
 function renderPage() {
   return render(
-    <ClipboardProvider>
+    <>
       <Interactive />
       <NamespaceModeProbe />
-    </ClipboardProvider>,
+    </>,
     { wrapper: createTestWrapper({ initialEntries: ["/devices/add"] }) },
   );
 }

@@ -7,14 +7,13 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { mockNamespace } from "@/tests/factories";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useWorkspaceTabsStore } from "@/stores/workspaceTabsStore";
 import TerminalManager from "../TerminalManager";
 
 function renderManager(queryClient = createTestQueryClient()) {
   return render(
-    <ClipboardProvider>
+    <>
       <Routes>
         <Route
           path="/devices"
@@ -25,7 +24,7 @@ function renderManager(queryClient = createTestQueryClient()) {
         <Route path="*" element={null} />
       </Routes>
       <TerminalManager />
-    </ClipboardProvider>,
+    </>,
     {
       wrapper: createTestWrapper({
         initialEntries: ["/devices"],

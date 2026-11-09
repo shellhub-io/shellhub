@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse, type JsonBodyType } from "msw";
 import { server } from "@/tests/msw";
 import AdminLicense from "../License";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { setEdition } from "@/tests/edition";
@@ -52,11 +51,9 @@ function setLicense(data: JsonBodyType) {
 
 function renderPage() {
   const result = render(
-    <ClipboardProvider>
-      <MemoryRouter>
-        <AdminLicense />
-      </MemoryRouter>
-    </ClipboardProvider>,
+    <MemoryRouter>
+      <AdminLicense />
+    </MemoryRouter>,
     { wrapper: createTestWrapper() },
   );
   const fileInput = () =>

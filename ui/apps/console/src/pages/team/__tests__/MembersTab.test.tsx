@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { ClipboardProvider } from "@/components/common/ClipboardProvider";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockMembershipInvitation } from "@/tests/factories";
@@ -42,9 +41,7 @@ beforeEach(() => {
 
 function renderTab() {
   render(
-    <ClipboardProvider>
-      <MembersTab tenantId="tenant-1" />
-    </ClipboardProvider>,
+    <MembersTab tenantId="tenant-1" />,
     { wrapper: createTestWrapper() },
   );
 }
