@@ -128,7 +128,7 @@ func TestDialToReportsAnAgentThatDoesNotAnswer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 500*time.Millisecond)
 	defer cancel()
 
-	conn, err := d.DialTo(ctx, "tenant", "device", SSHOpenTarget{SessionID: "session"})
+	conn, err := d.DialTo(ctx, "tenant", "device", SSHCloseTarget{SessionID: "session"})
 
 	require.ErrorIs(t, err, ErrUnreachable)
 	assert.Nil(t, conn)

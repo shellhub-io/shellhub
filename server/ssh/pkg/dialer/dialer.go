@@ -41,7 +41,9 @@ type DeviceStatuser interface {
 // [ErrInvalidArgument] for an empty tenant or device, [ErrNoConnection] for a device holding no
 // tunnel, which is how offline is observed, and [ErrUnreachable] for a device holding a tunnel
 // that did not complete the exchange. [ErrUnreachable] carries the underlying error joined to
-// it. [Describe] turns any of them into the sentence an operator reads.
+// it. [Describe] turns any of them into the sentence an operator reads. An [SSHOpenTarget] over
+// V2 does not wait for the agent to answer, so an agent that refuses it or never answers fails
+// the first read from the returned connection instead.
 type TunnelDialer interface {
 	DialTo(ctx context.Context, tenant, uid string, target Target) (net.Conn, error)
 }

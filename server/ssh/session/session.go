@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -649,7 +650,7 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 		}
 	}
 
-	greeted, err := awaitAgentGreeting(s.agent.conn)
+	greeted, err := s.greet(s.agent.conn)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
@@ -773,6 +774,33 @@ func (s *Session) adoptAgentConn(conn net.Conn) bool {
 	return true
 }
 
+var agentEarlyPayloadFloor = semver.MustParse("v0.27.0")
+
+func (s *Session) greet(conn net.Conn) (net.Conn, error) { //nolint:ireturn // net.Conn is what the handshake takes
+	if dialer.Pipelined(conn) && keepsEarlyPayload(s.Device) {
+		return conn, nil
+	}
+
+	return awaitAgentGreeting(conn)
+}
+
+func keepsEarlyPayload(device *models.Device) bool {
+	if device == nil || device.Info == nil {
+		return false
+	}
+
+	if device.Info.Version == "latest" {
+		return true
+	}
+
+	version, err := semver.NewVersion(device.Info.Version)
+	if err != nil {
+		return false
+	}
+
+	return !version.LessThan(agentEarlyPayloadFloor)
+}
+
 func awaitAgentGreeting(conn net.Conn) (net.Conn, error) { //nolint:ireturn // net.Conn is what the handshake takes
 	var greeting [1]byte
 
@@ -803,15 +831,20 @@ func (s *Session) Online() bool {
 
 // Dial establishes the underlying transport to the target device. For V1
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
-// V2 transports a multistream protocol selection is performed using the
-// ProtoSSHOpen identifier followed by a JSON envelope with the session
-// id. After a nil return s.agent.conn is the raw stream, and not yet
-// ready to be written to: the device has still to be heard from first, which
-// connect does, because a version line written before the device has read the
-// stream's header is taken into its header reader and never reaches its SSH
-// server. It returns ErrDial joined with the dialer's error when the device cannot be reached,
-// and ErrClientClosing, having closed the new stream and asked the device to close the session,
-// when the session has finished by the time the stream arrives.
+// V2 transports the ProtoSSHOpen multistream selection and a JSON envelope
+// with the session id are written together, without waiting for the agent
+// to confirm the selection. After a nil return s.agent.conn is the raw stream
+// on V1, and on V2 a stream whose first read checks that confirmation. Unless
+// the stream was pipelined to an agent that keeps what arrives behind the
+// header, it is not yet ready to be written to: the device has still to be
+// heard from first, which connect does, because a version line written before
+// the device has read the stream's header is taken into its header reader and
+// never reaches its SSH server. It returns ErrDial joined with the dialer's
+// error when the device cannot be reached, and ErrClientClosing, having closed
+// the new stream and asked the device to close the session, when the session
+// has finished by the time the stream arrives. On V2 an agent that refuses the
+// selection or never answers it does not fail Dial: it fails the first read in
+// connect, with multistream's ErrNotSupported or the connect deadline.
 func (s *Session) Dial(ctx gliderssh.Context) error {
 	var err error
 
