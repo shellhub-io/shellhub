@@ -41,6 +41,7 @@ type service struct {
 	issuer            string
 	challengeKey      []byte
 	clock             clock.Clock
+	signers           *signerReserve
 
 	namespaceRequireVerifiedDeviceKey bool
 
@@ -131,6 +132,24 @@ func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
 func WithClock(c clock.Clock) Option {
 	return func(service *APIService) {
 		service.clock = c
+	}
+}
+
+// WithDeviceSignerReserve keeps up to size device signer keys generated ahead of use, so
+// [SSHKeysService.MintDeviceSigner] hands one out instead of generating it while a connection
+// waits. The reserve fills in the background from construction and refills after each key it
+// hands out; each key is still handed out once. A size of zero or less, the default, generates
+// every key on the call.
+func WithDeviceSignerReserve(size int) Option {
+	return func(service *APIService) {
+		if size <= 0 {
+			service.signers = nil
+
+			return
+		}
+
+		service.signers = newSignerReserve(size)
+		service.signers.refill()
 	}
 }
 
