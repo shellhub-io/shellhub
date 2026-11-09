@@ -28,12 +28,27 @@ type AgentChannel struct {
 	Requests <-chan *gossh.Request
 
 	closedByGateway atomic.Bool
+	late            *lateChannel
+}
+
+// OpenFailure returns why the channel never opened on the device, for a channel handed out
+// before the device had answered: the device refused the login the client was already told
+// succeeded, or refused the channel itself. It returns nil for a channel that opened, one still
+// waiting for the device, and one built outside [Session.NewAgentChannel].
+func (a *AgentChannel) OpenFailure() error {
+	if a.late == nil {
+		return nil
+	}
+
+	return a.late.failure()
 }
 
 // Close closes the underlying agent channel connection. It records that the gateway closed it
 // before closing, so [AgentChannel.ClosedByGateway] already reports true by the time Requests
 // closes. It returns the error from closing the underlying channel, which a channel already
-// closed also returns, and records the close either way.
+// closed also returns, and records the close either way. A channel still waiting for the device
+// login returns nil at once and is closed when the device opens it; one whose login or open failed
+// returns that failure.
 func (a *AgentChannel) Close() error {
 	a.closedByGateway.Store(true)
 
@@ -53,6 +68,8 @@ type Agent struct {
 	mu       sync.Mutex
 	channels map[int]*AgentChannel
 	spare    *spareChannel
+	ready    chan struct{}
+	err      error
 	finished bool
 }
 
@@ -73,9 +90,21 @@ func (a *Agent) Close() error {
 // authenticated, which the device has usually confirmed by the time the client asks; it opens
 // another when that one failed.
 //
-// It returns ErrSeatAlreadySet when seat already holds an agent channel, and the open's error
-// unchanged otherwise, a *gossh.OpenChannelError when the device rejects the channel.
+// It returns ErrSeatAlreadySet when seat already holds an agent channel. While the device login
+// the client was already answered for is still running, it otherwise returns at once a channel
+// whose reads, writes and requests wait for that login; when the login or the open fails, they
+// return the failure and [AgentChannel.OpenFailure] reports it. Once the login has finished, it
+// returns the error the device login ended with (ErrClientClosing, or ErrDeviceLogin wrapping the
+// device's refusal), and the open's error unchanged otherwise, a *gossh.OpenChannelError when the
+// device rejects the channel.
 func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
+	pending := s.agentPending()
+	if !pending {
+		if err := s.awaitAgent(); err != nil {
+			return nil, err
+		}
+	}
+
 	s.agent.mu.Lock()
 	defer s.agent.mu.Unlock()
 
@@ -83,15 +112,38 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 		return nil, ErrSeatAlreadySet
 	}
 
-	channel, requests, err := s.openOn(s.claimSpare())
-	if err != nil {
-		return nil, err
+	late := newLateChannel()
+
+	if pending {
+		go s.openLate(late)
+	} else {
+		channel, requests, err := s.openOn(s.claimSpare())
+		if err != nil {
+			return nil, err
+		}
+
+		late.resolve(channel, requests, nil)
 	}
 
-	a := &AgentChannel{Channel: channel, Requests: requests}
+	a := &AgentChannel{Channel: late, Requests: late.requests, late: late}
 	s.agent.channels[seat] = a
 
 	return a, nil
+}
+
+func (s *Session) openLate(late *lateChannel) {
+	if err := s.awaitAgent(); err != nil {
+		late.resolve(nil, nil, err)
+
+		return
+	}
+
+	s.agent.mu.Lock()
+	spare := s.claimSpare()
+	s.agent.mu.Unlock()
+
+	channel, requests, err := s.openOn(spare)
+	late.resolve(channel, requests, err)
 }
 
 func (s *Session) claimSpare() *spareChannel {
@@ -167,6 +219,12 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 
 	if warm := s.warm; warm != nil {
 		s.warm = nil
+
+		if warm.vouched && cred.gateway {
+			s.joinLate(ctx, warm, config, cred)
+
+			return nil
+		}
 
 		warmed := warm.deliver(cred)
 		switch {

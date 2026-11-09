@@ -2,9 +2,11 @@ package channels
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/server/ssh/session"
 	"github.com/stretchr/testify/assert"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -52,5 +54,10 @@ func TestOpenFailureMessage(t *testing.T) {
 	t.Run("does not return an empty message", func(t *testing.T) {
 		err := &gossh.OpenChannelError{Reason: gossh.ConnectionFailed, Message: ""}
 		assert.NotEmpty(t, openFailureMessage(err))
+	})
+
+	t.Run("says the device refused a login the client was told succeeded", func(t *testing.T) {
+		err := fmt.Errorf("%w: %w", session.ErrDeviceLogin, errors.New("ssh: unable to authenticate"))
+		assert.Equal(t, "the device did not accept the login: ssh: unable to authenticate", openFailureMessage(err))
 	})
 }

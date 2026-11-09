@@ -1,6 +1,7 @@
 package channels
 
 import (
+	"fmt"
 	"sync"
 
 	gliderssh "github.com/gliderlabs/ssh"
@@ -208,7 +209,9 @@ func (r *sessionRelay) serveAgentRequests() {
 
 	<-r.done
 
-	if endedOnTheDevice {
+	if err := r.agent.OpenFailure(); err != nil {
+		tellOpenFailure(r.logger, r.client.Channel, err)
+	} else if endedOnTheDevice {
 		signalEndedOnTheDevice(r.logger, r.client.Channel)
 	}
 
@@ -438,6 +441,17 @@ type exitSignal struct {
 	CoreDumped bool
 	Error      string
 	Lang       string
+}
+
+func tellOpenFailure(logger *log.Entry, client gossh.Channel, err error) {
+	if _, writeErr := fmt.Fprintf(client.Stderr(), "shellhub: %s\r\n", openFailureMessage(err)); writeErr != nil {
+		logger.WithError(writeErr).Debug("failed to tell the client the device refused the login")
+	}
+
+	status := gossh.Marshal(struct{ Status uint32 }{Status: 255})
+	if _, sendErr := client.SendRequest(ExitStatusRequest, false, status); sendErr != nil {
+		logger.WithError(sendErr).Debug("failed to send the exit status for a channel the device never opened")
+	}
 }
 
 func signalEndedOnTheDevice(logger *log.Entry, client gossh.Channel) {

@@ -32,9 +32,14 @@ const AuthRequestOpenSSHChannel = "auth-agent@openssh.com"
 //
 // Each agent use runs relay in a goroutine of its own, so relay must be safe to run
 // concurrently, and both channels are closed once it returns. A use the client refuses is
-// rejected towards the device, and relaying carries on with the next one.
+// rejected towards the device, and relaying carries on with the next one. It waits for a device
+// login that is still running, and relays nothing when that login failed.
 func (s *Session) ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel)) {
 	s.agentForwarding.Do(func() {
+		if err := s.awaitAgent(); err != nil {
+			return
+		}
+
 		forwards := s.agent.client.HandleChannelOpen(AuthRequestOpenSSHChannel)
 
 		go s.relayAgentForwards(forwards, client, relay)
@@ -80,8 +85,14 @@ func relayAgentForward(logger *log.Entry, forward gossh.NewChannel, client gossh
 }
 
 // DialAgent opens a connection from the agent to addr, for a client that asked
-// the agent to reach something on its own network.
+// the agent to reach something on its own network. It waits for a device login that is still
+// running and returns the error that login ended with (ErrClientClosing, or ErrDeviceLogin
+// wrapping the device's refusal); otherwise it returns the device's error for the dial.
 func (s *Session) DialAgent(ctx context.Context, network, addr string) (net.Conn, error) {
+	if err := s.awaitAgent(); err != nil {
+		return nil, err
+	}
+
 	return s.agent.client.DialContext(ctx, network, addr)
 }
 
@@ -95,9 +106,12 @@ func (s *Session) DialAgent(ctx context.Context, network, addr string) (net.Conn
 // goes through [AgentChannel.Close], so the channel reports
 // [AgentChannel.ClosedByGateway] from then on.
 //
-// It returns [ErrSeatNotFound] for a seat with no agent channel, and otherwise
-// the error from closing the channel, which a channel already closed also
-// returns.
+// For a channel handed out while the device login was still running, it first waits for that
+// login and the channel's open. It returns [ErrSeatNotFound] for a seat with no agent channel;
+// ErrClientClosing, or ErrDeviceLogin wrapping the device's refusal, when that login failed;
+// the device's error when it refused to open the channel; and otherwise the error from closing
+// the channel, which a channel already closed also returns. A full close does not wait, and
+// returns what [AgentChannel.Close] returns.
 func (s *Session) CloseAgentWrite(seat int) error {
 	s.agent.mu.Lock()
 	channel, ok := s.agent.channels[seat]

@@ -351,10 +351,95 @@ func TestWarm(t *testing.T) {
 		sess.Warm(ctx)
 
 		require.NoError(t, sess.connect(ctx, gatewayCredential))
+		require.NoError(t, sess.awaitAgent())
 
 		dials, attempts := device.seen()
 		assert.Equal(t, 1, dials)
 		assert.Equal(t, []string{"none"}, attempts)
+	})
+
+	t.Run("answers a gateway login before the device does, and holds its channels until it has", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		sess, ctx, _ := warmSession(t, device)
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, gatewayCredential))
+		require.NotNil(t, sess.agent.ready, "the login is answered without waiting for the device")
+
+		channel, err := sess.NewAgentChannel(0)
+		require.NoError(t, err)
+
+		_, err = channel.Channel.SendRequest("shell", true, nil)
+		require.Error(t, err, "the test device rejects every channel, which the request reports once the device answered")
+		require.NoError(t, sess.awaitAgent())
+
+		var refused *gossh.OpenChannelError
+		assert.ErrorAs(t, channel.OpenFailure(), &refused)
+	})
+
+	t.Run("dials again after answering when the warm connection failed before authenticating", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		device.failFirst = true
+		device.version = "SSH-2.0-ShellHub-Agent gateway-login"
+		sess, ctx, _ := warmSession(t, device)
+		sess.agentLogin = "secret"
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, gatewayCredential))
+		require.NoError(t, sess.awaitAgent())
+
+		dials, attempts := device.seen()
+		assert.Equal(t, 2, dials)
+		assert.Equal(t, []string{"secret"}, attempts)
+	})
+
+	t.Run("closes a device login that lands after the client left", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		sess, ctx, _ := warmSession(t, device)
+
+		sess.Warm(ctx)
+
+		sess.agent.connMu.Lock()
+		sess.agent.finished = true
+		sess.agent.connMu.Unlock()
+
+		require.NoError(t, sess.connect(ctx, gatewayCredential))
+
+		require.ErrorIs(t, sess.awaitAgent(), ErrClientClosing)
+
+		select {
+		case <-device.ended:
+		case <-time.After(5 * time.Second):
+			t.Fatal("the device connection outlived the session")
+		}
+	})
+
+	t.Run("reports a login the device refused after the client was answered", func(t *testing.T) {
+		device := newPasswordDevice(t)
+		device.vouchable = true
+		device.unknown = true
+		sess, ctx, _ := warmSession(t, device)
+
+		sess.Warm(ctx)
+
+		require.NoError(t, sess.connect(ctx, gatewayCredential))
+
+		channel, err := sess.NewAgentChannel(0)
+		require.NoError(t, err)
+
+		for range channel.Requests {
+		}
+
+		require.ErrorIs(t, channel.OpenFailure(), ErrDeviceLogin)
+		require.Error(t, sess.awaitAgent())
+
+		_, err = sess.DialAgent(ctx, "tcp", "127.0.0.1:22")
+		assert.Error(t, err)
 	})
 
 	t.Run("dials again when the device admitted the gateway for a password the client typed", func(t *testing.T) {

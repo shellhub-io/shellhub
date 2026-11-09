@@ -23,7 +23,9 @@ func TestNewAgentChannelTakesTheSpareSessionChannelOnce(t *testing.T) {
 	require.NoError(t, err)
 
 	channel, _, _ := spare.take()
-	assert.Same(t, channel, first.Channel, "the first session seat gets the spare")
+	took, err := first.late.wait()
+	require.NoError(t, err)
+	assert.Same(t, channel, took, "the first session seat gets the spare")
 	assert.Nil(t, sess.agent.spare)
 
 	second, err := sess.NewAgentChannel(1)
