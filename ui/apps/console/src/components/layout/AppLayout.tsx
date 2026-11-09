@@ -23,6 +23,7 @@ import CommandPalette from "@/components/commandPalette/CommandPalette";
 import CreateNamespaceHost from "./CreateNamespaceHost";
 import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useWindowShown } from "@/stores/terminalStore";
+import { useAuthStore } from "@/stores/authStore";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import { useTerminalThemeStore } from "@/stores/terminalThemeStore";
 import { useScrollEdges } from "@/hooks/useScrollEdges";
@@ -39,9 +40,12 @@ import { isPreferencesPath } from "@/utils/preferencesRoute";
  * The shell of the signed-in app: the sidebar and a tab strip sit on the chrome, and the
  * routed page and the terminal sessions share one framed panel below the tabs. The terminal lives
  * here rather than on a page, so a session survives navigating away from the device it belongs to.
+ * The routed page remounts when the path or the active namespace changes, so a namespace switch
+ * that stays on the same path starts the page over with the new namespace's data.
  */
 export default function AppLayout() {
   const { pathname } = useLocation();
+  const tenant = useAuthStore((s) => s.tenant);
   const loadTerminalThemes = useTerminalThemeStore((s) => s.loadThemes);
   useEffect(() => {
     void loadTerminalThemes();
@@ -110,9 +114,7 @@ export default function AppLayout() {
                 )}
               >
                 {isAdminRoute ? (
-                  <AdminSidebar
-                    expanded={isOpen && pinned}
-                  />
+                  <AdminSidebar expanded={isOpen && pinned} />
                 ) : (
                   <Sidebar
                     expanded={isOpen && (pinned || !frameOverNav)}
@@ -184,7 +186,7 @@ export default function AppLayout() {
                 id="main-content"
                 ref={scrollRef}
                 tabIndex={-1}
-                key={pathname}
+                key={`${tenant}:${pathname}`}
                 className={cn(
                   "page-enter absolute inset-0 p-8 pb-4 overflow-y-auto outline-none",
                   isAdminRoute && belowAdminNavBar,

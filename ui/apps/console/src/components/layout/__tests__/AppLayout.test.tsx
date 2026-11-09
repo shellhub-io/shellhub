@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { Route, Routes } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
@@ -9,6 +11,7 @@ import { defaultHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { getConfig, defaultConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
+import { useAuthStore } from "@/stores/authStore";
 import AppLayout from "../AppLayout";
 
 const viewport = vi.hoisted(() => ({ desktop: true, drawerOpen: false }));
@@ -297,6 +300,29 @@ describe("AppLayout", () => {
         screen.getAllByRole("button", { name: /account menu for/i }),
       ).toHaveLength(1);
     });
+  });
+
+  it("mounts the page afresh when the namespace changes on the same path", async () => {
+    function Page() {
+      const [mountedIn] = useState(() => useAuthStore.getState().tenant);
+      return <p>showing {mountedIn}</p>;
+    }
+    seedAuthStore({ tenant: "first-tenant" });
+    render(
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard/map" element={<Page />} />
+        </Route>
+      </Routes>,
+      { wrapper: createTestWrapper({ initialEntries: ["/dashboard/map"] }) },
+    );
+    expect(await screen.findByText("showing first-tenant")).toBeInTheDocument();
+
+    await act(() => useAuthStore.setState({ tenant: "another-tenant" }));
+
+    expect(
+      await screen.findByText("showing another-tenant"),
+    ).toBeInTheDocument();
   });
 
   describe("skip link", () => {
