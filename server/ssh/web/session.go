@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -262,6 +263,8 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
+const gatewayAddress = "localhost:2222"
+
 func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
 	logger := log.WithFields(log.Fields{
 		"user":   creds.Username,
@@ -275,6 +278,15 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 
 	defer logger.Info("handling web client request end")
 
+	connection, err := dialDevice(ctx, service, handoff, conn, creds, info, hostKey, gatewayAddress, logger)
+	if err != nil {
+		return err
+	}
+
+	return serveSession(conn, connection, dim, logger)
+}
+
+func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, info Info, hostKey ssh.PublicKey, gateway string, logger *log.Entry) (*ssh.Client, error) {
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
@@ -284,7 +296,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 
-		return ErrGetAuth
+		return nil, ErrGetAuth
 	}
 
 	handoff.Put(user, webhandoff.Data{
@@ -293,36 +305,54 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		UserID: creds.UserID,
 	})
 
-	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint:exhaustruct
+	var dialer net.Dialer
+
+	raw, err := dialer.DialContext(ctx, "tcp", gateway)
+	if err != nil {
+		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		return nil, ErrConnect
+	}
+
+	stopClosingOnCancel := context.AfterFunc(ctx, func() { _ = raw.Close() })
+	defer stopClosingOnCancel()
+
+	sshConn, chans, reqs, err := ssh.NewClientConn(raw, gateway, &ssh.ClientConfig{ //nolint:exhaustruct
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
 		BannerCallback:  bannerCallback(),
 	})
 	if err != nil {
+		_ = raw.Close()
+
 		if e, ok := errors.AsType[*BannerError](err); ok {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
-			return mapBannerError(e)
+			return nil, mapBannerError(e)
 		}
 
 		logger.WithError(err).Debug("failed to dial to the ssh server")
 
 		if refusedErr := refused.Err(); refusedErr != nil {
-			return refusedErr
+			return nil, refusedErr
 		}
 
 		if errors.Is(err, ErrApprovalNotAnswered) || errors.Is(err, ErrApprovalCodeMissing) {
-			return ErrApprovalNotAnswered
+			return nil, ErrApprovalNotAnswered
 		}
 
 		if creds.isPublicKey() || creds.PublicKey != "" {
-			return ErrForbiddenPublicKey
+			return nil, ErrForbiddenPublicKey
 		}
 
-		return ErrAuthentication
+		return nil, ErrAuthentication
 	}
 
+	return ssh.NewClient(sshConn, chans, reqs), nil
+}
+
+func serveSession(conn *Conn, connection *ssh.Client, dim Dimensions, logger *log.Entry) error {
 	defer connection.Close() //nolint:errcheck
 
 	if ok, reply, err := connection.SendRequest("session-uid@shellhub.io", true, nil); err == nil && ok {
