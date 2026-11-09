@@ -164,3 +164,40 @@ func open(frames <-chan string) bool {
 		return true
 	}
 }
+
+func TestWhileBrowserAnswersEndsOnceTheBrowserStopsAnswering(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ended := make(chan struct{})
+
+		browser := dialTerminal(t, func(socket *websocket.Conn) {
+			conn := NewConn(socket)
+			defer conn.Close() //nolint:errcheck // the browser end is what the test observes
+
+			ctx, cancel := whileBrowserAnswers(t.Context(), conn)
+			defer cancel()
+
+			<-ctx.Done()
+			close(ended)
+		})
+
+		time.Sleep(59 * time.Second)
+		synctest.Wait()
+
+		select {
+		case <-ended:
+			t.Fatal("the context ended before the socket's deadline")
+		default:
+		}
+
+		time.Sleep(2 * time.Second)
+		synctest.Wait()
+
+		select {
+		case <-ended:
+		default:
+			t.Fatal("the context outlived a browser that stopped answering")
+		}
+
+		browser.Close() //nolint:errcheck // the server already closed its end
+	})
+}

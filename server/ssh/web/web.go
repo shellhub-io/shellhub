@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
@@ -202,7 +203,8 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 			return
 		}
 
-		go conn.KeepAlive()
+		ctx, cancel := whileBrowserAnswers(wsconn.Request().Context(), conn)
+		defer cancel()
 
 		if err := creds.decryptPassword(magickey.GetReference()); err != nil {
 			exit(errors.Join(ErrBridgeDecryptPassword, err))
@@ -211,7 +213,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 		}
 
 		if err := newSession(
-			wsconn.Request().Context(),
+			ctx,
 			service,
 			handoff,
 			conn,
@@ -227,4 +229,15 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 	})))
 
 	return nil
+}
+
+func whileBrowserAnswers(parent context.Context, conn *Conn) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(parent)
+
+	go func() {
+		conn.KeepAlive()
+		cancel()
+	}()
+
+	return ctx, cancel
 }
