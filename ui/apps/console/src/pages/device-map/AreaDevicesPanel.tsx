@@ -23,7 +23,10 @@ interface AreaDevicesPanelProps {
 
 /**
  * The devices inside the area picked on the map, read by cursor as the list scrolls, each opening
- * a brief of the device over the map.
+ * a brief of the device over the map. An area that holds one device opens that device's brief
+ * straight away, unless its first page holds other than one device or cannot be read, when the
+ * list shows as for any area. That choice holds for the life of the panel, whatever a later read
+ * of the area returns.
  */
 export default function AreaDevicesPanel({
   area,
@@ -36,6 +39,7 @@ export default function AreaDevicesPanel({
   const {
     data,
     isLoading,
+    isPending,
     error,
     fetchNextPage,
     hasNextPage,
@@ -71,6 +75,28 @@ export default function AreaDevicesPanel({
   );
 
   const devices = data?.pages.flatMap((page) => page.devices) ?? [];
+  const holdsOne = area.devices === 1;
+  const [pointView, setPointView] = useState<"choosing" | "list" | Device>(
+    "choosing",
+  );
+
+  const choosingBrief = holdsOne && pointView === "choosing";
+
+  if (choosingBrief && !isPending) {
+    const firstPage = data?.pages[0].devices;
+    setPointView(firstPage?.length === 1 ? firstPage[0] : "list");
+  }
+
+  if (choosingBrief) {
+    return (
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+        <Spinner size="xl" aria-label="Loading device" />
+      </div>
+    );
+  }
+  if (typeof pointView === "object") {
+    return <DeviceBriefDialog device={pointView} onClose={onClose} />;
+  }
 
   return (
     <aside className="absolute right-4 top-4 bottom-10 z-20 flex w-96 flex-col overflow-hidden rounded-xl border border-border bg-surface/95 shadow-float backdrop-blur animate-slide-up">

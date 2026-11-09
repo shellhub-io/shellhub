@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
+import { onlineManager } from "@tanstack/react-query";
 import { server } from "@/tests/msw";
-import { createTestWrapper } from "@/tests/wrapper";
+import type { Device } from "@/client";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockDevice } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
@@ -17,6 +19,8 @@ const area: MapArea = {
   devices: 3,
   online: 2,
 };
+
+const point: MapArea = { ...area, devices: 1, online: 1 };
 
 const observers = new Set<{
   callback: IntersectionObserverCallback;
@@ -76,12 +80,31 @@ function servePages() {
   return requests;
 }
 
-function renderPanel() {
+function serveDevices(devices: Device[]) {
+  const requests: URL[] = [];
+  server.use(
+    ...defaultHandlers,
+    http.get("*/api/devices", ({ request }) => {
+      requests.push(new URL(request.url));
+
+      return HttpResponse.json(devices);
+    }),
+  );
+
+  return requests;
+}
+
+function renderPanel(picked = area, queryClient = createTestQueryClient()) {
   return render(
     <ClipboardProvider>
-      <AreaDevicesPanel area={area} onClose={() => {}} />
+      <AreaDevicesPanel area={picked} onClose={() => {}} />
     </ClipboardProvider>,
-    { wrapper: createTestWrapper({ initialEntries: ["/dashboard/map"] }) },
+    {
+      wrapper: createTestWrapper({
+        queryClient,
+        initialEntries: ["/dashboard/map"],
+      }),
+    },
   );
 }
 
@@ -93,6 +116,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  onlineManager.setOnline(true);
 });
 
 describe("AreaDevicesPanel", () => {
@@ -154,5 +178,114 @@ describe("AreaDevicesPanel", () => {
     reachEnd();
 
     expect(requests).toHaveLength(2);
+  });
+
+  it("opens the brief of the one device a picked point holds", async () => {
+    serveDevices([mockDevice({ name: "zurich-1" })]);
+
+    renderPanel(point);
+
+    expect(
+      await screen.findByRole("dialog", { name: "zurich-1" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("This area")).not.toBeInTheDocument();
+  });
+
+  it("reads a picked point's device among the accepted ones", async () => {
+    const requests = serveDevices([mockDevice()]);
+
+    renderPanel(point);
+
+    await waitFor(() => expect(requests).toHaveLength(1));
+    expect(requests[0].searchParams.get("status")).toBe("accepted");
+  });
+
+  it("keeps a picked point's brief open when the device is read again", async () => {
+    const queryClient = createTestQueryClient();
+    serveDevices([mockDevice({ name: "zurich-1" })]);
+    renderPanel(point, queryClient);
+    await screen.findByRole("dialog", { name: "zurich-1" });
+    serveDevices([
+      mockDevice({ uid: "a", name: "zurich-1" }),
+      mockDevice({ uid: "b", name: "zurich-2" }),
+    ]);
+
+    await act(() => queryClient.refetchQueries());
+
+    expect(screen.getByRole("dialog", { name: "zurich-1" })).toBeInTheDocument();
+    expect(screen.queryByText("This area")).not.toBeInTheDocument();
+  });
+
+  it("lists the devices of a picked point when its bounds hold more than one", async () => {
+    serveDevices([
+      mockDevice({ uid: "a", name: "zurich-1" }),
+      mockDevice({ uid: "b", name: "zurich-2" }),
+    ]);
+
+    renderPanel(point);
+
+    expect(
+      await screen.findByRole("button", { name: /zurich-2/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("reads a picked point's devices once when it falls back to the list", async () => {
+    const requests = serveDevices([
+      mockDevice({ uid: "a", name: "zurich-1" }),
+      mockDevice({ uid: "b", name: "zurich-2" }),
+    ]);
+
+    renderPanel(point);
+
+    await screen.findByRole("button", { name: /zurich-2/ });
+    expect(requests).toHaveLength(1);
+  });
+
+  it("lists the devices of a picked point when its bounds hold none", async () => {
+    serveDevices([]);
+
+    renderPanel(point);
+
+    expect(await screen.findByText("This area")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("lists the devices of a picked point when its device cannot be read", async () => {
+    server.use(
+      http.get("*/api/devices", () => HttpResponse.json({}, { status: 500 })),
+    );
+
+    renderPanel(point);
+
+    expect(
+      await screen.findByText("Could not load the devices in this area."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("waits for the network to read a picked point's device", async () => {
+    serveDevices([mockDevice({ name: "zurich-1" })]);
+    onlineManager.setOnline(false);
+    renderPanel(point);
+    expect(
+      await screen.findByRole("status", { name: "Loading device" }),
+    ).toBeInTheDocument();
+
+    act(() => onlineManager.setOnline(true));
+
+    expect(
+      await screen.findByRole("dialog", { name: "zurich-1" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows it is loading the picked point's device", async () => {
+    server.use(http.get("*/api/devices", () => new Promise(() => {})));
+
+    renderPanel(point);
+
+    expect(
+      await screen.findByRole("status", { name: "Loading device" }),
+    ).toBeInTheDocument();
   });
 });
