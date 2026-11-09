@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -101,7 +102,7 @@ func (r *refusal) Err() error {
 	return fmt.Errorf("%w: %s", ErrApprovalRefused, r.reason)
 }
 
-func approvalChallenge(conn *Conn, refused *refusal) ssh.KeyboardInteractiveChallenge {
+func approvalChallenge(conn messenger, refused *refusal) ssh.KeyboardInteractiveChallenge {
 	return func(name, instruction string, questions []string, _ []bool) ([]string, error) {
 		switch name {
 		case challenge.Approval:
@@ -131,7 +132,7 @@ func approvalChallenge(conn *Conn, refused *refusal) ssh.KeyboardInteractiveChal
 	}
 }
 
-func awaitBrowserApproval(conn *Conn) (string, error) {
+func awaitBrowserApproval(conn messenger) (string, error) {
 	type answer struct {
 		code string
 		err  error
@@ -176,7 +177,7 @@ func awaitBrowserApproval(conn *Conn) (string, error) {
 	}
 }
 
-func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials, refused *refusal) ([]ssh.AuthMethod, error) {
+func getAuth(ctx context.Context, service services.Service, conn messenger, creds *Credentials, refused *refusal) ([]ssh.AuthMethod, error) {
 	if creds.PublicKey != "" {
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
 		if err != nil {
@@ -218,14 +219,14 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 	return withApproval(ssh.PublicKeys(signer), conn, refused), nil
 }
 
-func withApproval(credential ssh.AuthMethod, conn *Conn, refused *refusal) []ssh.AuthMethod {
+func withApproval(credential ssh.AuthMethod, conn messenger, refused *refusal) []ssh.AuthMethod {
 	return []ssh.AuthMethod{credential, ssh.KeyboardInteractive(approvalChallenge(conn, refused))}
 }
 
 // Signer authenticates to the device with a key the server never holds: each signature is
 // asked of the browser over the open connection, and the private key stays in the browser.
 type Signer struct {
-	conn      *Conn
+	conn      messenger
 	publicKey *ssh.PublicKey
 }
 
@@ -262,18 +263,42 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 	}, nil
 }
 
-func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
-	logger := log.WithFields(log.Fields{
+type messenger interface {
+	WriteMessage(message *Message) (int, error)
+	ReadMessage(message *Message) (int, error)
+}
+
+func sessionLogger(creds *Credentials, dim Dimensions, ip string) *log.Entry {
+	return log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
 		"cols":   dim.Cols,
 		"rows":   dim.Rows,
-		"ip":     info.IP,
+		"ip":     ip,
 	})
+}
+
+func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
+	logger := sessionLogger(creds, dim, info.IP)
 
 	logger.Info("handling web client request started")
 
 	defer logger.Info("handling web client request end")
+
+	connection, err := dialDevice(ctx, service, handoff, conn, creds, info, hostKey)
+	if err != nil {
+		return err
+	}
+
+	return serveSession(conn, connection, dim, logger)
+}
+
+func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, info Info, hostKey ssh.PublicKey) (*ssh.Client, error) {
+	logger := log.WithFields(log.Fields{
+		"user":   creds.Username,
+		"device": creds.Device,
+		"ip":     info.IP,
+	})
 
 	uuid := uuid.Generate()
 
@@ -284,7 +309,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	if err != nil {
 		logger.WithError(err).Debug("failed to get the credentials")
 
-		return ErrGetAuth
+		return nil, ErrGetAuth
 	}
 
 	handoff.Put(user, webhandoff.Data{
@@ -293,36 +318,56 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		UserID: creds.UserID,
 	})
 
-	connection, err := ssh.Dial("tcp", "localhost:2222", &ssh.ClientConfig{ //nolint:exhaustruct
+	const gateway = "localhost:2222"
+
+	var dialer net.Dialer
+
+	raw, err := dialer.DialContext(ctx, "tcp", gateway)
+	if err != nil {
+		logger.WithError(err).Debug("failed to dial to the ssh server")
+
+		return nil, ErrConnect
+	}
+
+	stopClosingOnCancel := context.AfterFunc(ctx, func() { _ = raw.Close() })
+	defer stopClosingOnCancel()
+
+	sshConn, chans, reqs, err := ssh.NewClientConn(raw, gateway, &ssh.ClientConfig{ //nolint:exhaustruct
 		User:            user,
 		Auth:            auth,
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
 		BannerCallback:  bannerCallback(),
 	})
 	if err != nil {
+		_ = raw.Close()
+
 		if e, ok := errors.AsType[*BannerError](err); ok {
 			logger.WithError(e).Debug("failed to receive the connection banner")
 
-			return mapBannerError(e)
+			return nil, mapBannerError(e)
 		}
 
 		logger.WithError(err).Debug("failed to dial to the ssh server")
 
 		if refusedErr := refused.Err(); refusedErr != nil {
-			return refusedErr
+			return nil, refusedErr
 		}
 
 		if errors.Is(err, ErrApprovalNotAnswered) || errors.Is(err, ErrApprovalCodeMissing) {
-			return ErrApprovalNotAnswered
+			return nil, ErrApprovalNotAnswered
 		}
 
 		if creds.isPublicKey() || creds.PublicKey != "" {
-			return ErrForbiddenPublicKey
+			return nil, ErrForbiddenPublicKey
 		}
 
-		return ErrAuthentication
+		return nil, ErrAuthentication
 	}
 
+	return ssh.NewClient(sshConn, chans, reqs), nil
+}
+
+func serveSession(conn *Conn, connection *ssh.Client, dim Dimensions, logger *log.Entry) error {
 	defer connection.Close() //nolint:errcheck
 
 	if ok, reply, err := connection.SendRequest("session-uid@shellhub.io", true, nil); err == nil && ok {
@@ -361,11 +406,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 		return err
 	}
 
-	if err := agent.RequestPty("xterm", int(dim.Rows), int(dim.Cols), ssh.TerminalModes{
-		ssh.ECHO:          1,
-		ssh.TTY_OP_ISPEED: 14400,
-		ssh.TTY_OP_OSPEED: 14400,
-	}); err != nil {
+	if ok, err := agent.SendRequest("pty-req", true, dim.ptyRequest()); err != nil || !ok {
 		logger.WithError(err).Debug("failed to request the pty on session")
 
 		return ErrPty
