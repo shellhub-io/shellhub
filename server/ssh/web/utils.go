@@ -33,6 +33,8 @@ type Credentials struct {
 	// body). It is the identity used in a new namespace, where
 	// no device credential is presented; empty in a legacy namespace.
 	UserID string `json:"-"`
+
+	warm *prewarm
 }
 
 func (c *Credentials) encryptPassword(key *rsa.PrivateKey) error {

@@ -102,7 +102,7 @@ func (r *refusal) Err() error {
 	return fmt.Errorf("%w: %s", ErrApprovalRefused, r.reason)
 }
 
-func approvalChallenge(conn *Conn, refused *refusal) ssh.KeyboardInteractiveChallenge {
+func approvalChallenge(conn messenger, refused *refusal) ssh.KeyboardInteractiveChallenge {
 	return func(name, instruction string, questions []string, _ []bool) ([]string, error) {
 		switch name {
 		case challenge.Approval:
@@ -132,7 +132,7 @@ func approvalChallenge(conn *Conn, refused *refusal) ssh.KeyboardInteractiveChal
 	}
 }
 
-func awaitBrowserApproval(conn *Conn) (string, error) {
+func awaitBrowserApproval(conn messenger) (string, error) {
 	type answer struct {
 		code string
 		err  error
@@ -177,7 +177,7 @@ func awaitBrowserApproval(conn *Conn) (string, error) {
 	}
 }
 
-func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *Credentials, refused *refusal) ([]ssh.AuthMethod, error) {
+func getAuth(ctx context.Context, service services.Service, conn messenger, creds *Credentials, refused *refusal) ([]ssh.AuthMethod, error) {
 	if creds.PublicKey != "" {
 		pubKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(creds.PublicKey)) //nolint:dogsled
 		if err != nil {
@@ -219,14 +219,14 @@ func getAuth(ctx context.Context, service services.Service, conn *Conn, creds *C
 	return withApproval(ssh.PublicKeys(signer), conn, refused), nil
 }
 
-func withApproval(credential ssh.AuthMethod, conn *Conn, refused *refusal) []ssh.AuthMethod {
+func withApproval(credential ssh.AuthMethod, conn messenger, refused *refusal) []ssh.AuthMethod {
 	return []ssh.AuthMethod{credential, ssh.KeyboardInteractive(approvalChallenge(conn, refused))}
 }
 
 // Signer authenticates to the device with a key the server never holds: each signature is
 // asked of the browser over the open connection, and the private key stays in the browser.
 type Signer struct {
-	conn      *Conn
+	conn      messenger
 	publicKey *ssh.PublicKey
 }
 
@@ -265,14 +265,23 @@ func (s *Signer) Sign(rand io.Reader, data []byte) (*ssh.Signature, error) {
 
 const gatewayAddress = "localhost:2222"
 
-func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
-	logger := log.WithFields(log.Fields{
+type messenger interface {
+	WriteMessage(message *Message) (int, error)
+	ReadMessage(message *Message) (int, error)
+}
+
+func sessionLogger(creds *Credentials, dim Dimensions, ip string) *log.Entry {
+	return log.WithFields(log.Fields{
 		"user":   creds.Username,
 		"device": creds.Device,
 		"cols":   dim.Cols,
 		"rows":   dim.Rows,
-		"ip":     info.IP,
+		"ip":     ip,
 	})
+}
+
+func newSession(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, dim Dimensions, info Info, hostKey ssh.PublicKey) error {
+	logger := sessionLogger(creds, dim, info.IP)
 
 	logger.Info("handling web client request started")
 
@@ -286,7 +295,7 @@ func newSession(ctx context.Context, service services.Service, handoff *webhando
 	return serveSession(conn, connection, dim, logger)
 }
 
-func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn *Conn, creds *Credentials, info Info, hostKey ssh.PublicKey, gateway string, logger *log.Entry) (*ssh.Client, error) {
+func dialDevice(ctx context.Context, service services.Service, handoff *webhandoff.Store, conn messenger, creds *Credentials, info Info, hostKey ssh.PublicKey, gateway string, logger *log.Entry) (*ssh.Client, error) {
 	uuid := uuid.Generate()
 
 	user := fmt.Sprintf("%s@%s", creds.Username, uuid)
