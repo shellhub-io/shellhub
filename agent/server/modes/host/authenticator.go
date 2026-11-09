@@ -64,13 +64,17 @@ func (a *Authenticator) Password(ctx gliderssh.Context, _ string, pass string) b
 	return ok
 }
 
-// PublicKey handles the server's SSH public key authentication when server is running in host mode.
-func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
-	if _, err := osauth.LookupUser(ctx.User()); err != nil {
+func admitsAccount(user string) bool {
+	if _, err := osauth.LookupUser(user); err != nil {
 		return false
 	}
 
-	if osauth.AccountExpired(ctx.User()) {
+	return !osauth.AccountExpired(user)
+}
+
+// PublicKey handles the server's SSH public key authentication when server is running in host mode.
+func (a *Authenticator) PublicKey(ctx gliderssh.Context, _ string, key gliderssh.PublicKey) bool {
+	if !admitsAccount(ctx.User()) {
 		return false
 	}
 
