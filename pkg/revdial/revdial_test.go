@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -106,13 +108,13 @@ func newDialerOver(t *testing.T, ctl control) (*revdial.Dialer, *agent) {
 		ready: make(chan string, 1024),
 	}
 
-	go a.readControl()
+	go forwardControlCommand(a.ctl, "conn-ready", func(msg controlMessage) { a.ready <- msg.ConnPath })
 
 	return d, a
 }
 
-func (a *agent) readControl() {
-	reader := bufio.NewReader(a.ctl)
+func forwardControlCommand(conn net.Conn, command string, deliver func(controlMessage)) {
+	reader := bufio.NewReader(conn)
 
 	for {
 		line, err := reader.ReadBytes('\n')
@@ -125,8 +127,8 @@ func (a *agent) readControl() {
 			return
 		}
 
-		if msg.Command == "conn-ready" {
-			a.ready <- msg.ConnPath
+		if msg.Command == command {
+			deliver(msg)
 		}
 	}
 }
@@ -338,15 +340,7 @@ func TestDialClosesTheConnectionOfADialThatGaveUp(t *testing.T) {
 	late, ok := a.dialBack(t.Context(), path)
 	require.True(t, ok)
 
-	require.NoError(t, late.SetReadDeadline(time.Now().Add(5*time.Second))) //nolint:forbidigo // a deadline needs the wall clock
-
-	_, err := late.Read(make([]byte, 1))
-
-	require.Error(t, err)
-
-	if netErr, ok := errors.AsType[net.Error](err); ok {
-		assert.False(t, netErr.Timeout(), "a connection nobody claims must be closed, not left hanging")
-	}
+	requireClosedByPeer(t, late)
 }
 
 func TestCloseReturnsWhenNobodyIsWatchingDone(t *testing.T) {
@@ -409,4 +403,215 @@ func TestConnHandlerAnswersANonUpgradePickupWithOnlyTheUpgradersResponse(t *test
 
 	require.True(t, a.failPickup(path, "the agent gave up"))
 	require.Error(t, <-dialed)
+}
+
+type dialFunc func(context.Context, string) (*websocket.Conn, *http.Response, error)
+
+type pickup struct {
+	path string
+	conn net.Conn
+}
+
+type pickupServer struct {
+	url      string
+	accepted chan pickup
+}
+
+func newPickupServer(t *testing.T) *pickupServer {
+	t.Helper()
+
+	accepted := make(chan pickup, 64)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := (&websocket.Upgrader{}).Upgrade(w, r, nil)
+		if err != nil {
+			t.Errorf("the pick-up could not be upgraded: %v", err)
+
+			return
+		}
+
+		adapter := wsconnadapter.New(conn)
+		t.Cleanup(func() { _ = adapter.Close() })
+
+		accepted <- pickup{path: r.URL.Path, conn: adapter}
+	}))
+	t.Cleanup(srv.Close)
+
+	return &pickupServer{url: "ws" + strings.TrimPrefix(srv.URL, "http"), accepted: accepted}
+}
+
+func (s *pickupServer) dial(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+	return websocket.DefaultDialer.DialContext(ctx, s.url+path, nil)
+}
+
+type controlPeer struct {
+	t        *testing.T
+	ctl      net.Conn
+	failures chan controlMessage
+}
+
+func newListener(t *testing.T, dial dialFunc) (*revdial.Listener, *controlPeer) {
+	t.Helper()
+
+	serverCtl, agentCtl := net.Pipe()
+	t.Cleanup(func() {
+		_ = serverCtl.Close()
+		_ = agentCtl.Close()
+	})
+
+	s := &controlPeer{t: t, ctl: serverCtl, failures: make(chan controlMessage, 64)}
+	go forwardControlCommand(s.ctl, "pickup-failed", func(msg controlMessage) { s.failures <- msg })
+
+	ln := revdial.NewListener(agentCtl, dial)
+	t.Cleanup(func() { _ = ln.Close() })
+
+	return ln, s
+}
+
+func (s *controlPeer) announce(path string) {
+	line, err := json.Marshal(controlMessage{Command: "conn-ready", ConnPath: path})
+	require.NoError(s.t, err)
+
+	_, err = s.ctl.Write(append(line, '\n'))
+	require.NoError(s.t, err)
+}
+
+func receiveWithin[T any](t *testing.T, ch <-chan T, what string) T {
+	t.Helper()
+
+	select {
+	case v := <-ch:
+		return v
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, what)
+
+		var zero T
+
+		return zero
+	}
+}
+
+func requireClosedByPeer(t *testing.T, conn net.Conn) {
+	t.Helper()
+
+	require.NoError(t, conn.SetReadDeadline(time.Now().Add(5*time.Second))) //nolint:forbidigo // a deadline needs the wall clock
+
+	_, err := conn.Read(make([]byte, 1))
+	require.Error(t, err)
+
+	if netErr, ok := errors.AsType[net.Error](err); ok {
+		require.False(t, netErr.Timeout(), "a connection nobody will claim must be closed, not left open")
+	}
+}
+
+func TestListenerClosesAPickupThatFinishesAfterClose(t *testing.T) {
+	t.Parallel()
+
+	for range 50 {
+		pickups := newPickupServer(t)
+
+		dialing := make(chan struct{})
+		release := make(chan struct{})
+
+		ln, peer := newListener(t, func(ctx context.Context, path string) (*websocket.Conn, *http.Response, error) {
+			close(dialing)
+			<-release
+
+			return pickups.dial(ctx, path)
+		})
+
+		peer.announce("/pickup")
+		receiveWithin(t, dialing, "the listener never started the pick-up")
+
+		require.NoError(t, ln.Close())
+		close(release)
+
+		requireClosedByPeer(t, receiveWithin(t, pickups.accepted, "the pick-up never reached the server").conn)
+
+		_, err := ln.Accept()
+		require.ErrorIs(t, err, revdial.ErrListenerClosed)
+	}
+}
+
+func overflowAcceptQueue(t *testing.T, pickups *pickupServer, peer *controlPeer) (map[string]net.Conn, controlMessage) {
+	t.Helper()
+
+	announced := revdial.AcceptQueueSize + 1
+
+	for i := range announced {
+		peer.announce(fmt.Sprintf("/pickup/%d", i))
+	}
+
+	byPath := make(map[string]net.Conn, announced)
+	for range announced {
+		p := receiveWithin(t, pickups.accepted, "a pick-up never reached the server")
+		byPath[p.path] = p.conn
+	}
+
+	failure := receiveWithin(t, peer.failures, "the pick-up beyond the accept queue was never reported as failed")
+	require.Contains(t, byPath, failure.ConnPath)
+
+	return byPath, failure
+}
+
+func TestListenerCloseClosesThePickupsWaitingToBeAccepted(t *testing.T) {
+	t.Parallel()
+
+	pickups := newPickupServer(t)
+	ln, peer := newListener(t, pickups.dial)
+
+	queued, failure := overflowAcceptQueue(t, pickups, peer)
+	delete(queued, failure.ConnPath)
+
+	require.NoError(t, ln.Close())
+
+	for _, conn := range queued {
+		requireClosedByPeer(t, conn)
+	}
+}
+
+func TestListenerFailsAPickupThatFindsTheAcceptQueueFull(t *testing.T) {
+	t.Parallel()
+
+	pickups := newPickupServer(t)
+	_, peer := newListener(t, pickups.dial)
+
+	byPath, failure := overflowAcceptQueue(t, pickups, peer)
+
+	requireClosedByPeer(t, byPath[failure.ConnPath])
+
+	select {
+	case extra := <-peer.failures:
+		require.FailNow(t, "only the pick-up beyond the accept queue may fail", "also failed: %s", extra.ConnPath)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+func TestListenerLeavesNoGoroutineBehindAfterClose(t *testing.T) {
+	t.Parallel()
+
+	synctest.Test(t, func(t *testing.T) {
+		pending := revdial.ControlWriteQueueSize + 4
+
+		dialing := make(chan struct{}, pending)
+		release := make(chan struct{})
+
+		ln, peer := newListener(t, func(context.Context, string) (*websocket.Conn, *http.Response, error) {
+			dialing <- struct{}{}
+			<-release
+
+			return nil, nil, errors.New("the server is unreachable")
+		})
+
+		for i := range pending {
+			peer.announce(fmt.Sprintf("/pickup/%d", i))
+		}
+
+		for range pending {
+			receiveWithin(t, dialing, "a pick-up never started")
+		}
+
+		require.NoError(t, ln.Close())
+		close(release)
+	})
 }
