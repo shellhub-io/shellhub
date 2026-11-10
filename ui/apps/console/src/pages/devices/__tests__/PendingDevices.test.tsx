@@ -41,10 +41,55 @@ beforeEach(() => {
   );
 });
 
-function renderPage() {
+function renderPage(path = "/devices/pending") {
   return render(<PendingDevices />, {
-    wrapper: createTestWrapper({ initialEntries: ["/devices/pending"] }),
+    wrapper: createTestWrapper({ initialEntries: [path] }),
   });
+}
+
+function serveRegistrationsByHostname(...hostnames: string[]) {
+  const registrations = hostnames.map((hostname) =>
+    mockProvisioningKeyEvent({
+      id: hostname,
+      device_uid: `uid-${hostname}`,
+      hostname,
+      device_status: "pending",
+    }),
+  );
+  server.use(
+    http.get("*/api/devices/tenant-registrations", ({ request }) => {
+      const hostname =
+        new URL(request.url).searchParams.get("filters[hostname][contains]") ??
+        "";
+      return jsonWithTotal(
+        registrations.filter((r) => r.hostname.includes(hostname)),
+      );
+    }),
+  );
+}
+
+function searchbox() {
+  return screen.getByRole("searchbox", {
+    name: "Search registrations by hostname",
+  });
+}
+
+function findSortButton(order: string) {
+  return screen.findByRole("button", { name: `Sort registrations: ${order}` });
+}
+
+function recordOrders() {
+  const orders: string[] = [];
+  server.use(
+    http.get("*/api/devices/tenant-registrations", ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      orders.push(`${params.get("sort_by")}:${params.get("order_by")}`);
+      return jsonWithTotal([
+        mockProvisioningKeyEvent({ id: "a", hostname: "alpha-box" }),
+      ]);
+    }),
+  );
+  return orders;
 }
 
 describe("PendingDevices", () => {
@@ -139,5 +184,155 @@ describe("PendingDevices", () => {
         "No device has registered with the tenant ID yet.",
       ),
     ).toBeInTheDocument();
+  });
+
+  it("narrows the registrations to the hostnames containing the search, each still decidable", async () => {
+    seedAuthStore({ role: "owner" });
+    serveRegistrationsByHostname("kitchen-pi", "garage-pi");
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(await screen.findByText("garage-pi")).toBeInTheDocument();
+    await user.type(searchbox(), "kitchen");
+
+    await waitFor(() =>
+      expect(screen.queryByText("garage-pi")).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("link", { name: "kitchen-pi" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
+  });
+
+  it("marks the searched text in each matching hostname", async () => {
+    seedAuthStore({ role: "owner" });
+    serveRegistrationsByHostname("kitchen-pi", "garage-pi");
+    renderPage("/devices/pending?search=kitchen");
+
+    expect(await screen.findByText("kitchen")).toBeInTheDocument();
+  });
+
+  it("counts the registrations the search matches", async () => {
+    seedAuthStore({ role: "owner" });
+    serveRegistrationsByHostname("kitchen-pi", "garage-pi");
+    renderPage("/devices/pending?search=kitchen");
+
+    expect(
+      await screen.findByText(/1 registration with .kitchen. in the hostname/),
+    ).toBeInTheDocument();
+  });
+
+  it("says when no registration matches the search, and shows them all again once cleared", async () => {
+    seedAuthStore({ role: "owner" });
+    serveRegistrationsByHostname("kitchen-pi", "garage-pi");
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText("kitchen-pi");
+    const search = searchbox();
+    await user.type(search, "office");
+    expect(
+      await screen.findByText("No registrations matching \u201coffice\u201d"),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(await screen.findByText("kitchen-pi")).toBeInTheDocument();
+    expect(screen.getByText("garage-pi")).toBeInTheDocument();
+    expect(search).toHaveValue("");
+  });
+
+  it("opens already narrowed by the search the link carries", async () => {
+    seedAuthStore({ role: "owner" });
+    serveRegistrationsByHostname("kitchen-pi", "garage-pi");
+    renderPage("/devices/pending?search=garage");
+
+    expect(
+      await screen.findByRole("link", { name: "garage-pi" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "kitchen-pi" }),
+    ).not.toBeInTheDocument();
+    expect(searchbox()).toHaveValue("garage");
+  });
+
+  it("reads the registrations oldest first when asked", async () => {
+    seedAuthStore({ role: "owner" });
+    const orders = recordOrders();
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await findSortButton("Newest first"));
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Oldest first" }),
+    );
+
+    await waitFor(() => expect(orders.at(-1)).toBe("created_at:asc"));
+    expect(orders[0]).toBe("created_at:desc");
+    expect(await findSortButton("Oldest first")).toBeInTheDocument();
+  });
+
+  it("offers newest and oldest first as the only orders", async () => {
+    seedAuthStore({ role: "owner" });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await findSortButton("Newest first"));
+
+    expect(
+      (await screen.findAllByRole("menuitem")).map((item) => item.textContent),
+    ).toEqual(["Newest first", "Oldest first"]);
+  });
+
+  it("opens in the order the link carries", async () => {
+    seedAuthStore({ role: "owner" });
+    const orders = recordOrders();
+    renderPage("/devices/pending?sort=oldest");
+
+    expect(await findSortButton("Oldest first")).toBeInTheDocument();
+    await waitFor(() => expect(orders).toEqual(["created_at:asc"]));
+  });
+
+  it("shows the history loading, not empty, while clearing the search refetches it", async () => {
+    seedAuthStore({ role: "owner" });
+    let release: (() => void) | undefined;
+    server.use(
+      http.get("*/api/devices/tenant-registrations", async ({ request }) => {
+        const hostname = new URL(request.url).searchParams.get(
+          "filters[hostname][contains]",
+        );
+        if (hostname === "office") return jsonWithTotal([]);
+        if (hostname === null) {
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        }
+        return jsonWithTotal([
+          mockProvisioningKeyEvent({
+            id: "kitchen",
+            hostname: "kitchen-pi",
+            device_status: "pending",
+          }),
+        ]);
+      }),
+    );
+    const user = userEvent.setup();
+    renderPage("/devices/pending?search=office");
+
+    await user.click(
+      await screen.findByRole("button", { name: "Clear search" }),
+    );
+
+    await waitFor(() => expect(release).toBeDefined());
+    expect(screen.getByText("Loading activity…")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/No registrations matching/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("No device has registered with the tenant ID yet."),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/registrations? with/)).not.toBeInTheDocument();
+
+    release?.();
+    expect(await screen.findByText("kitchen-pi")).toBeInTheDocument();
   });
 });

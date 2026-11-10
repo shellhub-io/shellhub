@@ -107,6 +107,44 @@ describe("Provisioning key page", () => {
     expect(screen.queryByText(/Accept instead/)).not.toBeInTheDocument();
   });
 
+  it("narrows the key's registrations to the hostnames containing the search", async () => {
+    let searched: string | null = null;
+    server.use(
+      http.get(
+        "*/api/namespaces/provisioning-key/:id/history",
+        ({ request }) => {
+          searched = new URL(request.url).searchParams.get(
+            "filters[hostname][contains]",
+          );
+          return jsonWithTotal(
+            searched === "kiosk"
+              ? [
+                  mockProvisioningKeyEvent({
+                    id: "waiting",
+                    hostname: "kiosk-02",
+                  }),
+                ]
+              : [],
+          );
+        },
+      ),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(
+      await screen.findByRole("searchbox", {
+        name: "Search registrations by hostname",
+      }),
+      "kiosk",
+    );
+
+    expect(
+      await screen.findByRole("link", { name: "kiosk-02" }),
+    ).toBeInTheDocument();
+    expect(searched).toBe("kiosk");
+  });
+
   it("groups registrations by the day they happened", async () => {
     renderPage();
 
