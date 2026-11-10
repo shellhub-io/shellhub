@@ -157,215 +157,278 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 
 	defer client.Close() //nolint:errcheck
 
-	var wg sync.WaitGroup
-
-	done := make(chan bool, 1)
-
-	var pipeClaimed sync.Once
-
-	var forwarding sync.Mutex
-
-	startPipe := func() {
-		pipeClaimed.Do(func() {
-			go pipe(sess, client.Channel, agent.Channel, seat, done)
-		})
+	relay := &sessionRelay{
+		ctx:    ctx,
+		sess:   sess,
+		logger: logger,
+		seat:   seat,
+		agent:  agent,
+		client: client,
+		done:   make(chan bool, 1),
 	}
 
-	wg.Add(2)
+	var wg sync.WaitGroup
 
-	go func() {
-		var agentEnded, exited, closedByGateway bool
-
-		defer wg.Done()
-		defer func() {
-			logger.Debug("agent waiting for data done to close client")
-
-			forwarding.Lock()
-			pipeClaimed.Do(func() { done <- true })
-			forwarding.Unlock()
-
-			<-done
-
-			if agentEnded && !exited && !closedByGateway {
-				signalEndedOnTheDevice(logger, client.Channel)
-			}
-
-			_ = client.Close()
-		}()
-
-		for {
-			select {
-			case <-ctx.Done():
-				logger.Info("context has done (agent requests)")
-
-				return
-			case req, ok := <-agent.Requests:
-				if !ok {
-					logger.Trace("agent requests is closed")
-
-					agentEnded = true
-					closedByGateway = agent.ClosedByGateway()
-
-					return
-				}
-
-				switch req.Type {
-				case ExitStatusRequest:
-					exited = true
-
-					session.Event[models.SSHExitStatus](sess, req.Type, req.Payload, seat)
-				case ExitSignalRequest:
-					exited = true
-
-					session.Event[models.SSHSignal](sess, req.Type, req.Payload, seat)
-				default:
-					sess.Event(req.Type, req.Payload, seat)
-				}
-
-				logger.Debugf("request from agent to client: %s", req.Type)
-
-				ok, err := client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-				if err != nil {
-					logger.WithError(err).Error("failed to send the request from agent to client")
-
-					continue
-				}
-
-				if req.WantReply {
-					if err := req.Reply(ok, nil); err != nil {
-						logger.WithError(err).Error(err)
-					}
-				}
-			}
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		var ptyRequested *models.SSHPty
-
-		forwardToAgent := func(req *gossh.Request) {
-			forwarding.Lock()
-			defer forwarding.Unlock()
-
-			ok, err := agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
-			if err != nil {
-				logger.WithError(err).Error("failed to send the request from client to agent")
-				ptyRequested = nil
-
-				return
-			}
-
-			if req.WantReply {
-				if err := req.Reply(ok, nil); err != nil {
-					logger.WithError(err).Error(err)
-				}
-			}
-
-			if ptyRequested != nil {
-				if ok || !req.WantReply {
-					sess.SetSeatPty(seat, true)
-					sess.Event(PtyRequestType, *ptyRequested, seat)
-				} else {
-					logger.Warn("the device refused the pty; the session continues without one")
-				}
-
-				ptyRequested = nil
-			}
-
-			if startsDataPipe(req.Type) {
-				startPipe()
-			}
-		}
-
-		for {
-			select {
-			case <-ctx.Done():
-				logger.Info("context has done (client requests)")
-
-				return
-			case req, ok := <-client.Requests:
-				if !ok {
-					logger.Trace("client requests is closed")
-
-					return
-				}
-
-				switch req.Type {
-				case ShellRequestType:
-					if seat, ok := sess.Seat(seat); ok && seat.HasPty {
-						if err := sess.Announce(client.Channel); err != nil {
-							logger.WithError(err).Warn("failed to get the namespace announcement")
-						}
-					}
-
-					sess.Event(req.Type, req.Payload, seat)
-				case ExecRequestType, SubsystemRequestType:
-					session.Event[models.SSHCommand](sess, req.Type, req.Payload, seat)
-
-					sess.SetSeatType(seat, session.SeatTypeExec)
-				case PtyRequestType:
-					var pty models.SSHPty
-
-					if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
-						logger.WithError(err).Error("failed to recover the session dimensions")
-						denyRequest(logger, req)
-
-						continue
-					}
-
-					ptyRequested = &pty
-				case WindowChangeRequestType:
-					var dimensions models.SSHWindowChange
-
-					if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
-						logger.WithError(err).Error("failed to recover the new window dimensions")
-						denyRequest(logger, req)
-
-						continue
-					}
-
-					sess.Event(req.Type, dimensions, seat)
-				case SignalRequestType:
-					sess.Event(req.Type, req.Payload, seat)
-
-					_, forwardErr := agent.Channel.SendRequest(req.Type, false, req.Payload)
-					if forwardErr != nil {
-						logger.WithError(forwardErr).Error("failed to send the signal from client to agent")
-					}
-
-					if req.WantReply {
-						if err := req.Reply(forwardErr == nil, nil); err != nil {
-							logger.WithError(err).Error("failed to answer the client's signal")
-						}
-					}
-
-					continue
-				case AuthRequestOpenSSHRequest:
-					gliderssh.SetAgentRequested(ctx)
-
-					sess.Event(req.Type, req.Payload, seat)
-
-					if clientConn, ok := ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
-						sess.ForwardAgent(clientConn, func(device, client gossh.Channel) {
-							hose(logger, device, client)
-						})
-					}
-				default:
-					sess.Event(req.Type, req.Payload, seat)
-				}
-
-				logger.Debugf("request from client to agent: %s", req.Type)
-
-				forwardToAgent(req)
-			}
-		}
-	}()
+	wg.Go(relay.serveAgentRequests)
+	wg.Go(relay.serveClientRequests)
 
 	wg.Wait()
 
 	logger.Debug("session done after waiting")
+}
+
+type sessionRelay struct {
+	ctx    gliderssh.Context
+	sess   Session
+	logger *log.Entry
+	seat   int
+	agent  *session.AgentChannel
+	client *session.ClientChannel
+	done   chan bool
+
+	pipeClaimed  sync.Once
+	forwarding   sync.Mutex
+	ptyRequested *models.SSHPty
+}
+
+func (r *sessionRelay) startPipe() {
+	r.pipeClaimed.Do(func() {
+		go pipe(r.sess, r.client.Channel, r.agent.Channel, r.seat, r.done)
+	})
+}
+
+func (r *sessionRelay) serveAgentRequests() {
+	endedOnTheDevice := r.relayAgentRequests()
+
+	r.logger.Debug("agent waiting for data done to close client")
+
+	r.forwarding.Lock()
+	r.pipeClaimed.Do(func() { r.done <- true })
+	r.forwarding.Unlock()
+
+	<-r.done
+
+	if endedOnTheDevice {
+		signalEndedOnTheDevice(r.logger, r.client.Channel)
+	}
+
+	_ = r.client.Close()
+}
+
+func (r *sessionRelay) relayAgentRequests() (endedOnTheDevice bool) {
+	var exited bool
+
+	for {
+		select {
+		case <-r.ctx.Done():
+			r.logger.Info("context has done (agent requests)")
+
+			return false
+		case req, ok := <-r.agent.Requests:
+			if !ok {
+				r.logger.Trace("agent requests is closed")
+
+				return !exited && !r.agent.ClosedByGateway()
+			}
+
+			if r.recordAgentRequest(req) {
+				exited = true
+			}
+
+			r.forwardToClient(req)
+		}
+	}
+}
+
+func (r *sessionRelay) recordAgentRequest(req *gossh.Request) (exited bool) {
+	switch req.Type {
+	case ExitStatusRequest:
+		session.Event[models.SSHExitStatus](r.sess, req.Type, req.Payload, r.seat)
+
+		return true
+	case ExitSignalRequest:
+		session.Event[models.SSHSignal](r.sess, req.Type, req.Payload, r.seat)
+
+		return true
+	default:
+		r.sess.Event(req.Type, req.Payload, r.seat)
+
+		return false
+	}
+}
+
+func (r *sessionRelay) forwardToClient(req *gossh.Request) {
+	r.logger.Debugf("request from agent to client: %s", req.Type)
+
+	ok, err := r.client.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+	if err != nil {
+		r.logger.WithError(err).Error("failed to send the request from agent to client")
+
+		return
+	}
+
+	if req.WantReply {
+		if err := req.Reply(ok, nil); err != nil {
+			r.logger.WithError(err).Error(err)
+		}
+	}
+}
+
+func (r *sessionRelay) serveClientRequests() {
+	for {
+		select {
+		case <-r.ctx.Done():
+			r.logger.Info("context has done (client requests)")
+
+			return
+		case req, ok := <-r.client.Requests:
+			if !ok {
+				r.logger.Trace("client requests is closed")
+
+				return
+			}
+
+			r.handleClientRequest(req)
+		}
+	}
+}
+
+func (r *sessionRelay) handleClientRequest(req *gossh.Request) {
+	switch req.Type {
+	case ShellRequestType:
+		r.announceShell()
+
+		r.sess.Event(req.Type, req.Payload, r.seat)
+	case ExecRequestType, SubsystemRequestType:
+		session.Event[models.SSHCommand](r.sess, req.Type, req.Payload, r.seat)
+
+		r.sess.SetSeatType(r.seat, session.SeatTypeExec)
+	case PtyRequestType:
+		if !r.notePty(req) {
+			return
+		}
+	case WindowChangeRequestType:
+		if !r.recordWindowChange(req) {
+			return
+		}
+	case SignalRequestType:
+		r.forwardSignal(req)
+
+		return
+	case AuthRequestOpenSSHRequest:
+		r.startAgentForwarding(req)
+	default:
+		r.sess.Event(req.Type, req.Payload, r.seat)
+	}
+
+	r.logger.Debugf("request from client to agent: %s", req.Type)
+
+	r.forwardToAgent(req)
+}
+
+func (r *sessionRelay) announceShell() {
+	if seat, ok := r.sess.Seat(r.seat); ok && seat.HasPty {
+		if err := r.sess.Announce(r.client.Channel); err != nil {
+			r.logger.WithError(err).Warn("failed to get the namespace announcement")
+		}
+	}
+}
+
+func (r *sessionRelay) notePty(req *gossh.Request) (forward bool) {
+	var pty models.SSHPty
+
+	if err := gossh.Unmarshal(req.Payload, &pty); err != nil {
+		r.logger.WithError(err).Error("failed to recover the session dimensions")
+		denyRequest(r.logger, req)
+
+		return false
+	}
+
+	r.ptyRequested = &pty
+
+	return true
+}
+
+func (r *sessionRelay) recordWindowChange(req *gossh.Request) (forward bool) {
+	var dimensions models.SSHWindowChange
+
+	if err := gossh.Unmarshal(req.Payload, &dimensions); err != nil {
+		r.logger.WithError(err).Error("failed to recover the new window dimensions")
+		denyRequest(r.logger, req)
+
+		return false
+	}
+
+	r.sess.Event(req.Type, dimensions, r.seat)
+
+	return true
+}
+
+func (r *sessionRelay) forwardSignal(req *gossh.Request) {
+	r.sess.Event(req.Type, req.Payload, r.seat)
+
+	_, forwardErr := r.agent.Channel.SendRequest(req.Type, false, req.Payload)
+	if forwardErr != nil {
+		r.logger.WithError(forwardErr).Error("failed to send the signal from client to agent")
+	}
+
+	if req.WantReply {
+		if err := req.Reply(forwardErr == nil, nil); err != nil {
+			r.logger.WithError(err).Error("failed to answer the client's signal")
+		}
+	}
+}
+
+func (r *sessionRelay) startAgentForwarding(req *gossh.Request) {
+	gliderssh.SetAgentRequested(r.ctx)
+
+	r.sess.Event(req.Type, req.Payload, r.seat)
+
+	if clientConn, ok := r.ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
+		r.sess.ForwardAgent(clientConn, func(device, client gossh.Channel) {
+			hose(r.logger, device, client)
+		})
+	}
+}
+
+func (r *sessionRelay) forwardToAgent(req *gossh.Request) {
+	r.forwarding.Lock()
+	defer r.forwarding.Unlock()
+
+	ok, err := r.agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+	if err != nil {
+		r.logger.WithError(err).Error("failed to send the request from client to agent")
+		r.ptyRequested = nil
+
+		return
+	}
+
+	if req.WantReply {
+		if err := req.Reply(ok, nil); err != nil {
+			r.logger.WithError(err).Error(err)
+		}
+	}
+
+	r.recordRequestedPty(req, ok)
+
+	if startsDataPipe(req.Type) {
+		r.startPipe()
+	}
+}
+
+func (r *sessionRelay) recordRequestedPty(req *gossh.Request, accepted bool) {
+	if r.ptyRequested == nil {
+		return
+	}
+
+	if accepted || !req.WantReply {
+		r.sess.SetSeatPty(r.seat, true)
+		r.sess.Event(PtyRequestType, *r.ptyRequested, r.seat)
+	} else {
+		r.logger.Warn("the device refused the pty; the session continues without one")
+	}
+
+	r.ptyRequested = nil
 }
 
 const endedOnTheDeviceMessage = "shellhub: the session was ended on the device"
