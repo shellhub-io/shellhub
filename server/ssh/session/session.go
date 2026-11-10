@@ -606,35 +606,56 @@ func (s *Session) Recorded(seat int) error {
 	})
 }
 
-func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
+func (s *Session) clientConfig() (*gossh.ClientConfig, error) {
 	hostKey, err := devicekey.ParsePublicKey(s.Device.PublicKey)
 	if err != nil {
 		log.WithError(err).
 			WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID, "device": s.Device.UID}).
 			Error("refusing to connect to a device whose host key cannot be verified")
 
-		return ErrHostKey
+		return nil, ErrHostKey
 	}
 
-	pinned := gossh.FixedHostKey(hostKey)
+	return &gossh.ClientConfig{
+		User:            s.Target.Username,
+		HostKeyCallback: deviceHostKey(hostKey),
+		Timeout:         sshconf.ConnectTimeout,
+	}, nil
+}
 
-	config := &gossh.ClientConfig{
-		User: s.Target.Username,
-		HostKeyCallback: func(hostname string, remote net.Addr, key gossh.PublicKey) error {
-			if err := pinned(hostname, remote, key); err != nil {
-				return errors.Join(ErrHostKey, err)
-			}
+func (s *Session) attachAgent(ctx gliderssh.Context, conn gossh.Conn, chans <-chan gossh.NewChannel, reqs <-chan *gossh.Request) {
+	ch := make(chan *gossh.Request)
+	close(ch)
 
-			return nil
-		},
-		Timeout: sshconf.ConnectTimeout,
+	s.agent.client = gossh.NewClient(conn, chans, ch)
+
+	clientConn, _ := ctx.Value(connCtxKey{}).(net.Conn)
+
+	go s.drainAgentRequests(ctx, reqs, clientConn)
+}
+
+func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
+	config, err := s.clientConfig()
+	if err != nil {
+		return err
 	}
 
+	conn, chans, reqs, err := s.login(ctx, config, cred)
+	if err != nil {
+		return err
+	}
+
+	s.attachAgent(ctx, conn, chans, reqs)
+
+	return nil
+}
+
+func (s *Session) login(ctx gliderssh.Context, config *gossh.ClientConfig, cred credential) (gossh.Conn, <-chan gossh.NewChannel, <-chan *gossh.Request, error) { //nolint:ireturn // gossh.Conn is the interface x/crypto hands out
 	const Addr = "tcp"
 
 	if s.agent.conn == nil {
 		if err := s.Dial(ctx); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 	}
 
@@ -644,7 +665,7 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline")
 
-			return err
+			return nil, nil, nil, err
 		}
 	}
 
@@ -656,7 +677,7 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 
 		s.dropAgentConn()
 
-		return err
+		return nil, nil, nil, err
 	}
 
 	config.Auth = s.authMethods(ctx, cred)
@@ -669,7 +690,7 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 
 		s.dropAgentConn()
 
-		return err
+		return nil, nil, nil, err
 	}
 
 	if config.Timeout > 0 {
@@ -678,20 +699,11 @@ func (s *Session) connect(ctx gliderssh.Context, cred credential) error {
 				WithFields(log.Fields{"session": s.UID, "sshid": s.SSHID}).
 				Error("Error when trying to set dial deadline with Time{}")
 
-			return err
+			return nil, nil, nil, err
 		}
 	}
 
-	ch := make(chan *gossh.Request)
-	close(ch)
-
-	s.agent.client = gossh.NewClient(conn, chans, ch)
-
-	clientConn, _ := ctx.Value(connCtxKey{}).(net.Conn)
-
-	go s.drainAgentRequests(ctx, reqs, clientConn)
-
-	return nil
+	return conn, chans, reqs, nil
 }
 
 const sessionChannelType = "session"
