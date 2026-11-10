@@ -15,6 +15,12 @@ const EDGE_SPEED = 14;
 
 type Placement = "docked" | "floating" | "docking";
 
+const clampTop = (top: number, height: number) =>
+  Math.min(
+    Math.max(FLOAT_INSET, top),
+    Math.max(FLOAT_INSET, window.innerHeight - height - FLOAT_INSET),
+  );
+
 function useEdgeScroll(
   active: boolean,
   slot: RefObject<HTMLDivElement | null>,
@@ -56,6 +62,8 @@ function useEdgeScroll(
  * near it. Released near the slot the element glides into it (placement "docking") and docks on
  * the transition's end, or at once under reduced motion; released elsewhere it keeps floating.
  * Dragged near the edges of the page's scroll container, AppLayout's main, the page scrolls.
+ * While it floats, a window resize gives it the slot's left and width and keeps its top inside
+ * the viewport.
  * When enabled turns false everything goes back to docked, so a layout that stops offering the
  * drag never keeps a floating element.
  */
@@ -85,6 +93,20 @@ export function useDockable(enabled: boolean) {
   }
 
   useEdgeScroll(dragging && placement === "floating", slot, float, setOverDock);
+
+  useEffect(() => {
+    if (placement !== "floating") return;
+    const refit = () => {
+      const box = slot.current?.getBoundingClientRect();
+      if (!box) return;
+      const { height } = float.current;
+      const top = clampTop(float.current.top, height);
+      float.current = { top, height };
+      setFrame({ top, left: box.left, width: box.width });
+    };
+    window.addEventListener("resize", refit);
+    return () => window.removeEventListener("resize", refit);
+  }, [placement]);
 
   const dockTop = () =>
     slot.current?.getBoundingClientRect().top ?? start.current?.top ?? 0;
@@ -145,11 +167,7 @@ export function useDockable(enabled: boolean) {
         const moved = e.clientY - from.pointer;
         if (placement === "docked" && Math.abs(moved) < UNDOCK_DISTANCE) return;
         const height = e.currentTarget.offsetHeight;
-        const room = window.innerHeight - height - FLOAT_INSET;
-        const top = Math.min(
-          Math.max(FLOAT_INSET, from.top + moved),
-          Math.max(FLOAT_INSET, room),
-        );
+        const top = clampTop(from.top + moved, height);
         float.current = { top, height };
         if (placement === "docked") {
           setFrame({ top, left: from.left, width: from.width });
