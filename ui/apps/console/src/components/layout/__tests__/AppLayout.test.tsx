@@ -79,6 +79,20 @@ function renderLayout(path = "/") {
 }
 
 describe("AppLayout", () => {
+  it("fetches no terminal theme files on load when the saved theme is the default", async () => {
+    const requested: string[] = [];
+    server.use(
+      http.get("*/xterm-themes/:file", ({ params }) => {
+        requested.push(String(params.file));
+        return HttpResponse.json([]);
+      }),
+    );
+    renderLayout();
+
+    await screen.findAllByRole("button", { name: /account menu for/i });
+    expect(requested).toEqual([]);
+  });
+
   describe("Sidebar", () => {
     it("is hidden when there are no namespaces", async () => {
       renderLayout();

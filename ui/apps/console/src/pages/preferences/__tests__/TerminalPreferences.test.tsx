@@ -29,6 +29,7 @@ beforeEach(() => {
     themes: THEMES,
     themeName: "Night",
     theme: THEMES[0],
+    loaded: true,
   });
   useSessionPlayerStore.getState().setControls("auto");
 });

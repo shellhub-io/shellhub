@@ -123,30 +123,33 @@ describe("bundled theme files", () => {
   });
 });
 
-describe("loadThemes", () => {
-  const night = { background: "#101010", foreground: "#e0e0e0" };
-  const paper = { background: "#f8f8f8", foreground: "#202020" };
+const night = { background: "#101010", foreground: "#e0e0e0" };
+const paper = { background: "#f8f8f8", foreground: "#202020" };
 
-  function serveThemes(files: Record<string, TerminalThemeColors | null>) {
-    server.use(
-      http.get("*/xterm-themes/metadata.json", () =>
-        HttpResponse.json(
-          Object.keys(files).map((file) => ({
-            name: file.replace(".json", ""),
-            file,
-            dark: true,
-          })),
-        ),
+function serveThemes(files: Record<string, TerminalThemeColors | null>) {
+  const requested: string[] = [];
+  server.use(
+    http.get("*/xterm-themes/metadata.json", () =>
+      HttpResponse.json(
+        Object.keys(files).map((file) => ({
+          name: file.replace(".json", ""),
+          file,
+          dark: true,
+        })),
       ),
-      http.get("*/xterm-themes/:file", ({ params }) => {
-        const colors = files[String(params.file)];
-        return colors
-          ? HttpResponse.json(colors)
-          : new HttpResponse(null, { status: 500 });
-      }),
-    );
-  }
+    ),
+    http.get("*/xterm-themes/:file", ({ params }) => {
+      requested.push(String(params.file));
+      const colors = files[String(params.file)];
+      return colors
+        ? HttpResponse.json(colors)
+        : new HttpResponse(null, { status: 500 });
+    }),
+  );
+  return requested;
+}
 
+describe("loadThemes", () => {
   it("adopts the first theme when the saved one left the index", async () => {
     localStorage.setItem("terminalTheme", "Homebrew");
     serveThemes({ "night.json": night, "paper.json": paper });
@@ -169,5 +172,96 @@ describe("loadThemes", () => {
     expect(useTerminalThemeStore.getState().themeName).toBe("paper");
     expect(useTerminalThemeStore.getState().theme.colors).toEqual(night);
     expect(localStorage.getItem("terminalTheme")).toBe("paper");
+  });
+
+  it("keeps the restored colours when the saved theme's file fails on the second load", async () => {
+    localStorage.setItem("terminalTheme", "paper");
+    serveThemes({ "night.json": night, "paper.json": paper });
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+    await useTerminalThemeStore.getState().restoreTheme();
+
+    serveThemes({ "night.json": night, "paper.json": null });
+    await useTerminalThemeStore.getState().loadThemes();
+
+    expect(useTerminalThemeStore.getState().themeName).toBe("paper");
+    expect(useTerminalThemeStore.getState().theme.colors).toEqual(paper);
+  });
+});
+
+describe("restoreTheme", () => {
+  it("fetches only the saved theme's file", async () => {
+    localStorage.setItem("terminalTheme", "paper");
+    const requested = serveThemes({ "night.json": night, "paper.json": paper });
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+
+    await useTerminalThemeStore.getState().restoreTheme();
+
+    expect(requested).toEqual(["paper.json"]);
+    expect(useTerminalThemeStore.getState().theme.colors).toEqual(paper);
+  });
+
+  it("fetches nothing when the saved theme is the bundled default", async () => {
+    const requested = serveThemes({ "night.json": night });
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+
+    await useTerminalThemeStore.getState().restoreTheme();
+
+    expect(requested).toEqual([]);
+    expect(useTerminalThemeStore.getState().themeName).toBe("ShellHub Dark");
+  });
+
+  it("adopts the first theme when the saved one left the index", async () => {
+    localStorage.setItem("terminalTheme", "Homebrew");
+    serveThemes({ "night.json": night, "paper.json": paper });
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+
+    await useTerminalThemeStore.getState().restoreTheme();
+
+    expect(useTerminalThemeStore.getState().themeName).toBe("night");
+    expect(useTerminalThemeStore.getState().theme.colors).toEqual(night);
+    expect(localStorage.getItem("terminalTheme")).toBe("night");
+  });
+
+  it("keeps the saved name and the bundled colours when the saved file fails", async () => {
+    localStorage.setItem("terminalTheme", "paper");
+    serveThemes({ "paper.json": null });
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+
+    await useTerminalThemeStore.getState().restoreTheme();
+
+    expect(useTerminalThemeStore.getState().themeName).toBe("paper");
+    expect(useTerminalThemeStore.getState().theme.name).toBe("ShellHub Dark");
+    expect(useTerminalThemeStore.getState().loaded).toBe(false);
+  });
+
+  it("drops its result when the list loaded while it was fetching", async () => {
+    localStorage.setItem("terminalTheme", "paper");
+    serveThemes({ "night.json": night, "paper.json": paper });
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    let markRequested = () => {};
+    const requested = new Promise<void>((resolve) => (markRequested = resolve));
+    server.use(
+      http.get(
+        "*/xterm-themes/paper.json",
+        async () => {
+          markRequested();
+          await held;
+          return HttpResponse.json(paper);
+        },
+        { once: true },
+      ),
+    );
+    const { useTerminalThemeStore } = await import("@/stores/terminalThemeStore");
+
+    const restoring = useTerminalThemeStore.getState().restoreTheme();
+    await requested;
+    await useTerminalThemeStore.getState().loadThemes();
+    useTerminalThemeStore.getState().setTheme("night");
+    release();
+    await restoring;
+
+    expect(useTerminalThemeStore.getState().themeName).toBe("night");
+    expect(useTerminalThemeStore.getState().theme.colors).toEqual(night);
   });
 });
