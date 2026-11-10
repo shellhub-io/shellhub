@@ -34,9 +34,10 @@ const LOCATION_HALF_STEP = 0.5 * 10 ** -SERVER_ROUNDING_DECIMALS + EDGE_MARGIN;
  * (a drag is not a click). Without onSelect the map has no hover or clicks.
  * Without navigable it has no panning, zooming or controls. Either way it opens once on the picked
  * area when there is one, or else on where most devices are. It frames the picked area it opens
- * on, and a navigable map each area picked, with areaPadding as it is when the map first frames or
- * at the pick, or the full map's padding when none is given. Any framing whose padding leaves less
- * than 64 pixels either way to frame in uses 20 pixels on every side instead, as paddingWithin does.
+ * on, and a navigable map each cluster picked, with areaPadding as it is when the map first frames
+ * or at the pick, or the full map's padding when none is given; a point picked leaves the view
+ * where it is. Any framing whose padding leaves less than 64 pixels either way to frame in uses
+ * 20 pixels on every side instead, as paddingWithin does.
  */
 export interface LocationsMapProps {
   locations: DeviceLocation[];

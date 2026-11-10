@@ -33,14 +33,20 @@ const maps = vi.hoisted(() => {
     }
 
     getSource() {
-      return {};
+      return {
+        getClusterLeaves: () =>
+          Promise.resolve([
+            { properties: { longitude: 8.54, latitude: 47.38 } },
+            { properties: { longitude: 2.35, latitude: 48.86 } },
+          ]),
+      };
     }
 
     addControl() {}
 
     setMinZoom() {}
 
-    fitBounds() {}
+    fitBounds = vi.fn();
 
     getCanvas() {
       return { style: {} };
@@ -68,13 +74,14 @@ afterEach(() => {
   maps.created.length = 0;
 });
 
-function renderMap(onSelect = vi.fn()) {
+function renderMap(onSelect = vi.fn(), navigable = false) {
   render(
     <MapLibreMap
       locations={[]}
       mode="all"
       backend={{ kind: "outline" }}
       onSelect={onSelect}
+      navigable={navigable}
     />,
   );
 
@@ -112,5 +119,37 @@ describe("MapLibreMap", () => {
     expect(south).toBeLessThan(47.38);
     expect(north).toBeGreaterThan(47.38);
     expect(onSelect).not.toHaveBeenCalledWith(null);
+  });
+
+  it("zooms a navigable map onto the cluster clicked", async () => {
+    const { onSelect, map } = renderMap(vi.fn(), true);
+
+    map.clickAt([
+      {
+        properties: {
+          cluster: true,
+          cluster_id: 7,
+          point_count: 2,
+          devices: 5,
+          online: 3,
+        },
+      },
+    ]);
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalled());
+    expect(map.fitBounds).toHaveBeenCalledOnce();
+  });
+
+  it("leaves a navigable map's view where it is on a point clicked", async () => {
+    const { onSelect, map } = renderMap(vi.fn(), true);
+
+    map.clickAt([
+      {
+        properties: { devices: 1, online: 1, longitude: 8.54, latitude: 47.38 },
+      },
+    ]);
+
+    await waitFor(() => expect(onSelect).toHaveBeenCalled());
+    expect(map.fitBounds).not.toHaveBeenCalled();
   });
 });

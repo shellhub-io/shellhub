@@ -302,8 +302,9 @@ export default function MapLibreMap({
         const source = map.getSource<GeoJSONSource>(SOURCE);
         if (!source) return;
 
+        const cluster = Boolean(feature.properties.cluster);
         void areaOf(source, feature).then((area) => {
-          if (navigable) {
+          if (navigable && cluster) {
             frame(map, area.bounds, areaPaddingRef.current, 700);
           }
           setHover(null);
