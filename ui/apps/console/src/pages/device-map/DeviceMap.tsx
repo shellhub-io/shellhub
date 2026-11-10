@@ -92,8 +92,8 @@ function Stat({
  * list, which leaves connector containers out as the map does. The summary card folds to its
  * Dashboard link, title row, online count, mode switch and any load error or no-position notice,
  * and stays folded across reloads where the browser lets the page store it. The area panel folds
- * to its header and stays folded across the areas picked. A pick is framed clear of the panels as
- * they are folded at that moment.
+ * to its header and stays folded across the areas picked. A cluster picked is framed clear of the
+ * panels as they are folded at that moment; a point picked leaves the view where it is.
  */
 export default function DeviceMap() {
   const [mode, setMode] = useState<MapMode>("all");
