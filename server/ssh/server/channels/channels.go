@@ -44,7 +44,7 @@ type Session interface {
 	SetSeatPty(seat int, status bool)
 	SetSeatType(seat int, kind string)
 
-	NewAgentChannel(name string, seat int) (*session.AgentChannel, error)
+	NewAgentChannel(seat int) (*session.AgentChannel, error)
 	NewClientChannel(newChannel gossh.NewChannel, seat int) (*session.ClientChannel, error)
 	DropAgentChannel(seat int)
 	ForwardAgent(client gossh.Conn, relay func(device, client gossh.Channel))

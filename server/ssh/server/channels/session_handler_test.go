@@ -87,7 +87,7 @@ func (f *fakeSession) FirstForwardTo(dest string) bool {
 	return true
 }
 
-func (f *fakeSession) NewAgentChannel(_ string, _ int) (*session.AgentChannel, error) {
+func (f *fakeSession) NewAgentChannel(_ int) (*session.AgentChannel, error) {
 	f.record("NewAgentChannel")
 
 	if f.agentChanErr != nil {

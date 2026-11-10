@@ -464,8 +464,10 @@ func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*Clie
 	return c, nil
 }
 
-// NewAgentChannel opens a new channel to agent and set a seat for it.
-func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) {
+// NewAgentChannel opens a session channel on the device and sets it on seat. It returns
+// ErrSeatAlreadySet when seat already holds an agent channel, and the open's error unchanged
+// otherwise, a *gossh.OpenChannelError when the device rejects the channel.
+func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	s.agent.mu.Lock()
 	defer s.agent.mu.Unlock()
 
@@ -473,7 +475,7 @@ func (s *Session) NewAgentChannel(name string, seat int) (*AgentChannel, error) 
 		return nil, ErrSeatAlreadySet
 	}
 
-	channel, requests, err := s.agent.client.OpenChannel(name, nil)
+	channel, requests, err := s.agent.client.OpenChannel(sessionChannelType, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -693,6 +695,8 @@ func (s *Session) connect(ctx gliderssh.Context, authOpt authFunc) error {
 
 	return nil
 }
+
+const sessionChannelType = "session"
 
 const keepAliveRequestPrefix = "keepalive"
 

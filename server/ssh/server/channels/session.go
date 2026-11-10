@@ -138,7 +138,7 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		return
 	}
 
-	agent, err := sess.NewAgentChannel(SessionChannel, seat)
+	agent, err := sess.NewAgentChannel(seat)
 	if err != nil {
 		reject(err, openFailureMessage(err))
 
