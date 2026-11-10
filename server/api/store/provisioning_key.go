@@ -88,9 +88,12 @@ type ProvisioningKeyStore interface {
 	// it is cancelled or its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) (err error)
 
-	// ProvisioningKeyEventList retrieves the enrollment history of the provisioning key identified by its digest
-	// within the given namespace scope, newest first. It returns the events, the total count, and an
-	// error, if any.
+	// ProvisioningKeyEventList retrieves the enrollment history of the provisioning key identified by
+	// its digest within the given namespace scope, in the order and page opts set. A filter among opts
+	// narrows the events and the count, but each event's IsCurrent still compares it with the
+	// device's newest event in the whole history. It returns the events and their count,
+	// [ErrInvalidScope] for a scope that is neither bounded nor unbounded, ctx's error when it is
+	// cancelled or its deadline passes, and [ErrInternal] for any other failure.
 	ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...QueryOption) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// EnrollmentCallbackRedeem atomically claims a deferred-decision callback token by its JWT id,

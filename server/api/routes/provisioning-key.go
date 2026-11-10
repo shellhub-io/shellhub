@@ -141,7 +141,12 @@ func (h *Handler) EnrollmentCallback(c *gateway.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// HistoryProvisioningKey serves the record of what a key has been used for.
+// HistoryProvisioningKey serves the record of what a key has been used for, narrowed to the
+// registrations whose hostname contains filters[hostname][contains] when the query carries it. It
+// returns the bind or validation error for a malformed query, an invalid-entity error for a sort_by
+// outside ProvisioningKeyEventSortFields, for any other or malformed bracket filter, or for a
+// hostname text longer than query.MaxStringValueLen bytes, and the service's error otherwise, a key
+// that is not found included.
 func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 	req := new(requests.ListProvisioningKeyEvents)
 
@@ -155,6 +160,10 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 
 	if err := query.ValidateSorter(&req.Sorter, services.ProvisioningKeyEventSortFields); err != nil {
 		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
+	}
+
+	if err := bindRegistrationFilters(c, &req.Filters); err != nil {
+		return err
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -172,11 +181,13 @@ func (h *Handler) HistoryProvisioningKey(c *gateway.Context) error {
 }
 
 // TenantRegistrations lists the registration history of the namespace's tenant-only key, newest
-// first unless sort_by and order_by say otherwise. It needs only the permission to accept devices,
-// so any member or API key that may accept devices works the queue. It returns the bind or
-// validation error for a malformed query, an invalid-entity error for a sort_by outside
-// ProvisioningKeyEventSortFields, ErrForbidden when the request carries no tenant, and the store's
-// error otherwise.
+// first unless sort_by and order_by say otherwise, narrowed to the registrations whose hostname
+// contains filters[hostname][contains] when the query carries it. It needs only the permission to
+// accept devices, so any member or API key that may accept devices works the queue. It returns the
+// bind or validation error for a malformed query, an invalid-entity error for a sort_by outside
+// ProvisioningKeyEventSortFields, for any other or malformed bracket filter, or for a hostname text
+// longer than query.MaxStringValueLen bytes, ErrForbidden when the request carries no tenant, and
+// the store's error otherwise.
 func (h *Handler) TenantRegistrations(c *gateway.Context) error {
 	req := new(requests.ListTenantRegistrations)
 
@@ -192,6 +203,10 @@ func (h *Handler) TenantRegistrations(c *gateway.Context) error {
 		return errs.NewErrInvalidEntity(map[string]string{"sort_by": err.Error()})
 	}
 
+	if err := bindRegistrationFilters(c, &req.Filters); err != nil {
+		return err
+	}
+
 	if err := c.Validate(req); err != nil {
 		return err
 	}
@@ -204,6 +219,18 @@ func (h *Handler) TenantRegistrations(c *gateway.Context) error {
 	c.Response().Header().Set("X-Total-Count", strconv.FormatInt(count, 10))
 
 	return c.JSON(http.StatusOK, events)
+}
+
+func bindRegistrationFilters(c *gateway.Context, filters *query.Filters) error {
+	if err := filters.UnmarshalQuery(c.QueryParams()); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"filters": err.Error()})
+	}
+
+	if err := query.ValidateFilters(filters, services.RegistrationFilterFields); err != nil {
+		return errs.NewErrInvalidEntity(map[string]string{"filters": err.Error()})
+	}
+
+	return nil
 }
 
 func defaultRegistrationSorter(sorter *query.Sorter) {

@@ -1,0 +1,10 @@
+name: filters[hostname][contains]
+description: |
+  Keeps only the registrations whose hostname, as the device sent it when it registered, contains
+  this text, ignoring case. The count in `X-Total-Count` is of those. Any other `filters[...]`
+  parameter, or a malformed one, is rejected with 400, as is a text longer than 256 bytes.
+schema:
+  type: string
+  example: kitchen
+required: false
+in: query

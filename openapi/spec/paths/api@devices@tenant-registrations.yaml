@@ -15,6 +15,7 @@ get:
   parameters:
     - $ref: ../components/parameters/query/pageQuery.yaml
     - $ref: ../components/parameters/query/perPageQuery.yaml
+    - $ref: ../components/parameters/query/registrationHostnameFilterQuery.yaml
     - name: order_by
       schema:
         description: The list order.

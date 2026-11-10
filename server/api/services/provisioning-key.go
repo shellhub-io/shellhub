@@ -41,6 +41,12 @@ var ProvisioningKeySortFields = query.NewFieldSet(
 	"expires_at",
 )
 
+// RegistrationFilterFields maps each filter field a registration history accepts to the operators
+// valid for it: only the hostname the device registered with, matched as a substring.
+var RegistrationFilterFields = query.NewFieldConstraints(map[string][]string{
+	"hostname": {"contains"},
+})
+
 // ProvisioningKeyEventSortFields is the set of field names accepted in the sort_by query parameter
 // when listing a provisioning key's history.
 var ProvisioningKeyEventSortFields = query.NewFieldSet(
@@ -200,15 +206,19 @@ type ProvisioningKeyService interface {
 	// resolved nor created included.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
-	// ListProvisioningKeyEvents retrieves the append-only enrollment history of the provisioning key identified by
-	// tenant ID and name, newest first. It returns the events, the total count, and an error, if any.
+	// ListProvisioningKeyEvents pages the append-only enrollment history of the provisioning key whose
+	// digest is req.ID in the tenant's namespace, in the order req.Sorter names, newest first when it
+	// names none, keeping only the events req.Filters matches; the count is of those. It returns
+	// [ErrForbidden] for an empty tenant, [ErrProvisioningKeyNotFound] when the namespace has no key
+	// with that digest, and the store's error when the key or its history cannot be read.
 	ListProvisioningKeyEvents(ctx context.Context, req *requests.ListProvisioningKeyEvents) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// ListTenantRegistrations pages the registration history of the namespace's tenant-only key, the
-	// one a device presenting only the tenant enrolls under, with the same order and fields as
-	// [ProvisioningKeyService.ListProvisioningKeyEvents]. A namespace without that key has no history
-	// and gets an empty page. It returns [ErrForbidden] for an empty tenant and the store's error when
-	// the key or its history cannot be read.
+	// one a device presenting only the tenant enrolls under, with the same order, fields and filtering
+	// as [ProvisioningKeyService.ListProvisioningKeyEvents]: it keeps only the events req.Filters
+	// matches, and the count is of those. A namespace without that key has no history and gets an
+	// empty page. It returns [ErrForbidden] for an empty tenant and the store's error when the key or
+	// its history cannot be read.
 	ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// ResolveEnrollmentCallback applies a webhook integrator's deferred decision, authenticated solely
@@ -551,17 +561,17 @@ func (s *service) ListProvisioningKeyEvents(ctx context.Context, req *requests.L
 		}
 	}
 
-	return s.listRegistrations(ctx, sc, provisioningKey.ID, &req.Sorter, &req.Paginator)
+	return s.listRegistrations(ctx, sc, provisioningKey.ID, &req.Filters, &req.Sorter, &req.Paginator)
 }
 
-func (s *service) listRegistrations(ctx context.Context, sc scope.Scope, keyID string, sorter *query.Sorter, paginator *query.Paginator) ([]models.ProvisioningKeyEvent, int64, error) {
+func (s *service) listRegistrations(ctx context.Context, sc scope.Scope, keyID string, filters *query.Filters, sorter *query.Sorter, paginator *query.Paginator) ([]models.ProvisioningKeyEvent, int64, error) {
 	if sorter.By == "" {
 		sorter.By = "created_at"
 	}
 
 	sorter.Tiebreak = "id"
 
-	return s.store.ProvisioningKeyEventList(ctx, sc, keyID, s.store.Options().Sort(sorter), s.store.Options().Paginate(paginator))
+	return s.store.ProvisioningKeyEventList(ctx, sc, keyID, s.store.Options().Match(filters), s.store.Options().Sort(sorter), s.store.Options().Paginate(paginator))
 }
 
 func (s *service) ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) ([]models.ProvisioningKeyEvent, int64, error) {
@@ -578,7 +588,7 @@ func (s *service) ListTenantRegistrations(ctx context.Context, req *requests.Lis
 		return nil, 0, err
 	}
 
-	return s.listRegistrations(ctx, sc, tenantKey.ID, &req.Sorter, &req.Paginator)
+	return s.listRegistrations(ctx, sc, tenantKey.ID, &req.Filters, &req.Sorter, &req.Paginator)
 }
 
 func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) error {
