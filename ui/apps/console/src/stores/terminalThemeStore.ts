@@ -168,6 +168,16 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+const fetchMetadata = () =>
+  fetchJson<ThemeMetadata[]>("/xterm-themes/metadata.json");
+
+async function fetchTheme(meta: ThemeMetadata): Promise<TerminalTheme> {
+  const colors = await fetchJson<TerminalThemeColors>(
+    `/xterm-themes/${meta.file}`,
+  );
+  return { name: meta.name, dark: meta.dark, colors };
+}
+
 interface TerminalThemeState {
   themes: TerminalTheme[];
   themeName: string;
@@ -176,6 +186,7 @@ interface TerminalThemeState {
   fontSize: number;
   fontFamilyWithFallback: string;
   loaded: boolean;
+  restoreTheme: () => Promise<void>;
   loadThemes: () => Promise<void>;
   setTheme: (name: string) => void;
   setFontFamily: (font: TerminalFont) => void;
@@ -183,9 +194,11 @@ interface TerminalThemeState {
 }
 
 /**
- * The terminal's appearance — theme, font and size — restored from localStorage at startup, so
- * it survives a reload. Applies to every open terminal at once; it is a preference, not
- * per-session state.
+ * The terminal's appearance — theme, font and size — kept in localStorage, so it survives a
+ * reload. The font, the size and the saved theme's name are read at startup; the theme's colours
+ * stay the bundled ShellHub Dark until restoreTheme fetches the saved one, and the full list for
+ * the picker waits for loadThemes. Applies to every open terminal at once; it is a preference,
+ * not per-session state.
  */
 export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
   const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
@@ -208,31 +221,38 @@ export const useTerminalThemeStore = create<TerminalThemeState>((set, get) => {
     fontFamilyWithFallback: `'${initialFont}', monospace`,
     loaded: false,
 
+    restoreTheme: async () => {
+      const saved = get().themeName;
+      if (get().loaded || saved === FALLBACK_THEME.name) return;
+
+      const metadata = await fetchMetadata().catch(() => []);
+      const meta = metadata.find((m) => m.name === saved) ?? metadata[0];
+      if (!meta) return;
+      const theme = await fetchTheme(meta).catch(() => null);
+      if (!theme || get().loaded || get().themeName !== saved) return;
+      if (theme.name !== saved)
+        localStorage.setItem(STORAGE_KEYS.theme, theme.name);
+      set({ theme, themeName: theme.name });
+    },
+
     loadThemes: async () => {
       if (get().loaded) return;
 
       try {
-        const metadata = await fetchJson<ThemeMetadata[]>(
-          "/xterm-themes/metadata.json",
-        );
+        const metadata = await fetchMetadata();
 
         const results = await Promise.all(
-          metadata.map(async (meta) => {
-            try {
-              const colors = await fetchJson<TerminalThemeColors>(
-                `/xterm-themes/${meta.file}`,
-              );
-              return { name: meta.name, dark: meta.dark, colors };
-            } catch {
-              return null;
-            }
-          }),
+          metadata.map((meta) => fetchTheme(meta).catch(() => null)),
         );
 
         const themes = results.filter(Boolean) as TerminalTheme[];
         const saved = get().themeName;
+        const restored = get().theme.name === saved ? get().theme : undefined;
         const current =
-          themes.find((t) => t.name === saved) || themes[0] || FALLBACK_THEME;
+          themes.find((t) => t.name === saved) ||
+          restored ||
+          themes[0] ||
+          FALLBACK_THEME;
         const listed = metadata.some((meta) => meta.name === saved);
         if (!listed) localStorage.setItem(STORAGE_KEYS.theme, current.name);
         set({

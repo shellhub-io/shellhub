@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Drawer from "../common/Drawer";
 import TerminalSettingsBody from "./TerminalSettingsBody";
 
@@ -11,6 +12,8 @@ interface Props {
  * to every open terminal and player at once, as a preference rather than per-session state.
  */
 export default function TerminalSettingsDrawer({ open, onClose }: Props) {
+  const [hasOpened, setHasOpened] = useState(open);
+  if (open && !hasOpened) setHasOpened(true);
   return (
     <Drawer
       open={open}
@@ -19,7 +22,7 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
       width="sm"
       bodyClassName="flex-1 overflow-y-auto"
     >
-      <TerminalSettingsBody />
+      {hasOpened && <TerminalSettingsBody />}
     </Drawer>
   );
 }

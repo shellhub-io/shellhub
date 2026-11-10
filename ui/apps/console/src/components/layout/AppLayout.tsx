@@ -46,10 +46,10 @@ import { isPreferencesPath } from "@/utils/preferencesRoute";
 export default function AppLayout() {
   const { pathname } = useLocation();
   const tenant = useAuthStore((s) => s.tenant);
-  const loadTerminalThemes = useTerminalThemeStore((s) => s.loadThemes);
+  const restoreTerminalTheme = useTerminalThemeStore((s) => s.restoreTheme);
   useEffect(() => {
-    void loadTerminalThemes();
-  }, [loadTerminalThemes]);
+    void restoreTerminalTheme();
+  }, [restoreTerminalTheme]);
   const { namespaces } = useNamespaces();
   const windowShown = useWindowShown();
   const { isOpen, pinned, isDesktop, isWide, drawerOpen, handlers } =

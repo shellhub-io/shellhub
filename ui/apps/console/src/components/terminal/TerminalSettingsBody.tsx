@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -27,7 +27,13 @@ function TerminalThemeGrid({
 }: {
   onPreview?: (name: string | null) => void;
 }) {
-  const { themes, themeName, setTheme } = useTerminalThemeStore();
+  const themes = useTerminalThemeStore((s) => s.themes);
+  const themeName = useTerminalThemeStore((s) => s.themeName);
+  const setTheme = useTerminalThemeStore((s) => s.setTheme);
+  const loadThemes = useTerminalThemeStore((s) => s.loadThemes);
+  useEffect(() => {
+    void loadThemes();
+  }, [loadThemes]);
   const [hovered, setHovered] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
   const hover = (name: string | null) => {
