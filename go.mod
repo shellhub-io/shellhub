@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/yamux v0.1.2
 	github.com/hibiken/asynq v0.26.0
 	github.com/jarcoal/httpmock v1.4.2
-	github.com/labstack/echo/v5 v5.4.2
+	github.com/labstack/echo/v5 v5.4.4
 	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moby/moby/api v1.56.1
 	github.com/moby/moby/client v0.6.2

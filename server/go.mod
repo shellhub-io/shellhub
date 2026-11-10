@@ -20,7 +20,7 @@ require (
 	github.com/hashicorp/yamux v0.1.2
 	github.com/jackc/pgx/v5 v5.12.0
 	github.com/labstack/echo-contrib/v5 v5.0.1
-	github.com/labstack/echo/v5 v5.4.2
+	github.com/labstack/echo/v5 v5.4.4
 	github.com/mark3labs/mcp-go v1.5.0
 	github.com/multiformats/go-multistream v0.6.1
 	github.com/oschwald/geoip2-golang/v2 v2.5.0
