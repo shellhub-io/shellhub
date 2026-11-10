@@ -369,7 +369,7 @@ func NewListener(serverConn net.Conn, dialServer func(context.Context, string) (
 	ln := &Listener{
 		sc:    serverConn,
 		dial:  dialServer,
-		connc: make(chan net.Conn, 8), // arbitrary
+		connc: make(chan net.Conn, acceptQueueSize),
 		donec: make(chan struct{}),
 	}
 	go ln.run()
@@ -388,7 +388,7 @@ type Listener struct {
 	dial   func(context.Context, string) (*websocket.Conn, *http.Response, error)
 	writec chan<- []byte
 
-	mu     sync.Mutex // guards below, closing connc, and writing to rw
+	mu     sync.Mutex
 	closed bool
 }
 
@@ -408,7 +408,7 @@ func (ln *Listener) run() {
 
 	closeTimer := time.AfterFunc(dialerKeepAliveTimeout, done)
 
-	writec := make(chan []byte, 8)
+	writec := make(chan []byte, controlWriteQueueSize)
 	ln.writec = writec
 	go func() {
 		defer onceDefer.Do(done)
@@ -476,7 +476,11 @@ func (ln *Listener) sendMessage(m controlMsg) {
 	}
 
 	j = append(j, '\n')
-	ln.writec <- j
+
+	select {
+	case ln.writec <- j:
+	case <-ln.donec:
+	}
 }
 
 func (ln *Listener) grabConn(path string) {
@@ -502,27 +506,58 @@ func (ln *Listener) grabConn(path string) {
 		return
 	}
 
-	select {
-	case ln.connc <- wsconnadapter.New(wsConn):
-	case <-ln.donec:
+	err = ln.enqueue(wsconnadapter.New(wsConn))
+
+	switch {
+	case errors.Is(err, ErrListenerClosed):
+		_ = wsConn.Close()
+	case err != nil:
+		failPickup(err)
 	}
 }
 
-// Accept blocks and returns a new connection, or an error.
+const (
+	acceptQueueSize       = 8
+	controlWriteQueueSize = 8
+)
+
+var errTooManyPickups = errors.New("too many picked-up connections are waiting to be accepted")
+
+func (ln *Listener) enqueue(c net.Conn) error {
+	ln.mu.Lock()
+	defer ln.mu.Unlock()
+
+	if ln.closed {
+		return ErrListenerClosed
+	}
+
+	select {
+	case ln.connc <- c:
+		return nil
+	default:
+		return errTooManyPickups
+	}
+}
+
+// Accept blocks and returns a new connection, or ErrListenerClosed once the Listener is closed:
+// by Close, or because its control connection to the server failed, carried a malformed message,
+// or stopped delivering keep-alives.
 func (ln *Listener) Accept() (net.Conn, error) {
-	c, ok := <-ln.connc
-	if !ok {
+	select {
+	case c := <-ln.connc:
+		return c, nil
+	case <-ln.donec:
 		return nil, ErrListenerClosed
 	}
-
-	return c, nil
 }
 
-// ErrListenerClosed is returned by Accept after Close has been called.
+// ErrListenerClosed is returned by Accept once the Listener is closed. Accept lists what closes it.
 var ErrListenerClosed = errors.New("revdial: Listener closed")
 
-// Close closes the Listener, making future Accept calls return an
-// error.
+// Close closes the Listener, making future Accept calls return
+// ErrListenerClosed, and closes every picked-up connection that no Accept has
+// taken yet. A connection an Accept running concurrently takes belongs to that
+// caller. It never blocks and always returns nil.
 func (ln *Listener) Close() error {
 	ln.mu.Lock()
 	defer ln.mu.Unlock()
@@ -531,10 +566,16 @@ func (ln *Listener) Close() error {
 	}
 	go func() { _ = ln.sc.Close() }()
 	ln.closed = true
-	close(ln.connc)
 	close(ln.donec)
 
-	return nil
+	for {
+		select {
+		case c := <-ln.connc:
+			_ = c.Close()
+		default:
+			return nil
+		}
+	}
 }
 
 // Addr returns a dummy address. This exists only to conform to the
