@@ -11,6 +11,7 @@ import { websiteUrl } from "../data/links";
 import CommandPalette from "../components/CommandPalette.astro";
 import UnreleasedBanner from "../components/UnreleasedBanner.astro";
 import SeoHead from "../components/SeoHead.astro";
+import AiTools from "../components/AiTools.astro";
 import { isIndexable, normalizePath, pageGraph, pageTitle } from "../lib/seo";
 
 interface Page {
@@ -241,10 +242,13 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
       </main>
 
       <aside class="col-span-2 sticky top-14 self-start h-[calc(100vh-56px)] overflow-y-auto pt-10 pb-10 hidden xl:block" id="docs-toc">
-        <p class="font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-3.5 pl-3">
-          On this page
-        </p>
-        <div id="docs-toc-links"></div>
+        {indexable && <AiTools />}
+        <div id="docs-toc-contents">
+          <p class="font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-3.5 pl-3">
+            On this page
+          </p>
+          <div id="docs-toc-links"></div>
+        </div>
       </aside>
     </div>
 
@@ -308,11 +312,11 @@ const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1]
       (function buildToc() {
         const prose = document.querySelector(".prose");
         const tocLinks = document.getElementById("docs-toc-links");
-        const tocAside = document.getElementById("docs-toc");
+        const tocContents = document.getElementById("docs-toc-contents");
         if (!prose || !tocLinks) return;
 
         const headings = prose.querySelectorAll("h2, h3");
-        if (headings.length < 2) { tocAside?.classList.add("hidden"); return; }
+        if (headings.length < 2) { tocContents?.classList.add("hidden"); return; }
 
         headings.forEach((h, i) => {
           if (!h.id) h.id = `section-${i}`;

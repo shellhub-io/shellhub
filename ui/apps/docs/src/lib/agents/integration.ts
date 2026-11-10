@@ -4,6 +4,8 @@ import {
   readFileSync,
   writeFileSync,
 } from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import type { AddressInfo } from "node:net";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
@@ -14,6 +16,7 @@ import {
   isStableChannel,
   markdownPath,
   normalizePath,
+  pageOfMarkdown,
 } from "../seo";
 import { withFaqSchema } from "./faq";
 import { llmsFullTxt, llmsTxt } from "./llms";
@@ -29,12 +32,46 @@ const builtFile = (root: string, path: string): string | undefined => {
   return existsSync(file) ? file : undefined;
 };
 
+type ListeningAddress = () => AddressInfo | string | null | undefined;
+
+const respondWithMarkdown = async (
+  address: ListeningAddress,
+  req: IncomingMessage,
+  res: ServerResponse,
+  next: () => void,
+) => {
+  const path = pageOfMarkdown(new URL(req.url ?? "/", "http://dev").pathname);
+  const listening = address();
+  if (!path || !isIndexable(path) || !listening || typeof listening === "string") {
+    next();
+    return;
+  }
+
+  const page = await fetch(`http://127.0.0.1:${listening.port}${path}`);
+  const rendered = page.ok ? renderPage(await page.text(), absoluteUrl(path)) : undefined;
+  if (!rendered) {
+    next();
+    return;
+  }
+
+  res.setHeader("content-type", "text/markdown; charset=utf-8");
+  res.end(rendered.markdown);
+};
+
+const serveMarkdown =
+  (address: ListeningAddress) =>
+  (req: IncomingMessage, res: ServerResponse, next: (error?: unknown) => void) => {
+    respondWithMarkdown(address, req, res, next).catch(next);
+  };
+
 /**
  * The Astro integration that makes the built site readable by agents. After the build it writes a
  * Markdown copy of every documentation page beside its HTML (`/connect` → `/connect.md`), then
  * `/llms.txt` and `/llms-full.txt` from those copies in the order of `sections`, and publishes the questions of a page marked
  * `schema: faq` as FAQPage structured data. A build of any channel but `stable` also
- * sends `x-robots-tag: noindex` on every response, Markdown and text included.
+ * sends `x-robots-tag: noindex` on every response, Markdown and text included. The dev server
+ * answers the same Markdown addresses by rendering the page on request, so `/connect.md` works
+ * before any build.
  */
 export function agents({
   channel,
@@ -46,6 +83,9 @@ export function agents({
   return {
     name: "@shellhub/docs:agents",
     hooks: {
+      "astro:server:setup": ({ server }) => {
+        server.middlewares.use(serveMarkdown(() => server.httpServer?.address()));
+      },
       "astro:build:done": ({ dir, pages, logger }) => {
         const root = fileURLToPath(dir);
         const rendered = new Map<string, RenderedPage>();

@@ -1,0 +1,78 @@
+---
+import {
+  ArrowTopRightOnSquareIcon,
+  ClipboardDocumentIcon,
+} from "@heroicons/react/24/outline";
+import { askAssistant, markdownPath } from "../lib/seo";
+
+const { pathname } = Astro.url;
+const assistants = [
+  { label: "Ask ChatGPT", href: askAssistant("chatgpt", pathname) },
+  { label: "Ask Claude", href: askAssistant("claude", pathname) },
+];
+const itemClass =
+  "flex items-center gap-2 text-[12.5px] text-text-muted hover:text-text-secondary transition-colors no-underline text-left cursor-pointer";
+---
+
+<section aria-labelledby="ai-tools-heading" class="mb-8">
+  <p
+    id="ai-tools-heading"
+    class="font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-3.5 pl-3"
+  >
+    AI tools
+  </p>
+  <div class="flex flex-col gap-2 pl-3">
+    <button type="button" class={itemClass} data-copy-markdown={markdownPath(pathname)}>
+      <ClipboardDocumentIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+      <span data-copy-label>Copy as Markdown</span>
+    </button>
+    {assistants.map(({ label, href }) => (
+      <a href={href} target="_blank" rel="noopener noreferrer" class={itemClass}>
+        <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        {label}
+      </a>
+    ))}
+    <span class="sr-only" role="status" data-copy-status></span>
+  </div>
+</section>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("[data-copy-markdown]");
+  const label = button?.querySelector("[data-copy-label]");
+  const status = document.querySelector("[data-copy-status]");
+  const idleLabel = label?.textContent ?? "";
+  const canCopy = typeof navigator.clipboard?.write === "function" && "ClipboardItem" in window;
+  let resetTimer: ReturnType<typeof setTimeout> | undefined;
+  let latestCopy = 0;
+
+  const announce = (text: string) => {
+    if (!label || !status) return;
+    clearTimeout(resetTimer);
+    label.textContent = text;
+    status.textContent = text;
+    resetTimer = setTimeout(() => {
+      label.textContent = idleLabel;
+      status.textContent = "";
+    }, 2000);
+  };
+
+  if (button && !canCopy) button.classList.add("hidden");
+
+  button?.addEventListener("click", () => {
+    const copy = ++latestCopy;
+    const markdown = fetch(button.dataset.copyMarkdown ?? "").then(async (response) => {
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return new Blob([await response.text()], { type: "text/plain" });
+    });
+
+    navigator.clipboard
+      .write([new ClipboardItem({ "text/plain": markdown })])
+      .then(() => {
+        if (copy === latestCopy) announce("Copied");
+      })
+      .catch((error: unknown) => {
+        console.error("copy as Markdown failed", error);
+        if (copy === latestCopy) announce("Copy failed");
+      });
+  });
+</script>
