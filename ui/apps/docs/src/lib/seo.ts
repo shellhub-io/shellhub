@@ -51,6 +51,33 @@ export const markdownPath = (pathname: string): string => {
   return path === "/" ? "/index.md" : `${path}.md`;
 };
 
+/**
+ * The page a Markdown address is the copy of, the inverse of `markdownPath`: `/connect.md` →
+ * `/connect`, `/index.md` → `/`. Returns undefined for an address that is not Markdown.
+ */
+export const pageOfMarkdown = (pathname: string): string | undefined => {
+  if (!pathname.endsWith(".md")) return undefined;
+  return normalizePath(pathname.slice(0, -".md".length));
+};
+
+/**
+ * The address that opens a new chat with `assistant`, prompted to read the Markdown copy of
+ * `pathname` on the released site. A page that exists only on the unreleased channel is therefore
+ * one the assistant cannot read.
+ */
+export const askAssistant = (
+  assistant: "chatgpt" | "claude",
+  pathname: string,
+): string => {
+  const prompt = `Read from ${SITE}${markdownPath(pathname)} so I can ask questions about its contents`;
+  const url =
+    assistant === "chatgpt"
+      ? new URL("https://chatgpt.com/?hint=search")
+      : new URL("https://claude.ai/new");
+  url.searchParams.set("q", prompt);
+  return url.toString();
+};
+
 /** The full `<title>` of a page: its own title and the site's. */
 export const pageTitle = (title: string): string =>
   `${title} | ${TITLE_SUFFIX}`;

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { SidebarSection } from "@/data/sidebar";
 import {
   absoluteUrl,
+  askAssistant,
   breadcrumbsFor,
   isIndexable,
   isStableChannel,
@@ -10,6 +11,7 @@ import {
   markdownPath,
   normalizePath,
   pageGraph,
+  pageOfMarkdown,
 } from "@/lib/seo";
 
 describe("normalizePath", () => {
@@ -39,6 +41,34 @@ describe("markdownPath", () => {
   it("puts the copy beside the page", () => {
     expect(markdownPath("/connect.html")).toBe("/connect.md");
     expect(markdownPath("/")).toBe("/index.md");
+  });
+});
+
+describe("pageOfMarkdown", () => {
+  it("returns the page a Markdown copy was made from", () => {
+    expect(pageOfMarkdown("/connect.md")).toBe("/connect");
+    expect(pageOfMarkdown("/about/faq.md")).toBe("/about/faq");
+    expect(pageOfMarkdown("/index.md")).toBe("/");
+  });
+
+  it("returns undefined for an address that is not Markdown", () => {
+    expect(pageOfMarkdown("/connect")).toBeUndefined();
+    expect(pageOfMarkdown("/llms.txt")).toBeUndefined();
+  });
+});
+
+describe("askAssistant", () => {
+  it.each([
+    ["chatgpt", "https://chatgpt.com/", { hint: "search" }],
+    ["claude", "https://claude.ai/new", {}],
+  ] as const)("asks %s to read the page's Markdown copy", (assistant, base, extra) => {
+    const url = new URL(askAssistant(assistant, "/connect.html"));
+
+    expect(`${url.origin}${url.pathname}`).toBe(base);
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      ...extra,
+      q: "Read from https://docs.shellhub.io/connect.md so I can ask questions about its contents",
+    });
   });
 });
 
