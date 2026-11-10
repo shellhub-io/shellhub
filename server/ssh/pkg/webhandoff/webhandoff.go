@@ -33,6 +33,9 @@ type Data struct {
 	// UserID is the logged-in account, set only in a new namespace. Legacy web
 	// sessions authenticate with a device credential and leave it empty.
 	UserID string
+	// Terminal is the payload of the pty-req the bridge sends once the session is up. A device
+	// that starts its shell on open starts it with this pty as soon as it admits the login.
+	Terminal []byte
 }
 
 // Store holds the pending handoffs. It is safe for concurrent use.

@@ -291,6 +291,8 @@ func TestNewSSHServerBridge_FailedOpenSpendsTheToken(t *testing.T) {
 			service := servicemocks.NewMockService(t)
 			service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
 				Return(deviceInNamespace(true)).Once()
+			service.On("GetDevice", mock.Anything, mock.Anything, models.UID("device-uid")).
+				Return(nil, store.ErrNoDocuments).Maybe()
 
 			server := startBridgeResolving(t, service, test.resolved)
 

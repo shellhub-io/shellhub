@@ -46,6 +46,60 @@ type fakeSession struct {
 	onCloseAgentWrite func()
 
 	edition envs.Edition
+
+	startsShell   bool
+	startedShell  []byte
+	shellRefusals int
+	shellSetup    []string
+	reopened      int
+}
+
+func (f *fakeSession) CanStartShell(int) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return f.startsShell && f.agent != nil && f.agent.Shell == nil
+}
+
+func (f *fakeSession) StartShell(_ int, setup []*gossh.Request) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if !f.startsShell || f.agent == nil {
+		return false
+	}
+
+	if f.shellRefusals > 0 {
+		f.shellRefusals--
+
+		return false
+	}
+
+	f.calls = append(f.calls, "StartShell")
+
+	for _, req := range setup {
+		f.shellSetup = append(f.shellSetup, req.Type)
+
+		if req.Type == PtyRequestType {
+			f.agent.Shell = req.Payload
+		}
+	}
+
+	return true
+}
+
+func (f *fakeSession) ReopenAgentChannel(int) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if f.agent == nil || f.agent.Shell == nil {
+		return session.ErrChannelNotReopened
+	}
+
+	f.agent.Shell = nil
+	f.reopened++
+
+	return nil
 }
 
 func (f *fakeSession) Edition() envs.Edition {
@@ -927,4 +981,94 @@ func TestSessionChannelForwardsEveryAgentRequestToTheDeviceAndStartsForwarding(t
 	}
 
 	assert.True(t, sess.called("ForwardAgent"), "an agent request must reach the session")
+}
+
+func TestSessionChannelAnswersThePtyAndShellOfAShellTheDeviceStartedOnOpen(t *testing.T) {
+	started := gossh.Marshal(models.SSHPty{Term: "xterm", Columns: 80, Rows: 24, Modelist: []byte{0}})
+
+	cases := []struct {
+		description string
+		pty         []byte
+		seen        []string
+	}{
+		{
+			description: "a pty of the size the shell started with reaches the device as nothing",
+			pty:         started,
+			seen:        []string{"env"},
+		},
+		{
+			description: "a pty of another size reaches the device as a resize",
+			pty:         gossh.Marshal(models.SSHPty{Term: "xterm", Columns: 120, Rows: 40, Modelist: []byte{0}}),
+			seen:        []string{WindowChangeRequestType, "env"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			sess := &fakeSession{startedShell: started} //nolint:exhaustruct // only the shell the device started matters here
+			client, received := sessionOnDevice(t, sess)
+
+			ok, err := client.SendRequest(PtyRequestType, true, tc.pty)
+			require.NoError(t, err)
+			assert.True(t, ok, "the pty the device already allocated must be granted")
+
+			ok, err = client.SendRequest(ShellRequestType, true, nil)
+			require.NoError(t, err)
+			assert.True(t, ok, "the shell the device already started must be granted")
+
+			ok, err = client.SendRequest("env", true, nil)
+			require.NoError(t, err)
+			assert.False(t, ok, "a request after the shell must get the device's answer")
+
+			for _, want := range tc.seen {
+				assert.Equal(t, want, <-received)
+			}
+
+			assert.True(t, sess.called("SetSeatPty"), "the pty must be recorded on the seat")
+		})
+	}
+}
+
+func TestSessionChannelReopensAShellTheDeviceStartedOnOpenForACommand(t *testing.T) {
+	started := gossh.Marshal(models.SSHPty{Term: "xterm", Columns: 80, Rows: 24, Modelist: []byte{0}})
+
+	sess := &fakeSession{startedShell: started} //nolint:exhaustruct // only the shell the device started matters here
+	client, received := sessionOnDevice(t, sess)
+
+	ok, err := client.SendRequest(ExecRequestType, true, gossh.Marshal(struct{ Command string }{"id"}))
+	require.NoError(t, err)
+	assert.False(t, ok, "the command must get the device's answer")
+
+	assert.Equal(t, ExecRequestType, <-received, "the command must reach the device on the reopened channel")
+	assert.Equal(t, 1, sess.reopened)
+	assert.True(t, sess.called("SetSeatType"))
+}
+
+func TestSessionChannelRefusesACommandWhenTheStartedShellCannotBeReplaced(t *testing.T) {
+	started := gossh.Marshal(models.SSHPty{Term: "xterm", Columns: 80, Rows: 24, Modelist: []byte{0}})
+
+	sess := &fakeSession{startedShell: started} //nolint:exhaustruct // only the shell the device started matters here
+	client, received := sessionOnDevice(t, sess)
+
+	ok, err := client.SendRequest(ShellRequestType, true, nil)
+	require.NoError(t, err)
+	assert.True(t, ok)
+
+	ok, err = client.SendRequest(ExecRequestType, true, gossh.Marshal(struct{ Command string }{"id"}))
+	require.NoError(t, err)
+	assert.False(t, ok, "a command cannot run where a shell already does")
+
+	ok, err = client.SendRequest("env", true, nil)
+	require.NoError(t, err)
+	assert.False(t, ok)
+
+	assert.Equal(t, "env", <-received, "the command must not reach the device")
+	assert.False(t, sess.called("SetSeatType"), "a refused command must not mark the seat as an exec")
+
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+
+	for _, event := range sess.events {
+		assert.NotEqual(t, models.SessionEventType(ExecRequestType), event.Type, "a refused command must not be recorded")
+	}
 }

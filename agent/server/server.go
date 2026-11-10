@@ -27,6 +27,8 @@ type Server struct {
 
 	mode     modes.Mode
 	Sessions sync.Map
+
+	hostCertificate gossh.Signer
 }
 
 // SSH channels supported by the SSH server.
@@ -83,6 +85,8 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 	}
 
 	server.sshd = &gliderssh.Server{
+		ConnCallback:           server.connCallback,
+		ServerConfigCallback:   server.serverConfig,
 		PasswordHandler:        server.passwordHandler,
 		PublicKeyHandler:       server.publicKeyHandler,
 		Handler:                server.sessionHandler,
@@ -95,7 +99,7 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 			return cfg.Features&ReversePortForwardFeature > 0
 		},
 		ChannelHandlers: map[string]gliderssh.ChannelHandler{
-			ChannelSession:     gliderssh.DefaultSessionHandler,
+			ChannelSession:     shellOnOpenHandler(gliderssh.DefaultSessionHandler),
 			ChannelDirectTcpip: gliderssh.DirectTCPIPHandler,
 		},
 	}
@@ -119,6 +123,12 @@ func NewServer(mode modes.Mode, cfg *Config) *Server {
 	err := server.sshd.SetOption(gliderssh.HostKeyFile(cfg.PrivateKey))
 	if err != nil {
 		log.Warn(err)
+	}
+
+	if len(server.sshd.HostSigners) > 0 {
+		if server.hostCertificate, err = certifyHostKey(server.sshd.HostSigners[0]); err != nil {
+			log.WithError(err).Warn("failed to certify a host key with the device key; the gateway will verify the device key itself")
+		}
 	}
 
 	return server

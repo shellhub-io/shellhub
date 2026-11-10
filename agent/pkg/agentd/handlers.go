@@ -14,6 +14,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
+	"github.com/shellhub-io/shellhub/agent/server"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -212,6 +213,11 @@ func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 			log.Error("failed to cast the ReadWriteCloser to net.Conn")
 
 			return errors.New("failed to cast the ReadWriteCloser to net.Conn")
+		}
+
+		secret, vouched, certificate := headers["login"], headers["vouched"] == "true", headers["hostcert"] == "true"
+		if secret != "" || vouched || certificate {
+			conn = &server.GatewayLoginConn{Conn: conn, GatewayStream: server.GatewayStream{Secret: secret, Vouched: vouched, HostCertificate: certificate}}
 		}
 
 		agent.server.Sessions.Store(id, conn)

@@ -177,8 +177,19 @@ func (a *Authenticator) Password(ctx gliderssh.Context, username string, passwor
 	return true
 }
 
-// PublicKey handles the server's SSH public key authentication when server is running in connector mode.
-func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gliderssh.PublicKey) bool {
+// GatewayLogin admits username when the container has the account and it has not expired, and
+// leaves the account on ctx under "user" for the session handlers, as the password and public
+// key checks do.
+func (a *Authenticator) GatewayLogin(ctx gliderssh.Context, username string) bool {
+	user, ok := a.admittedUser(ctx, username)
+	if ok {
+		ctx.SetValue("user", user)
+	}
+
+	return ok
+}
+
+func (a *Authenticator) admittedUser(ctx gliderssh.Context, username string) (*osauth.User, bool) {
 	passwd, err := getPasswd(ctx, a.docker, *a.container)
 	if err != nil {
 		log.WithFields(
@@ -188,7 +199,7 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 			},
 		).WithError(err).Error("failed to get the passwd file from container")
 
-		return false
+		return nil, false
 	}
 	defer passwd.Close() //nolint:errcheck // response body of a finished read, nothing to flush
 
@@ -201,10 +212,20 @@ func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gl
 			},
 		).WithError(err).Error("failed to lookup for the user on passwd file")
 
-		return false
+		return nil, false
 	}
 
 	if accountExpiredInContainer(ctx, a.docker, *a.container, username) {
+		return nil, false
+	}
+
+	return user, true
+}
+
+// PublicKey handles the server's SSH public key authentication when server is running in connector mode.
+func (a *Authenticator) PublicKey(ctx gliderssh.Context, username string, key gliderssh.PublicKey) bool {
+	user, ok := a.admittedUser(ctx, username)
+	if !ok {
 		return false
 	}
 

@@ -1,10 +1,15 @@
 package channels
 
 import (
+	"bytes"
+	"fmt"
+	"slices"
 	"sync"
+	"time"
 
 	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/shellonopen"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
 	log "github.com/sirupsen/logrus"
 	gossh "golang.org/x/crypto/ssh"
@@ -88,6 +93,30 @@ const (
 // https://www.ietf.org/archive/id/draft-miller-ssh-agent-11.html#section-4.1
 const AuthRequestOpenSSHRequest = string(models.SessionEventTypeAuthAgentRequest)
 
+var followingRequestsGrace = 3 * time.Millisecond
+
+func startsProgram(requestType string) bool {
+	switch requestType {
+	case ShellRequestType, ExecRequestType, SubsystemRequestType:
+		return true
+	default:
+		return false
+	}
+}
+
+func mayFollowPty(requestType string) bool {
+	return requestType != PtyRequestType && shellonopen.SetsUp(requestType)
+}
+
+func keepsAStartedShell(requestType string) bool {
+	switch requestType {
+	case ShellRequestType, PtyRequestType, WindowChangeRequestType, SignalRequestType:
+		return true
+	default:
+		return false
+	}
+}
+
 func startsDataPipe(requestType string) bool {
 	switch requestType {
 	case ShellRequestType, PtyRequestType, ExecRequestType, SubsystemRequestType:
@@ -165,6 +194,8 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		agent:  agent,
 		client: client,
 		done:   make(chan bool, 1),
+
+		appliedOnOpen: map[*gossh.Request]bool{},
 	}
 
 	var wg sync.WaitGroup
@@ -189,9 +220,16 @@ type sessionRelay struct {
 	pipeClaimed  sync.Once
 	forwarding   sync.Mutex
 	ptyRequested *models.SSHPty
+
+	pipeStarted    bool
+	programStarted bool
+	setup          []*gossh.Request
+	appliedOnOpen  map[*gossh.Request]bool
 }
 
 func (r *sessionRelay) startPipe() {
+	r.pipeStarted = true
+
 	r.pipeClaimed.Do(func() {
 		go pipe(r.sess, r.client.Channel, r.agent.Channel, r.seat, r.done)
 	})
@@ -208,7 +246,9 @@ func (r *sessionRelay) serveAgentRequests() {
 
 	<-r.done
 
-	if endedOnTheDevice {
+	if err := r.agent.OpenFailure(); err != nil {
+		tellOpenFailure(r.logger, r.client.Channel, err)
+	} else if endedOnTheDevice {
 		signalEndedOnTheDevice(r.logger, r.client.Channel)
 	}
 
@@ -294,17 +334,37 @@ func (r *sessionRelay) serveClientRequests() {
 }
 
 func (r *sessionRelay) handleClientRequest(req *gossh.Request) {
+	if !r.programStarted && !r.appliedOnOpen[req] && !keepsAStartedShell(req.Type) {
+		if _, started := r.agent.StartedShell(); started {
+			r.reopenWithoutShell()
+		}
+	}
+
 	switch req.Type {
 	case ShellRequestType:
 		r.announceShell()
 
 		r.sess.Event(req.Type, req.Payload, r.seat)
 	case ExecRequestType, SubsystemRequestType:
+		if _, started := r.agent.StartedShell(); started {
+			denyRequest(r.logger, req)
+
+			return
+		}
+
 		session.Event[models.SSHCommand](r.sess, req.Type, req.Payload, r.seat)
 
 		r.sess.SetSeatType(r.seat, session.SeatTypeExec)
 	case PtyRequestType:
 		if !r.notePty(req) {
+			return
+		}
+
+		acknowledge(r.logger, req)
+
+		if !r.pipeStarted {
+			r.startShellOnOpen(req)
+
 			return
 		}
 	case WindowChangeRequestType:
@@ -384,6 +444,10 @@ func (r *sessionRelay) startAgentForwarding(req *gossh.Request) {
 
 	r.sess.Event(req.Type, req.Payload, r.seat)
 
+	r.forwardAgent()
+}
+
+func (r *sessionRelay) forwardAgent() {
 	if clientConn, ok := r.ctx.Value(gliderssh.ContextKeyConn).(gossh.Conn); ok {
 		r.sess.ForwardAgent(clientConn, func(device, client gossh.Channel) {
 			hose(r.logger, device, client)
@@ -391,11 +455,137 @@ func (r *sessionRelay) startAgentForwarding(req *gossh.Request) {
 	}
 }
 
+func (r *sessionRelay) startShellOnOpen(pty *gossh.Request) {
+	if !r.sess.CanStartShell(r.seat) {
+		r.forwardToAgent(pty)
+
+		return
+	}
+
+	following := r.awaitFollowing()
+
+	if len(following) > 0 && following[len(following)-1].Type == ShellRequestType {
+		opened := following[:len(following)-1]
+
+		if slices.ContainsFunc(opened, func(req *gossh.Request) bool { return req.Type == AuthRequestOpenSSHRequest }) {
+			r.forwardAgent()
+		}
+
+		list := append(append(slices.Clone(r.setup), pty), opened...)
+		if r.sess.StartShell(r.seat, list) {
+			for _, req := range opened {
+				r.appliedOnOpen[req] = true
+			}
+		}
+	}
+
+	r.forwardToAgent(pty)
+
+	for _, req := range following {
+		r.handleClientRequest(req)
+	}
+}
+
+func (r *sessionRelay) awaitFollowing() []*gossh.Request {
+	var following []*gossh.Request
+
+	grace := time.NewTimer(followingRequestsGrace)
+	defer grace.Stop()
+
+	for {
+		select {
+		case next, ok := <-r.client.Requests:
+			if !ok {
+				return following
+			}
+
+			following = append(following, next)
+
+			if !mayFollowPty(next.Type) {
+				return following
+			}
+		case <-grace.C:
+			return following
+		case <-r.ctx.Done():
+			return following
+		}
+	}
+}
+
+func (r *sessionRelay) reopenWithoutShell() {
+	if err := r.sess.ReopenAgentChannel(r.seat); err != nil {
+		r.logger.WithError(err).Debug("failed to replace the shell the device started on open")
+
+		return
+	}
+
+	for _, req := range r.setup {
+		if _, err := r.agent.Channel.SendRequest(req.Type, false, req.Payload); err != nil {
+			r.logger.WithError(err).Error("failed to replay the session setup on the reopened channel")
+		}
+	}
+}
+
+func (r *sessionRelay) answerFromStartedShell(req *gossh.Request) bool {
+	if r.programStarted || (req.Type != PtyRequestType && req.Type != ShellRequestType) {
+		return false
+	}
+
+	started, ok := r.agent.StartedShell()
+	if !ok {
+		return false
+	}
+
+	switch req.Type {
+	case PtyRequestType:
+		if r.ptyRequested != nil && !bytes.Equal(req.Payload, started) {
+			resize := models.SSHWindowChange{
+				Columns: r.ptyRequested.Columns,
+				Rows:    r.ptyRequested.Rows,
+				Width:   r.ptyRequested.Width,
+				Height:  r.ptyRequested.Height,
+			}
+
+			if _, err := r.agent.Channel.SendRequest(WindowChangeRequestType, false, gossh.Marshal(resize)); err != nil {
+				r.logger.WithError(err).Error("failed to resize the shell the device started on open")
+			}
+		}
+
+		r.recordRequestedPty()
+	case ShellRequestType:
+		acknowledge(r.logger, req)
+
+		r.programStarted = true
+
+		r.startPipe()
+	}
+
+	return true
+}
+
 func (r *sessionRelay) forwardToAgent(req *gossh.Request) {
 	r.forwarding.Lock()
 	defer r.forwarding.Unlock()
 
-	ok, err := r.agent.Channel.SendRequest(req.Type, req.WantReply, req.Payload)
+	if !r.programStarted && !startsProgram(req.Type) {
+		r.setup = append(r.setup, req)
+	}
+
+	if r.appliedOnOpen[req] {
+		delete(r.appliedOnOpen, req)
+
+		acknowledge(r.logger, req)
+
+		return
+	}
+
+	if r.answerFromStartedShell(req) {
+		return
+	}
+
+	awaitsDevice := req.WantReply && req.Type != PtyRequestType
+
+	ok, err := r.agent.Channel.SendRequest(req.Type, awaitsDevice, req.Payload)
 	if err != nil {
 		r.logger.WithError(err).Error("failed to send the request from client to agent")
 		r.ptyRequested = nil
@@ -403,30 +593,30 @@ func (r *sessionRelay) forwardToAgent(req *gossh.Request) {
 		return
 	}
 
-	if req.WantReply {
+	if awaitsDevice {
 		if err := req.Reply(ok, nil); err != nil {
 			r.logger.WithError(err).Error(err)
 		}
 	}
 
-	r.recordRequestedPty(req, ok)
+	r.recordRequestedPty()
 
 	if startsDataPipe(req.Type) {
 		r.startPipe()
 	}
+
+	if startsProgram(req.Type) {
+		r.programStarted = true
+	}
 }
 
-func (r *sessionRelay) recordRequestedPty(req *gossh.Request, accepted bool) {
+func (r *sessionRelay) recordRequestedPty() {
 	if r.ptyRequested == nil {
 		return
 	}
 
-	if accepted || !req.WantReply {
-		r.sess.SetSeatPty(r.seat, true)
-		r.sess.Event(PtyRequestType, *r.ptyRequested, r.seat)
-	} else {
-		r.logger.Warn("the device refused the pty; the session continues without one")
-	}
+	r.sess.SetSeatPty(r.seat, true)
+	r.sess.Event(PtyRequestType, *r.ptyRequested, r.seat)
 
 	r.ptyRequested = nil
 }
@@ -438,6 +628,17 @@ type exitSignal struct {
 	CoreDumped bool
 	Error      string
 	Lang       string
+}
+
+func tellOpenFailure(logger *log.Entry, client gossh.Channel, err error) {
+	if _, writeErr := fmt.Fprintf(client.Stderr(), "shellhub: %s\r\n", openFailureMessage(err)); writeErr != nil {
+		logger.WithError(writeErr).Debug("failed to tell the client the device refused the login")
+	}
+
+	status := gossh.Marshal(struct{ Status uint32 }{Status: 255})
+	if _, sendErr := client.SendRequest(ExitStatusRequest, false, status); sendErr != nil {
+		logger.WithError(sendErr).Debug("failed to send the exit status for a channel the device never opened")
+	}
 }
 
 func signalEndedOnTheDevice(logger *log.Entry, client gossh.Channel) {

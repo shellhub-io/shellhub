@@ -28,12 +28,36 @@ type Target interface {
 // for the agent to confirm the protocol first, saving a round trip to the device. The
 // confirmation is then read with the first read from the returned connection, so an agent that
 // refuses or never answers the selection surfaces there rather than from [TunnelDialer.DialTo].
+//
+// Login, when set, travels in the envelope for an agent that admits the gateway's own login: the
+// gateway then logs in with it as the password once it has authorized the client. It is a secret
+// for one stream, never something a client typed. Agents that do not know it ignore it.
+//
+// Vouched tells an agent that admits the gateway's login to admit the stream's SSH user without
+// any credential, as the gateway logs in only on behalf of a client it authorized itself. It must
+// be set only for a session whose every login to the device is the gateway's own, never one that
+// forwards a password for the device to check. Agents that do not know it ignore it.
+//
+// The envelope also tells the agent the gateway accepts a host certificate signed by the device
+// key in place of the device key itself, so the agent can sign the handshake with a cheaper key.
+// Agents that do not know it ignore it.
 type SSHOpenTarget struct {
 	SessionID string
+	Login     string
+	Vouched   bool
 }
 
 func (t SSHOpenTarget) envelope() map[string]string {
-	return map[string]string{"id": t.SessionID}
+	envelope := map[string]string{"id": t.SessionID, "hostcert": "true"}
+	if t.Login != "" {
+		envelope["login"] = t.Login
+	}
+
+	if t.Vouched {
+		envelope["vouched"] = "true"
+	}
+
+	return envelope
 }
 
 func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
