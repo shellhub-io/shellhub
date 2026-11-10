@@ -135,13 +135,34 @@ export default function DeviceMap() {
       />
 
       <section className="absolute left-4 top-4 z-10 w-72 rounded-xl border border-border bg-surface/95 p-4 shadow-float backdrop-blur">
-        <Link
-          to="/dashboard"
-          className="mb-3 inline-flex items-center gap-1 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted transition-colors hover:text-primary"
-        >
-          <ArrowLeftIcon className="h-3 w-3" />
-          Dashboard
-        </Link>
+        <div className="mb-3 flex items-center justify-between">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1 text-2xs font-mono font-semibold uppercase tracking-label text-text-muted transition-colors hover:text-primary"
+          >
+            <ArrowLeftIcon className="h-3 w-3" />
+            Dashboard
+          </Link>
+          <IconButton
+            aria-label="Map details"
+            aria-expanded={!summaryFolded}
+            aria-controls={summaryId}
+            variant="ghost"
+            size="sm"
+            className="-my-1.5 -mr-1.5"
+            onClick={() => {
+              storeSummaryFolded(!summaryFolded);
+              setSummaryFolded(!summaryFolded);
+            }}
+          >
+            <ChevronUpIcon
+              className={cn(
+                "h-4 w-4 transition-transform",
+                summaryFolded && "rotate-180",
+              )}
+            />
+          </IconButton>
+        </div>
         <div className="flex items-center gap-2">
           <MapIcon className="h-5 w-5 shrink-0 text-primary" />
           <h1 className="text-sm font-semibold text-text-primary">
@@ -153,50 +174,7 @@ export default function DeviceMap() {
               {`/${compactCount(located)} online`}
             </span>
           )}
-          <div className="ml-auto flex items-center gap-2">
-            {isLoading && <Spinner size="sm" />}
-            <IconButton
-              aria-label="Map details"
-              aria-expanded={!summaryFolded}
-              aria-controls={summaryId}
-              variant="ghost"
-              size="sm"
-              className="-mr-1.5"
-              onClick={() => {
-                storeSummaryFolded(!summaryFolded);
-                setSummaryFolded(!summaryFolded);
-              }}
-            >
-              <ChevronUpIcon
-                className={cn(
-                  "h-4 w-4 transition-transform",
-                  summaryFolded && "rotate-180",
-                )}
-              />
-            </IconButton>
-          </div>
-        </div>
-
-        <div
-          role="radiogroup"
-          aria-label="Devices shown"
-          className="mt-3 grid grid-cols-3 rounded-lg border border-border bg-background/60 p-0.5"
-        >
-          {MODES.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={mode === option.value}
-              onClick={() => setMode(option.value)}
-              className={cn(
-                "rounded-md py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary",
-                mode === option.value && "bg-card text-text-primary shadow-sm",
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
+          {isLoading && <Spinner size="sm" className="ml-auto" />}
         </div>
 
         <div id={summaryId} hidden={summaryFolded}>
@@ -257,6 +235,27 @@ export default function DeviceMap() {
             No accepted device has a known position yet.
           </p>
         )}
+        <div
+          role="radiogroup"
+          aria-label="Devices shown"
+          className="mt-3 grid grid-cols-3 rounded-lg border border-border bg-background/60 p-0.5"
+        >
+          {MODES.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={mode === option.value}
+              onClick={() => setMode(option.value)}
+              className={cn(
+                "rounded-md py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary",
+                mode === option.value && "bg-card text-text-primary shadow-sm",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       {area && (

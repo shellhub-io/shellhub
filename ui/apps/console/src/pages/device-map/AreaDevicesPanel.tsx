@@ -54,11 +54,13 @@ export default function AreaDevicesPanel({
   useEffect(() => {
     const recordOpenDialog = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        dialogOpenOnEscape.current = document.querySelector(OPEN_DIALOG) !== null;
+        dialogOpenOnEscape.current =
+          document.querySelector(OPEN_DIALOG) !== null;
       }
     };
     document.addEventListener("keydown", recordOpenDialog, true);
-    return () => document.removeEventListener("keydown", recordOpenDialog, true);
+    return () =>
+      document.removeEventListener("keydown", recordOpenDialog, true);
   }, []);
   useEscapeKey(() => {
     if (!dialogOpenOnEscape.current) onClose();
@@ -134,51 +136,48 @@ export default function AreaDevicesPanel({
         !folded && "bottom-10 max-sm:h-1/2",
       )}
     >
-      <header
-        className={cn(
-          "flex items-start gap-1 px-4 py-3",
-          !folded && "border-b border-border",
-        )}
-      >
-        <div className="mr-auto">
-          <p className="text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
+      <header className={cn("px-4 py-3", !folded && "border-b border-border")}>
+        <div className="flex items-center gap-1">
+          <p className="mr-auto text-2xs font-mono font-semibold uppercase tracking-label text-text-muted">
             This area
           </p>
-          <p className="mt-1 text-sm font-semibold text-text-primary">
-            {compactCount(area.devices)}{" "}
-            {area.devices === 1 ? "device" : "devices"}
-          </p>
-          <p className="font-mono text-2xs text-text-secondary">
-            <span className="text-accent-green">
-              {compactCount(area.online)} online
-            </span>
-            {" · "}
-            {compactCount(area.devices - area.online)} offline
-          </p>
+          <IconButton
+            aria-label="Devices in this area"
+            aria-expanded={!folded}
+            aria-controls={`${listId} ${footerId}`}
+            variant="ghost"
+            size="sm"
+            className="-my-1.5"
+            onClick={onToggleFold}
+          >
+            <ChevronUpIcon
+              className={cn(
+                "h-4 w-4 transition-transform",
+                folded && "rotate-180",
+              )}
+            />
+          </IconButton>
+          <IconButton
+            aria-label="Close area"
+            variant="ghost"
+            size="sm"
+            className="-my-1.5 -mr-1.5"
+            onClick={onClose}
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </IconButton>
         </div>
-        <IconButton
-          aria-label="Devices in this area"
-          aria-expanded={!folded}
-          aria-controls={`${listId} ${footerId}`}
-          variant="ghost"
-          size="sm"
-          onClick={onToggleFold}
-        >
-          <ChevronUpIcon
-            className={cn(
-              "h-4 w-4 transition-transform",
-              folded && "rotate-180",
-            )}
-          />
-        </IconButton>
-        <IconButton
-          aria-label="Close area"
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-        >
-          <XMarkIcon className="h-4 w-4" />
-        </IconButton>
+        <p className="mt-1 text-sm font-semibold text-text-primary">
+          {compactCount(area.devices)}{" "}
+          {area.devices === 1 ? "device" : "devices"}
+        </p>
+        <p className="font-mono text-2xs text-text-secondary">
+          <span className="text-accent-green">
+            {compactCount(area.online)} online
+          </span>
+          {" · "}
+          {compactCount(area.devices - area.online)} offline
+        </p>
       </header>
 
       <div
