@@ -1,12 +1,19 @@
-import { Fragment, useState, type ReactNode } from "react";
+import { createContext, Fragment, use, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowsUpDownIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 import { format, isToday, isYesterday } from "date-fns";
-import { Button, Callout } from "@shellhub/design-system/primitives";
+import { Button, Callout, Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { type ProvisioningKeyEvent } from "@/client";
 import ActionDialog from "@/components/common/ActionDialog";
 import DistroIcon from "@/components/common/DistroIcon";
+import SearchField from "@/components/common/fields/SearchField";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useActionDialog, type EntityBase } from "@/hooks/useActionDialog";
 import { useDeviceActionRunner } from "@/hooks/useDeviceActionRunner";
@@ -14,8 +21,12 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useLoadOnReach } from "@/hooks/useLoadOnReach";
 import {
   useProvisioningKeyEvents,
+  useRegistrationView,
+  REGISTRATION_SORTS,
   type RegistrationHistory,
+  type RegistrationSort,
 } from "@/hooks/useProvisioningKeyEvents";
+import { TOOLBAR_CONTROL } from "@/pages/devices/toolbar";
 import { formatDateFull } from "@/utils/date";
 import EventPublicKey from "./EventPublicKey";
 import { formatCount } from "./helpers";
@@ -71,6 +82,29 @@ function Dot({ outcome, top }: { outcome: Outcome; top: string }) {
   );
 }
 
+const SearchedHostname = createContext("");
+
+function MatchedHostname({ hostname }: { hostname: string }) {
+  const searched = use(SearchedHostname);
+  const at = searched
+    ? hostname.toLowerCase().indexOf(searched.toLowerCase())
+    : -1;
+
+  if (at < 0) return hostname;
+
+  const end = at + searched.length;
+
+  return (
+    <>
+      {hostname.slice(0, at)}
+      <mark className="rounded-sm bg-primary/15 px-px text-primary">
+        {hostname.slice(at, end)}
+      </mark>
+      {hostname.slice(end)}
+    </>
+  );
+}
+
 function Headline({
   event,
   linked = true,
@@ -88,14 +122,14 @@ function Headline({
       </time>
       {!linked ? (
         <span className="text-sm font-medium text-text-primary truncate">
-          {event.hostname}
+          <MatchedHostname hostname={event.hostname} />
         </span>
       ) : (
         <Link
           to={`/devices/${event.device_uid}`}
           className="text-sm font-medium text-text-primary hover:text-primary hover:underline truncate"
         >
-          {event.hostname}
+          <MatchedHostname hostname={event.hostname} />
         </Link>
       )}
       {event.re_registration && (
@@ -397,20 +431,12 @@ function RegistrationDays({
   ));
 }
 
-/**
- * A registration history, newest first and grouped by day, one line per registration with how it
- * ended. A device still waiting for a decision stands out as a card in the line, with what it
- * reported and its accept and reject; any other line expands to the same details. A refused agent
- * is a line with the reason and a link to the setting that refused it, and nothing to accept. Older
- * registrations load as the reader nears the end; a page that fails keeps the ones already shown
- * and offers a retry. emptyMessage is what an empty history says.
- */
-export function RegistrationTimeline({
+function RegistrationActivity({
   history,
-  emptyMessage,
+  empty,
 }: {
   history: RegistrationHistory;
-  emptyMessage: string;
+  empty: ReactNode;
 }) {
   const refreshHistory = useInvalidateByIds(
     "provisioningKeyHistory",
@@ -428,6 +454,7 @@ export function RegistrationTimeline({
     isLoadingMore,
     loadMoreFailed,
     isLoading,
+    isRefreshing,
     error,
   } = history;
   const sentinel = useLoadOnReach(
@@ -444,7 +471,7 @@ export function RegistrationTimeline({
     );
   }
 
-  if (isLoading) {
+  if (isLoading || (isRefreshing && events.length === 0)) {
     return (
       <p className="py-12 text-center text-xs font-mono text-text-muted">
         Loading activity…
@@ -452,16 +479,17 @@ export function RegistrationTimeline({
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <p className="py-12 text-center text-xs text-text-muted">
-        {emptyMessage}
-      </p>
-    );
-  }
+  if (events.length === 0) return empty;
 
   return (
-    <section aria-label="Registration activity" className="space-y-8">
+    <section
+      aria-label="Registration activity"
+      aria-busy={isRefreshing}
+      className={cn(
+        "space-y-8 transition-opacity",
+        isRefreshing && "opacity-50",
+      )}
+    >
       <RegistrationDays events={events} decide={deviceActions.requestAction} />
 
       <div className="flex items-center justify-between gap-4 pl-8">
@@ -503,13 +531,192 @@ export function RegistrationTimeline({
   );
 }
 
+function NoMatch({
+  hostname,
+  onClear,
+}: {
+  hostname: string;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-12 text-center">
+      <MagnifyingGlassIcon
+        aria-hidden="true"
+        className="h-6 w-6 text-text-muted"
+        strokeWidth={1.5}
+      />
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-text-primary">
+          No registrations matching &ldquo;{hostname}&rdquo;
+        </p>
+        <p className="text-xs text-text-muted">
+          The search looks for the text anywhere in the hostname a device
+          registered with.
+        </p>
+      </div>
+      <Button variant="secondary" size="sm" onClick={onClear}>
+        Clear search
+      </Button>
+    </div>
+  );
+}
+
+function SortMenu({
+  sort,
+  onChange,
+}: {
+  sort: RegistrationSort;
+  onChange: (next: RegistrationSort) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const sorts = Object.entries(REGISTRATION_SORTS) as [
+    RegistrationSort,
+    (typeof REGISTRATION_SORTS)[RegistrationSort],
+  ][];
+
+  return (
+    <Dropdown placement="bottom-end" portal open={open} onOpenChange={setOpen}>
+      <Dropdown.Trigger>
+        <button
+          type="button"
+          aria-label={`Sort registrations: ${REGISTRATION_SORTS[sort].label}`}
+          className={TOOLBAR_CONTROL}
+        >
+          <ArrowsUpDownIcon className="w-3.5 h-3.5" strokeWidth={2} />
+          {REGISTRATION_SORTS[sort].label}
+          <ChevronDownIcon
+            className={cn("w-3 h-3 transition-transform", open && "rotate-180")}
+            strokeWidth={2}
+          />
+        </button>
+      </Dropdown.Trigger>
+      <Dropdown.Panel aria-label="Sort registrations" className="w-[200px]">
+        {sorts.map(([key, { label }]) => (
+          <Dropdown.Item
+            key={key}
+            label={label}
+            onSelect={() => onChange(key)}
+            className={cn(
+              "justify-between",
+              key === sort && "text-primary font-medium",
+            )}
+          >
+            {label}
+            {key === sort && (
+              <CheckIcon className="w-3.5 h-3.5" strokeWidth={2} />
+            )}
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Panel>
+    </Dropdown>
+  );
+}
+
+function SearchSummary({
+  history,
+  hostname,
+  onClear,
+}: {
+  history: RegistrationHistory;
+  hostname: string;
+  onClear: () => void;
+}) {
+  if (
+    !hostname ||
+    history.isLoading ||
+    history.isRefreshing ||
+    history.events.length === 0
+  ) {
+    return null;
+  }
+
+  return (
+    <p aria-live="polite" className="text-xs text-text-secondary">
+      {formatCount(history.totalCount)}{" "}
+      {history.totalCount === 1 ? "registration" : "registrations"} with &ldquo;
+      {hostname}&rdquo; in the hostname &middot;{" "}
+      <button
+        type="button"
+        onClick={onClear}
+        className="font-medium text-primary hover:underline"
+      >
+        Clear
+      </button>
+    </p>
+  );
+}
+
+/**
+ * A registration history under a search by hostname and an order, one line per registration with
+ * how it ended and the searched text marked in each hostname, newest or oldest first and grouped
+ * by day. A device still waiting for a decision stands out as a card in the line, with what it reported and
+ * its accept and reject; any other line expands to the same details. A refused agent is a line with
+ * the reason and a link to the setting that refused it, and nothing to accept. Older registrations
+ * load as the reader nears the end; a page that fails keeps the ones already shown and offers a
+ * retry. history must be the one built from view. emptyMessage
+ * is what an empty history says when nothing is searched; a search that matches nothing says so
+ * and offers to clear it.
+ */
+export function RegistrationTimeline({
+  history,
+  view,
+  emptyMessage,
+}: {
+  history: RegistrationHistory;
+  view: ReturnType<typeof useRegistrationView>;
+  emptyMessage: string;
+}) {
+  const clear = () => view.setSearch("");
+
+  return (
+    <SearchedHostname value={view.hostname}>
+      <div className="space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <SearchField
+              full
+              toolbar
+              className="flex-1"
+              value={view.search}
+              onChange={view.setSearch}
+              placeholder="Search by hostname..."
+              aria-label="Search registrations by hostname"
+            />
+            <SortMenu sort={view.sort} onChange={view.setSort} />
+          </div>
+          <SearchSummary
+            history={history}
+            hostname={view.hostname}
+            onClear={clear}
+          />
+        </div>
+        <RegistrationActivity
+          history={history}
+          empty={
+            view.hostname ? (
+              <NoMatch hostname={view.hostname} onClear={clear} />
+            ) : (
+              <p className="py-12 text-center text-xs text-text-muted">
+                {emptyMessage}
+              </p>
+            )
+          }
+        />
+      </div>
+    </SearchedHostname>
+  );
+}
+
 /**
  * What a provisioning key registered, as a RegistrationTimeline.
  */
 export default function ProvisioningKeyTimeline({ id }: { id: string }) {
+  const view = useRegistrationView();
+
   return (
     <RegistrationTimeline
-      history={useProvisioningKeyEvents({ id })}
+      history={useProvisioningKeyEvents({ id, view })}
+      view={view}
       emptyMessage="No registrations yet. Devices that register with this key will appear here."
     />
   );
