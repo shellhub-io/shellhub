@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	// ErrFilterInvalid is returned when a filter is not base64url-encoded JSON of the expected shape.
+	// ErrFilterInvalid is returned when a filter is not base64url-encoded JSON of the expected shape,
+	// or when a bracket filter key lacks its field or operator, has a bracket inside either, carries
+	// more, or is sent twice.
 	ErrFilterInvalid = errors.New("filter is invalid")
 	// ErrFilterPropertyInvalid is returned when a property node names a field the store does not
 	// allow filtering on.
@@ -26,7 +28,8 @@ type Filters struct {
 	// (RFC 4648 §5, unpadded); also accepts padded/unpadded standard base64.
 	Raw string `query:"filter" json:"-"`
 
-	// Data stores the decoded filters; it's automatically populated with the Unmarshal method.
+	// Data stores the decoded filters, filled by Unmarshal from Raw or by UnmarshalQuery from the
+	// bracket filter parameters.
 	Data []Filter `json:"-"`
 }
 

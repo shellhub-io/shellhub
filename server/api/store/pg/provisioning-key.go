@@ -345,14 +345,18 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "e")
 
-	entities := make([]entity.ProvisioningKeyEvent, 0)
-	query := db.NewSelect().
-		Model(&entities).
-		ModelTableExpr("provisioning_key_events AS e").
+	history := db.NewSelect().
+		TableExpr("provisioning_key_events AS e").
 		ColumnExpr("e.*").
 		ColumnExpr("CASE WHEN e.refusal IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid::text) END AS device_status").
 		ColumnExpr("(e.created_at = MAX(e.created_at) OVER (PARTITION BY e.device_uid)) AS is_current").
 		Where("e.provisioning_key_id = ?", keyDigest)
+
+	entities := make([]entity.ProvisioningKeyEvent, 0)
+	query := db.NewSelect().
+		Model(&entities).
+		ModelTableExpr("(?) AS e", history).
+		ColumnExpr("e.*")
 
 	var err error
 	query, err = applyScopedOptions(ctx, query, sc, opts...)

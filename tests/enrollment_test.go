@@ -32,6 +32,7 @@ func TestEnrollmentPolicy(t *testing.T) {
 	t.Run("re-registration", func(t *testing.T) { testReRegistration(t, compose) })
 	t.Run("limits", func(t *testing.T) { testEnrollmentLimits(t, compose) })
 	t.Run("events", func(t *testing.T) { testEnrollmentEvents(t, compose) })
+	t.Run("search", func(t *testing.T) { testRegistrationSearch(t, compose) })
 }
 
 func TestLegacyEnrollment(t *testing.T) {

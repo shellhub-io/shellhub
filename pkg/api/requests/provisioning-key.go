@@ -118,6 +118,7 @@ type ListProvisioningKeyEvents struct {
 	ID string `param:"id" json:"-" validate:"required"`
 	query.Paginator
 	query.Sorter
+	Filters query.Filters `json:"-"`
 }
 
 // ListTenantRegistrations pages the registration history of the namespace's tenant-only key.
@@ -125,6 +126,7 @@ type ListTenantRegistrations struct {
 	TenantID string `identity:"tenant" json:"-"`
 	query.Paginator
 	query.Sorter
+	Filters query.Filters `json:"-"`
 }
 
 // EnrollmentCallback is a webhook integrator's deferred decision, redeemed against the signed callback

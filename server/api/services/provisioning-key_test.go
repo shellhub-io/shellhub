@@ -855,6 +855,7 @@ func TestListProvisioningKeyEvents(t *testing.T) {
 				key := &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}
 				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyIDResolver, "hash").
 					Return(key, nil).Once()
+				queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
 				queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Order: query.OrderDesc, Tiebreak: "id"}).Return(nil).Once()
 				queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 				storeMock.On("ProvisioningKeyEventList", ctx, scope.MustBounded(tenant), "hash", mock.AnythingOfType("[]store.QueryOption")).
@@ -936,6 +937,7 @@ func TestListTenantRegistrations(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).
 					Return(&models.ProvisioningKey{ID: "tenant-digest", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy}, nil).Once()
+				queryOptionsMock.On("Match", &query.Filters{}).Return(nil).Once()
 				queryOptionsMock.On("Sort", &query.Sorter{By: "created_at", Tiebreak: "id"}).Return(nil).Once()
 				queryOptionsMock.On("Paginate", &query.Paginator{Page: 1, PerPage: 10}).Return(nil).Once()
 				storeMock.On("ProvisioningKeyEventList", ctx, scope.MustBounded(tenant), "tenant-digest", mock.AnythingOfType("[]store.QueryOption")).
