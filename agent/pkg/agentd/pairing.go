@@ -21,8 +21,11 @@ var ErrPairingExpired = errors.New("the pairing code expired before the device w
 // as long as the server renews the code. A status from a server that reports none, or a failed
 // status call, which is logged, leaves the deadline where it was.
 //
+// Every status call receives ctx, so a call blocked on an unreachable server ends when ctx does.
 // It returns [ErrPairingExpired] once clk passes the deadline, and ctx's error when ctx ends first.
-func AwaitPairing(ctx context.Context, clk clock.Clock, interval time.Duration, expiresIn int, status func() (*models.DevicePairingStatus, error)) (string, error) {
+// A status call that fails because ctx ended is not logged, and one that reports the device
+// accepted as ctx ends still returns the tenant, so an acceptance is never lost to a stop.
+func AwaitPairing(ctx context.Context, clk clock.Clock, interval time.Duration, expiresIn int, status func(context.Context) (*models.DevicePairingStatus, error)) (string, error) {
 	deadline := clk.Now().Add(time.Duration(expiresIn) * time.Second)
 
 	for clk.Now().Before(deadline) {
@@ -32,8 +35,12 @@ func AwaitPairing(ctx context.Context, clk clock.Clock, interval time.Duration, 
 		case <-time.After(interval):
 		}
 
-		current, err := status()
+		current, err := status(ctx)
 		if err != nil {
+			if ctxErr := ctx.Err(); ctxErr != nil {
+				return "", ctxErr
+			}
+
 			log.WithError(err).Warn("Failed to get the pairing status")
 
 			continue
@@ -56,9 +63,9 @@ func AwaitPairing(ctx context.Context, clk clock.Clock, interval time.Duration, 
 // the code while the agent polls, and the note says so without naming a deadline, since how long
 // the server keeps renewing is the server's to decide and [AwaitPairing] reports when it stops. A
 // status without them, or a failed call, gets the minutes from expiresIn, the seconds the server
-// gave at creation.
-func PairingWaitNote(expiresIn int, status func() (*models.DevicePairingStatus, error)) string {
-	if current, err := status(); err == nil && current.ExpiresIn > 0 {
+// gave at creation. The status call receives ctx, and a call that ctx ends counts as a failed one.
+func PairingWaitNote(ctx context.Context, expiresIn int, status func(context.Context) (*models.DevicePairingStatus, error)) string {
+	if current, err := status(ctx); err == nil && current.ExpiresIn > 0 {
 		return "the server renews the code while this waits"
 	}
 

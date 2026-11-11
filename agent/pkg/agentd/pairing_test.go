@@ -8,6 +8,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -59,7 +60,7 @@ func TestAwaitPairing(t *testing.T) {
 			clk := clock.NewFixed(start)
 
 			polls := 0
-			status := func() (*models.DevicePairingStatus, error) {
+			status := func(context.Context) (*models.DevicePairingStatus, error) {
 				clk.Advance(5 * time.Minute)
 
 				if polls >= len(tc.polls) {
@@ -83,29 +84,83 @@ func TestAwaitPairing(t *testing.T) {
 	}
 }
 
+func TestAwaitPairingEndsABlockedStatusCallWhenItsContextEnds(t *testing.T) {
+	logs := logtest.NewGlobal()
+	defer logs.Reset()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	called := make(chan struct{})
+	status := func(statusCtx context.Context) (*models.DevicePairingStatus, error) {
+		close(called)
+		<-statusCtx.Done()
+
+		return nil, statusCtx.Err()
+	}
+
+	type result struct {
+		tenant string
+		err    error
+	}
+
+	returned := make(chan result, 1)
+	go func() {
+		tenant, err := AwaitPairing(ctx, clock.NewFixed(time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)), time.Millisecond, 600, status)
+		returned <- result{tenant, err}
+	}()
+
+	<-called
+	cancel()
+
+	select {
+	case got := <-returned:
+		require.ErrorIs(t, got.err, context.Canceled)
+		assert.Empty(t, got.tenant)
+		assert.Empty(t, logs.AllEntries(), "a stop was logged as a failed poll")
+	case <-time.After(2 * time.Second):
+		t.Fatal("the status call never saw its context end")
+	}
+}
+
+func TestAwaitPairingKeepsAnAcceptanceThatArrivesAsItsContextEnds(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	status := func(context.Context) (*models.DevicePairingStatus, error) {
+		cancel()
+
+		return &models.DevicePairingStatus{Status: models.DeviceStatusAccepted, TenantID: "tenant1"}, nil
+	}
+
+	tenant, err := AwaitPairing(ctx, clock.NewFixed(time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)), time.Millisecond, 600, status)
+	require.NoError(t, err)
+	assert.Equal(t, "tenant1", tenant)
+}
+
 func TestPairingWaitNote(t *testing.T) {
 	cases := []struct {
 		description string
-		status      func() (*models.DevicePairingStatus, error)
+		status      func(context.Context) (*models.DevicePairingStatus, error)
 		expected    string
 	}{
 		{
 			description: "says the server renews the code, without a deadline, when it does",
-			status: func() (*models.DevicePairingStatus, error) {
+			status: func(context.Context) (*models.DevicePairingStatus, error) {
 				return &models.DevicePairingStatus{Status: models.DeviceStatusPending, ExpiresIn: 600}, nil
 			},
 			expected: "the server renews the code while this waits",
 		},
 		{
 			description: "gives the deadline from creation when the server does not renew",
-			status: func() (*models.DevicePairingStatus, error) {
+			status: func(context.Context) (*models.DevicePairingStatus, error) {
 				return &models.DevicePairingStatus{Status: models.DeviceStatusPending}, nil
 			},
 			expected: "code expires in 10 minutes",
 		},
 		{
 			description: "gives the deadline from creation when the status cannot be read",
-			status: func() (*models.DevicePairingStatus, error) {
+			status: func(context.Context) (*models.DevicePairingStatus, error) {
 				return nil, errors.New("unreachable")
 			},
 			expected: "code expires in 10 minutes",
@@ -114,7 +169,7 @@ func TestPairingWaitNote(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
-			assert.Equal(tt, tc.expected, PairingWaitNote(600, tc.status))
+			assert.Equal(tt, tc.expected, PairingWaitNote(context.Background(), 600, tc.status))
 		})
 	}
 }
