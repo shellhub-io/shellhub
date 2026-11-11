@@ -28,8 +28,8 @@ type publicAPI interface {
 	AuthPublicKey(req *models.PublicKeyAuthRequest, token string) (*models.PublicKeyAuthResponse, error)
 	CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, error)
 	GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error)
-	CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error)
-	GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error)
+	CreateDevicePairing(ctx context.Context, req *models.DevicePairingRequest) (*models.DevicePairing, error)
+	GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error)
 	NewReverseListenerV1(ctx context.Context, token string, path string) (net.Listener, error)
 	NewReverseListenerV2(ctx context.Context, token string, path string, cfg *ReverseListenerV2Config) (net.Listener, error)
 }

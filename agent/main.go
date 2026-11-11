@@ -396,7 +396,7 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 
 	tenantFile := agentd.TenantFilePath(cfg.PrivateKey)
 
-	pairing, err := ag.CreatePairing()
+	pairing, err := ag.CreatePairing(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -455,7 +455,7 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 		log.WithError(err).Fatal("Failed to reach the ShellHub server")
 	}
 
-	pairing, err := ag.CreatePairing()
+	pairing, err := ag.CreatePairing(cmd.Context())
 	if err != nil {
 		log.WithError(err).Fatal("Failed to create the device pairing code")
 	}
@@ -493,12 +493,12 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 }
 
 func pairingStatus(ag *agentd.Agent, tenantFile, code string) func(context.Context) (*models.DevicePairingStatus, error) {
-	return func(context.Context) (*models.DevicePairingStatus, error) {
+	return func(ctx context.Context) (*models.DevicePairingStatus, error) {
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			return &models.DevicePairingStatus{Status: models.DeviceStatusAccepted, TenantID: tenant}, nil
 		}
 
-		return ag.GetPairingStatus(code)
+		return ag.GetPairingStatus(ctx, code)
 	}
 }
 

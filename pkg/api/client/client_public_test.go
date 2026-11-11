@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	mock "github.com/jarcoal/httpmock"
 	reversermock "github.com/shellhub-io/shellhub/pkg/api/client/reverser/mocks"
@@ -681,4 +682,84 @@ func TestAuthDeviceProvesTheKeyOnEveryAttempt(t *testing.T) {
 		require.ErrorIs(t, err, ErrBadRequest)
 		assert.Zero(t, mock.GetCallCountInfo()["POST https://www.cloud.shellhub.io/api/devices/auth"])
 	})
+}
+
+func TestPairingCallsEndWhenTheirContextEnds(t *testing.T) {
+	tests := []struct {
+		description string
+		method      string
+		path        string
+		call        func(ctx context.Context, cli Client) error
+	}{
+		{
+			description: "creating a pairing code",
+			method:      "POST",
+			path:        "/api/devices/pairing",
+			call: func(ctx context.Context, cli Client) error {
+				_, err := cli.CreateDevicePairing(ctx, &models.DevicePairingRequest{Hostname: "device"})
+
+				return err
+			},
+		},
+		{
+			description: "polling a pairing code's status",
+			method:      "GET",
+			path:        "/api/devices/pairing/ABCD1234/status",
+			call: func(ctx context.Context, cli Client) error {
+				_, err := cli.GetDevicePairingStatus(ctx, "ABCD1234")
+
+				return err
+			},
+		},
+	}
+
+	timings := []struct {
+		description         string
+		cancelWhileAnswered bool
+	}{
+		{description: "while the server answers", cancelWhileAnswered: true},
+		{description: "while waiting to retry", cancelWhileAnswered: false},
+	}
+
+	for _, test := range tests {
+		for _, timing := range timings {
+			t.Run(test.description+" cancelled "+timing.description, func(t *testing.T) {
+				cli, err := NewClient("https://www.cloud.shellhub.io/")
+				require.NoError(t, err)
+
+				client, ok := cli.(*client)
+				require.True(t, ok)
+
+				mock.ActivateNonDefault(client.http.GetClient())
+				defer mock.DeactivateAndReset()
+
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+
+				answered := make(chan struct{}, 1)
+				mock.RegisterResponder(test.method, test.path, func(*http.Request) (*http.Response, error) {
+					if timing.cancelWhileAnswered {
+						cancel()
+					}
+
+					answered <- struct{}{}
+
+					return mock.NewStringResponse(http.StatusServiceUnavailable, ""), nil
+				})
+
+				returned := make(chan error, 1)
+				go func() { returned <- test.call(ctx, cli) }()
+
+				<-answered
+				cancel()
+
+				select {
+				case err := <-returned:
+					require.ErrorIs(t, err, context.Canceled)
+				case <-time.After(2 * time.Second):
+					t.Fatal("the call kept retrying after its context ended")
+				}
+			})
+		}
+	}
 }

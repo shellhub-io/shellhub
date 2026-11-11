@@ -695,13 +695,19 @@ func (a *Agent) auth() *models.DeviceAuthResponse {
 
 // CreatePairing submits this tenant-less agent's identity to the server and
 // returns a short-lived pairing code. [Agent.Setup] must have been run first.
-func (a *Agent) CreatePairing() (*models.DevicePairing, error) {
+// It blocks until the server accepts the request, refuses it, or ctx ends. It
+// returns [ErrNoIdentityAndHostname] when the agent has neither, ctx's error
+// when ctx ends first, the error [client.ErrorFromResponse] maps a refusal to,
+// client.ErrEmptyResponse for an acceptance without a body, and any other
+// failure of the request as resty reports it, such as a body that does not
+// decode.
+func (a *Agent) CreatePairing(ctx context.Context) (*models.DevicePairing, error) {
 	auth, err := a.buildDeviceAuth()
 	if err != nil {
 		return nil, err
 	}
 
-	return a.cli.CreateDevicePairing(&models.DevicePairingRequest{
+	return a.cli.CreateDevicePairing(ctx, &models.DevicePairingRequest{
 		Hostname:  auth.Hostname,
 		Identity:  auth.Identity,
 		Info:      a.Info,
@@ -709,9 +715,14 @@ func (a *Agent) CreatePairing() (*models.DevicePairing, error) {
 	})
 }
 
-// GetPairingStatus polls the outcome of a pairing code.
-func (a *Agent) GetPairingStatus(code string) (*models.DevicePairingStatus, error) {
-	return a.cli.GetDevicePairingStatus(code)
+// GetPairingStatus polls the outcome of a pairing code. It blocks until the
+// server answers, refuses, or ctx ends. It returns ctx's error when ctx ends
+// first, the error [client.ErrorFromResponse] maps a refusal to, such as
+// client.ErrNotFound for an unknown code, client.ErrEmptyResponse for an
+// answer without a body, and any other failure of the request as resty
+// reports it, such as a body that does not decode.
+func (a *Agent) GetPairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
+	return a.cli.GetDevicePairingStatus(ctx, code)
 }
 
 // CreateDeviceLoginCode requests a short-lived code that deep-links this device into the
