@@ -4,7 +4,11 @@ package query
 const (
 	FilterTypeProperty = "property"
 	FilterTypeOperator = "operator"
+	FilterTypeGroup    = "group"
 )
+
+// FilterGroup is the Params of a group node: the nodes it holds, joined as one bracketed condition.
+type FilterGroup []Filter
 
 // FilterProperty is a JSON representation of a property expression in a query.
 //

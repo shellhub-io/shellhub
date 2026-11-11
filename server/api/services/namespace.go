@@ -183,11 +183,9 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error) {
-	for i := range req.Filters.Data {
-		if p, ok := req.Filters.Data[i].Params.(*query.FilterProperty); ok {
-			if col, found := namespaceFilterColumns[p.Name]; found {
-				p.Name = col
-			}
+	for p := range req.Filters.Properties() {
+		if col, found := namespaceFilterColumns[p.Name]; found {
+			p.Name = col
 		}
 	}
 
