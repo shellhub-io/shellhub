@@ -49,6 +49,7 @@ jobs:
               - 'docker-compose*.yml'
               - 'versions.env'
               - '.github/workflows/qa.yml'
+              - '.github/scripts/shard-tests.sh'
             agent:
               - 'go.mod'
               - 'go.sum'
@@ -199,11 +200,16 @@ jobs:
           name: qa-go
           save: true
 
-  integration:
-    name: integration
+  integration-shard:
+    name: integration (${{ matrix.shard }}/${{ strategy.job-total }})
     if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
 
     steps:
       - name: Check out code
@@ -227,11 +233,13 @@ jobs:
         run: echo "granted=true" >> "$GITHUB_OUTPUT"
 
       - name: Report the enterprise and cloud tests skipped for a fork
-        if: steps.changes.outputs.go == 'true' && steps.cloud-access.outputs.granted != 'true'
+        if: >-
+          matrix.shard == 1 && steps.changes.outputs.go == 'true'
+          && steps.cloud-access.outputs.granted != 'true'
         run: echo "::notice title=enterprise and cloud tests skipped::a pull request from a fork cannot check out the private cloud source"
 
       - name: Report TestCloudBilling skipped for the Billing workflow
-        if: steps.cloud-access.outputs.granted == 'true'
+        if: matrix.shard == 1 && steps.cloud-access.outputs.granted == 'true'
         run: echo "::notice title=TestCloudBilling skipped::the Billing workflow runs it nightly and on cloud pull requests that change billing"
 
       - name: Generate cloud repo token
@@ -284,20 +292,41 @@ jobs:
         if: steps.changes.outputs.go == 'true'
         uses: ./shellhub/.github/actions/build-cache
         with:
-          save: true
+          save: ${{ matrix.shard == 1 }}
 
       - name: Set up the integration tests
         if: steps.changes.outputs.go == 'true'
         uses: ./shellhub/.github/actions/integration-setup
 
+      - name: Select this shard's tests
+        id: shard
+        if: steps.changes.outputs.go == 'true'
+        working-directory: shellhub/tests
+        env:
+          SKIP: ${{ steps.cloud-access.outputs.granted != 'true' && '^(TestEnterprise|TestCloud)' || '^TestCloudBilling$' }}
+          SHARD: ${{ matrix.shard }}
+          SHARDS: ${{ strategy.job-total }}
+          FIRST_SHARD: ^TestAgentDockerSelfUpdate
+        run: |
+          set -o pipefail
+          pattern=$(go test -list '^Test' ./... \
+              | grep -E '^Test' \
+              | grep -vE "$SKIP" \
+              | ../.github/scripts/shard-tests.sh "$SHARDS" "$SHARD" "$FIRST_SHARD")
+          echo "pattern=$pattern" >> "$GITHUB_OUTPUT"
+          echo "$pattern" | tr -d '^()$' | tr '|' '\n'
+
       - name: Run the integration tests
         if: steps.changes.outputs.go == 'true'
         working-directory: shellhub/tests
-        run: >-
-          gotestsum --format testname --
-          -skip '${{ steps.cloud-access.outputs.granted != 'true' && '^(TestEnterprise|TestCloud)' || '^TestCloudBilling$' }}'
-          -parallel 8 -timeout 60m ./...
+        run: |
+          mkdir -p "$RUNNER_TEMP/integration-results"
+          gotestsum --format testname \
+              --junitfile "$RUNNER_TEMP/integration-results/junit.xml" \
+              --jsonfile "$RUNNER_TEMP/integration-results/tests.json" -- \
+              -run "$PATTERN" -parallel 8 -timeout 60m ./...
         env:
+          PATTERN: ${{ steps.shard.outputs.pattern }}
           TESTCONTAINERS_RYUK_DISABLED: true
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
@@ -313,19 +342,40 @@ jobs:
         if: ${{ (failure() || cancelled()) && steps.changes.outputs.go == 'true' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: integration-stack-logs
+          name: integration-stack-logs-${{ matrix.shard }}
           path: shellhub/tests/.stack/*.log
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Save the Go caches
+      - name: Upload the test results
         if: ${{ !cancelled() && steps.changes.outputs.go == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: integration-results-${{ matrix.shard }}
+          path: ${{ runner.temp }}/integration-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Save the Go caches
+        if: ${{ !cancelled() && matrix.shard == 1 && steps.changes.outputs.go == 'true' }}
         uses: ./shellhub/.github/actions/go-cache
         with:
           name: qa-integration
           sum-files: shellhub/tests/go.sum
           save: true
+
+  integration:
+    name: integration
+    needs: [integration-shard]
+    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fail when an integration shard failed or was cancelled
+        if: ${{ needs.integration-shard.result == 'failure' || needs.integration-shard.result == 'cancelled' }}
+        run: exit 1
 
   qa:
     name: qa
