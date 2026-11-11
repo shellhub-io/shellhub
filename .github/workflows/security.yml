@@ -215,6 +215,9 @@ jobs:
           push: false
           load: true
           build-args: ${{ steps.versions.outputs.build-args }}
+          cache-from: type=gha,scope=security-server
+          cache-to: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && 'type=gha,scope=security-server,mode=max' || '' }}
+          no-cache-filters: production
 
       - name: Build the ui image
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -226,6 +229,9 @@ jobs:
           push: false
           load: true
           build-args: ${{ steps.versions.outputs.build-args }}
+          cache-from: type=gha,scope=security-ui
+          cache-to: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && 'type=gha,scope=security-ui,mode=max' || '' }}
+          no-cache-filters: production
 
       - name: Build the agent image
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
@@ -237,6 +243,9 @@ jobs:
           push: false
           load: true
           build-args: ${{ steps.versions.outputs.build-args }}
+          cache-from: type=gha,scope=security-agent
+          cache-to: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && 'type=gha,scope=security-agent,mode=max' || '' }}
+          no-cache-filters: runtime-utils
 
       - name: Scan the images with Trivy
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
