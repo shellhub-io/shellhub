@@ -1,0 +1,59 @@
+name: UI dependencies
+description: >-
+  Install the node_modules of the UI workspace and all of its packages with npm ci, restoring them
+  whole from the cache when one was saved for the same lockfile, workspace manifests, Node.js
+  version, OS and architecture, in which case npm does not run at all. Node.js must already be set
+  up. A push to master saves the modules it installed; pull requests only restore, which keeps
+  them from filling the repository's cache quota.
+
+inputs:
+  directory:
+    description: The UI workspace root, holding package-lock.json.
+    required: false
+    default: ui
+
+runs:
+  using: composite
+  steps:
+    - name: Compute the node_modules cache key
+      id: key
+      shell: bash
+      env:
+        LOCK: ${{ hashFiles(format('{0}/package-lock.json', inputs.directory)) }}
+        MANIFESTS: ${{ hashFiles(format('{0}/package.json', inputs.directory), format('{0}/apps/*/package.json', inputs.directory), format('{0}/packages/*/package.json', inputs.directory)) }}
+        SAVE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+        DIR: ${{ inputs.directory }}
+      run: |
+        if [ -z "$LOCK" ]; then
+            echo "no package-lock.json in $DIR"
+            exit 1
+        fi
+        echo "key=ui-node-modules-$RUNNER_OS-$RUNNER_ARCH-node$(node --version)-$LOCK-$MANIFESTS" >> "$GITHUB_OUTPUT"
+        echo "save=$SAVE" >> "$GITHUB_OUTPUT"
+      working-directory: ${{ inputs.directory }}
+
+    - name: Restore node_modules
+      id: restore
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        key: ${{ steps.key.outputs.key }}
+        path: |
+          ${{ inputs.directory }}/node_modules
+          ${{ inputs.directory }}/apps/*/node_modules
+          ${{ inputs.directory }}/packages/*/node_modules
+
+    - name: Install the dependencies
+      if: steps.restore.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: npm ci --no-audit --no-fund --prefer-offline
+
+    - name: Save node_modules
+      if: steps.restore.outputs.cache-hit != 'true' && steps.key.outputs.save == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      with:
+        key: ${{ steps.key.outputs.key }}
+        path: |
+          ${{ inputs.directory }}/node_modules
+          ${{ inputs.directory }}/apps/*/node_modules
+          ${{ inputs.directory }}/packages/*/node_modules

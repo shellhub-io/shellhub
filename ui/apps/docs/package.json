@@ -34,7 +34,7 @@
     "mdast-util-to-markdown": "^2.2.2"
   },
   "devDependencies": {
-    "@redocly/cli": "^2.72.1",
+    "@redocly/cli": "^2.75.0",
     "@types/hast": "^3.0.5",
     "@types/jsdom": "^30.0.0",
     "@types/mdast": "^4.0.4",
