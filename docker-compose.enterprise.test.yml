@@ -14,7 +14,8 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
-      start_period: 10s
+      start_period: 30s
+      start_interval: 1s
       retries: 20
   server:
     depends_on:

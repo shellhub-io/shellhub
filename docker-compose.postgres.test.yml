@@ -12,6 +12,7 @@ services:
     command: postgres -c io_method=worker
     healthcheck:
       start_period: 90s
+      start_interval: 500ms
       interval: 2s
       timeout: 5s
       retries: 10
