@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
+	"github.com/shellhub-io/shellhub/server/api/store/pg/dbtest"
 )
 
 const testIssuer = "http://localhost"
@@ -22,6 +23,5 @@ func TestMain(m *testing.M) {
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
 	publicKey = &privateKey.PublicKey
 	now = clock.New().Now()
-	code := m.Run()
-	os.Exit(code)
+	os.Exit(dbtest.Run(m))
 }
