@@ -117,6 +117,12 @@ func main() {
 			for {
 				if !cfg.HasNamespaceCredential() {
 					tenant, err := waitForPairing(ctx, ag, cfg)
+					if errors.Is(err, context.Canceled) {
+						log.Info("Stopped while waiting for the device to be paired")
+
+						return
+					}
+
 					if err != nil {
 						log.WithError(err).Fatal("Failed to pair the device")
 					}
@@ -394,6 +400,15 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	ctx, stop := signal.NotifyContext(parent, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	tenant, err := pairDevice(ctx, ag, cfg)
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return "", ctxErr
+	}
+
+	return tenant, err
+}
+
+func pairDevice(ctx context.Context, ag *agentd.Agent, cfg *agentd.Config) (string, error) {
 	tenantFile := agentd.TenantFilePath(cfg.PrivateKey)
 
 	pairing, err := ag.CreatePairing(ctx)
@@ -416,7 +431,13 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	log.Infof("To pair it, open %s/accept-device and enter code %s", base, formatPairingCode(pairing.Code))
 	log.Infof("Or open the link directly: %s", url)
 	status := pairingStatus(ag, tenantFile, pairing.Code)
-	log.Infof("Waiting for acceptance... (%s)", agentd.PairingWaitNote(ctx, pairing.ExpiresIn, status))
+
+	note := agentd.PairingWaitNote(ctx, pairing.ExpiresIn, status)
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
+	log.Infof("Waiting for acceptance... (%s)", note)
 
 	tenant, err := agentd.AwaitPairing(ctx, clock.New(), 3*time.Second, pairing.ExpiresIn, status)
 	switch {
