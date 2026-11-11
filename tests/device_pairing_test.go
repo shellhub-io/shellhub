@@ -202,7 +202,7 @@ func awaitNthAgentLogWithin(t *testing.T, agent testcontainers.Container, line *
 		if assert.GreaterOrEqual(tt, len(matches), n, missing) {
 			captured = string(matches[n-1][1])
 		}
-	}, within, time.Second)
+	}, within, 500*time.Millisecond)
 
 	return captured
 }

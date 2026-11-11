@@ -32,6 +32,8 @@ import (
 const (
 	enrollmentWebhookPort   = "9876"
 	enrollmentWebhookSecret = "s3cr3t"
+
+	expiringCallbackTTLSeconds = 1
 )
 
 // TestEnrollmentWebhook enrolls devices with webhook-mode keys whose integrator is a stub that runs
@@ -178,13 +180,14 @@ func TestEnrollmentWebhook(t *testing.T) {
 		key := newKey(t, &requests.CreateProvisioningKey{
 			Name:               "callback-expired",
 			WebhookURL:         webhookURL("/defer"),
-			WebhookCallbackTTL: 1,
+			WebhookCallbackTTL: expiringCallbackTTLSeconds,
 		})
 
 		device := enroll(t, compose, newKeyedDeviceAuthRequest(t, key, "callback-expired", "02:00:00:00:80:09"))
-		callback := webhook.awaitCalls(t, device.UID, 1)[0].payload(t).CallbackURL
+		payload := webhook.awaitCalls(t, device.UID, 1)[0].payload(t)
+		callback := payload.CallbackURL
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(time.Until(payload.Timestamp.Add(expiringCallbackTTLSeconds*time.Second + 250*time.Millisecond)))
 
 		resp := postEnrollmentCallback(t, compose, callback, "accept")
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode(), resp.String())

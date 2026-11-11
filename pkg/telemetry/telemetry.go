@@ -28,6 +28,11 @@ const (
 
 const shutdownTimeout = 3 * time.Second
 
+// FlushInterval is how often a [Client] sends the events it has queued. A queued event is sent at
+// most this long after [Client.Send] queues it, sooner when the batch fills or [Client.Close]
+// flushes it.
+const FlushInterval = 5 * time.Second
+
 // Event is one telemetry event. Name is an object and a past-tense verb, written as a literal,
 // and never starts with "$", which PostHog reserves.
 type Event struct {
@@ -98,6 +103,7 @@ func New(endpoint, writeKey string) (*Client, error) {
 		CaptureMode:     posthog.CaptureModeAnalyticsV1,
 		Compression:     posthog.CompressionGzip,
 		ShutdownTimeout: shutdownTimeout,
+		Interval:        FlushInterval,
 		Callback:        callback{},
 		Logger:          logger{},
 	})
