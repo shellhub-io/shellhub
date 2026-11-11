@@ -1,7 +1,9 @@
 package client
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -27,6 +29,11 @@ func TestLeveledLogger(t *testing.T) {
 			description: "leaves the request resty gave up on at error, so the demotion is not blanket",
 			log:         func(l *LeveledLogger) { l.Errorf("%v", failure) },
 			expected:    logrus.ErrorLevel,
+		},
+		{
+			description: "sends a request its caller cancelled to debug, since nothing failed",
+			log:         func(l *LeveledLogger) { l.Errorf("%v", fmt.Errorf("get: %w", context.Canceled)) },
+			expected:    logrus.DebugLevel,
 		},
 	}
 

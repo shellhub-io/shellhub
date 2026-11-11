@@ -1,6 +1,9 @@
 package client
 
 import (
+	"context"
+	"errors"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -11,9 +14,27 @@ type LeveledLogger struct {
 	Logger *logrus.Logger
 }
 
-// Errorf logs at error level, where resty reports a request it gave up on.
+// Errorf logs at error level, where resty reports a request it gave up on. A request that ended
+// because its caller cancelled the context logs at debug instead: the caller asked it to stop, so
+// nothing failed, and an agent stopped by its service manager would otherwise report an error.
 func (l *LeveledLogger) Errorf(format string, v ...any) {
+	if anyCanceled(v) {
+		l.Logger.Debugf(format, v...)
+
+		return
+	}
+
 	l.Logger.Errorf(format, v...)
+}
+
+func anyCanceled(v []any) bool {
+	for _, arg := range v {
+		if err, ok := arg.(error); ok && errors.Is(err, context.Canceled) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Warnf logs at debug level rather than warn. resty warns once per retry attempt, and this client
