@@ -8,7 +8,13 @@ import {
 } from "../client";
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
-import { propertyFilter, toBase64Json } from "@/utils/encoding";
+import {
+  groupFilter,
+  operatorFilter,
+  orJoined,
+  propertyFilter,
+  toBase64Json,
+} from "@/utils/encoding";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 
 export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
@@ -18,18 +24,19 @@ export type { TaggedDevice as NormalizedDevice } from "@/utils/deviceTags";
  * contain the search and it has every chosen tag. An empty search or an empty tag list drops out.
  */
 export function buildFilter(search: string, tags: string[]): string {
-  const or = { type: "operator", params: { name: "or" } };
-  const and = { type: "operator", params: { name: "and" } };
   const tagCondition = propertyFilter("tags.name", "contains", tags);
-  const withTags = (condition: Record<string, unknown>) =>
-    tags.length > 0 ? [condition, and, tagCondition] : [condition];
+  const searchConditions = orJoined([
+    propertyFilter("name", "contains", search),
+    propertyFilter("custom_fields", "contains", search),
+  ]);
 
   if (!search) return toBase64Json(tags.length > 0 ? [tagCondition] : []);
+  if (tags.length === 0) return toBase64Json(searchConditions);
 
   return toBase64Json([
-    ...withTags(propertyFilter("name", "contains", search)),
-    or,
-    ...withTags(propertyFilter("custom_fields", "contains", search)),
+    groupFilter(...searchConditions),
+    operatorFilter("and"),
+    tagCondition,
   ]);
 }
 

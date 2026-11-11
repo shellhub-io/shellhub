@@ -41,28 +41,32 @@ describe("buildFilter", () => {
   });
 
   describe("search and tags combined", () => {
-    it("requires the tags beside each search condition", () => {
-      const tags = {
-        type: "property",
-        params: { name: "tags.name", operator: "contains", value: ["prod"] },
-      };
-      const and = { type: "operator", params: { name: "and" } };
-
+    it("groups the search conditions and requires the tags once", () => {
       const result = decodeFilter(buildFilter("srv", ["prod"]));
       expect(result).toEqual([
         {
-          type: "property",
-          params: { name: "name", operator: "contains", value: "srv" },
+          type: "group",
+          params: [
+            {
+              type: "property",
+              params: { name: "name", operator: "contains", value: "srv" },
+            },
+            { type: "operator", params: { name: "or" } },
+            {
+              type: "property",
+              params: {
+                name: "custom_fields",
+                operator: "contains",
+                value: "srv",
+              },
+            },
+          ],
         },
-        and,
-        tags,
-        { type: "operator", params: { name: "or" } },
+        { type: "operator", params: { name: "and" } },
         {
           type: "property",
-          params: { name: "custom_fields", operator: "contains", value: "srv" },
+          params: { name: "tags.name", operator: "contains", value: ["prod"] },
         },
-        and,
-        tags,
       ]);
     });
   });
