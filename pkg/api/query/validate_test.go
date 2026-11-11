@@ -379,6 +379,83 @@ func TestValidateFilters(t *testing.T) {
 			}},
 			wantErr: nil,
 		},
+		{
+			name: "group of allowed properties is accepted",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: "srv"}},
+					{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}},
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: "accepted"}},
+				}},
+				{Type: FilterTypeOperator, Params: &FilterOperator{Name: "and"}},
+				{Type: FilterTypeProperty, Params: &FilterProperty{Name: "online", Operator: "bool", Value: true}},
+			}},
+			wantErr: nil,
+		},
+		{
+			name: "field not allowed inside a group",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: "srv"}},
+					{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}},
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "password", Operator: "contains", Value: "a"}},
+				}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name: "value the field does not take inside a group",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "status", Operator: "eq", Value: float64(1)}},
+				}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name:    "items inside a group count toward the cap: exactly MaxFilterItems passes",
+			filters: &Filters{Data: groupedFilter(MaxFilterItems)},
+			wantErr: nil,
+		},
+		{
+			name:    "items inside a group count toward the cap: one more fails",
+			filters: &Filters{Data: groupedFilter(MaxFilterItems + 1)},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name: "group inside a group",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeGroup, Params: FilterGroup{
+						{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: "srv"}},
+					}},
+				}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name: "empty group",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name: "group of only operators",
+			filters: &Filters{Data: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}},
+				}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
+		{
+			name: "item of an unknown type",
+			filters: &Filters{Data: []Filter{
+				{Type: "unknown", Params: &FilterProperty{Name: "password", Operator: "contains", Value: "a"}},
+			}},
+			wantErr: ErrFilterPropertyInvalid,
+		},
 	}
 
 	for _, tc := range cases {
@@ -529,4 +606,17 @@ func TestValidateFiltersRejectsANonNumberOnANumberField(t *testing.T) {
 			assert.Equal(t, tc.wantErr, ValidateFilters(tc.filters, allowed))
 		})
 	}
+}
+
+func groupedFilter(items int) []Filter {
+	inner := make(FilterGroup, items-1)
+	for i := range inner {
+		if i%2 == 0 {
+			inner[i] = Filter{Type: FilterTypeProperty, Params: &FilterProperty{Name: "name", Operator: "contains", Value: "srv"}}
+		} else {
+			inner[i] = Filter{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}}
+		}
+	}
+
+	return []Filter{{Type: FilterTypeGroup, Params: inner}}
 }

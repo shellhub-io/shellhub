@@ -37,7 +37,14 @@ type QueryOptions interface {
 	// store fails the query with ErrLockWithoutTableAlias when the query sets no table alias.
 	ForUpdate() QueryOption
 
-	// Match applies the provided query filters to match records
+	// Match narrows the records to those the filter matches, as one condition joined with AND to the
+	// query's other conditions, so no operator in the filter widens past them. Nodes join left to
+	// right: an operator joins every condition after it until the next operator, conditions before
+	// the first operator join with OR, AND binds tighter than OR, and a group is one bracketed
+	// condition. A property the store does not know, or an operator it does not support, is
+	// skipped. The pg store fails the query with the first value error a property raises, with
+	// ErrFilterNodeInvalid for a node of an unknown type or with Params of another shape, and with
+	// ErrQueryNotFound outside a store query.
 	Match(fs *query.Filters) QueryOption
 
 	// Paginate applies pagination to limit the number of records returned.

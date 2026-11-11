@@ -11,7 +11,8 @@ import (
 // cost of serving a malicious filter payload: the outer limit caps the raw
 // request size, the inner limits cap the structural complexity after decode.
 const (
-	// MaxFilterItems caps the number of entries in [Filters.Data].
+	// MaxFilterItems caps the number of nodes in [Filters.Data], counting each group node and every
+	// node it holds.
 	MaxFilterItems = 8
 	// MaxStringValueLen caps a string in [FilterProperty.Value], and each
 	// item when the value is an array.
@@ -172,13 +173,16 @@ func ValidateSorter(sorter *Sorter, allowed FieldSet) error {
 	return nil
 }
 
-// ValidateFilters returns [ErrFilterPropertyInvalid] if any property filter
-// references a (field, operator) pair not in constraints, compares a field
-// against a value it does not declare (see [FieldConstraints.WithValues]),
-// compares a number field under gt or lt against anything but a finite number
-// (see [FieldConstraints.WithNumbers]),
-// carries a non-primitive Value, or exceeds the configured size limits.
-// Operator filters (and/or) are left to the store to parse.
+// ValidateFilters returns [ErrFilterPropertyInvalid] if the filter's shape is not one the store
+// evaluates, or if any property, at the top level or inside a group, references a (field, operator)
+// pair not in constraints, compares a field against a value it does not declare (see
+// [FieldConstraints.WithValues]), compares a number field under gt or lt against anything but a
+// finite number (see [FieldConstraints.WithNumbers]), carries a non-primitive Value, or exceeds the
+// configured size limits. Operator filters (and/or) are left to the store to parse.
+//
+// The shape is invalid when the filter holds more than [MaxFilterItems] nodes, counting each group
+// and every node inside it, when a node has an unknown type or Params of the wrong shape, when a
+// group holds a group, or when a group holds no property.
 //
 // Equality on a virtual bool-backed field (see [FieldConstraints.IsVirtualBoolField]) accepts
 // anything bool-convertible, because ParseFilterProperty intercepts those before any column is
@@ -189,55 +193,91 @@ func ValidateFilters(filters *Filters, constraints FieldConstraints) error {
 		return nil
 	}
 
-	if len(filters.Data) > MaxFilterItems {
+	nodes, ok := countValidNodes(filters.Data, true)
+	if !ok || nodes > MaxFilterItems {
 		return ErrFilterPropertyInvalid
 	}
 
-	for _, f := range filters.Data {
-		if f.Type != FilterTypeProperty {
-			continue
-		}
-
-		prop, ok := f.Params.(*FilterProperty)
-		if !ok {
+	for prop := range filters.Properties() {
+		if !constraints.allowsProperty(prop) {
 			return ErrFilterPropertyInvalid
-		}
-
-		if !constraints.Allows(prop.Name, prop.Operator) {
-			return ErrFilterPropertyInvalid
-		}
-
-		if !isPrimitive(prop.Value) || !isValueWithinLimits(prop.Value) {
-			return ErrFilterPropertyInvalid
-		}
-
-		if prop.Operator == "bool" && !isBoolConvertible(prop.Value) {
-			return ErrFilterPropertyInvalid
-		}
-
-		if (prop.Operator == "gt" || prop.Operator == "lt") && constraints.numbers.Allows(prop.Name) && !isFiniteNumber(prop.Value) {
-			return ErrFilterPropertyInvalid
-		}
-
-		if prop.Operator == "eq" || prop.Operator == "ne" {
-			if constraints.IsVirtualBoolField(prop.Name) {
-				if !isBoolConvertible(prop.Value) {
-					return ErrFilterPropertyInvalid
-				}
-			} else {
-				value, ok := prop.Value.(string)
-				if !ok {
-					return ErrFilterPropertyInvalid
-				}
-
-				if !constraints.AllowsValue(prop.Name, value) {
-					return ErrFilterPropertyInvalid
-				}
-			}
 		}
 	}
 
 	return nil
+}
+
+func countValidNodes(nodes []Filter, groupsAllowed bool) (int, bool) {
+	count := len(nodes)
+
+	for _, node := range nodes {
+		switch node.Type {
+		case FilterTypeProperty:
+			if _, ok := node.Params.(*FilterProperty); !ok {
+				return 0, false
+			}
+		case FilterTypeOperator:
+			if _, ok := node.Params.(*FilterOperator); !ok {
+				return 0, false
+			}
+		case FilterTypeGroup:
+			group, ok := node.Params.(FilterGroup)
+			if !ok || !groupsAllowed || !holdsProperty(group) {
+				return 0, false
+			}
+
+			inner, ok := countValidNodes(group, false)
+			if !ok {
+				return 0, false
+			}
+
+			count += inner
+		default:
+			return 0, false
+		}
+	}
+
+	return count, true
+}
+
+func holdsProperty(group FilterGroup) bool {
+	for _, node := range group {
+		if node.Type == FilterTypeProperty {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c FieldConstraints) allowsProperty(prop *FilterProperty) bool {
+	if !c.Allows(prop.Name, prop.Operator) {
+		return false
+	}
+
+	if !isPrimitive(prop.Value) || !isValueWithinLimits(prop.Value) {
+		return false
+	}
+
+	if prop.Operator == "bool" && !isBoolConvertible(prop.Value) {
+		return false
+	}
+
+	if (prop.Operator == "gt" || prop.Operator == "lt") && c.numbers.Allows(prop.Name) && !isFiniteNumber(prop.Value) {
+		return false
+	}
+
+	if prop.Operator != "eq" && prop.Operator != "ne" {
+		return true
+	}
+
+	if c.IsVirtualBoolField(prop.Name) {
+		return isBoolConvertible(prop.Value)
+	}
+
+	value, ok := prop.Value.(string)
+
+	return ok && c.AllowsValue(prop.Name, value)
 }
 
 func isValueWithinLimits(v any) bool {

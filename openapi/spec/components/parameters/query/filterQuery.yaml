@@ -1,70 +1,102 @@
 name: filter
 description: |
-  Filter field receives a JSON object encoded as a base64url string (URL-safe, unpadded, RFC 4648 §5) to limit a search. Standard base64 is also accepted for backward compatibility.
+  Filter field receives a JSON array encoded as a base64url string (URL-safe, unpadded, RFC 4648 §5) to limit a search. Standard base64 is also accepted for backward compatibility.
 
-  The JSON enconded must follow these interafaces:
+  The decoded JSON is an array of `Filter` nodes:
   ```typescript
-  interface ParamProperty {
-    name: string;
-    operator: "contains" | "eq" | "bool" | "gt" | "lt";
-    value: string;
+  type Filter = Property | Operator | Group;
+
+  interface Property {
+    type: "property";
+    params: {
+      name: string;
+      operator: "contains" | "eq" | "ne" | "bool" | "gt" | "lt";
+      value: string | number | boolean | Array<string | number | boolean>;
+    };
   }
 
-  interface ParamOperator {
-    name: "and" | "or";
+  interface Operator {
+    type: "operator";
+    params: { name: "and" | "or" };
   }
 
-  interface Filter {
-    type: "property" | "operator";
-    param: ParamOperator | ParamProperty;
+  interface Group {
+    type: "group";
+    params: Array<Property | Operator>;
   }
-
-  interface FilterList {
-    Filters: Array<Filter>;
-  }
-
   ```
+
+  Each endpoint lists the fields and operators it accepts. `tags.name` with `contains` takes an array of tag names, and `bool` takes a boolean.
+
+  ## Evaluation
+
+  The server reads the array from left to right:
+
+  - An operator joins every condition after it, until the next operator.
+  - Conditions before the first operator are joined with `or`.
+  - An operator with no condition after it is ignored.
+  - `and` binds tighter than `or`, so `[A, or, B, and, C]` means `A or (B and C)`.
+  - A group is one condition in brackets. Inside it the same rules apply, starting again from `or`.
+
+  A filter holds at most 8 nodes, counting each group and every node inside it. A group cannot hold another group and must hold at least one property.
 
   ## Examples
 
-  This is a example to filter and get only the resource what property "confirmed" is "true"
+  Resources whose "confirmed" property is true:
   ```json
   [
     {
-    "type": "property",
-    "params": {
-        "name": "confirmed",
-        "operator": "bool",
-        "value": "true"
-        }
+      "type": "property",
+      "params": { "name": "confirmed", "operator": "bool", "value": true }
     }
   ]
   ```
 
-  This one filters the resource by the "platform" property when it is equal to "manjaro" and the online property is set to "true"
+  Devices whose platform is "manjaro" and that are online. The operator comes before the condition it joins:
   ```json
   [
     {
       "type": "property",
-      "params": {
-        "name": "platform",
-        "operator": "eq",
-        "value": "manjaro"
-      }
-    },
-    {
-      "type": "property",
-      "params": {
-        "name": "online",
-        "operator": "bool",
-        "value": "true"
-      }
+      "params": { "name": "platform", "operator": "eq", "value": "manjaro" }
     },
     {
       "type": "operator",
-      "params": {
-        "name": "and"
-      }
+      "params": { "name": "and" }
+    },
+    {
+      "type": "property",
+      "params": { "name": "online", "operator": "bool", "value": true }
+    }
+  ]
+  ```
+
+  Devices whose name or custom fields contain "web" and that carry the "prod" tag:
+  ```json
+  [
+    {
+      "type": "group",
+      "params": [
+        {
+          "type": "property",
+          "params": { "name": "name", "operator": "contains", "value": "web" }
+        },
+        {
+          "type": "operator",
+          "params": { "name": "or" }
+        },
+        {
+          "type": "property",
+          "params": { "name": "custom_fields", "operator": "contains", "value": "web" }
+        }
+      ]
+    },
+    {
+      "type": "operator",
+      "params": { "name": "and" }
+    },
+    {
+      "type": "property",
+      "params": { "name": "tags.name", "operator": "contains", "value": ["prod"] }
     }
   ]
   ```

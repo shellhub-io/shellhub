@@ -148,6 +148,28 @@ func TestFilters_Unmarshal(t *testing.T) {
 			wantErr:     ErrFilterInvalid,
 		},
 		{
+			description:   "a group decodes the items it holds",
+			raw:           base64.RawURLEncoding.EncodeToString([]byte(`[{"type":"group","params":[{"type":"property","params":{"name":"a","operator":"eq","value":"b"}},{"type":"operator","params":{"name":"or"}}]}]`)),
+			wantErr:       nil,
+			wantFirstType: FilterTypeGroup,
+			wantData: []Filter{
+				{Type: FilterTypeGroup, Params: FilterGroup{
+					{Type: FilterTypeProperty, Params: &FilterProperty{Name: "a", Operator: "eq", Value: "b"}},
+					{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}},
+				}},
+			},
+		},
+		{
+			description: "a group whose params is not a list returns ErrFilterInvalid",
+			raw:         base64.RawURLEncoding.EncodeToString([]byte(`[{"type":"group","params":{"name":"a"}}]`)),
+			wantErr:     ErrFilterInvalid,
+		},
+		{
+			description: "a group inside a group returns ErrFilterInvalid",
+			raw:         base64.RawURLEncoding.EncodeToString([]byte(`[{"type":"group","params":[{"type":"group","params":[{"type":"property","params":{"name":"a","operator":"eq","value":"b"}}]}]}]`)),
+			wantErr:     ErrFilterInvalid,
+		},
+		{
 			description: "valid base64 + valid JSON with unknown filter type returns ErrFilterInvalid",
 			raw:         base64.StdEncoding.EncodeToString([]byte(`[{"type":"unknown","params":{}}]`)),
 			wantErr:     ErrFilterInvalid,
@@ -226,4 +248,27 @@ func TestFilters_Unmarshal_sizeLimit(t *testing.T) {
 		fs := &Filters{Raw: string(make([]byte, MaxFilterRawBytes+1))}
 		assert.Equal(t, ErrFilterTooLarge, fs.Unmarshal())
 	})
+}
+
+func TestFilters_Properties(t *testing.T) {
+	top := &FilterProperty{Name: "a", Operator: "eq", Value: "1"}
+	first := &FilterProperty{Name: "b", Operator: "eq", Value: "2"}
+	second := &FilterProperty{Name: "c", Operator: "eq", Value: "3"}
+
+	filters := &Filters{Data: []Filter{
+		{Type: FilterTypeProperty, Params: top},
+		{Type: FilterTypeOperator, Params: &FilterOperator{Name: "and"}},
+		{Type: FilterTypeGroup, Params: FilterGroup{
+			{Type: FilterTypeProperty, Params: first},
+			{Type: FilterTypeOperator, Params: &FilterOperator{Name: "or"}},
+			{Type: FilterTypeProperty, Params: second},
+		}},
+	}}
+
+	var visited []*FilterProperty
+	for property := range filters.Properties() {
+		visited = append(visited, property)
+	}
+
+	assert.Equal(t, []*FilterProperty{top, first, second}, visited)
 }

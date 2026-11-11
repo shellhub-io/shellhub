@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -14,6 +15,11 @@ import (
 
 // ErrQueryNotFound is returned when the query context value is not found or has the wrong type
 var ErrQueryNotFound = errors.New("query not found in context")
+
+// ErrFilterNodeInvalid is returned by Match for a filter node of an unknown type, or whose Params
+// is not the shape its type names. Decoding and [query.ValidateFilters] refuse both, so only a filter
+// built by hand reaches it.
+var ErrFilterNodeInvalid = errors.New("filter node is not valid")
 
 // ErrLockWithoutTableAlias is returned by ForUpdate on a query that set no CtxTableAlias, since
 // only an aliased query can name the one table to lock.
@@ -96,61 +102,102 @@ func (o *queryOptions) Match(filters *query.Filters) store.QueryOption {
 			tableAlias = alias
 		}
 
-		var filterErr error
+		match := filterMatch{tableAlias: tableAlias, onlineCutoff: OnlineCutoff(o.clock)}
+
+		var err error
 		wrapper.query = wrapper.query.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
-			currentOperator := "OR"
-			firstCondition := true
-
-			for _, filter := range filters.Data {
-				switch filter.Type {
-				case query.FilterTypeOperator:
-					param, ok := filter.Params.(*query.FilterOperator)
-					if !ok {
-						return nil
-					}
-
-					op, valid := internal.ParseFilterOperator(param)
-					if !valid {
-						continue
-					}
-
-					currentOperator = op
-				case query.FilterTypeProperty:
-					param, ok := filter.Params.(*query.FilterProperty)
-					if !ok {
-						return nil
-					}
-
-					condition, args, valid, err := internal.ParseFilterProperty(param, tableAlias, OnlineCutoff(o.clock))
-					if err != nil || !valid {
-						filterErr = err
-
-						continue
-					}
-
-					switch {
-					case firstCondition: // The first condition always applies a WHERE
-						q = q.Where(condition, args...)
-						firstCondition = false
-					case currentOperator == "AND":
-						q = q.Where(condition, args...)
-					case currentOperator == "OR":
-						q = q.WhereOr(condition, args...)
-					}
-				default:
-					return nil
-				}
-			}
+			q, _, err = match.where(q, filters.Data)
 
 			return q
 		})
 
-		if filterErr != nil {
-			return filterErr
-		}
-
-		return nil
+		return err
 	}
+}
+
+type filterMatch struct {
+	tableAlias   string
+	onlineCutoff time.Time
+}
+
+func (m filterMatch) where(q *bun.SelectQuery, nodes []query.Filter) (*bun.SelectQuery, bool, error) {
+	operator := "OR"
+	added := false
+
+	for _, node := range nodes {
+		switch node.Type {
+		case query.FilterTypeOperator:
+			params, ok := node.Params.(*query.FilterOperator)
+			if !ok {
+				return q, added, ErrFilterNodeInvalid
+			}
+
+			if op, valid := internal.ParseFilterOperator(params); valid {
+				operator = op
+			}
+		case query.FilterTypeProperty:
+			params, ok := node.Params.(*query.FilterProperty)
+			if !ok {
+				return q, added, ErrFilterNodeInvalid
+			}
+
+			condition, args, valid, err := internal.ParseFilterProperty(params, m.tableAlias, m.onlineCutoff)
+			if err != nil {
+				return q, added, err
+			}
+
+			if !valid {
+				continue
+			}
+
+			if joinsWithOr(operator, added) {
+				q = q.WhereOr(condition, args...)
+			} else {
+				q = q.Where(condition, args...)
+			}
+
+			added = true
+		case query.FilterTypeGroup:
+			params, ok := node.Params.(query.FilterGroup)
+			if !ok {
+				return q, added, ErrFilterNodeInvalid
+			}
+
+			var groupAdded bool
+			var err error
+			q, groupAdded, err = m.whereGroup(q, params, joinsWithOr(operator, added))
+			if err != nil {
+				return q, added, err
+			}
+
+			added = added || groupAdded
+		default:
+			return q, added, ErrFilterNodeInvalid
+		}
+	}
+
+	return q, added, nil
+}
+
+func (m filterMatch) whereGroup(q *bun.SelectQuery, group query.FilterGroup, orWithPrevious bool) (*bun.SelectQuery, bool, error) {
+	separator := " AND "
+	if orWithPrevious {
+		separator = " OR "
+	}
+
+	var added bool
+	var err error
+	q = q.WhereGroup(separator, func(q *bun.SelectQuery) *bun.SelectQuery {
+		q, added, err = m.where(q, group)
+
+		return q
+	})
+
+	return q, added, err
+}
+
+func joinsWithOr(operator string, added bool) bool {
+	return operator == "OR" && added
 }
 
 func (*queryOptions) WithMember(userID string) store.QueryOption {

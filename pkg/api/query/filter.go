@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"iter"
 	"strings"
 )
 
@@ -12,8 +13,10 @@ var (
 	// or when a bracket filter key lacks its field or operator, has a bracket inside either, carries
 	// more, or is sent twice.
 	ErrFilterInvalid = errors.New("filter is invalid")
-	// ErrFilterPropertyInvalid is returned when a property node names a field the store does not
-	// allow filtering on.
+	// ErrFilterPropertyInvalid is returned when a property node, at the top level or inside a group,
+	// names a field or operator the store does not allow or carries a value it does not take, or when
+	// the filter's shape is one the store does not evaluate: too many nodes, a group inside a group,
+	// a group with no property, or a node of an unknown type or with Params of another shape.
 	ErrFilterPropertyInvalid = errors.New("filter property is not valid")
 	// ErrFilterTooLarge is returned when the encoded filter is longer than the cap, which bounds the
 	// work a single query can ask for.
@@ -68,8 +71,11 @@ type Filter struct {
 	Params any    `json:"params,omitempty"`
 }
 
-// UnmarshalJSON decodes Params into the struct named by Type. An unrecognized Type leaves Params
-// nil rather than failing, so a filter the server does not know narrows nothing.
+// UnmarshalJSON decodes Params into the shape named by Type: a [FilterProperty], a [FilterOperator],
+// or the [FilterGroup] of nodes a group holds, decoded the same way. It returns [ErrFilterInvalid]
+// for any other Type, so a server that does not know a node refuses it instead of ignoring it, and
+// for a group inside a group, before decoding it, so nesting cannot multiply the decoding work. It
+// returns the decoding error when Params does not match the shape Type names.
 func (f *Filter) UnmarshalJSON(data []byte) error {
 	var params json.RawMessage
 
@@ -101,7 +107,68 @@ func (f *Filter) UnmarshalJSON(data []byte) error {
 		f.Params = &operator
 
 		return nil
+	case FilterTypeGroup:
+		group, err := unmarshalGroup(params)
+		if err != nil {
+			return err
+		}
+		f.Params = group
+
+		return nil
 	default:
 		return ErrFilterInvalid
 	}
+}
+
+func unmarshalGroup(data []byte) (FilterGroup, error) {
+	var items []json.RawMessage
+	if err := json.Unmarshal(data, &items); err != nil {
+		return nil, err
+	}
+
+	group := make(FilterGroup, len(items))
+	for i, item := range items {
+		var head struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(item, &head); err != nil {
+			return nil, err
+		}
+
+		if head.Type == FilterTypeGroup {
+			return nil, ErrFilterInvalid
+		}
+
+		if err := json.Unmarshal(item, &group[i]); err != nil {
+			return nil, err
+		}
+	}
+
+	return group, nil
+}
+
+// Properties yields every property node in order, those inside groups included, so a caller that
+// checks or rewrites properties cannot miss one a group holds. Nodes whose Params is not a
+// [FilterProperty] or a [FilterGroup] are skipped.
+func (fs *Filters) Properties() iter.Seq[*FilterProperty] {
+	return func(yield func(*FilterProperty) bool) {
+		walkProperties(fs.Data, yield)
+	}
+}
+
+func walkProperties(nodes []Filter, yield func(*FilterProperty) bool) bool {
+	for _, node := range nodes {
+		switch params := node.Params.(type) {
+		case *FilterProperty:
+			if !yield(params) {
+				return false
+			}
+		case FilterGroup:
+			if !walkProperties(params, yield) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
