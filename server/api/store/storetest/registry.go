@@ -69,6 +69,7 @@ var Groups = []Group{
 		(*Suite).TestDeviceListFiltersByOwner,
 		(*Suite).TestDeviceListFiltersByLocated,
 		(*Suite).TestDeviceListFiltersByOnline,
+		(*Suite).TestDeviceListFilterEvaluationOrder,
 		(*Suite).TestDeviceOwnerMustBeAMember,
 		(*Suite).TestDeviceUpdateUnlessRemoved,
 		(*Suite).TestDeviceAssertNotRemoved,
