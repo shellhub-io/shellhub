@@ -31,7 +31,7 @@ func (e *enrollmentE2E) acceptedDevice(t *testing.T, mac string) string {
 func (e *enrollmentE2E) connect(t *testing.T, uid string) {
 	t.Helper()
 
-	gone, err := e.st.DeviceHeartbeat(context.Background(), []store.DeviceBeat{{UID: uid, At: e.clock.Now()}}, 0)
+	gone, err := e.st.DeviceHeartbeat(context.Background(), scope.MustBounded(e.tenantID), []store.DeviceBeat{{UID: uid, TenantID: e.tenantID, At: e.clock.Now()}}, 0)
 	require.NoError(t, err)
 	require.Empty(t, gone)
 }
@@ -39,7 +39,7 @@ func (e *enrollmentE2E) connect(t *testing.T, uid string) {
 func (e *enrollmentE2E) disconnect(t *testing.T, uid string) {
 	t.Helper()
 
-	require.NoError(t, e.st.DeviceOffline(context.Background(), uid, now))
+	require.NoError(t, e.st.DeviceOffline(context.Background(), scope.MustBounded(e.tenantID), uid, now))
 }
 
 func (e *enrollmentE2E) device(t *testing.T, uid string) *models.Device {
@@ -100,7 +100,7 @@ func (e *enrollmentE2E) merge(ctx context.Context, sc scope.Scope, mac, oldUID, 
 
 	device.Status = models.DeviceStatusAccepted
 
-	return e.st.DeviceUpdate(ctx, device)
+	return e.st.DeviceUpdate(ctx, sc, device)
 }
 
 func (e *enrollmentE2E) remove(ctx context.Context, sc scope.Scope, uid string) error {
@@ -109,7 +109,7 @@ func (e *enrollmentE2E) remove(ctx context.Context, sc scope.Scope, uid string) 
 		return err
 	}
 
-	return e.st.DeviceDelete(ctx, device)
+	return e.st.DeviceDelete(ctx, sc, device)
 }
 
 func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T) {

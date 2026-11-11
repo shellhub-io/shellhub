@@ -17,7 +17,7 @@ func TestSetDeviceCustomFieldConcurrentCallsRespectTheLimit(t *testing.T) {
 	ctx := context.Background()
 	e := setupEnrollmentE2E(t)
 
-	uid, err := e.st.DeviceCreate(ctx, &models.Device{
+	uid, err := e.st.DeviceCreate(ctx, scope.MustBounded(e.tenantID), &models.Device{
 		UID:       "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
 		TenantID:  e.tenantID,
 		Name:      "device",

@@ -52,16 +52,16 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberCustomFields(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	uid := s.CreateDevice(t)
-	require.NoError(t, st.DeviceSetCustomField(ctx, string(uid), "first", "1"))
+	require.NoError(t, st.DeviceSetCustomField(ctx, s.scopeOf(t, uid), string(uid), "first", "1"))
 
 	snapshot, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{"first": "1"}, snapshot.CustomFields)
 
-	require.NoError(t, st.DeviceSetCustomField(ctx, string(uid), "second", "2"))
+	require.NoError(t, st.DeviceSetCustomField(ctx, s.scopeOf(t, uid), string(uid), "second", "2"))
 
 	snapshot.Name = "device-renamed"
-	require.NoError(t, st.DeviceUpdate(ctx, snapshot))
+	require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(snapshot.TenantID), snapshot))
 
 	updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
@@ -85,12 +85,12 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberHeartbeat(t *testing.T) {
 	require.NoError(t, err)
 
 	heartbeat := s.Clock().Now().UTC().Add(2 * time.Hour).Truncate(time.Second)
-	gone, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: string(uid), At: heartbeat}}, 0)
+	gone, err := st.DeviceHeartbeat(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []store.DeviceBeat{s.beatOf(t, uid, heartbeat)}, 0)
 	require.NoError(t, err)
 	require.Empty(t, gone)
 
 	snapshot.Name = "device-renamed"
-	require.NoError(t, st.DeviceUpdate(ctx, snapshot))
+	require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(snapshot.TenantID), snapshot))
 
 	updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
@@ -116,7 +116,7 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 		require.Nil(t, before.DisconnectedAt)
 
 		disconnectedAt := s.Clock().Now().UTC().Add(-time.Minute).Truncate(time.Second)
-		require.NoError(t, st.DeviceOffline(ctx, string(uid), disconnectedAt))
+		require.NoError(t, st.DeviceOffline(ctx, s.scopeOf(t, uid), string(uid), disconnectedAt))
 
 		updated, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
@@ -128,7 +128,7 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 	t.Run("fails for non-existent device", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.DeviceOffline(ctx, "0000000000000000000000000000000000000000000000000000000000000000", s.Clock().Now())
+		err := st.DeviceOffline(ctx, scope.MustBounded(s.CreateNamespace(t)), "0000000000000000000000000000000000000000000000000000000000000000", s.Clock().Now())
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 }

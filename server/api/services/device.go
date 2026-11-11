@@ -112,7 +112,7 @@ type DeviceService interface {
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
-	OfflineDevice(ctx context.Context, uid models.UID) error
+	OfflineDevice(ctx context.Context, tenant string, uid models.UID) error
 
 	// UpdateDevice renames the device the way RenameDevice does, and leaves it alone when req.Name
 	// is empty.
@@ -311,7 +311,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		deviceCopy := *device
 		deviceCopy.Status = models.DeviceStatusRemoved
 		deviceCopy.RemovedAt = &now
-		if err := s.store.DeviceUpdate(ctx, &deviceCopy); err != nil {
+		if err := s.store.DeviceUpdate(ctx, sc, &deviceCopy); err != nil {
 			return err
 		}
 
@@ -325,7 +325,7 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 			return err
 		}
 	} else {
-		if err := s.store.DeviceDelete(ctx, device); err != nil {
+		if err := s.store.DeviceDelete(ctx, sc, device); err != nil {
 			return err
 		}
 	}
@@ -454,7 +454,7 @@ func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *mode
 	}
 
 	device.Name = lowered
-	if err := s.store.DeviceUpdate(ctx, device); err != nil {
+	if err := s.store.DeviceUpdate(ctx, sc, device); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {
 			return NewErrDeviceDuplicated(name, err)
 		}
@@ -484,8 +484,13 @@ func (s *service) LookupDevice(ctx context.Context, namespace, name string) (*mo
 	return device, nil
 }
 
-func (s *service) OfflineDevice(ctx context.Context, uid models.UID) error {
-	if err := s.store.DeviceOffline(ctx, string(uid), s.clock.Now()); err != nil {
+func (s *service) OfflineDevice(ctx context.Context, tenant string, uid models.UID) error {
+	sc, err := BoundTo(tenant)
+	if err != nil {
+		return err
+	}
+
+	if err := s.store.DeviceOffline(ctx, sc, string(uid), s.clock.Now()); err != nil {
 		if errors.Is(err, store.ErrNoDocuments) {
 			return NewErrDeviceNotFound(uid, err)
 		}
@@ -674,7 +679,7 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 
 		device.Status = newStatus
 		device.StatusUpdatedAt = s.clock.Now()
-		if err := s.store.DeviceUpdate(ctx, device); err != nil {
+		if err := s.store.DeviceUpdate(ctx, sc, device); err != nil {
 			if newStatus == models.DeviceStatusAccepted && errors.Is(err, store.ErrDuplicate) {
 				return NewErrDeviceDuplicated(device.Name, err)
 			}
@@ -737,7 +742,7 @@ func (s *service) SetDeviceCustomField(ctx context.Context, req *requests.Device
 			return NewErrDeviceCustomFieldLimitReached(maxCustomFieldsPerDevice, nil)
 		}
 
-		return s.store.DeviceSetCustomField(ctx, req.UID, req.Key, req.Value)
+		return s.store.DeviceSetCustomField(ctx, sc, req.UID, req.Key, req.Value)
 	})
 }
 
@@ -747,11 +752,11 @@ func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.Dev
 		return err
 	}
 
-	if _, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, req.UID); err != nil {
-		return NewErrDeviceNotFound(models.UID(req.UID), err)
-	}
+	if err := s.store.DeviceDeleteCustomField(ctx, sc, req.UID, req.Key); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrDeviceNotFound(models.UID(req.UID), err)
+		}
 
-	if err := s.store.DeviceDeleteCustomField(ctx, req.UID, req.Key); err != nil {
 		return err
 	}
 
@@ -760,6 +765,7 @@ func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.Dev
 
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
 	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
+	sc := scope.MustBounded(tenantID)
 
 	log.WithFields(logFields).Debug("firing device merge hooks")
 	if err := fireDeviceMerge(ctx, tenantID, oldDevice, newDevice); err != nil {
@@ -777,20 +783,20 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 
 	log.WithFields(logFields).Debug("updating new device name to preserve old device identity")
 	newDevice.Name = oldDevice.Name
-	if err := s.store.DeviceUpdate(ctx, newDevice); err != nil {
+	if err := s.store.DeviceUpdate(ctx, sc, newDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to update new device name")
 
 		return err
 	}
 
 	log.WithFields(logFields).Debug("mergeDevice: deleting old device")
-	if err := s.store.DeviceDelete(ctx, oldDevice); err != nil {
+	if err := s.store.DeviceDelete(ctx, sc, oldDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to delete old device")
 
 		return err
 	}
 
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), oldDevice.Status, -1); err != nil {
+	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, oldDevice.Status, -1); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
 
 		return err

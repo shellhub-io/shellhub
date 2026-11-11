@@ -203,7 +203,9 @@ func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, 
 		return false
 	}
 
-	key, err := s.presentedProvisioningKey(ctx, scope.MustBounded(device.TenantID), req.ProvisioningKey)
+	sc := scope.MustBounded(device.TenantID)
+
+	key, err := s.presentedProvisioningKey(ctx, sc, req.ProvisioningKey)
 	switch {
 	case errors.Is(err, store.ErrNoDocuments), errors.Is(err, errProvisioningKeyUnusable):
 		return false
@@ -219,7 +221,7 @@ func (s *service) adoptPresentedKey(ctx context.Context, device *models.Device, 
 
 	device.EnrollWith(key)
 
-	if err := s.store.DeviceUpdateUnlessRemoved(ctx, device); err != nil {
+	if err := s.store.DeviceUpdateUnlessRemoved(ctx, sc, device); err != nil {
 		log.WithError(err).WithFields(log.Fields{"device_uid": uid, "provisioning_key": key.Name}).
 			Warn("failed to adopt the provisioning key a pending device presented")
 

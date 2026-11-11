@@ -7,7 +7,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/internal"
 	"github.com/uptrace/bun"
@@ -236,25 +235,10 @@ func (*queryOptions) ForUpdate() store.QueryOption {
 // Exported so the cloud store, which builds queries against the driver directly, enforces a scope
 // the same way rather than reimplementing the predicate.
 func ScopeOption(sc scope.Scope) store.QueryOption {
-	switch sc.Kind() {
-	case scope.KindBounded:
-		return inNamespace(sc.TenantID())
-	case scope.KindUnbounded:
-		return func(context.Context) error { return nil }
-	default:
-		return func(context.Context) error { return store.ErrInvalidScope }
-	}
-}
-
-func inNamespace(namespaceID string) store.QueryOption {
 	return func(ctx context.Context) error {
 		wrapper, ok := ctx.Value("query").(*queryWrapper)
 		if !ok {
 			return ErrQueryNotFound
-		}
-
-		if _, err := uuid.Parse(namespaceID); err != nil {
-			return store.ErrNoDocuments
 		}
 
 		name := "namespace_id"
@@ -262,12 +246,17 @@ func inNamespace(namespaceID string) store.QueryOption {
 			name = override
 		}
 
-		col := name
+		column := name
 		if alias, ok := ctx.Value(CtxTableAlias).(string); ok && alias != "" {
-			col = alias + "." + name
+			column = alias + "." + name
 		}
 
-		wrapper.query = wrapper.query.Where(col+" = ?", namespaceID)
+		query, err := whereInScope(wrapper.query, sc, column)
+		if err != nil {
+			return err
+		}
+
+		wrapper.query = query
 
 		return nil
 	}

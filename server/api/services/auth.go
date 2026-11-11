@@ -529,7 +529,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 		device = &models.Device{
 			CreatedAt:       s.clock.Now(),
 			UID:             uid,
-			TenantID:        req.TenantID,
+			TenantID:        namespace.TenantID,
 			Status:          models.DeviceStatusPending,
 			StatusUpdatedAt: s.clock.Now(),
 			Name:            strings.ToLower(hostname),
@@ -548,7 +548,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 
 		device.Info = deviceInfoFromRequest(req.Info)
 
-		if _, err := s.store.DeviceCreate(ctx, device); err != nil {
+		if _, err := s.store.DeviceCreate(ctx, sc, device); err != nil {
 			return nil, NewErrDeviceCreate(models.Device{}, err)
 		}
 
@@ -620,7 +620,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			decision := s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired)
 
 			if decision == enrollAccept || decision == enrollReject {
-				if err := s.store.DeviceUpdate(ctx, device); err != nil {
+				if err := s.store.DeviceUpdate(ctx, sc, device); err != nil {
 					return nil, err
 				}
 			}
@@ -642,7 +642,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			device.Info = info
 		}
 
-		var update func(context.Context, *models.Device) error
+		var update func(context.Context, scope.Scope, *models.Device) error
 		switch {
 		case unchanged:
 			update = s.store.DeviceAssertNotRemoved
@@ -652,7 +652,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			update = s.store.DeviceUpdateUnlessRemoved
 		}
 
-		if err := update(ctx, device); err != nil {
+		if err := update(ctx, sc, device); err != nil {
 			log.WithError(err).Error("failed to update the authenticated device")
 
 			return nil, err

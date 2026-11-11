@@ -41,7 +41,7 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}, {UID: "device-b", At: now}}, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant", At: now}, {UID: "device-b", TenantID: "tenant", At: now}}, mock.Anything).
 		Return([]string{}, nil).
 		Once()
 
@@ -65,7 +65,7 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: third}, {UID: "device-b", At: second}}, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant", At: third}, {UID: "device-b", TenantID: "tenant", At: second}}, mock.Anything).
 		Return([]string{}, nil).
 		Once()
 
@@ -87,7 +87,7 @@ func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *tes
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: later}}, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant", At: later}}, mock.Anything).
 		Return([]string{}, nil).
 		Once()
 
@@ -107,7 +107,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}, {UID: "device-b", At: now}}, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant-a", At: now}, {UID: "device-b", TenantID: "tenant-b", At: now}}, mock.Anything).
 		Return([]string{"device-b"}, nil).
 		Once()
 
@@ -128,7 +128,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}}, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant", At: now}}, mock.Anything).
 		Return(nil, errors.New("error")).
 		Once()
 
@@ -158,7 +158,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
-		On("DeviceHeartbeat", mock.Anything, mock.Anything, mock.Anything).
+		On("DeviceHeartbeat", mock.Anything, unboundedScope, mock.Anything, mock.Anything).
 		Return([]string{}, nil).
 		Maybe()
 
@@ -197,7 +197,7 @@ func TestDeviceHeartbeater_passesTheStoreASkipThresholdFromTheBeatInterval(t *te
 		t.Run(tc.description, func(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			storeMock.
-				On("DeviceHeartbeat", mock.Anything, []store.DeviceBeat{{UID: "device-a", At: now}}, tc.expected).
+				On("DeviceHeartbeat", mock.Anything, unboundedScope, []store.DeviceBeat{{UID: "device-a", TenantID: "tenant", At: now}}, tc.expected).
 				Return([]string{}, nil).
 				Once()
 

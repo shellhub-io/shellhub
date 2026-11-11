@@ -69,12 +69,13 @@ func (s *service) EphemeralCleanup() worker.CronHandler {
 func (s *service) DevicePresenceSweep() worker.CronHandler {
 	return func(ctx context.Context) error {
 		staleBefore := s.clock.Now().Add(-devicePresenceSweepGrace)
+		sc := scope.NewUnbounded("the presence sweep closes the unwritten tunnel closes of every namespace")
 
 		total := int64(0)
 		batches := 0
 
 		for batches < devicePresenceSweepMaxBatches {
-			stamped, err := s.store.DeviceSweepStalePresence(ctx, staleBefore, devicePresenceSweepBatchSize)
+			stamped, err := s.store.DeviceSweepStalePresence(ctx, sc, staleBefore, devicePresenceSweepBatchSize)
 			if err != nil {
 				log.WithError(err).WithField("stamped", total).Error("failed to sweep stale device presence")
 
@@ -310,7 +311,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 				uids[i] = device.UID
 			}
 
-			deleted, err := s.store.DeviceDeleteMany(ctx, uids)
+			deleted, err := s.store.DeviceDeleteMany(ctx, sc, uids)
 			if err != nil {
 				log.WithField("page", page+1).
 					WithError(err).
@@ -353,7 +354,9 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 	return func(ctx context.Context) error {
 		log.Info("Starting cleanup for offline ephemeral devices")
 
-		devices, err := s.store.DeviceListExpiredEphemeral(ctx)
+		sc := scope.NewUnbounded("the ephemeral cleanup removes expired devices of every namespace, bucketing its deletions per namespace afterwards")
+
+		devices, err := s.store.DeviceListExpiredEphemeral(ctx, sc)
 		if err != nil {
 			log.WithError(err).Error("Failed to list offline ephemeral devices")
 
@@ -373,7 +376,7 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 			uids[i] = device.UID
 		}
 
-		deleted, err := s.store.DeviceDeleteMany(ctx, uids)
+		deleted, err := s.store.DeviceDeleteMany(ctx, sc, uids)
 		if err != nil {
 			log.WithError(err).Error("Failed to delete offline ephemeral devices")
 

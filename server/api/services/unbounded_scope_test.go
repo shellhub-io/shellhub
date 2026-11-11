@@ -10,7 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,13 +23,18 @@ var unboundedScopeSites = []string{
 	"api/services/auth.go:AuthDeviceToken",
 	"api/services/auth.go:provisioningKeyTenant",
 	"api/services/device-pairing.go:acceptedDevicePairing",
+	"api/services/heartbeat.go:flush",
 	"api/services/session.go:CreateSession",
+	"api/services/task.go:DevicePresenceSweep",
 	"api/services/task.go:deviceCleanup",
+	"api/services/task.go:ephemeralCleanup",
 	"api/store/pg/session.go:SessionCreate",
 	"ssh/http/handlers.go:resolveDevice",
 	"ssh/session/session.go:NewSession",
 	"ssh/web/session.go:getAuth",
 }
+
+var unboundedScope = mock.MatchedBy(func(sc scope.Scope) bool { return sc.Kind() == scope.KindUnbounded })
 
 func TestUnboundedScopesAreBuiltOnlyAtDeclaredSites(t *testing.T) {
 	root, err := filepath.Abs(filepath.Join("..", ".."))

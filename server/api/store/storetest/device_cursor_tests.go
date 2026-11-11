@@ -241,7 +241,7 @@ func (s *Suite) TestDeviceListAfter(t *testing.T) {
 			require.NoError(t, err)
 			device.LastSeen = minute(60)
 			device.Name += "-renamed"
-			require.NoError(t, st.DeviceUpdate(ctx, device))
+			require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(device.TenantID), device))
 		}
 
 		d3 := createAt(t, minute(3), WithTenantID(tenantID))
@@ -300,7 +300,7 @@ func (s *Suite) TestDeviceListAfter(t *testing.T) {
 		removedAt := minute(60)
 		removed.Status = models.DeviceStatusRemoved
 		removed.RemovedAt = &removedAt
-		require.NoError(t, st.DeviceUpdate(ctx, removed))
+		require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(removed.TenantID), removed))
 
 		rest, next, err := st.DeviceListAfter(ctx, sc, store.DeviceAcceptableIfNotAccepted, next, 2, accepted)
 		require.NoError(t, err)

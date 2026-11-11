@@ -5977,16 +5977,16 @@ func (_c *MockService_NamespaceMembershipInvitationList_Call) RunAndReturn(run f
 }
 
 // OfflineDevice provides a mock function for the type MockService
-func (_mock *MockService) OfflineDevice(ctx context.Context, uid models.UID) error {
-	ret := _mock.Called(ctx, uid)
+func (_mock *MockService) OfflineDevice(ctx context.Context, tenant string, uid models.UID) error {
+	ret := _mock.Called(ctx, tenant, uid)
 
 	if len(ret) == 0 {
 		panic("no return value specified for OfflineDevice")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, models.UID) error); ok {
-		r0 = returnFunc(ctx, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.UID) error); ok {
+		r0 = returnFunc(ctx, tenant, uid)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -6000,24 +6000,30 @@ type MockService_OfflineDevice_Call struct {
 
 // OfflineDevice is a helper method to define mock.On call
 //   - ctx context.Context
+//   - tenant string
 //   - uid models.UID
-func (_e *MockService_Expecter) OfflineDevice(ctx any, uid any) *MockService_OfflineDevice_Call {
-	return &MockService_OfflineDevice_Call{Call: _e.mock.On("OfflineDevice", ctx, uid)}
+func (_e *MockService_Expecter) OfflineDevice(ctx any, tenant any, uid any) *MockService_OfflineDevice_Call {
+	return &MockService_OfflineDevice_Call{Call: _e.mock.On("OfflineDevice", ctx, tenant, uid)}
 }
 
-func (_c *MockService_OfflineDevice_Call) Run(run func(ctx context.Context, uid models.UID)) *MockService_OfflineDevice_Call {
+func (_c *MockService_OfflineDevice_Call) Run(run func(ctx context.Context, tenant string, uid models.UID)) *MockService_OfflineDevice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 models.UID
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(models.UID)
+			arg1 = args[1].(string)
+		}
+		var arg2 models.UID
+		if args[2] != nil {
+			arg2 = args[2].(models.UID)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -6028,7 +6034,7 @@ func (_c *MockService_OfflineDevice_Call) Return(err error) *MockService_Offline
 	return _c
 }
 
-func (_c *MockService_OfflineDevice_Call) RunAndReturn(run func(ctx context.Context, uid models.UID) error) *MockService_OfflineDevice_Call {
+func (_c *MockService_OfflineDevice_Call) RunAndReturn(run func(ctx context.Context, tenant string, uid models.UID) error) *MockService_OfflineDevice_Call {
 	_c.Call.Return(run)
 	return _c
 }

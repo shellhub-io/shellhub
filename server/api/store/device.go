@@ -46,17 +46,21 @@ const (
 	DevicePublicKeyResolver
 )
 
-// DeviceBeat says the device UID was seen alive at At. At is taken when the device is observed
-// (its authentication, or its tunnel answering a keep-alive), not when the beat is written.
+// DeviceBeat says the device UID of the namespace TenantID was seen alive at At. At is taken when
+// the device is observed (its authentication, or its tunnel answering a keep-alive), not when the
+// beat is written.
 type DeviceBeat struct {
-	UID string
-	At  time.Time
+	UID      string
+	TenantID string
+	At       time.Time
 }
 
 // DeviceStore persists devices and the counters a namespace's device limit is enforced from.
 type DeviceStore interface {
-	// DeviceCreate creates a new device. It returns the inserted UID and an error, if any.
-	DeviceCreate(ctx context.Context, device *models.Device) (insertedUID string, err error)
+	// DeviceCreate creates device in the namespace sc is bounded to and returns its UID. It returns
+	// ErrInvalidScope, writing nothing, when sc is not bounded or device's TenantID is not sc's
+	// tenant, and the store's error when the insert fails.
+	DeviceCreate(ctx context.Context, sc scope.Scope, device *models.Device) (insertedUID string, err error)
 
 	DeviceList(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, opts ...QueryOption) ([]models.Device, int64, error)
 
@@ -96,51 +100,62 @@ type DeviceStore interface {
 	// Only accepted devices are considered conflicting, within the given namespace scope.
 	DeviceConflicts(ctx context.Context, sc scope.Scope, target *models.DeviceConflicts, opts ...QueryOption) (conflicts []string, has bool, err error)
 
-	// DeviceUpdate updates a device. It returns [ErrNoDocuments] if none device is found, and the
-	// store's error when the update fails or, after the row is written, when the follow-up write of
-	// KeyVerifiedAt fails. It writes KeyVerifiedAt only while the stored one is unset and the device
+	// DeviceUpdate updates a device within the namespace sc is bounded to. It returns
+	// ErrInvalidScope, writing nothing, when sc is not bounded or device's TenantID is not sc's
+	// tenant, [ErrNoDocuments] when sc holds no such device, and the store's error when the update
+	// fails or, after the row is written, when the follow-up write of KeyVerifiedAt fails. It writes KeyVerifiedAt only while the stored one is unset and the device
 	// is not removed, so a snapshot read before a verification cannot undo it and a removal racing a
 	// verification wins, and clears it when the device is written as removed, so a removed device
 	// accepts unsigned authentication again unless its namespace requires verification.
-	DeviceUpdate(ctx context.Context, device *models.Device) error
+	DeviceUpdate(ctx context.Context, sc scope.Scope, device *models.Device) error
 	// DeviceUpdateUnlessRemoved updates a device the way DeviceUpdate does, but only while it is not
 	// removed. It returns [ErrNoDocuments] when the device was removed after the caller read it, so
-	// writing back a snapshot taken before a removal cannot undo it.
-	DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error
+	// writing back a snapshot taken before a removal cannot undo it, and ErrInvalidScope as
+	// DeviceUpdate does.
+	DeviceUpdateUnlessRemoved(ctx context.Context, sc scope.Scope, device *models.Device) error
 	// DeviceAssertNotRemoved writes nothing and returns [ErrNoDocuments] when the device is missing
-	// from its namespace or removed, the check DeviceUpdateUnlessRemoved makes, for a caller whose
-	// snapshot has nothing to write back. It reads only the device's UID and TenantID, and returns
-	// ctx's error when ctx ends and an error wrapping [ErrInternal] for any other database failure.
-	DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error
-	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists and is not
-	// removed, and clears its disconnected_at unless the disconnect is newer than the beat, so a beat
-	// written late cannot bring a disconnected device back online. A device with no disconnected_at
+	// from the namespace sc is bounded to or removed, the check DeviceUpdateUnlessRemoved makes, for a
+	// caller whose snapshot has nothing to write back. It reads only the device's UID and TenantID,
+	// and returns ErrInvalidScope as DeviceUpdate does, ctx's error when ctx ends and an error
+	// wrapping [ErrInternal] for any other database failure.
+	DeviceAssertNotRemoved(ctx context.Context, sc scope.Scope, device *models.Device) error
+	// DeviceHeartbeat sets last_seen to the beat's time for every beat's device that exists in the
+	// beat's namespace, and in sc's when sc is bounded, and is not removed, and clears its
+	// disconnected_at unless the disconnect is newer than the beat, so a beat written late cannot
+	// bring a disconnected device back online. A device with no disconnected_at
 	// whose last_seen is less than skipWithin before its beat, or after it, is left unwritten, so a
 	// skipWithin of zero or less never moves such a device's last_seen backwards. A device carrying a
 	// disconnect is written whatever its last_seen, so a late beat can still move its last_seen back.
-	// Each UID must appear in beats at most once. It returns the other uids, those deleted or removed,
-	// in the order given and never nil, whether or not their beat was written, or a nil gone and the
-	// store error when the update fails.
-	DeviceHeartbeat(ctx context.Context, beats []DeviceBeat, skipWithin time.Duration) (gone []string, err error)
+	// Each UID must appear in beats at most once. It returns the other uids, those deleted, removed
+	// or not in the beat's namespace or a bounded sc's, in the order given and never nil, whether or
+	// not their beat was written, or a nil gone and ErrInvalidScope for a scope of no known kind or
+	// the store error when the update fails.
+	DeviceHeartbeat(ctx context.Context, sc scope.Scope, beats []DeviceBeat, skipWithin time.Duration) (gone []string, err error)
 
 	// DeviceOffline stamps disconnected_at to mark a device offline: the targeted counterpart to
-	// DeviceHeartbeat, since disconnected_at is skipupdate. Returns [ErrNoDocuments] if none found.
-	DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error
+	// DeviceHeartbeat, since disconnected_at is skipupdate. It returns ErrInvalidScope, writing
+	// nothing, when sc is not bounded, [ErrNoDocuments] when sc holds no such device, and the
+	// store's error when the update fails.
+	DeviceOffline(ctx context.Context, sc scope.Scope, uid string, disconnectedAt time.Time) error
 
-	// DeviceSweepStalePresence stamps disconnected_at on up to limit devices whose tunnel close was
-	// never written: devices that are not removed, carry no disconnected_at and were last seen
+	// DeviceSweepStalePresence stamps disconnected_at on up to limit devices of sc whose tunnel close
+	// was never written: devices that are not removed, carry no disconnected_at and were last seen
 	// before staleBefore. Each gets last_seen plus [models.DeviceOnlineWindow], the instant it stopped
 	// reading online, so the stamp is in the past and any later beat clears it as DeviceHeartbeat
 	// does for a real close. A device never seen is left alone. It returns how many devices it
-	// stamped, ctx's error when ctx ends, and an error wrapping [ErrInternal] for any other database
-	// failure.
-	DeviceSweepStalePresence(ctx context.Context, staleBefore time.Time, limit int64) (stamped int64, err error)
+	// stamped, ErrInvalidScope for a scope of no known kind, [ErrNoDocuments] for a bounded scope
+	// whose tenant is not a UUID, ctx's error when ctx ends, and an error wrapping [ErrInternal] for
+	// any other database failure.
+	DeviceSweepStalePresence(ctx context.Context, sc scope.Scope, staleBefore time.Time, limit int64) (stamped int64, err error)
 
-	// DeviceSetCustomField sets or updates a single custom_fields entry on the device atomically.
-	DeviceSetCustomField(ctx context.Context, uid, key, value string) error
+	// DeviceSetCustomField sets or updates a single custom_fields entry on the device atomically. It
+	// returns ErrInvalidScope, writing nothing, when sc is not bounded, [ErrNoDocuments] when sc
+	// holds no such device, and the store's error when the update fails.
+	DeviceSetCustomField(ctx context.Context, sc scope.Scope, uid, key, value string) error
 	// DeviceDeleteCustomField removes a single custom_fields entry from the device atomically.
-	// It is idempotent: removing a non-existent key is not an error.
-	DeviceDeleteCustomField(ctx context.Context, uid, key string) error
+	// It is idempotent: removing a non-existent key is not an error. It returns the errors
+	// DeviceSetCustomField does.
+	DeviceDeleteCustomField(ctx context.Context, sc scope.Scope, uid, key string) error
 
 	// DeviceSetOwner ties the device to the member ownerID, or makes it a team device when ownerID
 	// is empty. It returns [ErrNoDocuments] when the scope holds no such device. An owner who is not
@@ -154,18 +169,23 @@ type DeviceStore interface {
 	// transaction.
 	DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error
 
-	DeviceDelete(ctx context.Context, device *models.Device) error
-	// DeviceDeleteMany deletes the devices uids names, with their sessions, and returns the ones it
-	// deleted. A uid that names no device, including one another call deleted first, is left out,
-	// so the result can be shorter than uids, and an empty uids deletes nothing. It returns ctx's
-	// error when ctx ends, and an error wrapping [ErrInternal] for any other database failure.
-	DeviceDeleteMany(ctx context.Context, uids []string) (deleted []DeletedDevice, err error)
+	// DeviceDelete deletes device, with its sessions, from the namespace sc is bounded to. It returns
+	// ErrInvalidScope, deleting nothing, when sc is not bounded or device's TenantID is not sc's
+	// tenant, [ErrNoDocuments] when sc holds no such device, and the store's error otherwise.
+	DeviceDelete(ctx context.Context, sc scope.Scope, device *models.Device) error
+	// DeviceDeleteMany deletes the devices of sc that uids names, with their sessions, and returns the
+	// ones it deleted. A uid that names no device of sc, including one another call deleted first, is
+	// left out, so the result can be shorter than uids, and an empty uids deletes nothing. It returns
+	// ErrInvalidScope for a scope of no known kind, ctx's error when ctx ends, and an error wrapping
+	// [ErrInternal] for any other database failure.
+	DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) (deleted []DeletedDevice, err error)
 
-	// DeviceListExpiredEphemeral lists up to 1000 ephemeral devices the cleanup can remove: those
+	// DeviceListExpiredEphemeral lists up to 1000 ephemeral devices of sc the cleanup can remove: those
 	// that do not read online and whose last tunnel beat and last status change, whichever is later,
 	// are older than their per-device ephemeral timeout (in minutes). A device that is not accepted
 	// is listed only once the server has seen its tunnel close since its last status change. It
-	// returns ctx's error when ctx ends, and an error wrapping [ErrInternal] for any other database
-	// failure.
-	DeviceListExpiredEphemeral(ctx context.Context) (devices []models.Device, err error)
+	// returns ErrInvalidScope for a scope of no known kind, [ErrNoDocuments] for a bounded scope
+	// whose tenant is not a UUID, ctx's error when ctx ends, and an error wrapping [ErrInternal] for
+	// any other database failure.
+	DeviceListExpiredEphemeral(ctx context.Context, sc scope.Scope) (devices []models.Device, err error)
 }
