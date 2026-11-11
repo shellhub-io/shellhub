@@ -20,6 +20,10 @@ func TestMain(m *testing.M) {
 func runSuite(m *testing.M) int {
 	flag.Parse()
 
+	if flag.Lookup("test.list").Value.String() != "" {
+		return m.Run()
+	}
+
 	_ = os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 
 	ctx := context.Background()
@@ -57,12 +61,10 @@ func runSuite(m *testing.M) int {
 		}
 	}()
 
-	if flag.Lookup("test.list").Value.String() == "" {
-		if err := buildImages(ctx); err != nil {
-			log.WithError(err).Error("failed to build the e2e images")
+	if err := buildImages(ctx); err != nil {
+		log.WithError(err).Error("failed to build the e2e images")
 
-			return 1
-		}
+		return 1
 	}
 
 	return m.Run()
