@@ -93,6 +93,30 @@ describe("FirstRunGate", () => {
     expect(screen.queryByText("normal dashboard")).not.toBeInTheDocument();
   });
 
+  it("holds the dashboard back while the namespaces load, rather than flashing it before the trail", async () => {
+    serveDashboard();
+    let releaseNamespaces = () => {};
+    const namespacesHeld = new Promise<void>((resolve) => {
+      releaseNamespaces = resolve;
+    });
+    server.use(
+      http.get("*/api/namespaces", async () => {
+        await namespacesHeld;
+        return jsonWithTotal([
+          mockNamespace({ tenant_id: TENANT, name: "dev" }),
+        ]);
+      }),
+    );
+    renderAt("/dashboard");
+
+    expect(screen.queryByText("normal dashboard")).not.toBeInTheDocument();
+
+    releaseNamespaces();
+    expect(
+      await screen.findByRole("heading", { name: /get your first shell/i }),
+    ).toBeInTheDocument();
+  });
+
   it("shows the normal dashboard of a new namespace with a pending device, so it can be accepted", async () => {
     serveDashboard({ pending: 2 });
     renderAt("/dashboard");
