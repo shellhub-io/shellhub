@@ -11,6 +11,7 @@ import (
 )
 
 func TestDeviceKeyVerificationMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 45)
@@ -44,6 +45,7 @@ func TestDeviceKeyVerificationMigration(t *testing.T) {
 }
 
 func TestDeviceKeyVerificationMigrationWithoutSystemsRow(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	systems := func(t *testing.T, db *bun.DB) []bool {
@@ -56,6 +58,7 @@ func TestDeviceKeyVerificationMigrationWithoutSystemsRow(t *testing.T) {
 	}
 
 	t.Run("an instance in use without a systems row gets one that keeps accepting unsigned agents", func(t *testing.T) {
+		t.Parallel()
 		provider, err := pgprovider.NewProviderAt(ctx, 45)
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = provider.Close(t) })
@@ -76,6 +79,7 @@ func TestDeviceKeyVerificationMigrationWithoutSystemsRow(t *testing.T) {
 	})
 
 	t.Run("an empty database stays without a systems row, so a new instance requires verification", func(t *testing.T) {
+		t.Parallel()
 		provider, err := pgprovider.NewProviderAt(ctx, 45)
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = provider.Close(t) })

@@ -17,7 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSignIn(t *testing.T) {
+func TestSignIn(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProvider(ctx)

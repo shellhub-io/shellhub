@@ -14,6 +14,7 @@ import (
 // value would let one key's rows belong to another. The composite unique is what later pins an
 // owned row to the key's own namespace, so it is asserted here rather than where it is relied on.
 func TestAPIKeySurrogateIDMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 28)

@@ -14,6 +14,7 @@ import (
 // creates that pair after this migration, so the backfill is reachable from here alone, and the
 // constraint it installs is what keeps it unreachable.
 func TestLegacyPermissionMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 35)

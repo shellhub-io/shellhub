@@ -70,7 +70,8 @@ func seedDevice(t *testing.T, ctx context.Context, db *bun.DB, id, tenant, name,
 // starts or ends with a hyphen.  It also asserts that the resulting unique index
 // blocks a subsequent duplicate INSERT (SQLSTATE 23505) and that rolling the
 // migration back and applying it again is idempotent.
-func TestMigration004Dedup(t *testing.T) {
+func TestMigration004Dedup(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 3)
@@ -192,6 +193,7 @@ func TestMigration004Dedup(t *testing.T) {
 // created_at, the one with the lexicographically smallest id wins (keeps its name)
 // and the other is renamed.
 func TestMigration004DedupTieBreak(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 3)
@@ -259,6 +261,7 @@ func nsName(t *testing.T, ctx context.Context, db *bun.DB, id string) string {
 //
 // Expected outcome: transaction rolls back → all three rows keep their original names.
 func TestMigration004AtomicRollback(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 3)

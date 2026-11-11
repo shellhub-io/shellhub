@@ -11,9 +11,11 @@ import (
 )
 
 func TestSystemTelemetryMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	t.Run("an existing row gets an instance ID and telemetry on", func(t *testing.T) {
+		t.Parallel()
 		provider, err := pgprovider.NewProviderAt(ctx, 50)
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = provider.Close(t) })
@@ -39,6 +41,7 @@ func TestSystemTelemetryMigration(t *testing.T) {
 	})
 
 	t.Run("an empty table gets its row", func(t *testing.T) {
+		t.Parallel()
 		provider, err := pgprovider.NewProviderAt(ctx, 50)
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = provider.Close(t) })
@@ -56,6 +59,7 @@ func TestSystemTelemetryMigration(t *testing.T) {
 	})
 
 	t.Run("duplicate rows collapse to the set-up row, and no second row can be added", func(t *testing.T) {
+		t.Parallel()
 		provider, err := pgprovider.NewProviderAt(ctx, 50)
 		require.NoError(t, err)
 		t.Cleanup(func() { _ = provider.Close(t) })

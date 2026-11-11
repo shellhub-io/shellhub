@@ -14,6 +14,7 @@ import (
 // it must not take with it matters as much as what it removes: the person keeps everything, and
 // the bot's session history survives with its attribution dropped rather than the row.
 func TestDropServiceAccountsMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 33)

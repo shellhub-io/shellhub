@@ -193,6 +193,7 @@ func (e *enrollmentE2E) deviceCounts(t *testing.T) models.Namespace {
 // (no provisioning key) — like a 40k field fleet — resolves the legacy manual key, lands pending, is
 // listable via ?status=pending, and is accepted through the canonical status endpoint.
 func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 
 	uid := e.enroll(t, "aa:bb:cc:dd:ee:01", "")
@@ -216,7 +217,8 @@ func TestEnrollmentE2E_LegacyKeyless(t *testing.T) {
 }
 
 // TestEnrollmentE2E_Modes covers the per-key policy outcomes end to end.
-func TestEnrollmentE2E_Modes(t *testing.T) {
+func TestEnrollmentE2E_Modes(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	t.Run("automatic accepts on enrollment", func(t *testing.T) {
@@ -277,7 +279,8 @@ func TestEnrollmentE2E_Modes(t *testing.T) {
 
 // TestEnrollmentE2E_ReregisterAndReaccept covers the re-registration (policy re-runs), reconnect
 // (policy does not re-run), and re-accept (an automated reject is recoverable) semantics.
-func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
+func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	t.Run("re-registration re-runs the policy and consumes another use", func(t *testing.T) {
@@ -329,7 +332,8 @@ func TestEnrollmentE2E_ReregisterAndReaccept(t *testing.T) {
 
 // TestEnrollmentE2E_WebhookDeferCallback covers the async path: the integrator answers "defer", the
 // device lands pending, and the emitted callback URL is redeemed later (no API key) to accept it.
-func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
+func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	var callbackURL string
@@ -371,6 +375,7 @@ func TestEnrollmentE2E_WebhookDeferCallback(t *testing.T) {
 // the same URL is refused even for a decision the device state would otherwise still allow (rejected ->
 // accepted), closing the accept<->reject flip a still-valid token would enable.
 func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	var callbackURL string
@@ -406,7 +411,8 @@ func TestEnrollmentE2E_CallbackSingleUse(t *testing.T) {
 // TestEnrollmentE2E_CallbackHonorsKeyState proves the deferred-callback accept path mirrors the
 // synchronous accept: it spends a use against the key's limit and refuses once the key is no longer
 // valid, so an outstanding token can't bypass the usage cap or accept with a key revoked after mint.
-func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
+func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	enrollDeferred := func(keyByte byte, name, mac string) (string, string) {
@@ -484,7 +490,8 @@ func TestEnrollmentE2E_CallbackHonorsKeyState(t *testing.T) {
 // (integrator deferred) is re-evaluated on the agent's later AuthDevice, throttled by
 // EnrollmentReconcileInterval, and accepted once the integrator recovers — without a callback or a
 // restart.
-func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
+func TestEnrollmentE2E_ReconcilePending(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	base := now
@@ -536,6 +543,7 @@ func TestEnrollmentE2E_ReconcilePending(t *testing.T) {
 // left pending is not accepted on a later phone-home once its key has been revoked, matching the
 // guarantee a fresh enrollment already has.
 func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	base := now
@@ -573,6 +581,7 @@ func TestEnrollmentE2E_ReconcileSkipsInvalidKey(t *testing.T) {
 // reserves a use against the atomic, limit-guarded counter first, so the counter — not the racy pre-
 // check — decides who gets the slot, and it can never land past the limit.
 func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 	e.provisioningKey(t, digest(0x80), "single-use", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) {
 		k.UsageLimit = 1
@@ -628,6 +637,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 // device's public key, exposes it and (for a real key) its fingerprint, and live-joins the decision
 // time (device status_updated_at) distinct from the immutable enrollment time.
 func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 	e.provisioningKey(t, digest(0x70), "man", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
@@ -668,6 +678,7 @@ func TestEnrollmentE2E_HistoryCredential(t *testing.T) {
 // with the same identity keeps one device row but gains a second event, and only the newest event is
 // current (owns the live status/decision) so the older one doesn't borrow it.
 func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 	e.provisioningKey(t, digest(0x80), "man2", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
 
@@ -713,7 +724,8 @@ func TestEnrollmentE2E_HistoryCurrent(t *testing.T) {
 // TestEnrollmentE2E_AcceptSpendsAUse covers the accepts a person makes: a use is spent when the
 // device is admitted, not when it registers, and a key at its limit refuses the accept instead of
 // admitting past the cap.
-func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
+func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	accept := func(uid string) error {
@@ -757,7 +769,8 @@ func TestEnrollmentE2E_AcceptSpendsAUse(t *testing.T) {
 	})
 }
 
-func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) {
+func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:ee:70"
 
@@ -786,7 +799,8 @@ func TestEnrollmentE2E_AutomaticKeyDoesNotMergeAwayAConnectedTwin(t *testing.T) 
 	})
 }
 
-func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) {
+func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	e.provisioningKey(t, digest(0x76), "auto-names", models.ProvisioningKeyModeAutomatic, models.ProvisioningKeyTypeUser, clearSecret)
@@ -827,7 +841,8 @@ func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) {
 	})
 }
 
-func TestEnrollmentE2E_PresentedKeyDecidesAPendingDevice(t *testing.T) {
+func TestEnrollmentE2E_PresentedKeyDecidesAPendingDevice(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 
 	e.provisioningKey(t, digest(0x71), "manual-first", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
@@ -881,6 +896,7 @@ func TestEnrollmentE2E_PresentedKeyDecidesAPendingDevice(t *testing.T) {
 }
 
 func TestEnrollmentE2E_AutomaticKeyMergesOnceTheTwinDisconnects(t *testing.T) {
+	t.Parallel()
 	e := setupEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:ee:71"
 

@@ -24,7 +24,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDeviceKeyVerificationE2E(t *testing.T) {
+func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	ctx := context.Background()
 
@@ -197,6 +198,7 @@ func (e *enrollmentE2E) tenantRegistrations(t *testing.T) []models.ProvisioningK
 }
 
 func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	key := func(t *testing.T) *rsa.PrivateKey {
@@ -210,12 +212,14 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 
 	for _, legacy := range []bool{false, true} {
 		t.Run(fmt.Sprintf("legacy %t", legacy), func(t *testing.T) {
+			t.Parallel()
 			setup := setupEnrollmentE2E
 			if legacy {
 				setup = setupLegacyEnrollmentE2E
 			}
 
 			t.Run("an unsigned unknown device enrolls pending while the namespace does not require verification", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 
 				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, key(t), "bb:00:00:00:00:01", false), "")
@@ -224,6 +228,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 			})
 
 			t.Run("an unsigned unknown device is refused and recorded once while the namespace requires verification, and enrolls once it stops", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 				e.requireVerifiedDeviceKey(t, true)
 				k := key(t)
@@ -269,6 +274,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 			})
 
 			t.Run("a signed agent enrolls while the namespace requires verification, and is never accepted unsigned", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 				e.requireVerifiedDeviceKey(t, true)
 				k := key(t)
@@ -291,6 +297,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 			})
 
 			t.Run("a known device that never verified is refused, and so is its token, once the namespace requires verification", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 				k := key(t)
 
@@ -316,6 +323,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 			})
 
 			t.Run("a device the auth cache holds is refused on its next unsigned request once the namespace requires verification", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 				e.svc = NewService(e.st, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
 				req := e.deviceAuthRequest(t, key(t), "bb:00:00:00:00:06", false)
@@ -332,6 +340,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 			})
 
 			t.Run("a removed device that never verified is refused and recorded once the namespace requires verification", func(t *testing.T) {
+				t.Parallel()
 				e := setup(t)
 				k := key(t)
 
@@ -362,6 +371,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 }
 
 func TestListDevicesByKeyVerification(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	e := setupEnrollmentE2E(t)
 
@@ -407,10 +417,12 @@ func TestListDevicesByKeyVerification(t *testing.T) {
 }
 
 func TestSetupRequiresVerifiedDeviceKeyAsConfigured(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	for _, required := range []bool{true, false} {
 		t.Run(fmt.Sprintf("required %t", required), func(t *testing.T) {
+			t.Parallel()
 			provider, err := pgprovider.NewProvider(ctx)
 			require.NoError(t, err)
 			t.Cleanup(func() { _ = provider.Close(t) })
@@ -438,10 +450,12 @@ func TestSetupRequiresVerifiedDeviceKeyAsConfigured(t *testing.T) {
 }
 
 func TestCreateNamespaceRequiresVerifiedDeviceKeyAsConfigured(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	for _, required := range []bool{true, false} {
 		t.Run(fmt.Sprintf("required %t", required), func(t *testing.T) {
+			t.Parallel()
 			e := setupEnrollmentE2E(t)
 
 			var owner string

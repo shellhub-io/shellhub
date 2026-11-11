@@ -14,6 +14,7 @@ import (
 )
 
 func TestSetupConcurrentCallsCreateOneAdministrator(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProvider(ctx)
@@ -61,6 +62,7 @@ func TestSetupConcurrentCallsCreateOneAdministrator(t *testing.T) {
 }
 
 func TestSetupFailureLeavesNoUser(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	e := setupEnrollmentE2E(t)
 

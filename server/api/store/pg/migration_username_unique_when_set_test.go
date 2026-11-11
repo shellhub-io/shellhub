@@ -13,6 +13,7 @@ import (
 )
 
 func TestUsernameUniqueWhenSetMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 42)
@@ -56,6 +57,7 @@ func TestUsernameUniqueWhenSetMigration(t *testing.T) {
 }
 
 func TestUsernameUniqueWhenSetRollbackWithUsersWithoutUsername(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 42)

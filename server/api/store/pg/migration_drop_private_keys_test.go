@@ -12,6 +12,7 @@ import (
 )
 
 func TestDropPrivateKeysMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	before := 0

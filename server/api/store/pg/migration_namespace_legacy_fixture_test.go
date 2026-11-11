@@ -20,6 +20,7 @@ const (
 )
 
 func TestLegacyNamespaceFixtureMatchesAMigratedNamespace(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, lastMigrationBeforeProvisioningKeys)

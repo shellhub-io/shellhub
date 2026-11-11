@@ -148,6 +148,7 @@ func (e *enrollmentE2E) acceptWhileMergeHeldOpen(t *testing.T, mac, oldUID, merg
 }
 
 func TestDeviceAcceptE2E_ConcurrentAcceptOfTheSameDevice(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:01"
 
@@ -161,6 +162,7 @@ func TestDeviceAcceptE2E_ConcurrentAcceptOfTheSameDevice(t *testing.T) {
 }
 
 func TestDeviceAcceptE2E_ConcurrentAcceptOfAnotherDeviceWithTheSameMACMergesIntoTheWinner(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:02"
 
@@ -179,6 +181,7 @@ func TestDeviceAcceptE2E_ConcurrentAcceptOfAnotherDeviceWithTheSameMACMergesInto
 }
 
 func TestDeviceAcceptE2E_AcceptWhileTheOldDeviceIsRemoved(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:04"
 
@@ -194,6 +197,7 @@ func TestDeviceAcceptE2E_AcceptWhileTheOldDeviceIsRemoved(t *testing.T) {
 }
 
 func TestDeviceAcceptE2E_ManyConcurrentAcceptsOfTheSameDevice(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:03"
 
@@ -234,6 +238,7 @@ func TestDeviceAcceptE2E_ManyConcurrentAcceptsOfTheSameDevice(t *testing.T) {
 }
 
 func TestDeviceAcceptE2E_RefusesToMergeAwayAConnectedDevice(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:05"
 
@@ -251,6 +256,7 @@ func TestDeviceAcceptE2E_RefusesToMergeAwayAConnectedDevice(t *testing.T) {
 }
 
 func TestDeviceAcceptE2E_MergesAwayADisconnectedDevice(t *testing.T) {
+	t.Parallel()
 	e := setupLegacyEnrollmentE2E(t)
 	const mac = "aa:bb:cc:dd:51:06"
 

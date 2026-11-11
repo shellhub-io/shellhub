@@ -12,7 +12,8 @@ import (
 // TestSessionAutovacuumThresholds covers migration 019. The knobs are per-table storage
 // parameters, so the only honest assertion is what pg_class.reloptions holds on a migrated
 // database — reading the migration file back would assert nothing but its own text.
-func TestSessionAutovacuumThresholds(t *testing.T) {
+func TestSessionAutovacuumThresholds(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 18)
