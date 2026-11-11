@@ -179,15 +179,30 @@ describe("AdminUsers", () => {
       ).toBeInTheDocument();
     });
 
-    it("combines a subset with the username search under an and operator", async () => {
+    it("groups the name, username and email search and joins the subset with and", async () => {
       renderPage(["/?subset=admin&search=al"]);
       await waitFor(() =>
         expect(sentFilter()).toEqual([
-          { type: "operator", params: { name: "and" } },
           {
-            type: "property",
-            params: { name: "username", operator: "contains", value: "al" },
+            type: "group",
+            params: [
+              {
+                type: "property",
+                params: { name: "name", operator: "contains", value: "al" },
+              },
+              { type: "operator", params: { name: "or" } },
+              {
+                type: "property",
+                params: { name: "username", operator: "contains", value: "al" },
+              },
+              { type: "operator", params: { name: "or" } },
+              {
+                type: "property",
+                params: { name: "email", operator: "contains", value: "al" },
+              },
+            ],
           },
+          { type: "operator", params: { name: "and" } },
           {
             type: "property",
             params: { name: "admin", operator: "bool", value: true },
@@ -213,14 +228,26 @@ describe("AdminUsers", () => {
       );
     });
 
-    it("narrows the search box to username under a tab", async () => {
-      renderPage(["/?subset=admin"]);
-      expect(
-        await screen.findByRole("searchbox", {
-          name: "Search users by username",
-        }),
-      ).toBeInTheDocument();
-    });
+    it.each([
+      ["admin", "Admins"],
+      ["not_confirmed", "Unconfirmed"],
+      ["awaiting_approval", "Awaiting approval"],
+    ])(
+      "keeps searching name, username and email under the %s tab",
+      async (subset, tab) => {
+        setEdition("enterprise");
+        renderPage([`/?subset=${subset}`]);
+        expect(await screen.findByRole("tab", { name: tab })).toHaveAttribute(
+          "aria-selected",
+          "true",
+        );
+        expect(
+          screen.getByRole("searchbox", {
+            name: "Search users by name, username or email",
+          }),
+        ).toBeInTheDocument();
+      },
+    );
 
     it("switches the subset when a tab is clicked", async () => {
       const user = userEvent.setup();

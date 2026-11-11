@@ -10,7 +10,13 @@ import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
 import { adminQueryDefaults } from "./useAdminRequests";
-import { propertyFilter, toBase64Json } from "@/utils/encoding";
+import {
+  groupFilter,
+  operatorFilter,
+  orJoined,
+  propertyFilter,
+  toBase64Json,
+} from "@/utils/encoding";
 
 /**
  * A subset of the user list the admin can narrow to: accounts waiting for an admin's approval, the
@@ -26,36 +32,28 @@ const SUBSET_FILTERS = {
   not_confirmed: propertyFilter("status", "eq", "not-confirmed"),
 } satisfies Record<Exclude<AdminUserSubset, "">, unknown>;
 
-function usersSearchFields(
-  subset: AdminUserSubset,
-): ("name" | "username" | "email")[] {
-  return subset ? ["username"] : ["name", "username", "email"];
-}
+const USERS_SEARCH_FIELDS = ["name", "username", "email"] as const;
 
 /**
- * The fields a search over this subset matches, as a phrase for the search box ("name, username
- * or email"). Every user is searched by all three; a subset narrows the search to username. The
- * phrase and the filter come from the same list, so they cannot disagree.
+ * The fields a user search matches, as a phrase for the search box. The phrase and the filter come
+ * from the same list, so they cannot disagree.
  */
-export function usersSearchScope(subset: AdminUserSubset): string {
-  const fields = usersSearchFields(subset);
-  return fields.length > 1
-    ? `${fields.slice(0, -1).join(", ")} or ${fields[fields.length - 1]}`
-    : fields[0];
-}
+export const USERS_SEARCH_SCOPE = `${USERS_SEARCH_FIELDS.slice(0, -1).join(", ")} or ${USERS_SEARCH_FIELDS.at(-1)}`;
 
 function buildUsersFilter(
   search: string,
   subset: AdminUserSubset,
 ): string | undefined {
-  const matches = search
-    ? usersSearchFields(subset).map((field) => propertyFilter(field, "contains", search))
-    : [];
-  if (!subset) return matches.length > 0 ? toBase64Json(matches) : undefined;
-  if (matches.length === 0) return toBase64Json([SUBSET_FILTERS[subset]]);
+  if (!search) return subset ? toBase64Json([SUBSET_FILTERS[subset]]) : undefined;
+
+  const matches = USERS_SEARCH_FIELDS.map((field) =>
+    propertyFilter(field, "contains", search),
+  );
+  if (!subset) return toBase64Json(matches);
+
   return toBase64Json([
-    { type: "operator", params: { name: "and" } },
-    ...matches,
+    groupFilter(...orJoined(matches)),
+    operatorFilter("and"),
     SUBSET_FILTERS[subset],
   ]);
 }
