@@ -69,26 +69,16 @@ jobs:
         with:
           node-version: "24.22.1"
 
-      - name: Cache node modules
-        if: steps.changes.outputs.ui == 'true'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ui/node_modules
-          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
-
       - name: Install Node dependencies
         if: steps.changes.outputs.ui == 'true'
         id: install
-        working-directory: ui
-        run: npm install
+        uses: ./.github/actions/ui-deps
 
       - name: Generate OpenAPI client
         if: steps.install.outcome == 'success'
         working-directory: ui
         run: |
-          VERSION=$(sed -n 's/^REDOCLY_VERSION=//p' ../versions.env)
-          [ -n "$VERSION" ] || { echo "could not read REDOCLY_VERSION from versions.env"; exit 1; }
-          npx "@redocly/cli@$VERSION" bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+          npx --no redocly bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
           OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
 
       - name: Unused files, exports and dependencies

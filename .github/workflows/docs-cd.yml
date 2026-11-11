@@ -94,15 +94,8 @@ jobs:
         with:
           node-version: "24.22.1"
 
-      - name: Cache node modules
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ui/node_modules
-          key: ${{ runner.OS }}-ui-${{ hashFiles('ui/package-lock.json') }}
-
       - name: Install Node dependencies
-        working-directory: ui
-        run: npm install
+        uses: ./.github/actions/ui-deps
 
       - name: Astro sync
         working-directory: ui

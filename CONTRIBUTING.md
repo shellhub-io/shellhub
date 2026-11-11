@@ -81,4 +81,6 @@ design-system preset.
 
 Docs bundle their OpenAPI files with the `@redocly/cli` version in
 `ui/apps/docs/package.json`. Updating it can change the generated docs bundles.
-The console SDK bundle uses `REDOCLY_VERSION` from `versions.env`.
+The console SDK bundle uses `REDOCLY_VERSION` from `versions.env`, except in
+the UI and UI E2E workflows, which run the lockfile's `@redocly/cli`. Keep the
+two at the same version.
