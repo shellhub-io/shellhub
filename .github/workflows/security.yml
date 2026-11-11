@@ -156,41 +156,6 @@ jobs:
 
           exit "$failed"
 
-      - name: Upload the govulncheck SARIF report (root)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-root.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: govulncheck-root.sarif
-          category: govulncheck-root
-
-      - name: Upload the govulncheck SARIF report (server)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-server.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: govulncheck-server.sarif
-          category: govulncheck-server
-
-      - name: Upload the govulncheck SARIF report (agent)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-agent.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: govulncheck-agent.sarif
-          category: govulncheck-agent
-
-      - name: Upload the govulncheck SARIF report (openapi)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-openapi.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: govulncheck-openapi.sarif
-          category: govulncheck-openapi
-
-      - name: Upload the govulncheck SARIF report (tests)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('govulncheck-tests.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: govulncheck-tests.sarif
-          category: govulncheck-tests
-
       - name: Set up Docker Buildx
         if: ${{ !cancelled() && steps.scans.outputs.run == 'true' }}
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -276,26 +241,32 @@ jobs:
 
           exit "$failed"
 
-      - name: Upload the Trivy SARIF report (server)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-server.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: trivy-server.sarif
-          category: trivy-server
+      - name: Stamp each govulncheck and Trivy SARIF report with its category
+        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' }}
+        run: |
+          mkdir -p sarif
 
-      - name: Upload the Trivy SARIF report (ui)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-ui.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
-        with:
-          sarif_file: trivy-ui.sarif
-          category: trivy-ui
+          failed=0
+          for report in govulncheck-root govulncheck-server govulncheck-agent govulncheck-openapi \
+              govulncheck-tests trivy-server trivy-ui trivy-agent; do
+              [ -f "$report.sarif" ] || continue
+              if ! jq --arg id "$report/" '
+                if (.runs | length) != 1 then error("expected one run, found \(.runs | length)") else . end
+                | .runs[0].automationDetails = {id: $id}
+              ' "$report.sarif" >"sarif/$report.sarif"; then
+                  rm -f "sarif/$report.sarif"
+                  echo "::error title=SARIF ($report)::the report could not be stamped with its category"
+                  failed=1
+              fi
+          done
 
-      - name: Upload the Trivy SARIF report (agent)
-        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('trivy-agent.sarif') != '' }}
+          exit "$failed"
+
+      - name: Upload the govulncheck and Trivy SARIF reports
+        if: ${{ !cancelled() && env.UPLOAD_SARIF == 'true' && hashFiles('sarif/*.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
         with:
-          sarif_file: trivy-agent.sarif
-          category: trivy-agent
+          sarif_file: sarif
 
       - name: Save the Go caches
         if: ${{ !cancelled() && steps.scans.outputs.run == 'true' }}
