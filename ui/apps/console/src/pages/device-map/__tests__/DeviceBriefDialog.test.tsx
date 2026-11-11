@@ -7,6 +7,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockDevice, mockNamespace } from "@/tests/factories";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { useTerminalStore } from "@/stores/terminalStore";
 import TerminalManager from "@/components/terminal/TerminalManager";
 import DeviceBriefDialog from "../DeviceBriefDialog";
@@ -29,6 +30,8 @@ beforeEach(() => {
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(mockNamespace({ name: "dev" })),
     ),
+    http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
+    ...connectDialogHandlers,
   );
 });
 
@@ -56,10 +59,6 @@ describe("DeviceBriefDialog", () => {
   });
 
   it("closes and opens the connect dialog", async () => {
-    server.use(
-      http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
-      http.get("*/api/ssh-identities", () => HttpResponse.json([])),
-    );
     const user = userEvent.setup();
     const onClose = renderDialog(mockDevice({ uid: "abc", name: "zurich-1" }));
 

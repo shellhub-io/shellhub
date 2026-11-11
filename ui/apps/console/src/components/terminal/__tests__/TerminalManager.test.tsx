@@ -7,6 +7,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { mockNamespace } from "@/tests/factories";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useWorkspaceTabsStore } from "@/stores/workspaceTabsStore";
 import TerminalManager from "../TerminalManager";
@@ -15,10 +16,7 @@ function renderManager(queryClient = createTestQueryClient()) {
   return render(
     <>
       <Routes>
-        <Route
-          path="/devices"
-          element={<Link to="/sessions">Sessions</Link>}
-        />
+        <Route path="/devices" element={<Link to="/sessions">Sessions</Link>} />
         <Route path="/sessions" element={<h1>Sessions page</h1>} />
         <Route path="/dashboard" element={<h1>Dashboard page</h1>} />
         <Route path="*" element={null} />
@@ -51,7 +49,11 @@ beforeEach(() => {
     http.get("*/api/auth/token/:tenant", () =>
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
-    http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+    http.post(
+      "*/ws/ssh/session",
+      () => new HttpResponse(null, { status: 500 }),
+    ),
+    ...connectDialogHandlers,
   );
 });
 

@@ -7,6 +7,7 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import {
   mockLegacyNamespace,
+  mockNamespace,
   mockProvisioningKey,
   mockProvisioningKeyEvent,
 } from "@/tests/factories";
@@ -14,6 +15,7 @@ import { seedAuthStore } from "@/tests/seedAuthStore";
 import { fullText } from "@/tests/fullText";
 import ProvisioningKeyHistoryPage from "../ProvisioningKeyHistoryPage";
 
+const TENANT = "tenant-1";
 let reveals = 0;
 
 function renderPage(
@@ -49,8 +51,11 @@ function renderPage(
 
 beforeEach(() => {
   reveals = 0;
-  seedAuthStore();
+  seedAuthStore({ tenant: TENANT });
   server.use(
+    http.get(`*/api/namespaces/${TENANT}`, () =>
+      HttpResponse.json(mockNamespace({ tenant_id: TENANT })),
+    ),
     http.get("*/api/namespaces/provisioning-key/:id/history", () =>
       jsonWithTotal([
         mockProvisioningKeyEvent({
@@ -183,8 +188,8 @@ describe("Provisioning key page", () => {
 
   it("is the pending queue of a legacy namespace, with nothing to edit or disable", async () => {
     server.use(
-      http.get("*/api/namespaces/:tenant", () =>
-        HttpResponse.json(mockLegacyNamespace()),
+      http.get(`*/api/namespaces/${TENANT}`, () =>
+        HttpResponse.json(mockLegacyNamespace({ tenant_id: TENANT })),
       ),
     );
     renderPage(

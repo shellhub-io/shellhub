@@ -17,6 +17,26 @@ process.env.TZ = "UTC";
 
 vi.mock("@/env");
 vi.mock("@/hooks/useFocusTrap");
+vi.mock("@xterm/xterm", () => ({ Terminal: buildXtermFake() }));
+vi.mock("@xterm/addon-fit", () => ({ FitAddon: buildXtermFake() }));
+vi.mock("@xterm/addon-web-links", () => ({ WebLinksAddon: buildXtermFake() }));
+vi.mock("@xterm/addon-webgl", () => ({ WebglAddon: buildXtermFake() }));
+
+function buildXtermFake() {
+  return class {
+    cols = 80;
+    rows = 24;
+    options = {};
+    constructor() {
+      return new Proxy(this, {
+        get: (target, key) =>
+          key in target
+            ? target[key as keyof typeof target]
+            : () => ({ dispose: () => {} }),
+      });
+    }
+  };
+}
 
 HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
   this.setAttribute("open", "");

@@ -10,6 +10,7 @@ import {
   mockContainer as mockContainerFactory,
   mockNamespace,
 } from "@/tests/factories";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -254,7 +255,7 @@ describe("ContainerDetails", () => {
   it("opens the connect dialog when the link asks to connect", async () => {
     server.use(
       http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
-      http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+      ...connectDialogHandlers,
     );
     setContainer();
 

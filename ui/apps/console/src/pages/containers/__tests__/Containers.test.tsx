@@ -6,6 +6,7 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockContainer, mockNamespace } from "@/tests/factories";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { decodeB64url } from "@/tests/decodeB64url";
 import TerminalManager from "@/components/terminal/TerminalManager";
@@ -142,7 +143,7 @@ describe("Containers list", () => {
     const user = userEvent.setup();
     server.use(
       http.get("*/api/namespaces", () => jsonWithTotal([mockNamespace()])),
-      http.get("*/api/ssh-identities", () => HttpResponse.json([])),
+      ...connectDialogHandlers,
     );
     setContainers([mockContainer({ name: "web-1", online: true })], 1);
     render(
@@ -225,11 +226,18 @@ describe("Containers — search and tag filter", () => {
 
     await waitFor(() => expect(lastContainersUrl).not.toBeNull());
     expect(sentFilter()).toEqual([
-      { type: "property", params: { name: "name", operator: "contains", value: "web" } },
+      {
+        type: "property",
+        params: { name: "name", operator: "contains", value: "web" },
+      },
       { type: "operator", params: { name: "and" } },
       {
         type: "property",
-        params: { name: "tags.name", operator: "contains", value: ["prod", "eu"] },
+        params: {
+          name: "tags.name",
+          operator: "contains",
+          value: ["prod", "eu"],
+        },
       },
     ]);
   });

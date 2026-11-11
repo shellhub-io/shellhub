@@ -4,6 +4,7 @@ import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockDevice, mockLegacyNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
@@ -507,6 +508,7 @@ describe("SecureVault", () => {
         http.get("*/api/devices/:uid", () =>
           HttpResponse.json(mockDevice({ uid: "dev-1", name: "my-device" })),
         ),
+        ...connectDialogHandlers,
       );
     });
 
