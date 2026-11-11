@@ -1,0 +1,30 @@
+name: UI setup
+description: >-
+  Set up Node.js and install the node_modules of the UI workspace through ui-deps, then, with
+  generate-client set, bundle the OpenAPI spec and generate the console's API client into
+  ui/apps/console/src/client. The repository must already be checked out at the workspace root.
+
+inputs:
+  generate-client:
+    description: true to generate the console's OpenAPI client after the install.
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "24.22.1"
+
+    - name: Install Node dependencies
+      uses: ./.github/actions/ui-deps
+
+    - name: Generate OpenAPI client
+      if: inputs.generate-client == 'true'
+      shell: bash
+      working-directory: ui
+      run: |
+        npx --no redocly bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
+        OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
