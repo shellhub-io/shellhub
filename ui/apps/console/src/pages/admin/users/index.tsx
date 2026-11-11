@@ -12,7 +12,7 @@ import SegmentedTabs, { type SegmentedTab } from "@/components/common/SegmentedT
 import { isEnterprise } from "@/env";
 import {
   adminUsersQueryOptions,
-  usersSearchScope,
+  USERS_SEARCH_SCOPE,
   type AdminUserSubset,
 } from "@/hooks/useAdminUsers";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
@@ -103,7 +103,6 @@ export default function AdminUsers() {
   } = useLoginAsUser();
 
   const subset = visibleSubset(params.subset);
-  const searchScope = usersSearchScope(subset);
 
   const columns: Column<UserAdminResponse>[] = [
     {
@@ -246,8 +245,8 @@ export default function AdminUsers() {
         <SearchField
           value={params.search}
           onChange={setSearch}
-          placeholder={`Search by ${searchScope}...`}
-          aria-label={`Search users by ${searchScope}`}
+          placeholder={`Search by ${USERS_SEARCH_SCOPE}...`}
+          aria-label={`Search users by ${USERS_SEARCH_SCOPE}`}
         />
       </div>
 
