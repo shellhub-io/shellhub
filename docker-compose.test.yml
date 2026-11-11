@@ -15,7 +15,8 @@ services:
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
+      start_period: 30s
+      start_interval: 1s
       retries: 20
     ports: []
     environment:
@@ -32,7 +33,8 @@ services:
     restart: on-failure:3
     healthcheck:
       interval: 5s
-      start_period: 10s
+      start_period: 30s
+      start_interval: 1s
       retries: 20
   relay:
     image: ${DOCKERHUB_MIRROR:-}alpine/socat:1.8.0.3
