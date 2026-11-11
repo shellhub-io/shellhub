@@ -20,7 +20,7 @@ import {
   updateDeviceStatus,
 } from "@/client";
 import { buildRequestContext } from "./api";
-import { isCommunity, isEnterprise } from "./env";
+import { instanceWide, isCommunity, isEnterprise } from "./env";
 import {
   chooseRadio,
   createTeam,
@@ -523,7 +523,7 @@ test.describe("Re-authentication", () => {
     expect(await readDeviceSessions(team, device.uid)).toEqual([]);
   });
 
-  test.describe("with SAML", () => {
+  test.describe("with SAML", instanceWide, () => {
     test.skip(!isEnterprise, samlReason);
     test.beforeEach(() => enableSaml());
     test.afterEach(disableSaml);

@@ -5,7 +5,7 @@ import {
   getUserInfo,
 } from "@/client";
 import { buildRequestContext, expectLoginStatus, loginAs } from "./api";
-import { isEnterprise, isEnterpriseOrCloud } from "./env";
+import { instanceWide, isEnterprise, isEnterpriseOrCloud } from "./env";
 import { createTeam, required, signInAndOpen } from "./helpers";
 import { disableSaml, enableSaml } from "./saml";
 import { password } from "./seed";
@@ -52,7 +52,7 @@ test("an admin signs in as another user in a new tab", async ({
   expect(data.user).toBe(target.owner.username);
 });
 
-test.describe("local authentication", () => {
+test.describe("local authentication", instanceWide, () => {
   test.skip(
     !isEnterprise,
     "local authentication turns off only while SAML is on, which the specs set up only on enterprise",

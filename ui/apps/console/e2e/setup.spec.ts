@@ -1,7 +1,7 @@
 import { type Page, test as base, expect } from "@playwright/test";
 import { setup } from "@/client";
 import { buildRequestContext, loginAs } from "./api";
-import { isCloud, requireEnv } from "./env";
+import { instanceWide, isCloud, requireEnv } from "./env";
 import { buildUserIdentity, closeSetup, password, reopenSetup } from "./seed";
 
 const baseOrigin = new URL(requireEnv("E2E_BASE_URL")).origin;
@@ -33,7 +33,7 @@ async function fillSetupForm(page: Page, prefix: string) {
   return user;
 }
 
-test.describe("setting up a fresh instance", () => {
+test.describe("setting up a fresh instance", instanceWide, () => {
   test.skip(isCloud, "the cloud has no instance setup");
 
   test("the new administrator is signed in on the first run", async ({

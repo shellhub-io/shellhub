@@ -24,3 +24,5 @@ export const isCommunity = edition === "community";
 export const isEnterprise = edition === "enterprise";
 export const isCloud = edition === "cloud";
 export const isEnterpriseOrCloud = edition !== "community";
+
+export const instanceWide = { tag: "@instance-wide" };
