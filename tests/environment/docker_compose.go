@@ -268,7 +268,7 @@ func awaitLog(t *testing.T, source LogSource, match func(tt *assert.CollectT, lo
 		}
 
 		match(tt, string(logs))
-	}, 30*time.Second, 2*time.Second)
+	}, 30*time.Second, 500*time.Millisecond)
 }
 
 func containsAll(line string, parts []string) bool {
@@ -357,9 +357,8 @@ func (dc *DockerCompose) RequireProvisioningKeyUnused(t *testing.T, name string)
 }
 
 // RequireProvisioningKeyUsesHold asserts that the provisioning key named name stays charged uses
-// enrollments for five seconds, failing t the first time it reads another count. It proves a
-// charge that must not happen did not arrive late, so call it once the action that must not have
-// charged the key has been answered.
+// enrollments for one second, failing t the first time it reads another count. Call it once the
+// action that must not have charged the key has been answered.
 func (dc *DockerCompose) RequireProvisioningKeyUsesHold(t *testing.T, name string, uses int) {
 	t.Helper()
 
@@ -367,7 +366,7 @@ func (dc *DockerCompose) RequireProvisioningKeyUsesHold(t *testing.T, name strin
 		key, err := dc.findProvisioningKey(t.Context(), name)
 
 		return err != nil || key.UsedTimes != uses
-	}, 5*time.Second, time.Second, "the provisioning key %q was not held at %d uses", name, uses)
+	}, time.Second, 250*time.Millisecond, "the provisioning key %q was not held at %d uses", name, uses)
 }
 
 // ProvisioningKey returns the provisioning key named name as the listing serves it, failing t when

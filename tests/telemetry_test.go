@@ -24,11 +24,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
-const (
-	telemetryHeartbeatCron = "30 5 * * *"
-
-	telemetryFlushWindow = 10 * time.Second
-)
+const telemetryHeartbeatCron = "30 5 * * *"
 
 type telemetryEvent = telemetry.Preview
 
@@ -72,7 +68,7 @@ func TestTelemetry(t *testing.T) {
 
 		compose.RunCron(t, telemetryHeartbeatCron)
 
-		collector.requireSilence(t)
+		collector.requireSilence(t, compose)
 	})
 }
 
@@ -124,12 +120,25 @@ func TestEnterpriseTelemetry(t *testing.T) {
 		assert.False(t, readTelemetryStatus(t, compose).Enabled)
 
 		sent := len(collector.requireEvents(t))
+		usersWhileOff, ok := readTelemetryStatus(t, compose).Preview[0].Properties["users"].(float64)
+		require.True(t, ok, "the heartbeat preview carries no user count")
 
-		compose.ExpireCacheEntryIn(t, "telemetry:heartbeat:"+time.Now().UTC().Format(time.DateOnly), 0) //nolint:forbidigo // the server dates its claim by the wall clock it shares with this host
-		compose.RunCron(t, telemetryHeartbeatCron)
+		runHeartbeatToday(t, compose)
+		compose.AwaitCronIdle(t)
 
-		time.Sleep(telemetryFlushWindow)
-		assert.Len(t, collector.requireEvents(t), sent, "the instance sent telemetry after it was turned off")
+		compose.NewUser(t, "telemetry-canary", "telemetry-canary@ossystems.com.br", ShellHubPassword)
+
+		resp, err = compose.R(t.Context()).SetBody(map[string]bool{"enabled": true}).Put("/admin/api/telemetry")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+
+		runHeartbeatToday(t, compose)
+
+		collector.awaitEvent(t, "instance heartbeat", func(event telemetryEvent) bool {
+			return event.Properties["users"] == usersWhileOff+1
+		})
+
+		assert.Len(t, collector.requireEvents(t), sent+1, "the instance sent telemetry after it was turned off")
 	})
 }
 
@@ -265,11 +274,27 @@ func (c *telemetryCollector) awaitEvent(t *testing.T, name string, match func(te
 	return found
 }
 
-func (c *telemetryCollector) requireSilence(t *testing.T) {
+func runHeartbeatToday(t *testing.T, compose *environment.DockerCompose) {
 	t.Helper()
 
-	time.Sleep(telemetryFlushWindow)
-	require.Empty(t, c.requireEvents(t), "the instance sent telemetry with SHELLHUB_TELEMETRY=false")
+	claim := "telemetry:heartbeat:" + time.Now().UTC().Format(time.DateOnly) //nolint:forbidigo // the server dates its claim by the wall clock it shares with this host
+	if compose.HoldsCacheEntry(t, claim) {
+		compose.ExpireCacheEntryIn(t, claim, 0)
+	}
+
+	compose.RunCron(t, telemetryHeartbeatCron)
+}
+
+func (c *telemetryCollector) requireSilence(t *testing.T, compose *environment.DockerCompose) {
+	t.Helper()
+
+	compose.AwaitCronIdle(t)
+
+	require.Never(t, func() bool {
+		events, err := c.events(t.Context())
+
+		return err != nil || len(events) > 0
+	}, telemetry.FlushInterval+time.Second, 500*time.Millisecond, "the instance sent telemetry with SHELLHUB_TELEMETRY=false")
 }
 
 // TestEnterpriseTelemetryDisabledByEnvironment checks that SHELLHUB_TELEMETRY=false locks the admin
@@ -290,7 +315,7 @@ func TestEnterpriseTelemetryDisabledByEnvironment(t *testing.T) {
 
 	compose.RunCron(t, telemetryHeartbeatCron)
 
-	collector.requireSilence(t)
+	collector.requireSilence(t, compose)
 }
 
 // TestCloudTelemetry checks that cloud adds a namespace heartbeat per namespace, grouped by the
