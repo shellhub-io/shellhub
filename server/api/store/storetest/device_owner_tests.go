@@ -100,7 +100,7 @@ func (s *Suite) TestDeviceUpdateDoesNotClobberOwner(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, st.DeviceSetOwner(ctx, sc, string(uid), memberID))
-	require.NoError(t, st.DeviceUpdate(ctx, stale))
+	require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(stale.TenantID), stale))
 
 	device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 	require.NoError(t, err)
@@ -253,7 +253,7 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 			device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 			require.NoError(t, err)
 			device.KeyVerifiedAt = &verifiedAt
-			require.NoError(t, st.DeviceUpdate(ctx, device))
+			require.NoError(t, st.DeviceUpdate(ctx, scope.MustBounded(device.TenantID), device))
 		}
 
 		_, err := st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{KeepDevices: []string{string(kept)}})
@@ -378,7 +378,7 @@ func (s *Suite) TestDeviceUpdateUnlessRemoved(t *testing.T) {
 		require.NoError(t, err)
 
 		device.RemoteAddr = "10.0.0.9"
-		require.NoError(t, st.DeviceUpdateUnlessRemoved(ctx, device))
+		require.NoError(t, st.DeviceUpdateUnlessRemoved(ctx, scope.MustBounded(device.TenantID), device))
 
 		device, err = st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
@@ -398,7 +398,7 @@ func (s *Suite) TestDeviceUpdateUnlessRemoved(t *testing.T) {
 		_, err = st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{KeepMembership: true})
 		require.NoError(t, err)
 
-		require.ErrorIs(t, st.DeviceUpdateUnlessRemoved(ctx, stale), store.ErrNoDocuments)
+		require.ErrorIs(t, st.DeviceUpdateUnlessRemoved(ctx, scope.MustBounded(stale.TenantID), stale), store.ErrNoDocuments)
 
 		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
@@ -423,7 +423,7 @@ func (s *Suite) TestDeviceAssertNotRemoved(t *testing.T) {
 
 		stored := device.RemoteAddr
 		device.RemoteAddr = "10.0.0.9"
-		require.NoError(t, st.DeviceAssertNotRemoved(ctx, device))
+		require.NoError(t, st.DeviceAssertNotRemoved(ctx, scope.MustBounded(device.TenantID), device))
 
 		device, err = st.DeviceResolve(ctx, scope.MustBounded(tenantID), store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
@@ -444,7 +444,7 @@ func (s *Suite) TestDeviceAssertNotRemoved(t *testing.T) {
 		_, err = st.NamespaceDepartMember(ctx, sc, memberID, store.MemberDeparture{KeepMembership: true})
 		require.NoError(t, err)
 
-		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, stale), store.ErrNoDocuments)
+		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, scope.MustBounded(stale.TenantID), stale), store.ErrNoDocuments)
 
 		device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
 		require.NoError(t, err)
@@ -461,6 +461,6 @@ func (s *Suite) TestDeviceAssertNotRemoved(t *testing.T) {
 		require.NoError(t, err)
 
 		device.TenantID = s.CreateNamespace(t)
-		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, device), store.ErrNoDocuments)
+		require.ErrorIs(t, st.DeviceAssertNotRemoved(ctx, scope.MustBounded(device.TenantID), device), store.ErrNoDocuments)
 	})
 }

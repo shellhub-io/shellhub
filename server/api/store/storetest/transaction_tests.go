@@ -37,7 +37,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 				LastSeen:  s.Clock().Now(),
 			}
 
-			_, err := st.DeviceCreate(txCtx, device)
+			_, err := st.DeviceCreate(txCtx, scope.MustBounded(device.TenantID), device)
 			if err != nil {
 				return err
 			}
@@ -70,7 +70,7 @@ func (s *Suite) TestWithTransaction(t *testing.T) {
 				LastSeen:  s.Clock().Now(),
 			}
 
-			_, err := st.DeviceCreate(txCtx, device)
+			_, err := st.DeviceCreate(txCtx, scope.MustBounded(device.TenantID), device)
 
 			return err
 		})

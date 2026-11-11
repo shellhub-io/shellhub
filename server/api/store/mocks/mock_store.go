@@ -1186,16 +1186,16 @@ func (_c *MockStore_CountRegisteredDevices_Call) RunAndReturn(run func(ctx conte
 }
 
 // DeviceAssertNotRemoved provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceAssertNotRemoved(ctx context.Context, device *models.Device) error {
-	ret := _mock.Called(ctx, device)
+func (_mock *MockStore) DeviceAssertNotRemoved(ctx context.Context, sc scope.Scope, device *models.Device) error {
+	ret := _mock.Called(ctx, sc, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceAssertNotRemoved")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
-		r0 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) error); ok {
+		r0 = returnFunc(ctx, sc, device)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1209,24 +1209,30 @@ type MockStore_DeviceAssertNotRemoved_Call struct {
 
 // DeviceAssertNotRemoved is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - device *models.Device
-func (_e *MockStore_Expecter) DeviceAssertNotRemoved(ctx any, device any) *MockStore_DeviceAssertNotRemoved_Call {
-	return &MockStore_DeviceAssertNotRemoved_Call{Call: _e.mock.On("DeviceAssertNotRemoved", ctx, device)}
+func (_e *MockStore_Expecter) DeviceAssertNotRemoved(ctx any, sc any, device any) *MockStore_DeviceAssertNotRemoved_Call {
+	return &MockStore_DeviceAssertNotRemoved_Call{Call: _e.mock.On("DeviceAssertNotRemoved", ctx, sc, device)}
 }
 
-func (_c *MockStore_DeviceAssertNotRemoved_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceAssertNotRemoved_Call {
+func (_c *MockStore_DeviceAssertNotRemoved_Call) Run(run func(ctx context.Context, sc scope.Scope, device *models.Device)) *MockStore_DeviceAssertNotRemoved_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.Device
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.Device)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *models.Device
+		if args[2] != nil {
+			arg2 = args[2].(*models.Device)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1237,7 +1243,7 @@ func (_c *MockStore_DeviceAssertNotRemoved_Call) Return(err error) *MockStore_De
 	return _c
 }
 
-func (_c *MockStore_DeviceAssertNotRemoved_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceAssertNotRemoved_Call {
+func (_c *MockStore_DeviceAssertNotRemoved_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device *models.Device) error) *MockStore_DeviceAssertNotRemoved_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1338,8 +1344,8 @@ func (_c *MockStore_DeviceConflicts_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // DeviceCreate provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceCreate(ctx context.Context, device *models.Device) (string, error) {
-	ret := _mock.Called(ctx, device)
+func (_mock *MockStore) DeviceCreate(ctx context.Context, sc scope.Scope, device *models.Device) (string, error) {
+	ret := _mock.Called(ctx, sc, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceCreate")
@@ -1347,16 +1353,16 @@ func (_mock *MockStore) DeviceCreate(ctx context.Context, device *models.Device)
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) (string, error)); ok {
-		return returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) (string, error)); ok {
+		return returnFunc(ctx, sc, device)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) string); ok {
-		r0 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) string); ok {
+		r0 = returnFunc(ctx, sc, device)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.Device) error); ok {
-		r1 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, *models.Device) error); ok {
+		r1 = returnFunc(ctx, sc, device)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1370,24 +1376,30 @@ type MockStore_DeviceCreate_Call struct {
 
 // DeviceCreate is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - device *models.Device
-func (_e *MockStore_Expecter) DeviceCreate(ctx any, device any) *MockStore_DeviceCreate_Call {
-	return &MockStore_DeviceCreate_Call{Call: _e.mock.On("DeviceCreate", ctx, device)}
+func (_e *MockStore_Expecter) DeviceCreate(ctx any, sc any, device any) *MockStore_DeviceCreate_Call {
+	return &MockStore_DeviceCreate_Call{Call: _e.mock.On("DeviceCreate", ctx, sc, device)}
 }
 
-func (_c *MockStore_DeviceCreate_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceCreate_Call {
+func (_c *MockStore_DeviceCreate_Call) Run(run func(ctx context.Context, sc scope.Scope, device *models.Device)) *MockStore_DeviceCreate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.Device
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.Device)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *models.Device
+		if args[2] != nil {
+			arg2 = args[2].(*models.Device)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1398,22 +1410,22 @@ func (_c *MockStore_DeviceCreate_Call) Return(insertedUID string, err error) *Mo
 	return _c
 }
 
-func (_c *MockStore_DeviceCreate_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) (string, error)) *MockStore_DeviceCreate_Call {
+func (_c *MockStore_DeviceCreate_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device *models.Device) (string, error)) *MockStore_DeviceCreate_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceDelete provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceDelete(ctx context.Context, device *models.Device) error {
-	ret := _mock.Called(ctx, device)
+func (_mock *MockStore) DeviceDelete(ctx context.Context, sc scope.Scope, device *models.Device) error {
+	ret := _mock.Called(ctx, sc, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceDelete")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
-		r0 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) error); ok {
+		r0 = returnFunc(ctx, sc, device)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1427,24 +1439,30 @@ type MockStore_DeviceDelete_Call struct {
 
 // DeviceDelete is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - device *models.Device
-func (_e *MockStore_Expecter) DeviceDelete(ctx any, device any) *MockStore_DeviceDelete_Call {
-	return &MockStore_DeviceDelete_Call{Call: _e.mock.On("DeviceDelete", ctx, device)}
+func (_e *MockStore_Expecter) DeviceDelete(ctx any, sc any, device any) *MockStore_DeviceDelete_Call {
+	return &MockStore_DeviceDelete_Call{Call: _e.mock.On("DeviceDelete", ctx, sc, device)}
 }
 
-func (_c *MockStore_DeviceDelete_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceDelete_Call {
+func (_c *MockStore_DeviceDelete_Call) Run(run func(ctx context.Context, sc scope.Scope, device *models.Device)) *MockStore_DeviceDelete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.Device
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.Device)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *models.Device
+		if args[2] != nil {
+			arg2 = args[2].(*models.Device)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1455,22 +1473,22 @@ func (_c *MockStore_DeviceDelete_Call) Return(err error) *MockStore_DeviceDelete
 	return _c
 }
 
-func (_c *MockStore_DeviceDelete_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceDelete_Call {
+func (_c *MockStore_DeviceDelete_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device *models.Device) error) *MockStore_DeviceDelete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceDeleteCustomField provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceDeleteCustomField(ctx context.Context, uid string, key string) error {
-	ret := _mock.Called(ctx, uid, key)
+func (_mock *MockStore) DeviceDeleteCustomField(ctx context.Context, sc scope.Scope, uid string, key string) error {
+	ret := _mock.Called(ctx, sc, uid, key)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceDeleteCustomField")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, uid, key)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, string) error); ok {
+		r0 = returnFunc(ctx, sc, uid, key)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1484,30 +1502,36 @@ type MockStore_DeviceDeleteCustomField_Call struct {
 
 // DeviceDeleteCustomField is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid string
 //   - key string
-func (_e *MockStore_Expecter) DeviceDeleteCustomField(ctx any, uid any, key any) *MockStore_DeviceDeleteCustomField_Call {
-	return &MockStore_DeviceDeleteCustomField_Call{Call: _e.mock.On("DeviceDeleteCustomField", ctx, uid, key)}
+func (_e *MockStore_Expecter) DeviceDeleteCustomField(ctx any, sc any, uid any, key any) *MockStore_DeviceDeleteCustomField_Call {
+	return &MockStore_DeviceDeleteCustomField_Call{Call: _e.mock.On("DeviceDeleteCustomField", ctx, sc, uid, key)}
 }
 
-func (_c *MockStore_DeviceDeleteCustomField_Call) Run(run func(ctx context.Context, uid string, key string)) *MockStore_DeviceDeleteCustomField_Call {
+func (_c *MockStore_DeviceDeleteCustomField_Call) Run(run func(ctx context.Context, sc scope.Scope, uid string, key string)) *MockStore_DeviceDeleteCustomField_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 string
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -1518,14 +1542,14 @@ func (_c *MockStore_DeviceDeleteCustomField_Call) Return(err error) *MockStore_D
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteCustomField_Call) RunAndReturn(run func(ctx context.Context, uid string, key string) error) *MockStore_DeviceDeleteCustomField_Call {
+func (_c *MockStore_DeviceDeleteCustomField_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid string, key string) error) *MockStore_DeviceDeleteCustomField_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceDeleteMany provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, uids []string) ([]store.DeletedDevice, error) {
-	ret := _mock.Called(ctx, uids)
+func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+	ret := _mock.Called(ctx, sc, uids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceDeleteMany")
@@ -1533,18 +1557,18 @@ func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, uids []string) ([]
 
 	var r0 []store.DeletedDevice
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) ([]store.DeletedDevice, error)); ok {
-		return returnFunc(ctx, uids)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) ([]store.DeletedDevice, error)); ok {
+		return returnFunc(ctx, sc, uids)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []string) []store.DeletedDevice); ok {
-		r0 = returnFunc(ctx, uids)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) []store.DeletedDevice); ok {
+		r0 = returnFunc(ctx, sc, uids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]store.DeletedDevice)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = returnFunc(ctx, uids)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, []string) error); ok {
+		r1 = returnFunc(ctx, sc, uids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1558,24 +1582,30 @@ type MockStore_DeviceDeleteMany_Call struct {
 
 // DeviceDeleteMany is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uids []string
-func (_e *MockStore_Expecter) DeviceDeleteMany(ctx any, uids any) *MockStore_DeviceDeleteMany_Call {
-	return &MockStore_DeviceDeleteMany_Call{Call: _e.mock.On("DeviceDeleteMany", ctx, uids)}
+func (_e *MockStore_Expecter) DeviceDeleteMany(ctx any, sc any, uids any) *MockStore_DeviceDeleteMany_Call {
+	return &MockStore_DeviceDeleteMany_Call{Call: _e.mock.On("DeviceDeleteMany", ctx, sc, uids)}
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) Run(run func(ctx context.Context, uids []string)) *MockStore_DeviceDeleteMany_Call {
+func (_c *MockStore_DeviceDeleteMany_Call) Run(run func(ctx context.Context, sc scope.Scope, uids []string)) *MockStore_DeviceDeleteMany_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].([]string)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 []string
+		if args[2] != nil {
+			arg2 = args[2].([]string)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1586,14 +1616,14 @@ func (_c *MockStore_DeviceDeleteMany_Call) Return(deleted []store.DeletedDevice,
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, uids []string) ([]store.DeletedDevice, error)) *MockStore_DeviceDeleteMany_Call {
+func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error)) *MockStore_DeviceDeleteMany_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceHeartbeat provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, beats []store.DeviceBeat, skipWithin time.Duration) ([]string, error) {
-	ret := _mock.Called(ctx, beats, skipWithin)
+func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, sc scope.Scope, beats []store.DeviceBeat, skipWithin time.Duration) ([]string, error) {
+	ret := _mock.Called(ctx, sc, beats, skipWithin)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceHeartbeat")
@@ -1601,18 +1631,18 @@ func (_mock *MockStore) DeviceHeartbeat(ctx context.Context, beats []store.Devic
 
 	var r0 []string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []store.DeviceBeat, time.Duration) ([]string, error)); ok {
-		return returnFunc(ctx, beats, skipWithin)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []store.DeviceBeat, time.Duration) ([]string, error)); ok {
+		return returnFunc(ctx, sc, beats, skipWithin)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []store.DeviceBeat, time.Duration) []string); ok {
-		r0 = returnFunc(ctx, beats, skipWithin)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []store.DeviceBeat, time.Duration) []string); ok {
+		r0 = returnFunc(ctx, sc, beats, skipWithin)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, []store.DeviceBeat, time.Duration) error); ok {
-		r1 = returnFunc(ctx, beats, skipWithin)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, []store.DeviceBeat, time.Duration) error); ok {
+		r1 = returnFunc(ctx, sc, beats, skipWithin)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1626,30 +1656,36 @@ type MockStore_DeviceHeartbeat_Call struct {
 
 // DeviceHeartbeat is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - beats []store.DeviceBeat
 //   - skipWithin time.Duration
-func (_e *MockStore_Expecter) DeviceHeartbeat(ctx any, beats any, skipWithin any) *MockStore_DeviceHeartbeat_Call {
-	return &MockStore_DeviceHeartbeat_Call{Call: _e.mock.On("DeviceHeartbeat", ctx, beats, skipWithin)}
+func (_e *MockStore_Expecter) DeviceHeartbeat(ctx any, sc any, beats any, skipWithin any) *MockStore_DeviceHeartbeat_Call {
+	return &MockStore_DeviceHeartbeat_Call{Call: _e.mock.On("DeviceHeartbeat", ctx, sc, beats, skipWithin)}
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) Run(run func(ctx context.Context, beats []store.DeviceBeat, skipWithin time.Duration)) *MockStore_DeviceHeartbeat_Call {
+func (_c *MockStore_DeviceHeartbeat_Call) Run(run func(ctx context.Context, sc scope.Scope, beats []store.DeviceBeat, skipWithin time.Duration)) *MockStore_DeviceHeartbeat_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 []store.DeviceBeat
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].([]store.DeviceBeat)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 time.Duration
+		var arg2 []store.DeviceBeat
 		if args[2] != nil {
-			arg2 = args[2].(time.Duration)
+			arg2 = args[2].([]store.DeviceBeat)
+		}
+		var arg3 time.Duration
+		if args[3] != nil {
+			arg3 = args[3].(time.Duration)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -1660,7 +1696,7 @@ func (_c *MockStore_DeviceHeartbeat_Call) Return(gone []string, err error) *Mock
 	return _c
 }
 
-func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, beats []store.DeviceBeat, skipWithin time.Duration) ([]string, error)) *MockStore_DeviceHeartbeat_Call {
+func (_c *MockStore_DeviceHeartbeat_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, beats []store.DeviceBeat, skipWithin time.Duration) ([]string, error)) *MockStore_DeviceHeartbeat_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1870,8 +1906,8 @@ func (_c *MockStore_DeviceListAfter_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // DeviceListExpiredEphemeral provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceListExpiredEphemeral(ctx context.Context) ([]models.Device, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockStore) DeviceListExpiredEphemeral(ctx context.Context, sc scope.Scope) ([]models.Device, error) {
+	ret := _mock.Called(ctx, sc)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceListExpiredEphemeral")
@@ -1879,18 +1915,18 @@ func (_mock *MockStore) DeviceListExpiredEphemeral(ctx context.Context) ([]model
 
 	var r0 []models.Device
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]models.Device, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) ([]models.Device, error)); ok {
+		return returnFunc(ctx, sc)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []models.Device); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) []models.Device); ok {
+		r0 = returnFunc(ctx, sc)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Device)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope) error); ok {
+		r1 = returnFunc(ctx, sc)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1904,18 +1940,24 @@ type MockStore_DeviceListExpiredEphemeral_Call struct {
 
 // DeviceListExpiredEphemeral is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockStore_Expecter) DeviceListExpiredEphemeral(ctx any) *MockStore_DeviceListExpiredEphemeral_Call {
-	return &MockStore_DeviceListExpiredEphemeral_Call{Call: _e.mock.On("DeviceListExpiredEphemeral", ctx)}
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) DeviceListExpiredEphemeral(ctx any, sc any) *MockStore_DeviceListExpiredEphemeral_Call {
+	return &MockStore_DeviceListExpiredEphemeral_Call{Call: _e.mock.On("DeviceListExpiredEphemeral", ctx, sc)}
 }
 
-func (_c *MockStore_DeviceListExpiredEphemeral_Call) Run(run func(ctx context.Context)) *MockStore_DeviceListExpiredEphemeral_Call {
+func (_c *MockStore_DeviceListExpiredEphemeral_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_DeviceListExpiredEphemeral_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -1926,7 +1968,7 @@ func (_c *MockStore_DeviceListExpiredEphemeral_Call) Return(devices []models.Dev
 	return _c
 }
 
-func (_c *MockStore_DeviceListExpiredEphemeral_Call) RunAndReturn(run func(ctx context.Context) ([]models.Device, error)) *MockStore_DeviceListExpiredEphemeral_Call {
+func (_c *MockStore_DeviceListExpiredEphemeral_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) ([]models.Device, error)) *MockStore_DeviceListExpiredEphemeral_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2078,16 +2120,16 @@ func (_c *MockStore_DeviceLockMAC_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // DeviceOffline provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceOffline(ctx context.Context, uid string, disconnectedAt time.Time) error {
-	ret := _mock.Called(ctx, uid, disconnectedAt)
+func (_mock *MockStore) DeviceOffline(ctx context.Context, sc scope.Scope, uid string, disconnectedAt time.Time) error {
+	ret := _mock.Called(ctx, sc, uid, disconnectedAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceOffline")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, time.Time) error); ok {
-		r0 = returnFunc(ctx, uid, disconnectedAt)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, time.Time) error); ok {
+		r0 = returnFunc(ctx, sc, uid, disconnectedAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2101,30 +2143,36 @@ type MockStore_DeviceOffline_Call struct {
 
 // DeviceOffline is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid string
 //   - disconnectedAt time.Time
-func (_e *MockStore_Expecter) DeviceOffline(ctx any, uid any, disconnectedAt any) *MockStore_DeviceOffline_Call {
-	return &MockStore_DeviceOffline_Call{Call: _e.mock.On("DeviceOffline", ctx, uid, disconnectedAt)}
+func (_e *MockStore_Expecter) DeviceOffline(ctx any, sc any, uid any, disconnectedAt any) *MockStore_DeviceOffline_Call {
+	return &MockStore_DeviceOffline_Call{Call: _e.mock.On("DeviceOffline", ctx, sc, uid, disconnectedAt)}
 }
 
-func (_c *MockStore_DeviceOffline_Call) Run(run func(ctx context.Context, uid string, disconnectedAt time.Time)) *MockStore_DeviceOffline_Call {
+func (_c *MockStore_DeviceOffline_Call) Run(run func(ctx context.Context, sc scope.Scope, uid string, disconnectedAt time.Time)) *MockStore_DeviceOffline_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 time.Time
+		var arg2 string
 		if args[2] != nil {
-			arg2 = args[2].(time.Time)
+			arg2 = args[2].(string)
+		}
+		var arg3 time.Time
+		if args[3] != nil {
+			arg3 = args[3].(time.Time)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -2135,7 +2183,7 @@ func (_c *MockStore_DeviceOffline_Call) Return(err error) *MockStore_DeviceOffli
 	return _c
 }
 
-func (_c *MockStore_DeviceOffline_Call) RunAndReturn(run func(ctx context.Context, uid string, disconnectedAt time.Time) error) *MockStore_DeviceOffline_Call {
+func (_c *MockStore_DeviceOffline_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid string, disconnectedAt time.Time) error) *MockStore_DeviceOffline_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2320,16 +2368,16 @@ func (_c *MockStore_DeviceSessionsSeen_Call) RunAndReturn(run func(ctx context.C
 }
 
 // DeviceSetCustomField provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceSetCustomField(ctx context.Context, uid string, key string, value string) error {
-	ret := _mock.Called(ctx, uid, key, value)
+func (_mock *MockStore) DeviceSetCustomField(ctx context.Context, sc scope.Scope, uid string, key string, value string) error {
+	ret := _mock.Called(ctx, sc, uid, key, value)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceSetCustomField")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = returnFunc(ctx, uid, key, value)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, string, string) error); ok {
+		r0 = returnFunc(ctx, sc, uid, key, value)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2343,22 +2391,23 @@ type MockStore_DeviceSetCustomField_Call struct {
 
 // DeviceSetCustomField is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - uid string
 //   - key string
 //   - value string
-func (_e *MockStore_Expecter) DeviceSetCustomField(ctx any, uid any, key any, value any) *MockStore_DeviceSetCustomField_Call {
-	return &MockStore_DeviceSetCustomField_Call{Call: _e.mock.On("DeviceSetCustomField", ctx, uid, key, value)}
+func (_e *MockStore_Expecter) DeviceSetCustomField(ctx any, sc any, uid any, key any, value any) *MockStore_DeviceSetCustomField_Call {
+	return &MockStore_DeviceSetCustomField_Call{Call: _e.mock.On("DeviceSetCustomField", ctx, sc, uid, key, value)}
 }
 
-func (_c *MockStore_DeviceSetCustomField_Call) Run(run func(ctx context.Context, uid string, key string, value string)) *MockStore_DeviceSetCustomField_Call {
+func (_c *MockStore_DeviceSetCustomField_Call) Run(run func(ctx context.Context, sc scope.Scope, uid string, key string, value string)) *MockStore_DeviceSetCustomField_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(scope.Scope)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -2368,11 +2417,16 @@ func (_c *MockStore_DeviceSetCustomField_Call) Run(run func(ctx context.Context,
 		if args[3] != nil {
 			arg3 = args[3].(string)
 		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -2383,7 +2437,7 @@ func (_c *MockStore_DeviceSetCustomField_Call) Return(err error) *MockStore_Devi
 	return _c
 }
 
-func (_c *MockStore_DeviceSetCustomField_Call) RunAndReturn(run func(ctx context.Context, uid string, key string, value string) error) *MockStore_DeviceSetCustomField_Call {
+func (_c *MockStore_DeviceSetCustomField_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid string, key string, value string) error) *MockStore_DeviceSetCustomField_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2458,8 +2512,8 @@ func (_c *MockStore_DeviceSetOwner_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // DeviceSweepStalePresence provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceSweepStalePresence(ctx context.Context, staleBefore time.Time, limit int64) (int64, error) {
-	ret := _mock.Called(ctx, staleBefore, limit)
+func (_mock *MockStore) DeviceSweepStalePresence(ctx context.Context, sc scope.Scope, staleBefore time.Time, limit int64) (int64, error) {
+	ret := _mock.Called(ctx, sc, staleBefore, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceSweepStalePresence")
@@ -2467,16 +2521,16 @@ func (_mock *MockStore) DeviceSweepStalePresence(ctx context.Context, staleBefor
 
 	var r0 int64
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int64) (int64, error)); ok {
-		return returnFunc(ctx, staleBefore, limit)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, time.Time, int64) (int64, error)); ok {
+		return returnFunc(ctx, sc, staleBefore, limit)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time, int64) int64); ok {
-		r0 = returnFunc(ctx, staleBefore, limit)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, time.Time, int64) int64); ok {
+		r0 = returnFunc(ctx, sc, staleBefore, limit)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time, int64) error); ok {
-		r1 = returnFunc(ctx, staleBefore, limit)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, time.Time, int64) error); ok {
+		r1 = returnFunc(ctx, sc, staleBefore, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2490,30 +2544,36 @@ type MockStore_DeviceSweepStalePresence_Call struct {
 
 // DeviceSweepStalePresence is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - staleBefore time.Time
 //   - limit int64
-func (_e *MockStore_Expecter) DeviceSweepStalePresence(ctx any, staleBefore any, limit any) *MockStore_DeviceSweepStalePresence_Call {
-	return &MockStore_DeviceSweepStalePresence_Call{Call: _e.mock.On("DeviceSweepStalePresence", ctx, staleBefore, limit)}
+func (_e *MockStore_Expecter) DeviceSweepStalePresence(ctx any, sc any, staleBefore any, limit any) *MockStore_DeviceSweepStalePresence_Call {
+	return &MockStore_DeviceSweepStalePresence_Call{Call: _e.mock.On("DeviceSweepStalePresence", ctx, sc, staleBefore, limit)}
 }
 
-func (_c *MockStore_DeviceSweepStalePresence_Call) Run(run func(ctx context.Context, staleBefore time.Time, limit int64)) *MockStore_DeviceSweepStalePresence_Call {
+func (_c *MockStore_DeviceSweepStalePresence_Call) Run(run func(ctx context.Context, sc scope.Scope, staleBefore time.Time, limit int64)) *MockStore_DeviceSweepStalePresence_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 time.Time
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(time.Time)
+			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 int64
+		var arg2 time.Time
 		if args[2] != nil {
-			arg2 = args[2].(int64)
+			arg2 = args[2].(time.Time)
+		}
+		var arg3 int64
+		if args[3] != nil {
+			arg3 = args[3].(int64)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -2524,22 +2584,22 @@ func (_c *MockStore_DeviceSweepStalePresence_Call) Return(stamped int64, err err
 	return _c
 }
 
-func (_c *MockStore_DeviceSweepStalePresence_Call) RunAndReturn(run func(ctx context.Context, staleBefore time.Time, limit int64) (int64, error)) *MockStore_DeviceSweepStalePresence_Call {
+func (_c *MockStore_DeviceSweepStalePresence_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, staleBefore time.Time, limit int64) (int64, error)) *MockStore_DeviceSweepStalePresence_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceUpdate provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceUpdate(ctx context.Context, device *models.Device) error {
-	ret := _mock.Called(ctx, device)
+func (_mock *MockStore) DeviceUpdate(ctx context.Context, sc scope.Scope, device *models.Device) error {
+	ret := _mock.Called(ctx, sc, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceUpdate")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
-		r0 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) error); ok {
+		r0 = returnFunc(ctx, sc, device)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2553,24 +2613,30 @@ type MockStore_DeviceUpdate_Call struct {
 
 // DeviceUpdate is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - device *models.Device
-func (_e *MockStore_Expecter) DeviceUpdate(ctx any, device any) *MockStore_DeviceUpdate_Call {
-	return &MockStore_DeviceUpdate_Call{Call: _e.mock.On("DeviceUpdate", ctx, device)}
+func (_e *MockStore_Expecter) DeviceUpdate(ctx any, sc any, device any) *MockStore_DeviceUpdate_Call {
+	return &MockStore_DeviceUpdate_Call{Call: _e.mock.On("DeviceUpdate", ctx, sc, device)}
 }
 
-func (_c *MockStore_DeviceUpdate_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceUpdate_Call {
+func (_c *MockStore_DeviceUpdate_Call) Run(run func(ctx context.Context, sc scope.Scope, device *models.Device)) *MockStore_DeviceUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.Device
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.Device)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *models.Device
+		if args[2] != nil {
+			arg2 = args[2].(*models.Device)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -2581,22 +2647,22 @@ func (_c *MockStore_DeviceUpdate_Call) Return(err error) *MockStore_DeviceUpdate
 	return _c
 }
 
-func (_c *MockStore_DeviceUpdate_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceUpdate_Call {
+func (_c *MockStore_DeviceUpdate_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device *models.Device) error) *MockStore_DeviceUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeviceUpdateUnlessRemoved provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceUpdateUnlessRemoved(ctx context.Context, device *models.Device) error {
-	ret := _mock.Called(ctx, device)
+func (_mock *MockStore) DeviceUpdateUnlessRemoved(ctx context.Context, sc scope.Scope, device *models.Device) error {
+	ret := _mock.Called(ctx, sc, device)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceUpdateUnlessRemoved")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.Device) error); ok {
-		r0 = returnFunc(ctx, device)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, *models.Device) error); ok {
+		r0 = returnFunc(ctx, sc, device)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2610,24 +2676,30 @@ type MockStore_DeviceUpdateUnlessRemoved_Call struct {
 
 // DeviceUpdateUnlessRemoved is a helper method to define mock.On call
 //   - ctx context.Context
+//   - sc scope.Scope
 //   - device *models.Device
-func (_e *MockStore_Expecter) DeviceUpdateUnlessRemoved(ctx any, device any) *MockStore_DeviceUpdateUnlessRemoved_Call {
-	return &MockStore_DeviceUpdateUnlessRemoved_Call{Call: _e.mock.On("DeviceUpdateUnlessRemoved", ctx, device)}
+func (_e *MockStore_Expecter) DeviceUpdateUnlessRemoved(ctx any, sc any, device any) *MockStore_DeviceUpdateUnlessRemoved_Call {
+	return &MockStore_DeviceUpdateUnlessRemoved_Call{Call: _e.mock.On("DeviceUpdateUnlessRemoved", ctx, sc, device)}
 }
 
-func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) Run(run func(ctx context.Context, device *models.Device)) *MockStore_DeviceUpdateUnlessRemoved_Call {
+func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) Run(run func(ctx context.Context, sc scope.Scope, device *models.Device)) *MockStore_DeviceUpdateUnlessRemoved_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.Device
+		var arg1 scope.Scope
 		if args[1] != nil {
-			arg1 = args[1].(*models.Device)
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 *models.Device
+		if args[2] != nil {
+			arg2 = args[2].(*models.Device)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -2638,7 +2710,7 @@ func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) Return(err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) RunAndReturn(run func(ctx context.Context, device *models.Device) error) *MockStore_DeviceUpdateUnlessRemoved_Call {
+func (_c *MockStore_DeviceUpdateUnlessRemoved_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, device *models.Device) error) *MockStore_DeviceUpdateUnlessRemoved_Call {
 	_c.Call.Return(run)
 	return _c
 }

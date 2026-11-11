@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -50,9 +51,10 @@ type deviceHeartbeat struct {
 // every beat. A device carrying a disconnect is always written, whichever replica
 // stamped it.
 //
-// A beat for a device that was deleted or removed fires the device-removed hooks,
-// which close its tunnel. That is how a tunnel learns of a removal made by another
-// process or replica, which no hook in this one saw.
+// A beat for a device that was deleted or removed, or that is not in the namespace
+// the beat names, fires the device-removed hooks, which close its tunnel. That is how
+// a tunnel learns of a removal made by another process or replica, which no hook in
+// this one saw.
 type DeviceHeartbeater struct {
 	store   store.Store
 	clock   clock.Clock
@@ -160,13 +162,13 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 
 	beats := make([]store.DeviceBeat, 0, len(latestByUID))
 	for _, uid := range slices.Sorted(maps.Keys(latestByUID)) {
-		beats = append(beats, store.DeviceBeat{UID: uid, At: latestByUID[uid].at})
+		beats = append(beats, store.DeviceBeat{UID: uid, TenantID: latestByUID[uid].tenantID, At: latestByUID[uid].at})
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
-	gone, err := h.store.DeviceHeartbeat(ctx, beats, h.skipWithin)
+	gone, err := h.store.DeviceHeartbeat(ctx, scope.NewUnbounded("a heartbeat batch spans every namespace holding a tunnel, and each beat is matched within its own"), beats, h.skipWithin)
 	if err != nil {
 		log.WithError(err).
 			WithField("devices", len(beats)).
@@ -180,7 +182,7 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 
 	for _, uid := range gone {
 		log.WithFields(log.Fields{"tenant_id": latestByUID[uid].tenantID, "device_uid": uid}).
-			Info("a device holding a tunnel was deleted or removed; closing its tunnel")
+			Info("a device holding a tunnel was deleted, removed or is not in its namespace; closing its tunnel")
 
 		fireDeviceRemoved(ctx, latestByUID[uid].tenantID, uid)
 	}

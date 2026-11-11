@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
+	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/uptrace/bun"
 )
@@ -97,6 +98,57 @@ func requireBounded(sc scope.Scope) (string, error) {
 	}
 
 	return sc.TenantID(), nil
+}
+
+type whereQuery[Q any] interface {
+	Where(query string, args ...any) Q
+}
+
+func whereBounded[Q whereQuery[Q]](query Q, sc scope.Scope, column string) (Q, error) {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return query, err
+	}
+
+	namespaceID, err := uuid.Parse(tenantID)
+	if err != nil {
+		return query, store.ErrNoDocuments
+	}
+
+	return query.Where("? = ?", bun.Ident(column), namespaceID.String()), nil
+}
+
+func whereInScope[Q whereQuery[Q]](query Q, sc scope.Scope, column string) (Q, error) {
+	switch sc.Kind() {
+	case scope.KindBounded:
+		return whereBounded(query, sc, column)
+	case scope.KindUnbounded:
+		return query, nil
+	default:
+		return query, store.ErrInvalidScope
+	}
+}
+
+func requireBoundedTo(sc scope.Scope, tenantID string) error {
+	bounded, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	if canonicalTenant(bounded) != canonicalTenant(tenantID) {
+		return store.ErrInvalidScope
+	}
+
+	return nil
+}
+
+func canonicalTenant(tenantID string) string {
+	namespaceID, err := uuid.Parse(tenantID)
+	if err != nil {
+		return tenantID
+	}
+
+	return namespaceID.String()
 }
 
 func applyScopedOptions(ctx context.Context, query *bun.SelectQuery, sc scope.Scope, opts ...store.QueryOption) (*bun.SelectQuery, error) {

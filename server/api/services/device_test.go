@@ -960,7 +960,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, device).
+					On("DeviceDelete", ctx, scope.MustBounded("tenant"), device).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -987,7 +987,7 @@ func TestDeleteDevice(t *testing.T) {
 				expectedDevice.RemovedAt = &now
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1018,7 +1018,7 @@ func TestDeleteDevice(t *testing.T) {
 				expectedDevice.RemovedAt = &now
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1036,7 +1036,7 @@ func TestDeleteDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, device).
+					On("DeviceDelete", ctx, scope.MustBounded("tenant"), device).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1171,7 +1171,7 @@ func TestRenameDevice(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), updatedDevice).
 					Return(store.ErrDuplicate).
 					Once()
 			},
@@ -1195,7 +1195,7 @@ func TestRenameDevice(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), updatedDevice).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1222,7 +1222,7 @@ func TestRenameDevice(t *testing.T) {
 				expectedDevice.Name = "newname"
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
 					Return(nil).
 					Once()
 			},
@@ -1249,7 +1249,7 @@ func TestRenameDevice(t *testing.T) {
 				expectedDevice.Name = "newname"
 
 				storeMock.
-					On("DeviceUpdate", ctx, &expectedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
 					Return(nil).
 					Once()
 			},
@@ -1394,7 +1394,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceOffline", ctx, "uid", now).
+					On("DeviceOffline", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "uid", now).
 					Return(store.ErrNoDocuments).
 					Once()
 			},
@@ -1405,7 +1405,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceOffline", ctx, "uid", now).
+					On("DeviceOffline", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "uid", now).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1416,7 +1416,7 @@ func TestOfflineDevice(t *testing.T) {
 			uid:  models.UID("uid"),
 			mocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceOffline", ctx, "uid", now).
+					On("DeviceOffline", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "uid", now).
 					Return(nil).
 					Once()
 			},
@@ -1430,7 +1430,7 @@ func TestOfflineDevice(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 			tc.mocks(ctx)
-			assert.Equal(t, tc.expected, s.OfflineDevice(ctx, tc.uid))
+			assert.Equal(t, tc.expected, s.OfflineDevice(ctx, "00000000-0000-4000-0000-000000000000", tc.uid))
 		})
 	}
 
@@ -1580,7 +1580,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1627,7 +1627,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1762,11 +1762,11 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, mergedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), mergedDevice).
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, oldDevice).
+					On("DeviceDelete", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), oldDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1774,7 +1774,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, finalDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), finalDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1931,7 +1931,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -1991,7 +1991,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(store.ErrDuplicate).
 					Once()
 			},
@@ -2091,7 +2091,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil, store.ErrNoDocuments).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2317,7 +2317,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(true, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2381,7 +2381,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(false, errors.New("evaluator unreachable", "", 0)).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2464,11 +2464,11 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, mergedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), mergedDevice).
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceDelete", ctx, oldDevice).
+					On("DeviceDelete", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), oldDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2476,7 +2476,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, finalDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), finalDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2558,7 +2558,7 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 		On("DeviceResolve", ctx, mock.Anything, store.DeviceHostnameResolver, "keyless", mock.AnythingOfType("[]store.QueryOption")).
 		Return(nil, store.ErrNoDocuments).
 		Once()
-	storeMock.On("DeviceUpdate", ctx, &accepted).Return(nil).Once()
+	storeMock.On("DeviceUpdate", ctx, scope.MustBounded(tenantID), &accepted).Return(nil).Once()
 	storeMock.
 		On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(-1)).
 		Return(nil).
@@ -2690,7 +2690,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(store.ErrDuplicate).
 					Once()
 			},
@@ -2743,7 +2743,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 			},
@@ -2776,7 +2776,7 @@ func TestDeviceUpdate(t *testing.T) {
 					Return([]string{}, false, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdate", ctx, updatedDevice).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
 			},
@@ -2918,7 +2918,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
+					On("DeviceSetCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
 					Return(errors.New("store error", "", 0)).
 					Once()
 			},
@@ -2942,7 +2942,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
+					On("DeviceSetCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env", "prod").
 					Return(nil).
 					Once()
 			},
@@ -2970,7 +2970,7 @@ func TestSetDeviceCustomField(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceSetCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "a", "updated").
+					On("DeviceSetCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "a", "updated").
 					Return(nil).
 					Once()
 			},
@@ -3008,7 +3008,7 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 		expected      error
 	}{
 		{
-			description: "fails when device cannot be resolved",
+			description: "fails when the namespace holds no such device",
 			req: &requests.DeviceDeleteCustomField{
 				TenantID:    "00000000-0000-0000-0000-000000000000",
 				DeviceParam: requests.DeviceParam{UID: "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"},
@@ -3016,11 +3016,11 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 			},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
-					Return(nil, errors.New("error", "", 0)).
+					On("DeviceDeleteCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
+					Return(store.ErrNoDocuments).
 					Once()
 			},
-			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), errors.New("error", "", 0)),
+			expected: NewErrDeviceNotFound(models.UID("d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e"), store.ErrNoDocuments),
 		},
 		{
 			description: "fails when the store returns an error",
@@ -3030,16 +3030,8 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 				Key:         "env",
 			},
 			requiredMocks: func(ctx context.Context) {
-				device := &models.Device{
-					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					CustomFields: map[string]string{"env": "prod"},
-				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceDeleteCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
+					On("DeviceDeleteCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
 					Return(errors.New("store error", "", 0)).
 					Once()
 			},
@@ -3053,16 +3045,8 @@ func TestDeleteDeviceCustomField(t *testing.T) {
 				Key:         "env",
 			},
 			requiredMocks: func(ctx context.Context) {
-				device := &models.Device{
-					UID:          "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e",
-					CustomFields: map[string]string{"env": "prod"},
-				}
 				storeMock.
-					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e").
-					Return(device, nil).
-					Once()
-				storeMock.
-					On("DeviceDeleteCustomField", ctx, "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
+					On("DeviceDeleteCustomField", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "d6c6a5e97217bbe4467eae46ab004695a766c5c43f70b95efd4b6a4d32b33c6e", "env").
 					Return(nil).
 					Once()
 			},

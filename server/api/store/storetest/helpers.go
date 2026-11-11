@@ -315,7 +315,7 @@ func (s *Suite) CreateDevice(t *testing.T, opts ...DeviceOption) models.UID {
 		device.TenantID = s.CreateNamespace(t)
 	}
 
-	deviceUID, err := st.DeviceCreate(ctx, device)
+	deviceUID, err := st.DeviceCreate(ctx, scope.MustBounded(device.TenantID), device)
 	require.NoError(t, err)
 	require.NotEmpty(t, deviceUID)
 
@@ -665,4 +665,19 @@ func (s *Suite) CreateInstanceAPIKey(t *testing.T, opts ...InstanceAPIKeyOption)
 	require.NotEmpty(t, keyID)
 
 	return key.ID
+}
+
+func (s *Suite) scopeOf(t *testing.T, uid models.UID) scope.Scope {
+	t.Helper()
+
+	device, err := s.provider.Store().DeviceResolve(context.Background(), scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(uid))
+	require.NoError(t, err)
+
+	return scope.MustBounded(device.TenantID)
+}
+
+func (s *Suite) beatOf(t *testing.T, uid models.UID, at time.Time) store.DeviceBeat {
+	t.Helper()
+
+	return store.DeviceBeat{UID: string(uid), TenantID: s.scopeOf(t, uid).TenantID(), At: at}
 }

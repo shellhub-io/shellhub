@@ -195,7 +195,7 @@ func TestAuthDevice(t *testing.T) {
 				}
 
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -234,7 +234,7 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice.RemoteAddr = "127.0.0.1"
 
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(errors.New("error", "store", 0)).
 					Once()
 			},
@@ -274,7 +274,7 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice.RemoteAddr = "127.0.0.1"
 
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -321,7 +321,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -372,7 +372,7 @@ func TestAuthDevice(t *testing.T) {
 					Return(device, nil).
 					Once()
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(nil).
 					Once()
 				storeMock.
@@ -439,7 +439,7 @@ func TestAuthDevice(t *testing.T) {
 				}
 
 				storeMock.
-					On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+					On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -500,7 +500,7 @@ func TestAuthDevice(t *testing.T) {
 				expectedDevice.StatusUpdatedAt = now
 
 				storeMock.
-					On("DeviceUpdate", ctx, device).
+					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), device).
 					Return(nil).
 					Once()
 				cacheMock.
@@ -555,6 +555,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -619,6 +620,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -687,6 +689,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -770,6 +773,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -849,6 +853,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -922,6 +927,7 @@ func TestAuthDevice(t *testing.T) {
 					On(
 						"DeviceCreate",
 						ctx,
+						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 						&models.Device{
 							CreatedAt:       now,
 							UID:             uid,
@@ -3268,6 +3274,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			On(
 				"DeviceCreate",
 				ctx,
+				scope.MustBounded("00000000-0000-4000-0000-000000000000"),
 				&models.Device{
 					CreatedAt:       now,
 					UID:             uid,
@@ -3340,7 +3347,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		expectedDevice.RemoteAddr = "203.0.113.10"
 
 		storeMock.
-			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+			On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 			Return(nil).
 			Once()
 		cacheMock.
@@ -3388,7 +3395,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 		expectedDevice.RemoteAddr = "198.51.100.1"
 
 		storeMock.
-			On("DeviceUpdateUnlessRemoved", ctx, &expectedDevice).
+			On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expectedDevice).
 			Return(nil).
 			Once()
 		cacheMock.
@@ -3502,7 +3509,7 @@ func TestAuthDevice_WritesAnExistingDeviceOnlyWhenTheAuthenticationChangesIt(t *
 				Return(tc.device, nil).
 				Once()
 			storeMock.
-				On(tc.write, ctx, &expected).
+				On(tc.write, ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &expected).
 				Return(nil).
 				Once()
 			cacheMock.

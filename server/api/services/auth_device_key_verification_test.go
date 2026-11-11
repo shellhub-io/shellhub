@@ -132,7 +132,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 
 		pinned := *device
 		pinned.KeyVerifiedAt = &now
-		storeMock.On("DeviceUpdateUnlessRemoved", ctx, &pinned).Return(nil).Once()
+		storeMock.On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded(pinned.TenantID), &pinned).Return(nil).Once()
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 
@@ -171,7 +171,7 @@ func TestAuthDeviceKeyVerification(t *testing.T) {
 
 		verified := *device
 		verified.KeyVerifiedAt = &now
-		storeMock.On("DeviceUpdateUnlessRemoved", ctx, &verified).Return(nil).Once()
+		storeMock.On("DeviceUpdateUnlessRemoved", ctx, scope.MustBounded(verified.TenantID), &verified).Return(nil).Once()
 		cacheMock.On("Set", ctx, deviceAuthCacheKey(uid), map[string]string{"device_name": hostname, "namespace_name": "test", "key_verified": "true"}, 30*time.Second).
 			Return(nil).Once()
 

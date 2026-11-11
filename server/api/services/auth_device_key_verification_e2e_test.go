@@ -54,7 +54,7 @@ func TestDeviceKeyVerificationE2E(t *testing.T) {
 		require.Equal(t, legacy.UID, verified.UID, "the signature authenticates the same device")
 		assert.NotNil(t, stored(t, verified.UID).KeyVerifiedAt)
 
-		require.NoError(t, e.st.DeviceUpdate(ctx, stale))
+		require.NoError(t, e.st.DeviceUpdate(ctx, scope.MustBounded(stale.TenantID), stale))
 		assert.NotNil(t, stored(t, verified.UID).KeyVerifiedAt, "a write from a snapshot read before the verification cannot clear it")
 
 		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", false), "")

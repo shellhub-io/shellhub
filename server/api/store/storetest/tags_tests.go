@@ -269,7 +269,7 @@ func (s *Suite) TestTagPushToTarget(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
-		err = st.DeviceDelete(ctx, device)
+		err = st.DeviceDelete(ctx, scope.MustBounded(device.TenantID), device)
 		require.NoError(t, err)
 
 		err = st.TagPushToTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))
@@ -353,7 +353,7 @@ func (s *Suite) TestTagPullFromTarget(t *testing.T) {
 		deviceUID := s.CreateDevice(t, WithTenantID(tenantID))
 		device, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(deviceUID))
 		require.NoError(t, err)
-		err = st.DeviceDelete(ctx, device)
+		err = st.DeviceDelete(ctx, scope.MustBounded(device.TenantID), device)
 		require.NoError(t, err)
 
 		err = st.TagPullFromTarget(ctx, tagID, store.TagTargetDevice, string(deviceUID))

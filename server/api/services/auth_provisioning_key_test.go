@@ -100,7 +100,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolveSystem", ctx, scope.MustBounded(tenant)).Return(&models.ProvisioningKey{ID: "legacydigest", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Mode: models.ProvisioningKeyModeManual}, nil).Once()
-				storeMock.On("DeviceCreate", ctx, &models.Device{
+				storeMock.On("DeviceCreate", ctx, scope.MustBounded(tenant), &models.Device{
 					CreatedAt:         now,
 					UID:               uid,
 					TenantID:          tenant,
@@ -296,7 +296,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 				cacheMock.On("Get", ctx, "auth_device/"+uid, testifymock.Anything).Return(nil).Once()
 				storeMock.On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("ProvisioningKeyResolve", ctx, scope.MustBounded(tenant), store.ProvisioningKeyIDResolver, keyDigest).Return(key, nil).Once()
-				storeMock.On("DeviceCreate", ctx, &models.Device{
+				storeMock.On("DeviceCreate", ctx, scope.MustBounded(tenant), &models.Device{
 					CreatedAt:         now,
 					UID:               uid,
 					TenantID:          tenant,

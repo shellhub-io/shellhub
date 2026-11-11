@@ -53,7 +53,7 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 				removed.Status = models.DeviceStatusRemoved
 				removed.RemovedAt = &at
 
-				storeMock.On("DeviceUpdate", ctx, &removed).Return(nil).Once()
+				storeMock.On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &removed).Return(nil).Once()
 				storeMock.On("DeviceSetOwner", ctx, sc, "uid", "").Return(nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, sc, models.DeviceStatusRemoved, int64(1)).Return(nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, sc, models.DeviceStatusAccepted, int64(-1)).Return(nil).Once()
@@ -63,7 +63,7 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 			description: "a pending device is deleted",
 			device:      &models.Device{UID: "uid", TenantID: "tenant", Status: models.DeviceStatusPending},
 			mocks: func(storeMock *storemock.MockStore, device *models.Device) {
-				storeMock.On("DeviceDelete", ctx, device).Return(nil).Once()
+				storeMock.On("DeviceDelete", ctx, scope.MustBounded("tenant"), device).Return(nil).Once()
 				storeMock.On("NamespaceIncrementDeviceCount", ctx, sc, models.DeviceStatusPending, int64(-1)).Return(nil).Once()
 			},
 		},

@@ -31,14 +31,14 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 
 	cases := []struct {
 		description    string
-		write          func(ctx context.Context, uid string) error
+		write          func(ctx context.Context, sc scope.Scope, uid string) error
 		disconnectedAt *time.Time
 		online         bool
 	}{
 		{
 			description: "a heartbeat",
-			write: func(ctx context.Context, uid string) error {
-				_, err := st.DeviceHeartbeat(ctx, []store.DeviceBeat{{UID: uid, At: now}}, 0)
+			write: func(ctx context.Context, sc scope.Scope, uid string) error {
+				_, err := st.DeviceHeartbeat(ctx, sc, []store.DeviceBeat{{UID: uid, TenantID: sc.TenantID(), At: now}}, 0)
 
 				return err
 			},
@@ -46,15 +46,15 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 		},
 		{
 			description: "a written close",
-			write: func(ctx context.Context, uid string) error {
-				return st.DeviceOffline(ctx, uid, closedAt)
+			write: func(ctx context.Context, sc scope.Scope, uid string) error {
+				return st.DeviceOffline(ctx, sc, uid, closedAt)
 			},
 			disconnectedAt: &closedAt,
 		},
 		{
 			description: "another sweep",
-			write: func(ctx context.Context, _ string) error {
-				_, err := st.DeviceSweepStalePresence(ctx, staleBefore, 1000)
+			write: func(ctx context.Context, sc scope.Scope, _ string) error {
+				_, err := st.DeviceSweepStalePresence(ctx, sc, staleBefore, 1000)
 
 				return err
 			},
@@ -67,6 +67,11 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 			require.NoError(t, provider.CleanDatabase(t))
 
 			uid := string(suite.CreateDevice(t, storetest.WithDeviceLastSeen(lastSeen)))
+
+			device, err := st.DeviceResolve(ctx, scope.NewUnbounded("test: reading back the device just created"), store.DeviceUIDResolver, uid)
+			require.NoError(t, err)
+
+			sc := scope.MustBounded(device.TenantID)
 
 			written := make(chan error, 1)
 			commit := make(chan struct{})
@@ -83,7 +88,7 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 				defer close(writerDone)
 
 				committed <- st.WithTransaction(ctx, func(ctx context.Context) error {
-					err := tc.write(ctx, uid)
+					err := tc.write(ctx, sc, uid)
 					written <- err
 					<-commit
 
@@ -101,7 +106,7 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 			swept := make(chan sweepResult, 1)
 
 			go func() {
-				stamped, err := st.DeviceSweepStalePresence(ctx, staleBefore, 1000)
+				stamped, err := st.DeviceSweepStalePresence(ctx, scope.NewUnbounded("test: the sweep spans every namespace"), staleBefore, 1000)
 				swept <- sweepResult{stamped: stamped, err: err}
 			}()
 
@@ -121,7 +126,7 @@ func TestDeviceSweepStalePresenceRechecksARowWrittenMeanwhile(t *testing.T) {
 			require.NoError(t, result.err)
 			assert.Equal(t, int64(0), result.stamped)
 
-			device, err := st.DeviceResolve(ctx, scope.NewUnbounded("test: reading back the device the sweep raced"), store.DeviceUIDResolver, uid)
+			device, err = st.DeviceResolve(ctx, scope.NewUnbounded("test: reading back the device the sweep raced"), store.DeviceUIDResolver, uid)
 			require.NoError(t, err)
 			assert.Equal(t, tc.online, device.Online)
 

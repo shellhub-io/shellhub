@@ -26,9 +26,12 @@ type Heartbeater interface {
 	Submit(tenantID, uid string)
 }
 
-// DeviceStatuser records that a device's tunnel is gone.
+// DeviceStatuser records that the tunnel the device uid of the namespace tenant held is gone.
+// OfflineDevice returns a forbidden error when tenant is empty, and a not-found error when uid is
+// no device of the namespace tenant names: a tenant that is not a UUID, and a device of another
+// namespace, both land there. Any other store failure is returned unchanged.
 type DeviceStatuser interface {
-	OfflineDevice(ctx context.Context, uid models.UID) error
+	OfflineDevice(ctx context.Context, tenant string, uid models.UID) error
 }
 
 // TunnelDialer opens a connection back to a device over the reverse tunnel the device holds
@@ -77,7 +80,7 @@ func NewDialer(devices DeviceStatuser, heartbeater Heartbeater, clk clock.Clock)
 		tenant := parts[0]
 		uid := parts[1]
 
-		if err := devices.OfflineDevice(context.Background(), models.UID(uid)); err != nil {
+		if err := devices.OfflineDevice(context.Background(), tenant, models.UID(uid)); err != nil {
 			log.WithError(err).
 				WithFields(log.Fields{
 					"uid":       uid,

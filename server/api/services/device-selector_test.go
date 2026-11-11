@@ -192,7 +192,7 @@ func TestDeviceRenameFollowsTheRulesSelectingByName(t *testing.T) {
 
 			if tc.renamed {
 				storeMock.On("DeviceConflicts", ctx, mock.Anything, mock.Anything).Return(nil, false, nil).Once()
-				storeMock.On("DeviceUpdate", ctx, mock.Anything).Return(nil).Once()
+				storeMock.On("DeviceUpdate", ctx, mock.Anything, mock.Anything).Return(nil).Once()
 			}
 
 			service := NewService(storeMock, privateKey, publicKey, nil, WithDeviceSelectorSource(firewallSelectors(tc.extra...)))
