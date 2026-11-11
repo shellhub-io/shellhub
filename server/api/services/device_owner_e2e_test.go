@@ -222,6 +222,7 @@ func (e *ownershipE2E) accepted(t *testing.T) []models.Device {
 }
 
 func TestPairingTiesTheDeviceToTheAcceptingMember(t *testing.T) {
+	t.Parallel()
 	e := setupOwnershipE2E(t)
 	member := e.member(t, "member", authorizer.RoleOperator)
 
@@ -234,6 +235,7 @@ func TestPairingTiesTheDeviceToTheAcceptingMember(t *testing.T) {
 }
 
 func TestAcceptingAPairingDoesNotRenewItsCode(t *testing.T) {
+	t.Parallel()
 	e := setupOwnershipE2E(t)
 	cache := newMemoryCache()
 	e.svc = NewService(e.st, privateKey, publicKey, cache, WithClock(e.clock))
@@ -254,6 +256,7 @@ func TestAcceptingAPairingDoesNotRenewItsCode(t *testing.T) {
 }
 
 func TestNamespaceCredentialsEnrollTeamDevices(t *testing.T) {
+	t.Parallel()
 	e := setupOwnershipE2E(t)
 
 	uid := e.enrollKey(t, "aa:bb:cc:dd:ee:01", "pk-1")
@@ -265,9 +268,11 @@ func TestNamespaceCredentialsEnrollTeamDevices(t *testing.T) {
 }
 
 func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
+	t.Parallel()
 	const mac = "aa:bb:cc:dd:ee:01"
 
 	t.Run("an owned device merging into a team device stays the team's", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 
@@ -285,6 +290,7 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 	})
 
 	t.Run("a team device merging into an owned device makes it the team's", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 
@@ -301,6 +307,7 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 	})
 
 	t.Run("an owned device merging into another member's device changes owner", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		first := e.member(t, "first", authorizer.RoleOperator)
 		second := e.member(t, "second", authorizer.RoleOperator)
@@ -317,7 +324,8 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 	})
 }
 
-func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) {
+func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	const mac = "aa:bb:cc:dd:ee:02"
 	ctx := context.Background()
 	e := setupOwnershipE2E(t)
@@ -355,6 +363,7 @@ func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) {
 }
 
 func TestAnAcceptedDeviceKeepsItsOwner(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	e := setupOwnershipE2E(t)
 	first := e.member(t, "first", authorizer.RoleOperator)
@@ -370,9 +379,11 @@ func TestAnAcceptedDeviceKeepsItsOwner(t *testing.T) {
 }
 
 func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	t.Run("its own re-authentication is refused", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 
@@ -387,6 +398,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 	})
 
 	t.Run("an unsigned re-authentication is refused for its key first when the namespace requires verification", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 
@@ -402,6 +414,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 	})
 
 	t.Run("a device enrolled by a provisioning key revives as pending", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 
 		uid := e.enrollKey(t, "aa:bb:cc:dd:ee:01", "pk-1")
@@ -413,6 +426,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 	})
 
 	t.Run("a user provisioning key revives it as pending under that key", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		member := e.member(t, "member", authorizer.RoleOperator)
 		e.provisioningKey(t, digest(1), "fleet", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, clearSecret)
@@ -431,6 +445,7 @@ func TestARemovedPairedDeviceGoesBackToPairing(t *testing.T) {
 	})
 
 	t.Run("pairing it again accepts it under the new owner", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		first := e.member(t, "first", authorizer.RoleOperator)
 		second := e.member(t, "second", authorizer.RoleOperator)
@@ -693,10 +708,12 @@ func (s *departsAfterRead) DeviceResolve(ctx context.Context, sc scope.Scope, re
 }
 
 func TestADepartureDuringAuthenticationIsNotUndone(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	for _, departure := range []store.MemberDeparture{{}, {KeepMembership: true}} {
 		t.Run(fmt.Sprintf("keep membership %t", departure.KeepMembership), func(t *testing.T) {
+			t.Parallel()
 			e := setupOwnershipE2E(t)
 			member := e.member(t, "member", authorizer.RoleOperator)
 			owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")

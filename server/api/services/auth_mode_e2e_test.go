@@ -40,9 +40,11 @@ func (e *enrollmentE2E) authRequest(mac, provisioningKey string) requests.Device
 }
 
 func TestAuthDeviceMode(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	t.Run("new namespace lands a bare tenant pending under the built-in legacy key", func(t *testing.T) {
+		t.Parallel()
 		e := setupEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:01", "")
@@ -54,6 +56,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("new namespace enrolls by provisioning key", func(t *testing.T) {
+		t.Parallel()
 		e := setupEnrollmentE2E(t)
 		e.provisioningKey(t, digest(0x77), "manual", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) { k.KeyEncrypted, k.KeyHint = "", "" })
 
@@ -62,6 +65,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("legacy namespace lands a bare tenant pending under the built-in legacy key", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:03", "")
@@ -73,6 +77,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("legacy namespace refuses a presented provisioning key with 403 and creates nothing", func(t *testing.T) {
+		t.Parallel()
 		e := setupEnrollmentE2E(t)
 		e.provisioningKey(t, digest(0x77), "manual", models.ProvisioningKeyModeManual, models.ProvisioningKeyTypeUser, func(k *models.ProvisioningKey) { k.KeyEncrypted, k.KeyHint = "", "" })
 		e.legacy(t)
@@ -83,6 +88,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("legacy namespace refuses a pairing at the accept step", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 		e.legacy(t)
 
@@ -95,6 +101,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("a device accepted by tenant before the upgrade re-authenticates after it", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:06", "")
@@ -109,6 +116,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("a device pending by tenant before the upgrade stays pending and acceptable after it", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:07", "")
@@ -124,6 +132,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("a paired device re-authenticates with the tenant it persisted", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 
 		accepted := e.pair(t, e.ownerID, "aa:bb:cc:dd:ee:08", "pk-08")
@@ -136,6 +145,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("a paired device whose row was deleted comes back pending by the tenant it persisted", func(t *testing.T) {
+		t.Parallel()
 		e := setupOwnershipE2E(t)
 
 		accepted := e.pair(t, e.ownerID, "aa:bb:cc:dd:ee:10", "pk-10")
@@ -150,6 +160,7 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 
 	t.Run("a removed device returning by tenant alone to a new namespace comes back pending", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 
 		uid := e.enroll(t, "aa:bb:cc:dd:ee:09", "")
@@ -169,7 +180,8 @@ func TestAuthDeviceMode(t *testing.T) {
 	})
 }
 
-func TestProvisioningKeysInLegacyNamespace(t *testing.T) {
+func TestProvisioningKeysInLegacyNamespace(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	ctx := context.Background()
 	e := setupLegacyEnrollmentE2E(t)
 
@@ -220,6 +232,7 @@ func TestProvisioningKeysInLegacyNamespace(t *testing.T) {
 }
 
 func TestSystemProvisioningKeyIsFixed(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	e := setupEnrollmentE2E(t)
 
@@ -273,9 +286,11 @@ func (e *enrollmentE2E) isLegacy(t *testing.T) bool {
 }
 
 func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	t.Run("seeds the owner's policy once in a namespace that has none", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 		e.dropPolicies(t)
 
@@ -288,6 +303,7 @@ func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
 	})
 
 	t.Run("leaves the policies a namespace already has alone", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 		before := e.ownerPolicies(t)
 		require.NotEmpty(t, before)
@@ -299,6 +315,7 @@ func TestUpgradeNamespaceAgainstDatabase(t *testing.T) {
 	})
 
 	t.Run("keeps the namespace legacy when the owner's policy cannot be written", func(t *testing.T) {
+		t.Parallel()
 		e := setupLegacyEnrollmentE2E(t)
 		e.dropPolicies(t)
 		_, err := e.db.NewRaw("DELETE FROM memberships WHERE namespace_id = ?", e.tenantID).Exec(ctx)

@@ -44,7 +44,8 @@ func recordedMigrations(t *testing.T, ctx context.Context, db *bun.DB, table str
 	return names
 }
 
-func TestMigratorApply(t *testing.T) {
+func TestMigratorApply(t *testing.T) { //nolint:tparallel // the subtests run in order against the one database this test sets up
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProvider(ctx)
@@ -141,6 +142,7 @@ func TestMigratorApply(t *testing.T) {
 func noop(context.Context, *bun.DB) error { return nil }
 
 func TestMigratorLoad(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		files        fstest.MapFS
@@ -173,6 +175,7 @@ func TestMigratorLoad(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			_, err := migrator.Load(tc.files, tc.goMigrations...)
 			require.ErrorContains(t, err, tc.err)
 		})

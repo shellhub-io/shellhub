@@ -79,6 +79,7 @@ func (f *keyDigestFixture) apiKey(tenant, name string) *models.APIKey {
 // TestAPIKeyDigestIsGloballyUnique locks that a digest already held by one namespace cannot be
 // stored in a second, which is what lets the authenticator resolve one by digest alone.
 func TestAPIKeyDigestIsGloballyUnique(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	f := setupKeyDigest(t)
 
@@ -93,6 +94,7 @@ func TestAPIKeyDigestIsGloballyUnique(t *testing.T) {
 // TestProvisioningKeyDigestIsGloballyUnique locks the same invariant for provisioning keys, which
 // provisioningKeyTenant resolves by digest alone.
 func TestProvisioningKeyDigestIsGloballyUnique(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	f := setupKeyDigest(t)
 
@@ -114,6 +116,7 @@ func TestProvisioningKeyDigestIsGloballyUnique(t *testing.T) {
 // TestAPIKeyResolveRefusesAmbiguousDigest locks that the resolver refuses a digest matching more
 // than one row instead of picking one, with the index dropped to reach a state it otherwise forbids.
 func TestAPIKeyResolveRefusesAmbiguousDigest(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	f := setupKeyDigest(t)
 
@@ -135,6 +138,7 @@ func TestAPIKeyResolveRefusesAmbiguousDigest(t *testing.T) {
 // TestKeyDigestUniqueMigrationRevokesCollisions locks migration 023 against data that predates it:
 // both sides of a collision go, a key with an unshared digest stays, and the index is left behind.
 func TestKeyDigestUniqueMigrationRevokesCollisions(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 22)

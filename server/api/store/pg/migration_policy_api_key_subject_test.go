@@ -13,6 +13,7 @@ import (
 // check and the cascade decide: a policy naming a key is accepted only in that one form, and
 // revoking the key takes the policy with it rather than leaving a rule that can never match.
 func TestAccessPolicyAPIKeySubjectMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 30)

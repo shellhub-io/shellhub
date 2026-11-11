@@ -16,6 +16,7 @@ import (
 // too much silently revokes access; dropping too little leaves the constraint uncreatable and the
 // upgrade dead at startup.
 func TestPolicySubjectTypedColumnsMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 27)

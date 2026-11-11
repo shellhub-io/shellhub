@@ -17,6 +17,7 @@ import (
 )
 
 func TestAuthDevicePositionOnReconnect(t *testing.T) {
+	t.Parallel()
 	saoPaulo := geoip.Position{Latitude: -23.55, Longitude: -46.63}
 	lisbon := geoip.Position{Latitude: 38.72, Longitude: -9.14}
 
@@ -60,6 +61,7 @@ func TestAuthDevicePositionOnReconnect(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			t.Parallel()
 			locator := geoipmocks.NewMockLocator(t)
 			locator.EXPECT().GetPosition(mock.Anything).Return(tc.registered, nil).Once()
 			locator.EXPECT().GetPosition(mock.Anything).Return(tc.lookup, tc.lookupErr).Maybe()

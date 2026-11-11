@@ -14,6 +14,7 @@ import (
 // identity is accepted although two foreign keys on user_id remain from 016 and 028, and the
 // database itself removes what a revoked key owned.
 func TestSSHIdentityAPIKeyOwnerMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 29)

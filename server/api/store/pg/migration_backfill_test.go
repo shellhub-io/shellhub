@@ -16,6 +16,7 @@ import (
 // rejected devices while leaving pending ones open (NULL decided_status, which is what surfaces the
 // accept control), and it never touches a device that already has an event or one with no key.
 func TestInstallKeyEventBackfillMigration(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProviderAt(ctx, 13)

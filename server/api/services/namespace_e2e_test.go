@@ -14,6 +14,7 @@ import (
 )
 
 func TestCreateNamespaceConcurrentCallsRespectOwnershipLimit(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	provider, err := pgprovider.NewProvider(ctx)

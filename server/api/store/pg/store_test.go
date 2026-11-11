@@ -11,6 +11,7 @@ import (
 // TestPgStore runs all store tests against PostgreSQL
 // Each sub-suite gets a fresh database with migrations to prevent test pollution
 func TestPgStore(t *testing.T) {
+	t.Parallel()
 	for _, group := range storetest.Groups {
 		runSubSuite(t, group.Name, func(t *testing.T, suite *storetest.Suite) {
 			t.Helper()
@@ -26,6 +27,7 @@ func runSubSuite(t *testing.T, name string, testFunc func(*testing.T, *storetest
 	t.Helper()
 
 	t.Run(name, func(t *testing.T) {
+		t.Parallel()
 		ctx := context.Background()
 		provider, err := pgprovider.NewProvider(ctx)
 		if err != nil {

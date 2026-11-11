@@ -14,6 +14,7 @@ import (
 )
 
 func TestSetDeviceCustomFieldConcurrentCallsRespectTheLimit(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	e := setupEnrollmentE2E(t)
 
