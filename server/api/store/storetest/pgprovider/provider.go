@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/clock"
@@ -20,24 +21,30 @@ import (
 
 // Provider implements storetest.StoreProvider for PostgreSQL
 type Provider struct {
-	srv     *dbtest.Server
-	clock   *clock.Fixed
-	store   store.Store
-	driver  *bun.DB
-	version int
-	booted  int
-	failed  int
+	srv      *dbtest.Server
+	database string
+	clock    *clock.Fixed
+	store    store.Store
+	driver   *bun.DB
+	version  int
+	booted   int
+	failed   int
 }
 
 // NewProvider creates a provider migrated to head, reporting the version of the last migration in
-// the registry so ApplyNext and Rollback name where the database actually is.
+// the registry so ApplyNext and Rollback name where the database actually is. The provider owns a
+// database of its own on the server dbtest.Shared returns, copied from one migrated once per test
+// binary. It fails when no migration is registered, when the package's TestMain does not go through
+// dbtest.Run, when the server does not start, when the template is not created or migrated, and
+// when copying the template or connecting to the copy fails. A failed start is not retried, nor is
+// a failed template: every later call reports the same error. The other failures are not cached.
 func NewProvider(ctx context.Context) (*Provider, error) {
 	head, err := headVersion()
 	if err != nil {
 		return nil, err
 	}
 
-	provider, err := newProvider(ctx, options.Migrate())
+	provider, err := newProvider(ctx, "head", options.Migrate())
 	if err != nil {
 		return nil, err
 	}
@@ -50,9 +57,14 @@ func NewProvider(ctx context.Context) (*Provider, error) {
 
 // NewProviderAt creates a provider whose database is migrated through version and no further, so a
 // test can plant rows in the shape the migration after it will find them. It fails when no migration
-// carries that version, rather than silently migrating to head.
+// carries that version, rather than silently migrating to head. Like [NewProvider], it copies a
+// database migrated once per version, and it fails when the package's TestMain does not go through
+// dbtest.Run, when the server does not start, when the template is not created or migrated, and
+// when copying the template or connecting to the copy fails. A failed start is not retried: every
+// later call reports the same error. A failed template is not retried either: every later call for
+// that version reports the same error. The other failures are not cached.
 func NewProviderAt(ctx context.Context, version int) (*Provider, error) {
-	provider, err := newProvider(ctx, migrateThrough(version))
+	provider, err := newProvider(ctx, fmt.Sprintf("%03d", version), migrateThrough(version))
 	if err != nil {
 		return nil, err
 	}
@@ -222,43 +234,110 @@ func migrationsThrough(version int) ([]migrator.Migration, error) {
 	return nil, fmt.Errorf("no migration numbered %03d", version)
 }
 
-func newProvider(ctx context.Context, migrateOption options.Option) (*Provider, error) {
-	srv := &dbtest.Server{}
+var templates = struct {
+	mu        sync.Mutex
+	databases map[string]*template
+}{databases: map[string]*template{}}
 
-	if err := srv.Up(ctx); err != nil {
+type template struct {
+	once sync.Once
+	name string
+	err  error
+}
+
+func templateFor(ctx context.Context, srv *dbtest.Server, key string, migrateOption options.Option) (string, error) {
+	templates.mu.Lock()
+	tmpl, ok := templates.databases[key]
+	if !ok {
+		tmpl = &template{}
+		templates.databases[key] = tmpl
+	}
+	templates.mu.Unlock()
+
+	tmpl.once.Do(func() {
+		tmpl.name, tmpl.err = migrateTemplate(ctx, srv, migrateOption)
+	})
+
+	return tmpl.name, tmpl.err
+}
+
+func migrateTemplate(ctx context.Context, srv *dbtest.Server, migrateOption options.Option) (string, error) {
+	name, err := srv.CreateDatabase(ctx, "")
+	if err != nil {
+		return "", err
+	}
+
+	connString, err := srv.DatabaseURL(ctx, name)
+	if err != nil {
+		return "", err
+	}
+
+	st, err := pg.New(ctx, connString, migrateOption)
+	if err != nil {
+		return "", err
+	}
+
+	pgStore, ok := st.(*pg.Pg)
+	if !ok {
+		return "", errors.New("store is not backed by postgres")
+	}
+
+	if err := pgStore.Driver().Close(); err != nil {
+		return "", err
+	}
+
+	if err := srv.SealTemplate(ctx, name); err != nil {
+		return "", err
+	}
+
+	return name, nil
+}
+
+func newProvider(ctx context.Context, templateKey string, migrateOption options.Option) (*Provider, error) {
+	srv, err := dbtest.Shared(ctx)
+	if err != nil {
 		return nil, err
 	}
 
-	connString, err := srv.ConnectionString(ctx)
+	tmpl, err := templateFor(ctx, srv, templateKey, migrateOption)
 	if err != nil {
-		_ = srv.Down(ctx)
+		return nil, err
+	}
+
+	database, err := srv.CreateDatabase(ctx, tmpl)
+	if err != nil {
+		return nil, err
+	}
+
+	connString, err := srv.DatabaseURL(ctx, database)
+	if err != nil {
+		_ = srv.DropDatabase(ctx, database)
 
 		return nil, err
 	}
 
 	fixed := clock.NewFixed(clock.New().Now())
 
-	st, err := pg.New(ctx, connString, migrateOption, options.WithClock(fixed))
+	st, err := pg.New(ctx, connString, options.WithClock(fixed))
 	if err != nil {
-		_ = srv.Down(ctx)
+		_ = srv.DropDatabase(ctx, database)
 
 		return nil, err
 	}
 
 	pgStore, ok := st.(*pg.Pg)
 	if !ok {
-		_ = srv.Down(ctx)
+		_ = srv.DropDatabase(ctx, database)
 
 		return nil, errors.New("store is not backed by postgres")
 	}
 
-	driver := pgStore.Driver()
-
 	return &Provider{
-		srv:    srv,
-		clock:  fixed,
-		store:  st,
-		driver: driver,
+		srv:      srv,
+		database: database,
+		clock:    fixed,
+		store:    st,
+		driver:   pgStore.Driver(),
 	}, nil
 }
 
@@ -310,10 +389,11 @@ func (p *Provider) CleanDatabase(t *testing.T) error {
 	return nil
 }
 
-// Close closes the PostgreSQL connection and stops the container
+// Close drops the provider's database, ending the sessions its store still holds, and returns the
+// error dbtest's DropDatabase reports. The server the package's tests share keeps running until
+// dbtest.Run terminates it.
 func (p *Provider) Close(t *testing.T) error {
 	t.Helper()
-	ctx := context.Background()
 
-	return p.srv.Down(ctx)
+	return p.srv.DropDatabase(context.Background(), p.database)
 }

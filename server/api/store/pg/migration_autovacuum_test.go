@@ -15,9 +15,11 @@ import (
 func TestSessionAutovacuumThresholds(t *testing.T) {
 	ctx := context.Background()
 
-	provider, err := pgprovider.NewProvider(ctx)
+	provider, err := pgprovider.NewProviderAt(ctx, 18)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = provider.Close(t) })
+
+	require.NoError(t, provider.ApplyNext(ctx))
 
 	for _, table := range []string{"sessions", "session_events"} {
 		t.Run(table, func(t *testing.T) {
