@@ -166,15 +166,6 @@ func TestGetNamespace(t *testing.T) {
 				},
 			},
 		},
-		{
-			title: "fails when the caller is no longer a member of the namespace",
-			uid:   "456",
-			req:   "00000000-0000-4000-0000-000000000000",
-			requiredMocks: func() {
-				mock.On("GetNamespace", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "00000000-0000-4000-0000-000000000000").Return(memberOf123, nil).Once()
-			},
-			expected: Expected{expectedStatus: http.StatusForbidden},
-		},
 	}
 
 	for _, tc := range cases {

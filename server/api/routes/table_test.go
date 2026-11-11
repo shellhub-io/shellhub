@@ -12,13 +12,17 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
+	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway/gatewaytest"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	serviceMocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,6 +35,8 @@ var (
 	pathCode        = routetable.PathCode.String()
 	namespaceMember = routetable.NamespaceMember.String()
 	permission      = routetable.Requires(authorizer.DeviceRename).String()
+	deviceToken     = routetable.DeviceToken.String()
+	anonymous       = routetable.Anonymous.String()
 )
 
 func tableFor(t *testing.T, edition envs.Edition) []routetable.Route {
@@ -62,19 +68,36 @@ func duplicateAddresses(table []routetable.Route) []string {
 	return found
 }
 
-func mountedWithRecordingEndpoints(t *testing.T, table []routetable.Route, recording gateway.Endpoint) *echo.Echo {
+func mountedWithRecordingEndpoints(t *testing.T, table []routetable.Route, authn *routesmiddleware.Authenticator, reached *bool) *echo.Echo {
 	t.Helper()
 
 	for i := range table {
-		table[i].Endpoint = recording
+		table[i].Endpoint = gatewaytest.Recording(table[i].Endpoint.Caller(), reached)
 	}
 
 	router := echo.New()
+	router.Binder = handlers.NewBinder()
+	router.Validator = handlers.NewValidator()
 	router.HTTPErrorHandler = handlers.NewErrors(nil)
 	router.Use(gateway.WithContext())
-	require.NoError(t, routetable.Mount(router.Group(publicAPIPrefix), nil, table))
+
+	if authn != nil {
+		router.Use(authn.Middleware)
+	}
+
+	require.NoError(t, routetable.Mount(router.Group(publicAPIPrefix), authn, table))
 
 	return router
+}
+
+func targetOf(r routetable.Route, tenant string) string {
+	return publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
+		if param[1:] == ParamNamespaceTenant {
+			return tenant
+		}
+
+		return "placeholder"
+	})
 }
 
 func TestEveryRouteStatesItsAccess(t *testing.T) {
@@ -164,6 +187,21 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 			},
 			caller: identity.Identity{ID: "user-id"},
 		},
+		{
+			description: "a user token on a device-token route",
+			applies: func(r routetable.Route) bool {
+				return r.Access.String() == deviceToken
+			},
+			caller: identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner},
+		},
+		{
+			description: "an API key on a route whose handler takes a member",
+			applies: func(r routetable.Route) bool {
+				return r.Endpoint.Caller() == gateway.CallerMember
+			},
+			headers: map[string]string{"X-API-Key": "key"},
+			caller:  identity.Identity{APIKey: "key", TenantID: tenant, Role: authorizer.RoleOwner},
+		},
 	}
 
 	for _, tc := range cases {
@@ -172,16 +210,9 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 
 			for _, edition := range editions {
 				var reached bool
-				recording := func(gateway.Claims) echo.HandlerFunc {
-					return func(*echo.Context) error {
-						reached = true
-
-						return nil
-					}
-				}
 
 				table := tableFor(t, edition)
-				router := mountedWithRecordingEndpoints(t, table, recording)
+				router := mountedWithRecordingEndpoints(t, table, nil, &reached)
 
 				for _, r := range table {
 					if !tc.applies(r) {
@@ -191,19 +222,12 @@ func TestEveryGuardedRouteRefusesBeforeItsHandler(t *testing.T) {
 					covered++
 					reached = false
 
-					target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
-						if param[1:] == ParamNamespaceTenant {
-							if tc.pathTenant != "" {
-								return tc.pathTenant
-							}
+					pathTenant := tenant
+					if tc.pathTenant != "" {
+						pathTenant = tc.pathTenant
+					}
 
-							return tenant
-						}
-
-						return "placeholder"
-					})
-
-					req := httptest.NewRequestWithContext(t.Context(), r.Method, target, nil)
+					req := httptest.NewRequestWithContext(t.Context(), r.Method, targetOf(r, pathTenant), nil)
 					for name, value := range tc.headers {
 						req.Header.Set(name, value)
 					}
@@ -252,16 +276,9 @@ func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *test
 
 	for _, edition := range editions {
 		var reached bool
-		recording := func(gateway.Claims) echo.HandlerFunc {
-			return func(c *echo.Context) error {
-				reached = true
-
-				return c.NoContent(http.StatusOK)
-			}
-		}
 
 		table := tableFor(t, edition)
-		router := mountedWithRecordingEndpoints(t, table, recording)
+		router := mountedWithRecordingEndpoints(t, table, nil, &reached)
 
 		for _, r := range table {
 			if r.Access.String() != ownAccount || !namesTheTenant(r) {
@@ -271,21 +288,56 @@ func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *test
 			covered++
 			reached = false
 
-			target := publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
-				if param[1:] == ParamNamespaceTenant {
-					return otherTenant
-				}
-
-				return "placeholder"
-			})
-
-			req := httptest.NewRequestWithContext(t.Context(), r.Method, target, nil)
+			req := httptest.NewRequestWithContext(t.Context(), r.Method, targetOf(r, otherTenant), nil)
 			req = identitytest.As(req, identity.Identity{ID: "user-id", TenantID: tenant, Role: authorizer.RoleOwner})
 
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 
 			assert.True(t, reached, "%s: %s %s answered %d", edition, r.Method, r.Path, rec.Code)
+		}
+	}
+
+	assert.NotZero(t, covered)
+}
+
+func TestEveryRouteButADeviceRouteRefusesADevice(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	privateKey, err := testSigningKey()
+	require.NoError(t, err)
+
+	bearer, err := jwttoken.EncodeDeviceClaims(authorizer.DeviceClaims{UID: "device", TenantID: tenant}, "http://localhost", privateKey, clock.New().Now())
+	require.NoError(t, err)
+
+	var covered int
+
+	for _, edition := range editions {
+		service := serviceMocks.NewMockService(t)
+		service.On("PublicKey").Return(&privateKey.PublicKey).Maybe()
+		service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(nil).Maybe()
+
+		var reached bool
+
+		table := tableFor(t, edition)
+		router := mountedWithRecordingEndpoints(t, table, routesmiddleware.NewAuthenticator(service), &reached)
+
+		for _, r := range table {
+			if access := r.Access.String(); access == deviceToken || access == anonymous {
+				continue
+			}
+
+			covered++
+			reached = false
+
+			req := httptest.NewRequestWithContext(t.Context(), r.Method, targetOf(r, tenant), nil)
+			req.Header.Set("Authorization", "Bearer "+bearer)
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.False(t, reached, "%s: %s %s reached its handler", edition, r.Method, r.Path)
+			assert.Equal(t, http.StatusForbidden, rec.Code, "%s: %s %s", edition, r.Method, r.Path)
 		}
 	}
 

@@ -26,7 +26,7 @@ func (h *Handler) publicRoutes() []routetable.Route {
 
 		{Method: http.MethodPost, Path: CreateAPIKeyURL, Endpoint: gateway.Legacy(h.CreateAPIKey), Access: routetable.Requires(authorizer.APIKeyCreate), NoAPIKey: true},
 		{Method: http.MethodGet, Path: ListAPIKeysURL, Endpoint: gateway.Legacy(h.ListAPIKeys), Access: routetable.NamespaceMember, NoAPIKey: true},
-		{Method: http.MethodPatch, Path: UpdateAPIKeyURL, Endpoint: gateway.None(h.UpdateAPIKey), Access: routetable.Requires(authorizer.APIKeyUpdate), NoAPIKey: true},
+		{Method: http.MethodPatch, Path: UpdateAPIKeyURL, Endpoint: gateway.None(h.UpdateAPIKey), Access: routetable.Requires(authorizer.APIKeyUpdate)},
 		{Method: http.MethodDelete, Path: DeleteAPIKeyURL, Endpoint: gateway.Legacy(h.DeleteAPIKey), Access: routetable.Requires(authorizer.APIKeyDelete), NoAPIKey: true},
 		{Method: http.MethodPost, Path: CreateAPIKeySSHIdentityURL, Endpoint: gateway.Legacy(h.CreateAPIKeySSHIdentity), Access: routetable.Requires(authorizer.SSHIdentityManage)},
 		{Method: http.MethodGet, Path: ListAPIKeySSHIdentitiesURL, Endpoint: gateway.Legacy(h.ListAPIKeySSHIdentities), Access: routetable.Requires(authorizer.SSHIdentityManage)},
@@ -45,7 +45,7 @@ func (h *Handler) publicRoutes() []routetable.Route {
 
 		{Method: http.MethodPost, Path: RegisterUserURL, Endpoint: gateway.Legacy(h.RegisterUser), Access: routetable.Anonymous},
 		{Method: http.MethodGet, Path: URLResolveInvitation, Endpoint: gateway.Legacy(h.ResolveInvitation), Access: routetable.Anonymous},
-		{Method: http.MethodPost, Path: URLGenerateInvitationLink, Endpoint: gateway.One(h.GenerateInvitationLink), Access: routetable.Requires(authorizer.NamespaceAddMember), NoAPIKey: true},
+		{Method: http.MethodPost, Path: URLGenerateInvitationLink, Endpoint: gateway.One(h.GenerateInvitationLink), Access: routetable.Requires(authorizer.NamespaceAddMember)},
 		{Method: http.MethodPatch, Path: URLAcceptInvite, Endpoint: gateway.Legacy(h.AcceptInvite), Access: routetable.OwnAccount},
 		{Method: http.MethodGet, Path: URLUserMembershipInvitationList, Endpoint: gateway.Legacy(h.GetUserMembershipInvitationList), Access: routetable.OwnAccount},
 		{Method: http.MethodGet, Path: URLNamespaceMembershipInvitationList, Endpoint: gateway.Legacy(h.GetNamespaceMembershipInvitationList), Access: routetable.Requires(authorizer.NamespaceEditMember)},
@@ -114,7 +114,7 @@ func (h *Handler) publicRoutes() []routetable.Route {
 		{Method: http.MethodDelete, Path: LeaveNamespaceURL, Endpoint: gateway.Legacy(h.LeaveNamespace), Access: routetable.OwnAccount},
 
 		{Method: http.MethodPut, Path: EditSessionRecordStatusURL, Endpoint: gateway.None(h.EditSessionRecordStatus), Access: routetable.Requires(authorizer.NamespaceEnableSessionRecord)},
-		{Method: http.MethodPost, Path: UpgradeNamespaceURL, Endpoint: gateway.None(h.UpgradeNamespace), Access: routetable.Requires(authorizer.NamespaceUpdate), NoAPIKey: true},
+		{Method: http.MethodPost, Path: UpgradeNamespaceURL, Endpoint: gateway.None(h.UpgradeNamespace), Access: routetable.Requires(authorizer.NamespaceUpdate)},
 
 		{Method: http.MethodGet, Path: ListAccessPoliciesURL, Endpoint: gateway.Legacy(h.ListAccessPolicies), Access: routetable.Requires(authorizer.AccessPolicyManage)},
 		{Method: http.MethodPost, Path: CreateAccessPolicyURL, Endpoint: gateway.Legacy(h.CreateAccessPolicy), Access: routetable.Requires(authorizer.AccessPolicyManage)},

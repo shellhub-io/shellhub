@@ -19,7 +19,7 @@ const (
 
 // GetStats serves the device and session counts of the namespace the request is scoped to. It
 // returns the store's error when the counts cannot be read.
-func (h *Handler) GetStats(ctx context.Context, sc scope.Scope, _ gateway.Actor, _ *struct{}) (*models.Stats, error) {
+func (h *Handler) GetStats(ctx context.Context, sc scope.Scope, _ gateway.Principal, _ *struct{}) (*models.Stats, error) {
 	return h.service.GetStats(ctx, sc)
 }
 

@@ -187,7 +187,13 @@ func nextDevicePageURL(c *gateway.Context, params url.Values, size int64, cursor
 // GetDevice returns the device with req's UID within sc. It returns [services.ErrDeviceNotFound]
 // when the read fails for any reason: a device that does not exist or lies outside sc, a store
 // failure and a cancelled ctx alike.
-func (h *Handler) GetDevice(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.DeviceGet) (*models.Device, error) {
+func (h *Handler) GetDevice(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.DeviceGet) (*models.Device, error) {
+	return h.service.GetDevice(ctx, sc, models.UID(req.UID))
+}
+
+// GetDeviceAsAdmin returns the device with req's UID in any namespace to an instance administrator,
+// sc spanning every namespace. It returns [services.ErrDeviceNotFound] as [Handler.GetDevice] does.
+func (h *Handler) GetDeviceAsAdmin(ctx context.Context, sc scope.Scope, _ gateway.Admin, req *requests.DeviceGet) (*models.Device, error) {
 	return h.service.GetDevice(ctx, sc, models.UID(req.UID))
 }
 
