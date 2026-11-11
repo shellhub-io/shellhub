@@ -547,7 +547,7 @@ describe("authStore", () => {
     it("sets error on invalid recovery code", async () => {
       server.use(
         http.post("*/api/user/mfa/recover", () =>
-          HttpResponse.json({}, { status: 401 }),
+          HttpResponse.json({}, { status: 403 }),
         ),
       );
 

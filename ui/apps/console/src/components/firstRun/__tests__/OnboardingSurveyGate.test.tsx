@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, beforeEach, onTestFinished, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { delay, http, HttpResponse } from "msw";
@@ -291,6 +291,10 @@ describe("OnboardingSurveyGate", () => {
         () => new HttpResponse(null, { status: 500 }),
       ),
     );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    onTestFinished(() => consoleError.mockRestore());
     const user = userEvent.setup();
     renderGate();
 
@@ -299,6 +303,7 @@ describe("OnboardingSurveyGate", () => {
     );
 
     expect(await screen.findByText("The devices page")).toBeInTheDocument();
+    await waitFor(() => expect(consoleError).toHaveBeenCalled());
   });
 
   it("lets a pending user through, recording nothing, when no survey is configured", async () => {

@@ -10,10 +10,6 @@ import { useTerminalStore, type TerminalSession } from "@/stores/terminalStore";
 import { useRecordingsStore } from "@/stores/recordingsStore";
 import { WS_KIND } from "../terminalErrors";
 
-vi.mock("@xterm/xterm", () => ({ Terminal: buildXtermFake() }));
-vi.mock("@xterm/addon-fit", () => ({ FitAddon: buildXtermFake() }));
-vi.mock("@xterm/addon-web-links", () => ({ WebLinksAddon: buildXtermFake() }));
-vi.mock("@xterm/addon-webgl", () => ({ WebglAddon: buildXtermFake() }));
 const recorderCreation = vi.hoisted(() => ({
   created: Promise.resolve<unknown>(undefined),
   finish: (_: unknown) => {},
@@ -24,22 +20,6 @@ vi.mock("@/utils/recordings", async (importOriginal) => ({
   OpfsCastRecorder: { create: () => recorderCreation.created },
   listRecordings: vi.fn(async () => []),
 }));
-
-function buildXtermFake() {
-  return class {
-    cols = 80;
-    rows = 24;
-    options = {};
-    constructor() {
-      return new Proxy(this, {
-        get: (target, key) =>
-          key in target
-            ? target[key as keyof typeof target]
-            : () => ({ dispose: () => {} }),
-      });
-    }
-  };
-}
 
 class FakeWebSocket {
   static readonly OPEN = 1;

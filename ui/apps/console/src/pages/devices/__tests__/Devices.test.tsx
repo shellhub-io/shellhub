@@ -14,6 +14,7 @@ import {
   mockStats,
   mockTag,
 } from "@/tests/factories";
+import { connectDialogHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import TerminalManager from "@/components/terminal/TerminalManager";
@@ -219,7 +220,7 @@ describe("Devices list", () => {
 
   it("opens the connect dialog from a row's Connect", async () => {
     const user = userEvent.setup();
-    server.use(http.get("*/api/ssh-identities", () => HttpResponse.json([])));
+    server.use(...connectDialogHandlers);
     setDevices([mockDevice({ name: "edge-1", online: true })], 1);
     render(
       <>
