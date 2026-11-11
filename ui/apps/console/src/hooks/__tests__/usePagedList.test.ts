@@ -525,8 +525,10 @@ describe("usePagedList — query", () => {
     });
 
     expect(result.current.params.page).toBe(3);
-    await waitFor(() => expect(result.current.params.page).toBe(2));
-    expect(result.current.totalPages).toBe(2);
+    await waitFor(() => {
+      expect(result.current.params.page).toBe(2);
+      expect(result.current.totalPages).toBe(2);
+    });
   });
 
   it("waits for a refetch before moving off a page the cache counts out", async () => {
@@ -561,7 +563,9 @@ describe("usePagedList — query", () => {
       initialEntries: ["/?page=2"],
     });
 
-    await waitFor(() => expect(result.current.error).toMatchObject({ status: 500 }));
+    await waitFor(() =>
+      expect(result.current.error).toMatchObject({ status: 500 }),
+    );
     expect(result.current.params.page).toBe(2);
     expect(result.current.rows).toEqual([]);
   });
