@@ -416,7 +416,7 @@ func waitForPairing(parent context.Context, ag *agentd.Agent, cfg *agentd.Config
 	log.Infof("To pair it, open %s/accept-device and enter code %s", base, formatPairingCode(pairing.Code))
 	log.Infof("Or open the link directly: %s", url)
 	status := pairingStatus(ag, tenantFile, pairing.Code)
-	log.Infof("Waiting for acceptance... (%s)", agentd.PairingWaitNote(pairing.ExpiresIn, status))
+	log.Infof("Waiting for acceptance... (%s)", agentd.PairingWaitNote(ctx, pairing.ExpiresIn, status))
 
 	tenant, err := agentd.AwaitPairing(ctx, clock.New(), 3*time.Second, pairing.ExpiresIn, status)
 	switch {
@@ -474,7 +474,7 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 
 	printPairingInstructions(cmd, cfg.ServerAddress, pairing.Code)
 	status := pairingStatus(ag, tenantFile, pairing.Code)
-	cmd.Printf("Waiting for acceptance... (%s)\n", agentd.PairingWaitNote(pairing.ExpiresIn, status))
+	cmd.Printf("Waiting for acceptance... (%s)\n", agentd.PairingWaitNote(cmd.Context(), pairing.ExpiresIn, status))
 
 	tenant, err := agentd.AwaitPairing(cmd.Context(), clock.New(), 3*time.Second, pairing.ExpiresIn, status)
 	switch {
@@ -492,8 +492,8 @@ func pairingLogin(cmd *cobra.Command, cfg *agentd.Config) {
 	cmd.Println("✓ Device accepted. The agent will connect automatically.")
 }
 
-func pairingStatus(ag *agentd.Agent, tenantFile, code string) func() (*models.DevicePairingStatus, error) {
-	return func() (*models.DevicePairingStatus, error) {
+func pairingStatus(ag *agentd.Agent, tenantFile, code string) func(context.Context) (*models.DevicePairingStatus, error) {
+	return func(context.Context) (*models.DevicePairingStatus, error) {
 		if tenant, err := agentd.ReadPersistedTenant(tenantFile); err == nil && tenant != "" {
 			return &models.DevicePairingStatus{Status: models.DeviceStatusAccepted, TenantID: tenant}, nil
 		}
