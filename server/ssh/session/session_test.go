@@ -352,6 +352,28 @@ func TestEvaluate(t *testing.T) {
 	}
 }
 
+func TestEvaluateHandsTheFirewallBothTheClientAndTheDeviceAddress(t *testing.T) {
+	serviceMock := servicemocks.NewMockService(t)
+	serviceMock.EXPECT().EvaluateLicense(mock.Anything).Return(nil).Once()
+	serviceMock.EXPECT().
+		EvaluateFirewall(mock.Anything, models.FirewallConnection{
+			Namespace:       "namespace",
+			Hostname:        "device",
+			Username:        "user",
+			IPAddress:       "127.0.0.1",
+			DeviceIPAddress: "198.51.100.20",
+		}).
+		Return(nil).
+		Once()
+
+	sess := newTestSession(serviceMock, nil)
+	sess.edition = envs.Enterprise
+	sess.Namespace.Settings = &models.NamespaceSettings{Legacy: true}
+	sess.Device.RemoteAddr = "198.51.100.20"
+
+	require.NoError(t, sess.Evaluate(newStubContext()))
+}
+
 func TestFirstForwardToAnswersTrueOncePerDestination(t *testing.T) {
 	sess := new(Session)
 

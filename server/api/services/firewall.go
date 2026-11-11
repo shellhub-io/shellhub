@@ -37,7 +37,10 @@ func FirewallEvaluatorFactory() FirewallEvaluatorFactoryFunc {
 type FirewallEvaluator interface {
 	// AllowsConnection returns nil when the connection may proceed,
 	// ErrFirewallBlocked when a rule, a licensed region or a licensed device limit
-	// denies it, and any other error when the evaluation itself failed.
+	// denies it, and any other error when the evaluation itself failed. Rules match
+	// conn.IPAddress, the client's address; the licensed regions apply to
+	// conn.DeviceIPAddress, the address the device's agent last authenticated from,
+	// and a device whose country cannot be resolved is let through.
 	AllowsConnection(ctx context.Context, conn models.FirewallConnection) error
 }
 

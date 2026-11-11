@@ -415,10 +415,11 @@ func (s *Session) NewClientChannel(newChannel gossh.NewChannel, seat int) (*Clie
 
 func (s *Session) checkFirewall(ctx context.Context) error {
 	err := s.service.EvaluateFirewall(ctx, models.FirewallConnection{
-		Namespace: s.Namespace.Name,
-		Hostname:  s.Device.Name,
-		Username:  s.Target.Username,
-		IPAddress: s.IPAddress,
+		Namespace:       s.Namespace.Name,
+		Hostname:        s.Device.Name,
+		Username:        s.Target.Username,
+		IPAddress:       s.IPAddress,
+		DeviceIPAddress: s.Device.RemoteAddr,
 	})
 	if err == nil {
 		return nil
