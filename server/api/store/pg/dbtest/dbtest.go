@@ -47,15 +47,5 @@ func (srv *Server) Down(ctx context.Context) error {
 // ConnectionString returns the DSN for the container, reading the host port [Server.Up] bound
 // 5432 to back from the running container.
 func (srv *Server) ConnectionString(ctx context.Context) (string, error) {
-	host, err := srv.container.Host(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	port, err := srv.container.MappedPort(ctx, "5432")
-	if err != nil {
-		return "", err
-	}
-
-	return "postgres://postgres:postgres@" + host + ":" + port.Port() + "/test?sslmode=disable", nil
+	return srv.DatabaseURL(ctx, "test")
 }
