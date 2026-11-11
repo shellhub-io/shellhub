@@ -16,11 +16,18 @@ permissions:
   contents: read
 
 jobs:
-  validate:
-    name: validate
+  changes:
+    name: changes
     if: ${{ github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
+
+    outputs:
+      console: ${{ steps.changes.outputs.console }}
+      docs: ${{ steps.changes.outputs.docs }}
+      website: ${{ steps.changes.outputs.website }}
+      design-system: ${{ steps.changes.outputs.design-system }}
+      ui: ${{ steps.changes.outputs.ui }}
 
     steps:
       - name: Check out code
@@ -40,6 +47,7 @@ jobs:
               - 'ui/eslint.config.js'
               - 'openapi/spec/**'
               - '.github/workflows/validate-ui.yml'
+              - '.github/actions/ui-setup/**'
             docs:
               - 'ui/apps/docs/**'
               - 'ui/packages/**'
@@ -48,6 +56,7 @@ jobs:
               - 'ui/eslint.config.js'
               - 'ui/scripts/install-vale.sh'
               - '.github/workflows/validate-ui.yml'
+              - '.github/actions/ui-setup/**'
             website:
               - 'ui/apps/website/**'
               - 'ui/packages/**'
@@ -55,106 +64,192 @@ jobs:
               - 'ui/package-lock.json'
               - 'ui/eslint.config.js'
               - '.github/workflows/validate-ui.yml'
+              - '.github/actions/ui-setup/**'
             design-system:
               - 'ui/packages/design-system/**'
               - '.github/workflows/validate-ui.yml'
+              - '.github/actions/ui-setup/**'
             ui:
               - 'ui/**'
               - 'openapi/spec/**'
               - '.github/workflows/validate-ui.yml'
+              - '.github/actions/ui-setup/**'
 
-      - name: Set up Node.js
-        if: steps.changes.outputs.ui == 'true'
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+  console-test:
+    name: console test (${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: [changes]
+    if: needs.changes.outputs.console == 'true'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: "24.22.1"
+          persist-credentials: false
 
-      - name: Install Node dependencies
-        if: steps.changes.outputs.ui == 'true'
-        id: install
-        uses: ./.github/actions/ui-deps
-
-      - name: Generate OpenAPI client
-        if: steps.install.outcome == 'success'
-        working-directory: ui
-        run: |
-          npx --no redocly bundle ../openapi/spec/openapi.yaml -o /tmp/openapi.json --force
-          OPENAPI_SPEC_PATH=/tmp/openapi.json npm run generate -w @shellhub/console
-
-      - name: Unused files, exports and dependencies
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        working-directory: ui
-        run: npm run knip
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+        with:
+          generate-client: true
 
       - name: Unit test console
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
         working-directory: ui
-        run: npm run test -w @shellhub/console
+        env:
+          SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
+        run: npm run test -w @shellhub/console -- --shard="$SHARD"
+
+  console-lint:
+    name: console lint
+    needs: [changes]
+    if: needs.changes.outputs.console == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+        with:
+          generate-client: true
 
       - name: Lint console
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
         working-directory: ui
         run: npm run lint -w @shellhub/console
 
+  console-build:
+    name: console build and knip
+    needs: [changes]
+    if: needs.changes.outputs.ui == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+        with:
+          generate-client: true
+
+      - name: Unused files, exports and dependencies
+        working-directory: ui
+        run: npm run knip
+
       - name: Build console
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.console == 'true' }}
+        if: ${{ !cancelled() && needs.changes.outputs.console == 'true' }}
         working-directory: ui
         run: npm run build -w @shellhub/console
 
+  docs:
+    name: docs
+    needs: [changes]
+    if: needs.changes.outputs.docs == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+
       - name: Astro sync docs
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
         working-directory: ui
         run: npm run sync -w @shellhub/docs
 
       - name: Install Vale
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
         run: |
           ./ui/scripts/install-vale.sh "$RUNNER_TEMP/bin"
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Unit test docs
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
         working-directory: ui
         run: npm run test -w @shellhub/docs
 
       - name: Lint docs
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        if: ${{ !cancelled() }}
         working-directory: ui
         run: npm run lint -w @shellhub/docs
 
       - name: Build docs
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.docs == 'true' }}
+        if: ${{ !cancelled() }}
         working-directory: ui
         run: npm run build -w @shellhub/docs
 
+  website:
+    name: website
+    needs: [changes]
+    if: needs.changes.outputs.website == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+
       - name: Unit test website
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
         working-directory: ui
         run: npm run test -w @shellhub/website
 
       - name: Lint website
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
+        if: ${{ !cancelled() }}
         working-directory: ui
         run: npm run lint -w @shellhub/website
 
       - name: Build website
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.website == 'true' }}
+        if: ${{ !cancelled() }}
         working-directory: ui
         run: npm run build -w @shellhub/website
 
+  design-system:
+    name: design-system
+    needs: [changes]
+    if: needs.changes.outputs.design-system == 'true'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up the UI workspace
+        uses: ./.github/actions/ui-setup
+
       - name: Unit test design-system
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.design-system == 'true' }}
         working-directory: ui
         run: npm run test -w @shellhub/design-system
 
       - name: Lint design-system
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.changes.outputs.design-system == 'true' }}
+        if: ${{ !cancelled() }}
         working-directory: ui
         run: npm run lint -w @shellhub/design-system
 
   ui:
     name: ui
-    needs: [validate]
+    needs: [changes, console-test, console-lint, console-build, docs, website, design-system]
     if: ${{ !cancelled() && github.event.pull_request.draft == false }}
 
     runs-on: ubuntu-latest
