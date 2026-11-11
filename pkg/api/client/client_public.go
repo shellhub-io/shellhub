@@ -148,25 +148,27 @@ func (c *client) CreateDeviceLoginCode(token string) (*models.DeviceLoginCode, e
 	return responseResult(res, response, err)
 }
 
-func (c *client) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
+func (c *client) CreateDevicePairing(ctx context.Context, req *models.DevicePairingRequest) (*models.DevicePairing, error) {
 	var res *models.DevicePairing
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		SetBody(req).
 		SetResult(&res).
 		Post("/api/devices/pairing")
 
-	return responseResult(res, response, err)
+	return responseResultUntil(ctx, res, response, err)
 }
 
-func (c *client) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
+func (c *client) GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
 	var res *models.DevicePairingStatus
 
 	response, err := c.http.R().
+		SetContext(ctx).
 		SetResult(&res).
 		Get("/api/devices/pairing/" + code + "/status")
 
-	return responseResult(res, response, err)
+	return responseResultUntil(ctx, res, response, err)
 }
 
 func (c *client) GetDeviceAuthStatus(token string) (*models.DeviceAuthStatus, error) {

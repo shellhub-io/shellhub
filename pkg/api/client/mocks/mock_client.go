@@ -255,8 +255,8 @@ func (_c *MockClient_CreateDeviceLoginCode_Call) RunAndReturn(run func(token str
 }
 
 // CreateDevicePairing provides a mock function for the type MockClient
-func (_mock *MockClient) CreateDevicePairing(req *models.DevicePairingRequest) (*models.DevicePairing, error) {
-	ret := _mock.Called(req)
+func (_mock *MockClient) CreateDevicePairing(ctx context.Context, req *models.DevicePairingRequest) (*models.DevicePairing, error) {
+	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateDevicePairing")
@@ -264,18 +264,18 @@ func (_mock *MockClient) CreateDevicePairing(req *models.DevicePairingRequest) (
 
 	var r0 *models.DevicePairing
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*models.DevicePairingRequest) (*models.DevicePairing, error)); ok {
-		return returnFunc(req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DevicePairingRequest) (*models.DevicePairing, error)); ok {
+		return returnFunc(ctx, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*models.DevicePairingRequest) *models.DevicePairing); ok {
-		r0 = returnFunc(req)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.DevicePairingRequest) *models.DevicePairing); ok {
+		r0 = returnFunc(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DevicePairing)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(*models.DevicePairingRequest) error); ok {
-		r1 = returnFunc(req)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.DevicePairingRequest) error); ok {
+		r1 = returnFunc(ctx, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -288,19 +288,25 @@ type MockClient_CreateDevicePairing_Call struct {
 }
 
 // CreateDevicePairing is a helper method to define mock.On call
+//   - ctx context.Context
 //   - req *models.DevicePairingRequest
-func (_e *MockClient_Expecter) CreateDevicePairing(req any) *MockClient_CreateDevicePairing_Call {
-	return &MockClient_CreateDevicePairing_Call{Call: _e.mock.On("CreateDevicePairing", req)}
+func (_e *MockClient_Expecter) CreateDevicePairing(ctx any, req any) *MockClient_CreateDevicePairing_Call {
+	return &MockClient_CreateDevicePairing_Call{Call: _e.mock.On("CreateDevicePairing", ctx, req)}
 }
 
-func (_c *MockClient_CreateDevicePairing_Call) Run(run func(req *models.DevicePairingRequest)) *MockClient_CreateDevicePairing_Call {
+func (_c *MockClient_CreateDevicePairing_Call) Run(run func(ctx context.Context, req *models.DevicePairingRequest)) *MockClient_CreateDevicePairing_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 *models.DevicePairingRequest
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(*models.DevicePairingRequest)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *models.DevicePairingRequest
+		if args[1] != nil {
+			arg1 = args[1].(*models.DevicePairingRequest)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -311,7 +317,7 @@ func (_c *MockClient_CreateDevicePairing_Call) Return(devicePairing *models.Devi
 	return _c
 }
 
-func (_c *MockClient_CreateDevicePairing_Call) RunAndReturn(run func(req *models.DevicePairingRequest) (*models.DevicePairing, error)) *MockClient_CreateDevicePairing_Call {
+func (_c *MockClient_CreateDevicePairing_Call) RunAndReturn(run func(ctx context.Context, req *models.DevicePairingRequest) (*models.DevicePairing, error)) *MockClient_CreateDevicePairing_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -379,8 +385,8 @@ func (_c *MockClient_GetDeviceAuthStatus_Call) RunAndReturn(run func(token strin
 }
 
 // GetDevicePairingStatus provides a mock function for the type MockClient
-func (_mock *MockClient) GetDevicePairingStatus(code string) (*models.DevicePairingStatus, error) {
-	ret := _mock.Called(code)
+func (_mock *MockClient) GetDevicePairingStatus(ctx context.Context, code string) (*models.DevicePairingStatus, error) {
+	ret := _mock.Called(ctx, code)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDevicePairingStatus")
@@ -388,18 +394,18 @@ func (_mock *MockClient) GetDevicePairingStatus(code string) (*models.DevicePair
 
 	var r0 *models.DevicePairingStatus
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (*models.DevicePairingStatus, error)); ok {
-		return returnFunc(code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*models.DevicePairingStatus, error)); ok {
+		return returnFunc(ctx, code)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) *models.DevicePairingStatus); ok {
-		r0 = returnFunc(code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *models.DevicePairingStatus); ok {
+		r0 = returnFunc(ctx, code)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.DevicePairingStatus)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(code)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, code)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -412,19 +418,25 @@ type MockClient_GetDevicePairingStatus_Call struct {
 }
 
 // GetDevicePairingStatus is a helper method to define mock.On call
+//   - ctx context.Context
 //   - code string
-func (_e *MockClient_Expecter) GetDevicePairingStatus(code any) *MockClient_GetDevicePairingStatus_Call {
-	return &MockClient_GetDevicePairingStatus_Call{Call: _e.mock.On("GetDevicePairingStatus", code)}
+func (_e *MockClient_Expecter) GetDevicePairingStatus(ctx any, code any) *MockClient_GetDevicePairingStatus_Call {
+	return &MockClient_GetDevicePairingStatus_Call{Call: _e.mock.On("GetDevicePairingStatus", ctx, code)}
 }
 
-func (_c *MockClient_GetDevicePairingStatus_Call) Run(run func(code string)) *MockClient_GetDevicePairingStatus_Call {
+func (_c *MockClient_GetDevicePairingStatus_Call) Run(run func(ctx context.Context, code string)) *MockClient_GetDevicePairingStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
 		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -435,7 +447,7 @@ func (_c *MockClient_GetDevicePairingStatus_Call) Return(devicePairingStatus *mo
 	return _c
 }
 
-func (_c *MockClient_GetDevicePairingStatus_Call) RunAndReturn(run func(code string) (*models.DevicePairingStatus, error)) *MockClient_GetDevicePairingStatus_Call {
+func (_c *MockClient_GetDevicePairingStatus_Call) RunAndReturn(run func(ctx context.Context, code string) (*models.DevicePairingStatus, error)) *MockClient_GetDevicePairingStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

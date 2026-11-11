@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -79,6 +80,15 @@ func responseResult[T any](result *T, response Response, err error) (*T, error) 
 	}
 
 	return requireBody(result)
+}
+
+func responseResultUntil[T any](ctx context.Context, result *T, response Response, err error) (*T, error) {
+	result, err = responseResult(result, response, err)
+	if err != nil && ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
+	return result, err
 }
 
 func requireBody[T any](result *T) (*T, error) {
