@@ -76,7 +76,7 @@ func (h *Handler) ResolveInvitation(c *gateway.Context) error {
 
 // GenerateInvitationLink returns a fresh link for an existing invitation, for an inviter who
 // needs to send it again.
-func (h *Handler) GenerateInvitationLink(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.GenerateInvitationLink) (map[string]string, error) {
+func (h *Handler) GenerateInvitationLink(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.GenerateInvitationLink) (map[string]string, error) {
 	link, err := h.service.GenerateInvitationLink(ctx, sc, req)
 	if err != nil {
 		return nil, err
@@ -188,6 +188,6 @@ func (h *Handler) GetNamespaceMembershipInvitationList(c *gateway.Context) error
 }
 
 // CancelMembershipInvitation withdraws an invitation, invalidating its code.
-func (h *Handler) CancelMembershipInvitation(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.CancelMembershipInvitation) error {
+func (h *Handler) CancelMembershipInvitation(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.CancelMembershipInvitation) error {
 	return h.service.CancelMembershipInvitation(ctx, sc, req)
 }

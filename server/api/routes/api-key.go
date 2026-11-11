@@ -82,7 +82,7 @@ func (h *Handler) ListAPIKeys(c *gateway.Context) error {
 }
 
 // UpdateAPIKey renames a key or changes the role it acts with.
-func (h *Handler) UpdateAPIKey(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.UpdateAPIKey) error {
+func (h *Handler) UpdateAPIKey(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.UpdateAPIKey) error {
 	return h.service.UpdateAPIKey(ctx, sc, req)
 }
 

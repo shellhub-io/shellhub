@@ -15,6 +15,6 @@ const (
 
 // EvaluateHealth answers that the API is serving. It checks nothing behind the API, so it
 // reports reachability rather than readiness.
-func (h *Handler) EvaluateHealth(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *requests.Empty) error {
+func (h *Handler) EvaluateHealth(_ context.Context, _ scope.Scope, _ gateway.Anonymous, _ *requests.Empty) error {
 	return nil
 }

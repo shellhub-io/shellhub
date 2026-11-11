@@ -55,7 +55,7 @@ func TestGetDeviceHandler(t *testing.T) {
 
 			handler := NewHandler(service)
 
-			device, err := handler.GetDevice(t.Context(), tc.sc, gateway.Actor{ID: "user-id"},
+			device, err := handler.GetDevice(t.Context(), tc.sc, gateway.Principal{UserID: "user-id"},
 				&requests.DeviceGet{DeviceParam: requests.DeviceParam{UID: tc.uid}})
 
 			require.Equal(t, tc.expectedErr, err)

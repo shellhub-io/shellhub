@@ -1,12 +1,14 @@
 package routetable_test
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
 	"maps"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/labstack/echo/v5"
@@ -14,9 +16,11 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/api/jwttoken"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway/gatewaytest"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/routes/routetable"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -27,17 +31,17 @@ import (
 
 func newRouter() *echo.Echo {
 	router := echo.New()
+	router.Binder = handlers.NewBinder()
+	router.Validator = handlers.NewValidator()
 	router.HTTPErrorHandler = handlers.NewErrors(nil)
 	router.Use(gateway.WithContext())
 
 	return router
 }
 
-func ok(gateway.Claims) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		return c.NoContent(http.StatusOK)
-	}
-}
+var ok = gateway.Raw(func(c *echo.Context) error {
+	return c.NoContent(http.StatusOK)
+})
 
 func serve(t *testing.T, router *echo.Echo, method, path string, caller *identity.Identity, header http.Header) int {
 	t.Helper()
@@ -155,9 +159,9 @@ func TestUndeclaredNamesEveryRouteMountedOutsideATable(t *testing.T) {
 
 	group := router.Group("/grouped")
 	group.Use(denyAll)
-	group.GET("/bare", ok(gateway.Claims{}))
-	router.GET("/declared/:id", ok(gateway.Claims{}))
-	router.POST("/declared/:id", ok(gateway.Claims{}))
+	group.GET("/bare", ok.Handler(gateway.Claims{}))
+	router.GET("/declared/:id", ok.Handler(gateway.Claims{}))
+	router.POST("/declared/:id", ok.Handler(gateway.Claims{}))
 
 	declared := map[string]string{
 		routetable.Address(http.MethodGet, "/declared/:id"): "mounted by a table of its own",
@@ -223,28 +227,24 @@ func TestMountRefusesACallerNamingAnotherNamespaceInThePath(t *testing.T) {
 }
 
 func TestMountHandsEachEndpointTheClaimsItsRowStates(t *testing.T) {
-	answeringClaims := func(claims gateway.Claims) echo.HandlerFunc {
-		return func(c *echo.Context) error {
-			return c.String(http.StatusOK, fmt.Sprintf("%+v", claims))
-		}
+	answeringScope := func(_ context.Context, sc scope.Scope, _ gateway.Anonymous, _ *struct{}) (string, error) {
+		return fmt.Sprintf("bounded=%t", sc.IsBounded()), nil
 	}
 
 	router := newRouter()
 	require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
-		{Method: http.MethodGet, Path: "/anonymous", Endpoint: answeringClaims, Access: routetable.Anonymous},
-		{Method: http.MethodGet, Path: "/unbounded", Endpoint: answeringClaims, Access: routetable.Anonymous, Unbounded: true},
-		{Method: http.MethodGet, Path: "/member", Endpoint: answeringClaims, Access: routetable.NamespaceMember},
+		{Method: http.MethodGet, Path: "/bounded", Endpoint: gateway.One(answeringScope), Access: routetable.Anonymous},
+		{Method: http.MethodGet, Path: "/unbounded", Endpoint: gateway.One(answeringScope), Access: routetable.Anonymous, Unbounded: true},
 	}))
 
-	owner := identity.Identity{ID: "user", TenantID: "tenant", Role: authorizer.RoleOwner}
+	owner := identity.Identity{ID: "user", TenantID: "00000000-0000-4000-0000-000000000000", Role: authorizer.RoleOwner}
 
 	cases := []struct {
-		path   string
-		claims gateway.Claims
+		path     string
+		expected string
 	}{
-		{path: "/api/anonymous", claims: gateway.Claims{Anonymous: true}},
-		{path: "/api/unbounded", claims: gateway.Claims{Anonymous: true, Unbounded: true}},
-		{path: "/api/member", claims: gateway.Claims{}},
+		{path: "/api/bounded", expected: `"bounded=true"`},
+		{path: "/api/unbounded", expected: `"bounded=false"`},
 	}
 
 	for _, tc := range cases {
@@ -253,9 +253,136 @@ func TestMountHandsEachEndpointTheClaimsItsRowStates(t *testing.T) {
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)
 
-			require.Equal(t, http.StatusOK, rec.Code)
+			require.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+			assert.JSONEq(t, tc.expected, rec.Body.String())
+		})
+	}
+}
 
-			assert.Equal(t, fmt.Sprintf("%+v", tc.claims), rec.Body.String())
+func TestMountRefusesARowWhoseAccessDisagreesWithItsCaller(t *testing.T) {
+	rows := []struct {
+		access   routetable.Access
+		admitted []gateway.CallerKind
+	}{
+		{access: routetable.Anonymous, admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerAnonymous}},
+		{access: routetable.DeviceToken, admitted: []gateway.CallerKind{gateway.CallerUnstated}},
+		{access: routetable.OwnAccount, admitted: []gateway.CallerKind{gateway.CallerUnstated}},
+		{
+			access:   routetable.NamespaceMember,
+			admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerPrincipal, gateway.CallerMember},
+		},
+		{access: routetable.PathCode, admitted: []gateway.CallerKind{gateway.CallerUnstated}},
+		{
+			access:   routetable.Requires(authorizer.DeviceRename),
+			admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerPrincipal, gateway.CallerMember},
+		},
+		{access: routetable.Admin(allowAll), admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerAdmin}},
+	}
+
+	kinds := []gateway.CallerKind{
+		gateway.CallerUnstated, gateway.CallerAnonymous, gateway.CallerPrincipal, gateway.CallerMember, gateway.CallerAdmin,
+	}
+
+	for _, row := range rows {
+		for _, kind := range kinds {
+			t.Run(row.access.String()+" row with a "+kind.String()+" endpoint", func(t *testing.T) {
+				router := newRouter()
+
+				err := routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+					{Method: http.MethodGet, Path: "/fine", Endpoint: ok, Access: routetable.NamespaceMember},
+					{Method: http.MethodGet, Path: "/row", Endpoint: gatewaytest.Recording(kind, new(bool)), Access: row.access},
+				})
+
+				if slices.Contains(row.admitted, kind) {
+					require.NoError(t, err)
+
+					return
+				}
+
+				require.ErrorIs(t, err, routetable.ErrCallerMismatch)
+				require.ErrorContains(t, err, "GET /row")
+				assert.Empty(t, router.Router().Routes())
+			})
+		}
+	}
+}
+
+func TestMountRefusesTheAPIKeyColumnOnATypedRow(t *testing.T) {
+	for _, kind := range []gateway.CallerKind{gateway.CallerPrincipal, gateway.CallerMember} {
+		t.Run(kind.String(), func(t *testing.T) {
+			router := newRouter()
+
+			err := routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+				{Method: http.MethodGet, Path: "/legacy", Endpoint: ok, Access: routetable.NamespaceMember, NoAPIKey: true},
+				{Method: http.MethodGet, Path: "/typed", Endpoint: gatewaytest.Recording(kind, new(bool)), Access: routetable.NamespaceMember, NoAPIKey: true},
+			})
+
+			require.ErrorIs(t, err, routetable.ErrAPIKeyColumnOnTypedRow)
+			require.ErrorContains(t, err, "GET /typed")
+			assert.Empty(t, router.Router().Routes())
+		})
+	}
+}
+
+func TestMountRefusesAPIKeysBeforeAMemberEndpoint(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	apiKey := &identity.Identity{TenantID: tenant, Role: authorizer.RoleOwner, APIKey: "key"}
+	user := &identity.Identity{ID: "user", TenantID: tenant, Role: authorizer.RoleOwner}
+
+	cases := []struct {
+		name   string
+		kind   gateway.CallerKind
+		caller *identity.Identity
+		status int
+		reach  bool
+	}{
+		{name: "a member endpoint refuses an API key", kind: gateway.CallerMember, caller: apiKey, status: http.StatusForbidden},
+		{name: "a member endpoint serves a user", kind: gateway.CallerMember, caller: user, status: http.StatusOK, reach: true},
+		{name: "a principal endpoint serves an API key", kind: gateway.CallerPrincipal, caller: apiKey, status: http.StatusOK, reach: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var reached bool
+
+			router := newRouter()
+			require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+				{Method: http.MethodGet, Path: "/row", Endpoint: gatewaytest.Recording(tc.kind, &reached), Access: routetable.Requires(authorizer.DeviceRename)},
+			}))
+
+			assert.Equal(t, tc.status, serve(t, router, http.MethodGet, "/api/row", tc.caller, nil))
+			assert.Equal(t, tc.reach, reached)
+		})
+	}
+}
+
+func TestMountRefusesEveryCallerButADeviceOnADeviceTokenRow(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	cases := []struct {
+		name   string
+		caller *identity.Identity
+		status int
+		reach  bool
+	}{
+		{name: "a device passes", caller: &identity.Identity{DeviceUID: "device", TenantID: tenant}, status: http.StatusOK, reach: true},
+		{name: "a user is refused", caller: &identity.Identity{ID: "user", TenantID: tenant, Role: authorizer.RoleOwner}, status: http.StatusForbidden},
+		{name: "an API key is refused", caller: &identity.Identity{TenantID: tenant, Role: authorizer.RoleOwner, APIKey: "key"}, status: http.StatusForbidden},
+		{name: "a request with no identity is refused", status: http.StatusForbidden},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var reached bool
+
+			router := newRouter()
+			require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
+				{Method: http.MethodPost, Path: "/device", Endpoint: gatewaytest.Recording(gateway.CallerUnstated, &reached), Access: routetable.DeviceToken},
+			}))
+
+			assert.Equal(t, tc.status, serve(t, router, http.MethodPost, "/api/device", tc.caller, nil))
+			assert.Equal(t, tc.reach, reached)
 		})
 	}
 }

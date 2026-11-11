@@ -14,8 +14,16 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
 )
 
-// ErrUnstatedAccess is returned by [Mount] for a row whose [Access] admits no caller it can name.
-var ErrUnstatedAccess = errors.New("the route states no access")
+var (
+	// ErrUnstatedAccess is returned by [Mount] for a row whose [Access] admits no caller it can name.
+	ErrUnstatedAccess = errors.New("the route states no access")
+	// ErrCallerMismatch is returned by [Mount] for a row whose [Access] admits a kind of caller its
+	// endpoint's handler cannot take.
+	ErrCallerMismatch = errors.New("the route's access admits a caller its endpoint cannot take")
+	// ErrAPIKeyColumnOnTypedRow is returned by [Mount] for a row setting [Route.NoAPIKey] on an
+	// endpoint that names its caller, whose type already decides whether API keys pass.
+	ErrAPIKeyColumnOnTypedRow = errors.New("the route refuses API keys by column while its endpoint names its caller")
+)
 
 // TenantParam is the path parameter naming a namespace. On a row whose path names it, unless the
 // row's access is [OwnAccount] or [Admin], [Mount] refuses a caller with no namespace, an anonymous
@@ -58,9 +66,8 @@ var (
 	// Anonymous admits a caller without a credential. A caller presenting one still has it resolved.
 	Anonymous = Access{kind: anonymous}
 	// DeviceToken opens a route to a device token, which every other access but [Anonymous]
-	// refuses; [Anonymous] drops the token and serves the request as anonymous. It installs no
-	// guard of its own, so a user token or an API key reaches the handler too, and the handler
-	// must refuse a request that carries no device.
+	// refuses; [Anonymous] drops the token and serves the request as anonymous. It refuses with
+	// 403 every request that did not authenticate as a device.
 	DeviceToken = Access{kind: deviceToken}
 	// OwnAccount admits any authenticated user acting on their own account, and refuses API keys.
 	OwnAccount = Access{kind: ownAccount}
@@ -109,8 +116,9 @@ func (a Access) stated() bool {
 
 // Route is one row of a table: the address it answers, the handler serving it, and who may call
 // it. Unbounded hands the endpoint claims spanning every namespace instead of the caller's. NoAPIKey
-// refuses API keys on a row whose access admits them. Middleware runs after the access guard, in
-// order.
+// refuses API keys on a row whose access admits them, and only on a row whose endpoint names no
+// caller: a typed endpoint taking a [gateway.Member] refuses them by its type. Middleware runs after
+// the access guard, in order.
 type Route struct {
 	Method     string
 	Path       string
@@ -122,7 +130,35 @@ type Route struct {
 }
 
 func (r Route) blocksAPIKey() bool {
-	return r.NoAPIKey || r.Access.kind == ownAccount || r.Access.kind == pathCode
+	return r.NoAPIKey || r.Access.kind == ownAccount || r.Access.kind == pathCode || r.Endpoint.Caller() == gateway.CallerMember
+}
+
+var admittedCallers = map[kind][]gateway.CallerKind{
+	anonymous:       {gateway.CallerAnonymous},
+	namespaceMember: {gateway.CallerPrincipal, gateway.CallerMember},
+	permission:      {gateway.CallerPrincipal, gateway.CallerMember},
+	admin:           {gateway.CallerAdmin},
+}
+
+func (r Route) check() error {
+	if !r.Access.stated() {
+		return fmt.Errorf("%s %s: %w", r.Method, r.Path, ErrUnstatedAccess)
+	}
+
+	caller := r.Endpoint.Caller()
+	if caller == gateway.CallerUnstated {
+		return nil
+	}
+
+	if r.NoAPIKey {
+		return fmt.Errorf("%s %s: %w", r.Method, r.Path, ErrAPIKeyColumnOnTypedRow)
+	}
+
+	if !slices.Contains(admittedCallers[r.Access.kind], caller) {
+		return fmt.Errorf("%s %s: %s access, %s endpoint: %w", r.Method, r.Path, r.Access, caller, ErrCallerMismatch)
+	}
+
+	return nil
 }
 
 func (r Route) namesTenant() bool {
@@ -151,7 +187,9 @@ func (r Route) chain() []echo.MiddlewareFunc {
 		chain = append(chain, middleware.Authorize)
 	case admin:
 		chain = append(chain, r.Access.guard)
-	case unstated, anonymous, deviceToken, ownAccount, pathCode:
+	case deviceToken:
+		chain = append(chain, middleware.RequiresDevice)
+	case unstated, anonymous, ownAccount, pathCode:
 	}
 
 	return append(chain, r.Middleware...)
@@ -160,16 +198,24 @@ func (r Route) chain() []echo.MiddlewareFunc {
 const namePrefix = "routetable:"
 
 // Mount adds every row of table to group behind the guard its access states, refusing API keys on
-// the rows that block them, and guarding a row whose path names [TenantParam] as that constant
-// describes. It declares the anonymous and device-token rows on authn so they open without a
-// credential or to a device.
+// the rows that block them and on every row whose endpoint takes a [gateway.Member], and guarding a
+// row whose path names [TenantParam] as that constant describes. It declares the anonymous and
+// device-token rows on authn so they open without a credential or to a device.
+//
+// An endpoint naming its caller must take one the row's access admits: [gateway.Anonymous] on
+// [Anonymous], [gateway.Principal] or [gateway.Member] on [NamespaceMember] and [Requires], and
+// [gateway.Admin] on [Admin]. An endpoint naming none, [gateway.Legacy] or [gateway.Raw], mounts on
+// any access.
+//
 // authn may be nil when the router authenticates nothing. It mounts nothing and returns an error
-// wrapping [ErrUnstatedAccess] when any row states no access, and returns echo's error when echo
-// refuses a row, leaving the rows before it mounted.
+// naming the row and wrapping [ErrUnstatedAccess] when any row states no access,
+// [ErrCallerMismatch] when its access admits a caller its endpoint cannot take, or
+// [ErrAPIKeyColumnOnTypedRow] when it sets [Route.NoAPIKey] on an endpoint naming its caller. It
+// returns echo's error when echo refuses a row, leaving the rows before it mounted.
 func Mount(group *echo.Group, authn *middleware.Authenticator, table []Route) error {
 	for _, r := range table {
-		if !r.Access.stated() {
-			return fmt.Errorf("%s %s: %w", r.Method, r.Path, ErrUnstatedAccess)
+		if err := r.check(); err != nil {
+			return err
 		}
 	}
 
@@ -178,7 +224,7 @@ func Mount(group *echo.Group, authn *middleware.Authenticator, table []Route) er
 			Method:      r.Method,
 			Path:        r.Path,
 			Name:        namePrefix + kindNames[r.Access.kind],
-			Handler:     r.Endpoint(gateway.Claims{Anonymous: r.Access.kind == anonymous, Unbounded: r.Unbounded}),
+			Handler:     r.Endpoint.Handler(gateway.Claims{Unbounded: r.Unbounded}),
 			Middlewares: r.chain(),
 		})
 		if err != nil {
@@ -234,12 +280,4 @@ func Undeclared(routes echo.Routes, declared map[string]string) []string {
 	}
 
 	return found
-}
-
-// Endpoint adapts a handler that writes its own response from the echo context, ignoring the
-// route's claims.
-func Endpoint(handler echo.HandlerFunc) gateway.Endpoint {
-	return func(gateway.Claims) echo.HandlerFunc {
-		return handler
-	}
 }

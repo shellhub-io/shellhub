@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
@@ -94,37 +93,41 @@ func (h *Handler) CreateNamespace(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, responses.NamespaceFromModel(namespace))
 }
 
-// GetNamespace serves one namespace by tenant ID. It returns errs.ErrForbidden when the caller is a
-// user who is no longer one of its members, and otherwise NamespaceService.GetNamespace's errors:
-// ErrForbidden when sc was never constructed, and ErrNamespaceNotFound when sc is bounded to
-// another namespace or the namespace cannot be resolved.
-func (h *Handler) GetNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceGet) (*responses.Namespace, error) {
+// GetNamespace serves the namespace sc is bounded to, by tenant ID. It returns
+// NamespaceService.GetNamespace's errors: ErrForbidden when sc was never constructed, and
+// ErrNamespaceNotFound when sc is bounded to another namespace or the namespace cannot be resolved.
+func (h *Handler) GetNamespace(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.NamespaceGet) (*responses.Namespace, error) {
+	return h.getNamespace(ctx, sc, req)
+}
+
+// GetNamespaceAsAdmin serves any namespace by tenant ID to an instance administrator, sc spanning
+// every namespace. It returns NamespaceService.GetNamespace's errors: ErrForbidden when sc was never
+// constructed, and ErrNamespaceNotFound when the namespace cannot be resolved.
+func (h *Handler) GetNamespaceAsAdmin(ctx context.Context, sc scope.Scope, _ gateway.Admin, req *requests.NamespaceGet) (*responses.Namespace, error) {
+	return h.getNamespace(ctx, sc, req)
+}
+
+func (h *Handler) getNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceGet) (*responses.Namespace, error) {
 	ns, err := h.service.GetNamespace(ctx, sc, req.Tenant)
 	if err != nil {
 		return nil, err
-	}
-
-	if caller, _ := identity.FromContext(ctx); caller.ID != "" {
-		if _, ok := ns.FindMember(caller.ID); !ok {
-			return nil, errs.NewErrForbidden(nil)
-		}
 	}
 
 	return responses.NamespaceFromModel(ns), nil
 }
 
 // ListNamespaceMembers serves who belongs to a namespace and in what role.
-func (h *Handler) ListNamespaceMembers(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.MemberList) ([]models.MemberView, int64, error) {
+func (h *Handler) ListNamespaceMembers(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.MemberList) ([]models.MemberView, int64, error) {
 	return h.service.ListNamespaceMembers(ctx, sc, req)
 }
 
 // DeleteNamespace removes a namespace and everything scoped to it.
-func (h *Handler) DeleteNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceDelete) error {
+func (h *Handler) DeleteNamespace(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.NamespaceDelete) error {
 	return h.service.DeleteNamespace(ctx, sc, req.Tenant)
 }
 
 // EditNamespace changes a namespace's own attributes, not its membership.
-func (h *Handler) EditNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceEdit) (*responses.Namespace, error) {
+func (h *Handler) EditNamespace(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.NamespaceEdit) (*responses.Namespace, error) {
 	ns, err := h.service.EditNamespace(ctx, sc, req)
 	if err != nil {
 		return nil, err
@@ -134,7 +137,7 @@ func (h *Handler) EditNamespace(ctx context.Context, sc scope.Scope, _ gateway.A
 }
 
 // AddNamespaceMember invites or adds a member in the requested role.
-func (h *Handler) AddNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceAddMember) (*responses.Namespace, error) {
+func (h *Handler) AddNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.NamespaceAddMember) (*responses.Namespace, error) {
 	ns, err := h.service.AddNamespaceMember(ctx, sc, req)
 	if err != nil {
 		return nil, err
@@ -144,7 +147,7 @@ func (h *Handler) AddNamespaceMember(ctx context.Context, sc scope.Scope, _ gate
 }
 
 // RemoveNamespaceMember removes another member from the namespace.
-func (h *Handler) RemoveNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceRemoveMember) (*responses.Namespace, error) {
+func (h *Handler) RemoveNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.NamespaceRemoveMember) (*responses.Namespace, error) {
 	ns, err := h.service.RemoveNamespaceMember(ctx, sc, req)
 	if err != nil {
 		return nil, err
@@ -186,18 +189,18 @@ func (h *Handler) LeaveNamespace(c *gateway.Context) error {
 }
 
 // EditNamespaceMember changes a member's role.
-func (h *Handler) EditNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.NamespaceUpdateMember) error {
+func (h *Handler) EditNamespaceMember(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.NamespaceUpdateMember) error {
 	return h.service.UpdateNamespaceMember(ctx, sc, req)
 }
 
 // UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. It answers 200 with
 // no body, 404 when no namespace carries the tenant, 409 when the namespace is already new, and 403
 // to an API key or to a member who may not update the namespace.
-func (h *Handler) UpgradeNamespace(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.UpgradeNamespace) error {
+func (h *Handler) UpgradeNamespace(ctx context.Context, sc scope.Scope, _ gateway.Member, req *requests.UpgradeNamespace) error {
 	return h.service.UpgradeNamespace(ctx, sc, req.Tenant)
 }
 
 // EditSessionRecordStatus turns session recording on or off for the namespace.
-func (h *Handler) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, _ gateway.Actor, req *requests.SessionEditRecordStatus) error {
+func (h *Handler) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *requests.SessionEditRecordStatus) error {
 	return h.service.EditSessionRecordStatus(ctx, sc, req.SessionRecord, req.Tenant)
 }

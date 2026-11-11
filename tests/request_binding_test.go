@@ -105,7 +105,7 @@ func TestRequestFieldsKeepTheirDeclaredSource(t *testing.T) {
 		},
 		{
 			description: "POST /api/namespaces/:tenant/members reads the user from the identity",
-			request:     asAPIKey,
+			request:     asOwner,
 			method:      http.MethodPost,
 			path:        "/api/namespaces/" + ShellHubNamespace + "/members",
 			body:        map[string]any{"UserID": other.ID, "email": "member@shellhub.io", "role": "administrator"},
@@ -120,12 +120,12 @@ func TestRequestFieldsKeepTheirDeclaredSource(t *testing.T) {
 			status:      http.StatusUnprocessableEntity,
 		},
 		{
-			description: "POST /api/namespaces/:tenant/members needs a user an API key does not have",
+			description: "POST /api/namespaces/:tenant/members refuses an API key before binding",
 			request:     asAPIKey,
 			method:      http.MethodPost,
 			path:        "/api/namespaces/" + ShellHubNamespace + "/members",
 			body:        map[string]any{"email": "member@shellhub.io", "role": "administrator"},
-			status:      http.StatusBadRequest,
+			status:      http.StatusForbidden,
 		},
 		{
 			description: "DELETE /api/namespaces/:tenant reads the tenant from the path",

@@ -30,7 +30,6 @@ type probeRequest struct {
 type probeCall struct {
 	called bool
 	scope  scope.Scope
-	actor  gateway.Actor
 	req    *probeRequest
 	tenant string
 }
@@ -50,16 +49,15 @@ func probeRouter(t *testing.T, withGatewayContext bool) *echo.Echo {
 	return e
 }
 
-func probeHandler(call *probeCall, res []string, count int64, err error) gateway.ListHandler[probeRequest, []string] {
-	return func(ctx context.Context, sc scope.Scope, actor gateway.Actor, req *probeRequest) ([]string, int64, error) {
+func probeHandler(call *probeCall, res []string, count int64, err error) gateway.ListHandler[gateway.Principal, probeRequest, []string] {
+	return func(ctx context.Context, sc scope.Scope, _ gateway.Principal, req *probeRequest) ([]string, int64, error) {
 		call.called = true
 
-		if caller, ok := identity.FromContext(ctx); ok {
-			call.tenant = caller.TenantID
+		if resolved, ok := identity.FromContext(ctx); ok {
+			call.tenant = resolved.TenantID
 		}
 
 		call.scope = sc
-		call.actor = actor
 		call.req = req
 
 		return res, count, err
@@ -129,7 +127,7 @@ func TestWrapperCeremony(t *testing.T) {
 		{
 			description:        "names the route an unbounded scope was granted to",
 			withGatewayContext: true,
-			caller:             identity.Identity{ID: "user-id"},
+			caller:             identity.Identity{ID: "user-id", TenantID: probeTenant},
 			target:             "/probe",
 			claims:             gateway.Claims{Unbounded: true},
 			expectedStatus:     http.StatusOK,
@@ -139,80 +137,6 @@ func TestWrapperCeremony(t *testing.T) {
 
 				assert.False(t, call.scope.IsBounded())
 				assert.Equal(t, "GET /probe", call.scope.Reason())
-			},
-		},
-		{
-			description:        "names an administrator on the admin surface by the admin ID",
-			withGatewayContext: true,
-			caller:             identity.Identity{Admin: true, AdminID: "admin-id"},
-			target:             "/probe",
-			claims:             gateway.Claims{Unbounded: true},
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.Equal(t, gateway.Actor{ID: "admin-id"}, call.actor)
-			},
-		},
-		{
-			description:        "hands the handler the identity the request authenticated as",
-			withGatewayContext: true,
-			caller:             identity.Identity{TenantID: probeTenant, ID: "user-id", Username: "username"},
-			target:             "/probe",
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.Equal(t, gateway.Actor{ID: "user-id", Username: "username"}, call.actor)
-			},
-		},
-		{
-			description:        "accepts an api key as the acting identity",
-			withGatewayContext: true,
-			caller:             identity.Identity{TenantID: probeTenant, APIKey: "key"},
-			target:             "/probe",
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.Equal(t, gateway.Actor{APIKey: "key"}, call.actor)
-			},
-		},
-		{
-			description:        "accepts a device as the acting identity",
-			withGatewayContext: true,
-			caller:             identity.Identity{TenantID: probeTenant, DeviceUID: "device-uid"},
-			target:             "/probe",
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.Equal(t, gateway.Actor{DeviceUID: "device-uid"}, call.actor)
-			},
-		},
-		{
-			description:        "refuses a route that requires an actor when the request carries none",
-			withGatewayContext: true,
-			caller:             identity.Identity{TenantID: probeTenant},
-			target:             "/probe",
-			expectedStatus:     http.StatusUnauthorized,
-		},
-		{
-			description:        "runs an anonymous route with no actor at all",
-			withGatewayContext: true,
-			caller:             identity.Identity{TenantID: probeTenant},
-			target:             "/probe",
-			claims:             gateway.Claims{Anonymous: true},
-			expectedStatus:     http.StatusOK,
-			expectedCall:       true,
-			assert: func(t *testing.T, call *probeCall) {
-				t.Helper()
-
-				assert.True(t, call.actor.IsZero())
 			},
 		},
 		{
@@ -242,7 +166,7 @@ func TestWrapperCeremony(t *testing.T) {
 			call := new(probeCall)
 
 			e := probeRouter(t, tc.withGatewayContext)
-			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil))(tc.claims))
+			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, 1, nil)).Handler(tc.claims))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tc.target, nil)
 			req = identitytest.As(req, tc.caller)
@@ -288,7 +212,7 @@ func TestListWritesTheTotalCountAfterTheErrorCheck(t *testing.T) {
 			call := new(probeCall)
 
 			e := probeRouter(t, true)
-			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err))(gateway.Claims{}))
+			e.GET("/probe", gateway.List(probeHandler(call, []string{"item"}, tc.count, tc.err)).Handler(gateway.Claims{}))
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
 			req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
@@ -310,11 +234,11 @@ func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 	var got *plainRequest
 
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, req *plainRequest) (string, error) {
+	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Principal, req *plainRequest) (string, error) {
 		got = req
 
 		return "ok", nil
-	})(gateway.Claims{}))
+	}).Handler(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe?uid=device&page=0&per_page=999", nil)
 	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
@@ -329,9 +253,9 @@ func TestWrapperNormalizesNothingForARequestCarryingNeither(t *testing.T) {
 
 func TestOneEncodesTheHandlerResult(t *testing.T) {
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) (map[string]string, error) {
+	e.GET("/probe", gateway.One(func(_ context.Context, _ scope.Scope, _ gateway.Principal, _ *probeRequest) (map[string]string, error) {
 		return map[string]string{"name": "value"}, nil
-	})(gateway.Claims{}))
+	}).Handler(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
 	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
@@ -346,9 +270,9 @@ func TestOneEncodesTheHandlerResult(t *testing.T) {
 
 func TestNoneAnswersWithoutABody(t *testing.T) {
 	e := probeRouter(t, true)
-	e.GET("/probe", gateway.None(func(_ context.Context, _ scope.Scope, _ gateway.Actor, _ *probeRequest) error {
+	e.GET("/probe", gateway.None(func(_ context.Context, _ scope.Scope, _ gateway.Principal, _ *probeRequest) error {
 		return nil
-	})(gateway.Claims{}))
+	}).Handler(gateway.Claims{}))
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
 	req = identitytest.As(req, identity.Identity{TenantID: probeTenant, ID: "user-id"})
@@ -366,14 +290,14 @@ func TestShapesRefuseAMisdeclaredRequest(t *testing.T) {
 	}
 
 	assert.Panics(t, func() {
-		gateway.One(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) (string, error) { return "", nil })
+		gateway.One(func(context.Context, scope.Scope, gateway.Principal, *misdeclared) (string, error) { return "", nil })
 	})
 	assert.Panics(t, func() {
-		gateway.List(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) ([]string, int64, error) {
+		gateway.List(func(context.Context, scope.Scope, gateway.Principal, *misdeclared) ([]string, int64, error) {
 			return nil, 0, nil
 		})
 	})
 	assert.Panics(t, func() {
-		gateway.None(func(context.Context, scope.Scope, gateway.Actor, *misdeclared) error { return nil })
+		gateway.None(func(context.Context, scope.Scope, gateway.Principal, *misdeclared) error { return nil })
 	})
 }

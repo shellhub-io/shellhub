@@ -38,19 +38,19 @@ func TestGetDevice(t *testing.T) {
 		uid           string
 		tenant        string
 		admin         bool
-		noIdentity    bool
+		noUserID      bool
 		requiredMocks func()
 		expected      Expected
 	}{
 		{
-			title:         "refuses the request when the caller carries no identity",
+			title:         "refuses the request when the caller's identity names nobody",
 			uid:           "1234",
 			tenant:        "00000000-0000-4000-0000-000000000000",
-			noIdentity:    true,
+			noUserID:      true,
 			requiredMocks: func() {},
 			expected: Expected{
 				expectedSession: nil,
-				expectedStatus:  http.StatusUnauthorized,
+				expectedStatus:  http.StatusForbidden,
 			},
 		},
 		{
@@ -119,7 +119,7 @@ func TestGetDevice(t *testing.T) {
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/api/devices/"+tc.uid, nil)
 			req.Header.Set("Content-Type", "application/json")
 			caller := identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.tenant, Admin: tc.admin}
-			if !tc.noIdentity {
+			if !tc.noUserID {
 				caller.ID = "000000000000000000000000"
 			}
 			req = identitytest.As(req, caller)

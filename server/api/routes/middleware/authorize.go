@@ -97,3 +97,17 @@ func RequiresTenant(param string) echo.MiddlewareFunc {
 		}
 	}
 }
+
+// RequiresDevice refuses with [routes.ErrForbidden] a request whose resolved identity did not
+// authenticate as a device: a user token, an API key, and a request carrying no identity at all.
+// It reads the identity the authenticator put on the request's context, never the request's
+// headers.
+func RequiresDevice(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		if caller, ok := identity.FromContext(c.Request().Context()); !ok || caller.DeviceUID == "" {
+			return routes.NewErrForbidden(nil)
+		}
+
+		return next(c)
+	}
+}

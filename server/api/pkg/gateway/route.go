@@ -16,65 +16,77 @@ import (
 const totalCountHeader = "X-Total-Count"
 
 // OneHandler answers with a single value, or the error the route fails with.
-type OneHandler[T, R any] func(ctx context.Context, sc scope.Scope, actor Actor, req *T) (R, error)
+type OneHandler[A Caller, T, R any] func(ctx context.Context, sc scope.Scope, caller A, req *T) (R, error)
 
 // ListHandler answers with a page of values and the size of the whole collection. [List] writes
 // that size to the X-Total-Count response header.
-type ListHandler[T, R any] func(ctx context.Context, sc scope.Scope, actor Actor, req *T) (R, int64, error)
+type ListHandler[A Caller, T, R any] func(ctx context.Context, sc scope.Scope, caller A, req *T) (R, int64, error)
 
 // NoneHandler answers with success alone.
-type NoneHandler[T any] func(ctx context.Context, sc scope.Scope, actor Actor, req *T) error
+type NoneHandler[A Caller, T any] func(ctx context.Context, sc scope.Scope, caller A, req *T) error
 
-// Claims are the exceptions a route takes to the two rules every route follows: it is bounded to
-// the caller's namespace, and it is performed by an actor. Anonymous serves a request that carries
-// no actor, and Unbounded spans every namespace instead of the caller's.
+// Claims are the exception a route takes to the rule that it is bounded to the caller's
+// namespace: Unbounded spans every namespace instead.
 type Claims struct {
-	Anonymous bool
 	Unbounded bool
 }
 
-// Endpoint is a handler waiting for the claims of the route that mounts it.
-type Endpoint func(Claims) echo.HandlerFunc
+// Endpoint is a handler waiting for the claims of the route that mounts it, together with the
+// kind of caller the handler takes. Build one with [One], [List], [None], [Legacy] or [Raw].
+type Endpoint struct {
+	caller CallerKind
+	build  func(Claims) echo.HandlerFunc
+}
+
+// Caller returns the kind of caller e's handler takes, [CallerUnstated] for [Legacy] and [Raw].
+func (e Endpoint) Caller() CallerKind {
+	return e.caller
+}
+
+// Handler returns e's handler for a route making claims. It panics on the zero Endpoint.
+func (e Endpoint) Handler(claims Claims) echo.HandlerFunc {
+	return e.build(claims)
+}
 
 // One answers 200 with the handler's result as JSON. It panics when T breaks the rule of package
 // binding, so a misdeclared request stops the route table from being built. It fails with 500 when
 // no gateway [Context] was installed, with the bind or validation error for a malformed request,
 // with 403 when the request carries no namespace and the route is not [Claims.Unbounded], with 401
-// when it carries no actor and the route is not [Claims.Anonymous], and otherwise with the
-// handler's error.
-func One[T, R any](handler OneHandler[T, R]) Endpoint {
+// when the request carries no identity and A is not [Anonymous], with 403 when the identity is not
+// of the kind A names, and otherwise with the handler's error.
+func One[A Caller, T, R any](handler OneHandler[A, T, R]) Endpoint {
 	binding.MustCheck[T]()
 
-	return func(claims Claims) echo.HandlerFunc {
+	return Endpoint{caller: callerKind[A](), build: func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			in, err := prepare[T](c, claims)
+			in, err := prepare[A, T](c, claims)
 			if err != nil {
 				return err
 			}
 
-			res, err := handler(in.ctx, in.scope, in.actor, in.req)
+			res, err := handler(in.ctx, in.scope, in.caller, in.req)
 			if err != nil {
 				return err
 			}
 
 			return c.JSON(http.StatusOK, res)
 		}
-	}
+	}}
 }
 
 // List answers 200 with the page as JSON and the collection's total in X-Total-Count, written only
 // once the handler succeeded. It panics and fails as [One] does.
-func List[T, R any](handler ListHandler[T, R]) Endpoint {
+func List[A Caller, T, R any](handler ListHandler[A, T, R]) Endpoint {
 	binding.MustCheck[T]()
 
-	return func(claims Claims) echo.HandlerFunc {
+	return Endpoint{caller: callerKind[A](), build: func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			in, err := prepare[T](c, claims)
+			in, err := prepare[A, T](c, claims)
 			if err != nil {
 				return err
 			}
 
-			res, count, err := handler(in.ctx, in.scope, in.actor, in.req)
+			res, count, err := handler(in.ctx, in.scope, in.caller, in.req)
 			if err != nil {
 				return err
 			}
@@ -83,53 +95,62 @@ func List[T, R any](handler ListHandler[T, R]) Endpoint {
 
 			return c.JSON(http.StatusOK, res)
 		}
-	}
+	}}
 }
 
 // None answers 200 with no body once the handler succeeded. It panics and fails as [One] does.
-func None[T any](handler NoneHandler[T]) Endpoint {
+func None[A Caller, T any](handler NoneHandler[A, T]) Endpoint {
 	binding.MustCheck[T]()
 
-	return func(claims Claims) echo.HandlerFunc {
+	return Endpoint{caller: callerKind[A](), build: func(claims Claims) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			in, err := prepare[T](c, claims)
+			in, err := prepare[A, T](c, claims)
 			if err != nil {
 				return err
 			}
 
-			if err := handler(in.ctx, in.scope, in.actor, in.req); err != nil {
+			if err := handler(in.ctx, in.scope, in.caller, in.req); err != nil {
 				return err
 			}
 
 			return c.NoContent(http.StatusOK)
 		}
-	}
+	}}
 }
 
 // Legacy mounts a handler that still writes its own response through the gateway [Context]. It
-// ignores the claims, which the handler resolves itself, and fails as [Handler] does.
+// names no caller, ignores the claims, which the handler resolves itself, and fails as [Handler]
+// does.
 func Legacy(next func(*Context) error) Endpoint {
-	return func(Claims) echo.HandlerFunc {
+	return Endpoint{caller: CallerUnstated, build: func(Claims) echo.HandlerFunc {
 		return Handler(next)
-	}
+	}}
 }
 
-type inputs[T any] struct {
-	ctx   context.Context
-	scope scope.Scope
-	actor Actor
-	req   *T
+// Raw mounts a handler that writes its own response from the echo context. It names no caller and
+// ignores the claims, and needs no gateway [Context].
+func Raw(handler echo.HandlerFunc) Endpoint {
+	return Endpoint{caller: CallerUnstated, build: func(Claims) echo.HandlerFunc {
+		return handler
+	}}
 }
 
-func prepare[T any](c *echo.Context, claims Claims) (inputs[T], error) {
+type inputs[A Caller, T any] struct {
+	ctx    context.Context
+	scope  scope.Scope
+	caller A
+	req    *T
+}
+
+func prepare[A Caller, T any](c *echo.Context, claims Claims) (inputs[A, T], error) {
 	gCtx, ok := From(c)
 	if !ok {
-		return inputs[T]{}, echo.ErrInternalServerError
+		return inputs[A, T]{}, echo.ErrInternalServerError
 	}
 
 	req := new(T)
 	if err := c.Bind(req); err != nil {
-		return inputs[T]{}, err
+		return inputs[A, T]{}, err
 	}
 
 	if paginated, ok := any(req).(query.Paginated); ok {
@@ -141,20 +162,20 @@ func prepare[T any](c *echo.Context, claims Claims) (inputs[T], error) {
 	}
 
 	if err := c.Validate(req); err != nil {
-		return inputs[T]{}, err
+		return inputs[A, T]{}, err
 	}
 
 	sc, err := resolveScope(c, gCtx, claims)
 	if err != nil {
-		return inputs[T]{}, err
+		return inputs[A, T]{}, err
 	}
 
-	actor, err := resolveActor(gCtx, claims)
+	caller, err := resolveCaller[A](gCtx)
 	if err != nil {
-		return inputs[T]{}, err
+		return inputs[A, T]{}, err
 	}
 
-	return inputs[T]{ctx: gCtx.Ctx(), scope: sc, actor: actor, req: req}, nil
+	return inputs[A, T]{ctx: gCtx.Ctx(), scope: sc, caller: caller, req: req}, nil
 }
 
 func resolveScope(c *echo.Context, gCtx *Context, claims Claims) (scope.Scope, error) {
@@ -165,14 +186,18 @@ func resolveScope(c *echo.Context, gCtx *Context, claims Claims) (scope.Scope, e
 	return gCtx.AdminOrScope()
 }
 
-func resolveActor(gCtx *Context, claims Claims) (Actor, error) {
-	caller, _ := identity.FromContext(gCtx.Ctx())
+func resolveCaller[A Caller](gCtx *Context) (A, error) {
+	var zero A
 
-	actor := actorOf(caller)
-
-	if claims.Anonymous || !actor.IsZero() {
-		return actor, nil
+	resolved, authenticated := identity.FromContext(gCtx.Ctx())
+	if !authenticated && callerKind[A]() != CallerAnonymous {
+		return zero, routes.NewErrUnauthorized(nil)
 	}
 
-	return Actor{}, routes.NewErrUnauthorized(nil)
+	caller, ok := callerOf[A](resolved)
+	if !ok {
+		return zero, routes.NewErrForbidden(nil)
+	}
+
+	return caller, nil
 }
