@@ -48,8 +48,9 @@ func CloseWithoutUnlocking(t *testing.T, ctx context.Context, holder bun.Conn) {
 	require.ErrorIs(t, err, driver.ErrBadConn)
 }
 
-// RequireAdvisoryLockWaiter blocks until exactly one session waits for the advisory lock key, and
-// fails the test when none does within 30 seconds.
+// RequireAdvisoryLockWaiter blocks until exactly one session of db's database waits for the advisory
+// lock key, and fails the test when none does within 30 seconds. Sessions waiting in other databases
+// of the same server do not count, since PostgreSQL scopes advisory locks to a database.
 func RequireAdvisoryLockWaiter(t *testing.T, ctx context.Context, db *bun.DB, key int64) {
 	t.Helper()
 
@@ -58,6 +59,7 @@ func RequireAdvisoryLockWaiter(t *testing.T, ctx context.Context, db *bun.DB, ke
 		assert.NoError(tt, db.QueryRowContext(ctx, `
 			SELECT count(*) FROM pg_locks
 			WHERE locktype = 'advisory' AND NOT granted
+			  AND database = (SELECT oid FROM pg_database WHERE datname = current_database())
 			  AND (classid::bigint << 32 | objid::bigint) = ?
 		`, key).Scan(&waiting))
 		assert.Equal(tt, 1, waiting)
