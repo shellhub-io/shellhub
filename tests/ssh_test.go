@@ -1567,14 +1567,18 @@ func testSSHWithVersion(t *testing.T, connectionVersion int) {
 	compose := newSSHEnvironment(t, ctx, legacyNamespace)
 	signer := registerDeviceKey(t, ctx, compose)
 
-	for _, tc := range tests {
-		test := tc
+	for i, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
+			tt.Parallel()
+
+			hostname := fmt.Sprintf("ssh-%d", i)
 			opts := append([]NewAgentContainerOption{
 				NewAgentContainerWithConnectionVersion(connectionVersion),
+				NewAgentContainerWithHostname(hostname),
 			}, test.options...)
 
-			agent, device := startAcceptedAgent(tt, ctx, compose, opts...)
+			agent := startAgent(tt, ctx, compose, opts...)
+			device := acceptDeviceNamed(tt, compose, hostname)
 
 			test.run(tt, &Environment{
 				services: compose,
@@ -1872,6 +1876,18 @@ func startAcceptedAgent(t *testing.T, ctx context.Context, compose *environment.
 	agent := startAgent(t, ctx, compose, opts...)
 
 	return agent, acceptPendingDevice(t, compose)
+}
+
+func acceptDeviceNamed(t *testing.T, compose *environment.DockerCompose, name string) *models.Device {
+	t.Helper()
+
+	pending := compose.AwaitDeviceNamed(t, name)
+
+	compose.UpdateDeviceStatus(t, pending.UID, environment.DeviceActionAccept)
+
+	device := compose.AwaitDeviceOnline(t, pending.UID)
+
+	return &device
 }
 
 func acceptPendingDevice(t *testing.T, compose *environment.DockerCompose) *models.Device {
