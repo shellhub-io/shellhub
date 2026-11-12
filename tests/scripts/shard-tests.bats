@@ -96,3 +96,9 @@ shard() {
     [ "$status" -eq 1 ]
     [[ "$output" == *"holds no tests"* ]]
 }
+
+@test "a first-shard regex that matches no test fails" {
+    shard "$NAMES" 3 1 '^TestNoSuchTest'
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"no test name matches the first-shard regex"* ]]
+}
