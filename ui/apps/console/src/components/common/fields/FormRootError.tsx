@@ -1,11 +1,15 @@
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 /**
- * Canonical rendering for a form-level (`root`) error surfaced via RHF's
- * `setError("root", …)`. Shared by every form so server-error presentation
- * stays identical across modals.
+ * A form-level error announced as an alert: the `root` error a react-hook-form
+ * form sets, or the save error a form holds in its own state. Renders nothing
+ * while the message is empty, null or undefined.
  */
-export default function FormRootError({ message }: { message?: string }) {
+export default function FormRootError({
+  message,
+}: {
+  message?: string | null;
+}) {
   if (!message) return null;
 
   return (

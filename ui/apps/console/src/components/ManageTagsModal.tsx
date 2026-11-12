@@ -17,11 +17,11 @@ import {
   XMarkIcon,
   PencilSquareIcon,
   TrashIcon,
-  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
+import FormRootError from "@/components/common/fields/FormRootError";
 import ObjectName from "@/components/common/ObjectName";
 
 const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
@@ -205,13 +205,7 @@ export default function ManageTagsModal({
         {error && (
           <div className="px-6 py-2 shrink-0">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-accent-red flex items-center gap-1.5">
-                <ExclamationCircleIcon
-                  className="w-3.5 h-3.5 shrink-0"
-                  strokeWidth={2}
-                />
-                {error}
-              </p>
+              <FormRootError message={error} />
               <IconButton
                 size="sm"
                 aria-label="Dismiss error"
