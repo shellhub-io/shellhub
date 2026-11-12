@@ -50,7 +50,7 @@ jobs:
               - '.github/workflows/checks.yml'
             shard-tests:
               - '.github/scripts/shard-tests.sh'
-              - 'tests/shard-tests_test.sh'
+              - 'tests/scripts/shard-tests.bats'
               - '.github/workflows/checks.yml'
             gen-config:
               - 'ui/scripts/gen-config.sh'
@@ -235,8 +235,8 @@ jobs:
         run: bash tests/is-latest-tag_test.sh
 
       - name: Run shard-tests tests
-        if: ${{ !cancelled() && steps.changes.outputs.shard-tests == 'true' }}
-        run: bash tests/shard-tests_test.sh
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.shard-tests == 'true' }}
+        run: bats tests/scripts/shard-tests.bats
 
       - name: Run gen-config tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.gen-config == 'true' }}
