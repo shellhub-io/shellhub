@@ -109,7 +109,7 @@ func (s *service) CreateSession(ctx context.Context, session requests.SessionCre
 		return nil, err
 	}
 
-	return s.store.SessionResolve(ctx, scope.NewUnbounded("reading back the session this call just created, by its generated UID"), store.SessionUIDResolver, uid)
+	return s.store.SessionResolve(ctx, scope.NewUnbounded(reasonSessionReadBack), store.SessionUIDResolver, uid)
 }
 
 func (s *service) DeactivateSession(ctx context.Context, sc scope.Scope, uid models.UID) error {

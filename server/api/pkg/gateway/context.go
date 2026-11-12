@@ -122,7 +122,7 @@ func (c *Context) Scope() (scope.Scope, error) {
 // while the same user in the admin console sees every namespace.
 func (c *Context) AdminOrScope() (scope.Scope, error) {
 	if c.isAdminRoute() {
-		return scope.NewUnbounded("admin console: cross-namespace read for system administration"), nil
+		return scope.NewUnbounded(reasonAdminConsole), nil
 	}
 
 	return c.Scope()
