@@ -4,7 +4,8 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import SettingsSection from "@/components/settings/SettingsSection";
-import { useNamespaces, type Namespace } from "@/hooks/useNamespaceRequests";
+import type { Namespace } from "@/client";
+import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useBrowserKeyFingerprints } from "@/hooks/useBrowserKey";

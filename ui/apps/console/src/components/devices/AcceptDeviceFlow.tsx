@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, Dropdown, Spinner } from "@shellhub/design-system/primitives";
-import type { ResolveDeviceLoginCodeResponse } from "@/client";
+import type { Namespace, ResolveDeviceLoginCodeResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import {
   clearPendingDeviceCode,
@@ -26,7 +26,6 @@ import {
   useAcceptDevicePairing,
 } from "@/hooks/useDeviceCode";
 import {
-  type Namespace,
   useCreateNamespace,
   useNamespace,
   useNamespaces,
