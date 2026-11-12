@@ -24,5 +24,5 @@ export function useToggleProvisioningKey() {
     }
   };
 
-  return { toggle, error, isToggling: updateKey.isPending };
+  return { toggle, error };
 }
