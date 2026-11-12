@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useRowAction } from "@/hooks/useRowAction";
 import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { usePagedList } from "@/hooks/usePagedList";
@@ -142,21 +142,7 @@ export default function PublicKeys() {
         path: { fingerprint: key.fingerprint },
       }),
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<PublicKey | null>(null);
-
-  const openNew = () => {
-    setEditTarget(null);
-    setModalOpen(true);
-  };
-  const openEdit = (key: PublicKey) => {
-    setEditTarget(key);
-    setModalOpen(true);
-  };
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
+  const modal = useEditModal<PublicKey>();
 
   const columns: Column<PublicKey>[] = [
     {
@@ -206,7 +192,7 @@ export default function PublicKeys() {
               variant="primary"
               title="Edit"
               aria-label={`Edit ${pk.name}`}
-              onClick={() => openEdit(pk)}
+              onClick={() => modal.openEdit(pk)}
             >
               <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
             </IconButton>
@@ -259,7 +245,7 @@ export default function PublicKeys() {
           <RestrictedAction action="publicKey:create">
             <Button
               size="lg"
-              onClick={openNew}
+              onClick={modal.openNew}
               icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
               Add your first key
@@ -268,9 +254,9 @@ export default function PublicKeys() {
         </EmptyState>
 
         <KeyModal
-          open={modalOpen}
-          editKey={editTarget}
-          onClose={closeModal}
+          open={modal.isOpen}
+          editKey={modal.target}
+          onClose={modal.close}
         />
       </>
     );
@@ -286,7 +272,7 @@ export default function PublicKeys() {
       >
         <RestrictedAction action="publicKey:create">
           <Button
-            onClick={openNew}
+            onClick={modal.openNew}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
             Add Public Key
@@ -323,7 +309,7 @@ export default function PublicKeys() {
         }
       />
 
-      <KeyModal open={modalOpen} editKey={editTarget} onClose={closeModal} />
+      <KeyModal open={modal.isOpen} editKey={modal.target} onClose={modal.close} />
 
       <ConfirmDialog
         open={!!deleteKey.target}

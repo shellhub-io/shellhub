@@ -25,6 +25,7 @@ import {
 import { cn } from "@shellhub/design-system/cn";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useRowAction } from "@/hooks/useRowAction";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
@@ -253,26 +254,12 @@ export default function AccessPolicies() {
     run: (policy: AccessPolicy) =>
       deletePolicyMutation.mutateAsync({ path: { id: policy.id } }),
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<AccessPolicy | null>(null);
+  const modal = useEditModal<AccessPolicy>();
   const [search, setSearch] = useState("");
 
   const filtered = policies.filter((p) =>
     p.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
-
-  const openNew = () => {
-    setEditTarget(null);
-    setModalOpen(true);
-  };
-  const openEdit = (policy: AccessPolicy) => {
-    setEditTarget(policy);
-    setModalOpen(true);
-  };
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
 
   const columns: Column<AccessPolicy>[] = [
     {
@@ -339,7 +326,7 @@ export default function AccessPolicies() {
               <RestrictedAction action="accessPolicy:edit">
                 <Dropdown.Item
                   label="Edit"
-                  onSelect={() => openEdit(p)}
+                  onSelect={() => modal.openEdit(p)}
                   className="gap-2.5 px-3 py-2"
                 >
                   <PencilSquareIcon className="w-4 h-4" />
@@ -408,7 +395,7 @@ export default function AccessPolicies() {
           <RestrictedAction action="accessPolicy:create">
             <Button
               size="lg"
-              onClick={openNew}
+              onClick={modal.openNew}
               icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
               {isNewNamespace ? "Add policy" : "Add your first policy"}
@@ -417,9 +404,9 @@ export default function AccessPolicies() {
         </EmptyState>
 
         <AccessPolicyModal
-          open={modalOpen}
-          editPolicy={editTarget}
-          onClose={closeModal}
+          open={modal.isOpen}
+          editPolicy={modal.target}
+          onClose={modal.close}
         />
       </>
     );
@@ -435,7 +422,7 @@ export default function AccessPolicies() {
       >
         <RestrictedAction action="accessPolicy:create">
           <Button
-            onClick={openNew}
+            onClick={modal.openNew}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
           >
             Add Policy
@@ -460,14 +447,14 @@ export default function AccessPolicies() {
         emptyMessage={
           search ? `No policies match "${search}"` : "No access policies found"
         }
-        onRowClick={openEdit}
+        onRowClick={modal.openEdit}
         rowClassName={() => "cursor-pointer"}
       />
 
       <AccessPolicyModal
-        open={modalOpen}
-        editPolicy={editTarget}
-        onClose={closeModal}
+        open={modal.isOpen}
+        editPolicy={modal.target}
+        onClose={modal.close}
       />
 
       <ConfirmDialog

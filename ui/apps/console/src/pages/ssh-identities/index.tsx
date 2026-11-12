@@ -25,6 +25,7 @@ import {
   useDeleteSSHIdentity,
   useSSHIdentities,
 } from "@/hooks/useSSHIdentityRequests";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useRowAction } from "@/hooks/useRowAction";
 import { useAuthStore } from "@/stores/authStore";
 import type { SshIdentity } from "@/client";
@@ -104,21 +105,7 @@ export default function SSHIdentities() {
     run: (identity: SshIdentity) =>
       revokeIdentityMutation.mutateAsync({ path: { id: identity.id } }),
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<SshIdentity | null>(null);
-
-  const openNew = () => {
-    setEditTarget(null);
-    setModalOpen(true);
-  };
-  const openEdit = (identity: SshIdentity) => {
-    setEditTarget(identity);
-    setModalOpen(true);
-  };
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
+  const modal = useEditModal<SshIdentity>();
 
   const columns: Column<SshIdentity>[] = [
     {
@@ -264,7 +251,7 @@ export default function SSHIdentities() {
                   <RestrictedAction action="sshIdentity:add">
                     <Dropdown.Item
                       label="Edit"
-                      onSelect={() => openEdit(i)}
+                      onSelect={() => modal.openEdit(i)}
                       className="gap-2.5 px-3 py-2"
                     >
                       <PencilSquareIcon className="w-4 h-4" />
@@ -326,7 +313,7 @@ export default function SSHIdentities() {
           <RestrictedAction action="sshIdentity:add">
             <Button
               size="lg"
-              onClick={openNew}
+              onClick={modal.openNew}
               icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
               Add a key
@@ -343,7 +330,7 @@ export default function SSHIdentities() {
           >
             <RestrictedAction action="sshIdentity:add">
               <Button
-                onClick={openNew}
+                onClick={modal.openNew}
                 icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
               >
                 Add a key
@@ -399,9 +386,9 @@ export default function SSHIdentities() {
         </div>
       )}
       <IdentityModal
-        open={modalOpen}
-        editIdentity={editTarget}
-        onClose={closeModal}
+        open={modal.isOpen}
+        editIdentity={modal.target}
+        onClose={modal.close}
       />
       <Outlet />
     </>
