@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -23,12 +22,12 @@ func TestServerShutdown(t *testing.T) {
 		server := compose.Service(environment.ServiceServer)
 
 		grace := 30 * time.Second
-		require.NoError(t, server.Stop(context.WithoutCancel(t.Context()), &grace))
+		require.NoError(t, server.Stop(t.Context(), &grace))
 
 		state, err := server.State(t.Context())
 		require.NoError(t, err)
 
 		assert.Equal(t, 0, state.ExitCode)
-		environment.AwaitLogContains(t, server, "Server shutdown complete")
+		compose.AwaitServerLog(t, "Server shutdown complete")
 	})
 }
