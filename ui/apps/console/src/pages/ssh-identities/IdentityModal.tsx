@@ -1,7 +1,6 @@
 import { useState, FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
-  ExclamationCircleIcon,
   PencilSquareIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
@@ -27,6 +26,7 @@ import {
 } from "@/utils/sshIdentity";
 import KeyExpiryField from "@/components/common/KeyExpiryField";
 import { useBrowserKeyFingerprint } from "@/hooks/useBrowserKey";
+import FormRootError from "@/components/common/fields/FormRootError";
 
 /**
  * Enrols or renames an SSH identity. On edit only the name changes — the key is what the
@@ -233,15 +233,7 @@ function IdentityModal({
           />
         )}
 
-        {error && (
-          <p className="text-xs text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon
-              className="w-3.5 h-3.5 shrink-0"
-              strokeWidth={2}
-            />
-            {error}
-          </p>
-        )}
+        <FormRootError message={error} />
       </form>
     </Modal>
   );

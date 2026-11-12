@@ -25,6 +25,7 @@ import InputField from "@/components/common/fields/InputField";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
+import FormRootError from "@/components/common/fields/FormRootError";
 import { formatRelative, formatDateShort } from "@/utils/date";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 import {
@@ -697,15 +698,7 @@ function EndpointModal({
           </div>
         </div>
 
-        {error && (
-          <div className="flex items-start gap-2 px-3 py-2.5 bg-accent-red/[0.08] border border-accent-red/20 rounded-lg">
-            <ExclamationCircleIcon
-              className="w-4 h-4 shrink-0 text-accent-red mt-0.5"
-              strokeWidth={2}
-            />
-            <p className="text-xs text-accent-red">{error}</p>
-          </div>
-        )}
+        <FormRootError message={error} />
       </form>
     </Modal>
   );

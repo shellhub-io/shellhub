@@ -3,7 +3,6 @@ import { Button, Dropdown, Toggle } from "@shellhub/design-system/primitives";
 import {
   KeyIcon,
   LockClosedIcon,
-  ExclamationCircleIcon,
   ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -17,6 +16,7 @@ import ConfirmDialog from "@/components/common/ConfirmDialog";
 import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
+import FormRootError from "@/components/common/fields/FormRootError";
 import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SettingsField from "@/components/settings/SettingsField";
@@ -126,12 +126,7 @@ function ChangePasswordModal({
           error={mismatch ? "Passwords do not match" : undefined}
         />
 
-        {error && (
-          <p className="text-xs text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
-            {error}
-          </p>
-        )}
+        <FormRootError message={error} />
       </form>
     </Modal>
   );

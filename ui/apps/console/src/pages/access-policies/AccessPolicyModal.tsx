@@ -7,7 +7,6 @@ import {
   ShieldCheckIcon,
   TagIcon,
   CommandLineIcon,
-  ExclamationCircleIcon,
   CheckIcon,
   ChevronDownIcon,
   XMarkIcon,
@@ -33,6 +32,7 @@ import {
 } from "@/client";
 import SourceIpInput from "@/components/common/fields/SourceIpInput";
 import InputField from "@/components/common/fields/InputField";
+import FormRootError from "@/components/common/fields/FormRootError";
 import Modal from "@/components/common/Modal";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 import {
@@ -914,15 +914,7 @@ function AccessPolicyModal({
           </p>
         </div>
 
-        {error && (
-          <p className="text-xs text-accent-red flex items-center gap-1.5">
-            <ExclamationCircleIcon
-              className="w-3.5 h-3.5 shrink-0"
-              strokeWidth={2}
-            />
-            {error}
-          </p>
-        )}
+        <FormRootError message={error} />
       </form>
     </Modal>
   );
