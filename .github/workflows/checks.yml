@@ -52,6 +52,11 @@ jobs:
               - '.github/scripts/shard-tests.sh'
               - 'tests/scripts/shard-tests.bats'
               - '.github/workflows/checks.yml'
+            no-cache-filters:
+              - '.github/scripts/check-no-cache-filters.sh'
+              - 'tests/scripts/check-no-cache-filters.bats'
+              - '.github/workflows/**'
+              - '**/Dockerfile'
             gen-config:
               - 'ui/scripts/gen-config.sh'
               - 'tests/ui/**'
@@ -237,6 +242,14 @@ jobs:
       - name: Run shard-tests tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.shard-tests == 'true' }}
         run: bats tests/scripts/shard-tests.bats
+
+      - name: Check that each no-cache-filters stage exists in its Dockerfile
+        if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || steps.changes.outputs.no-cache-filters == 'true') }}
+        run: bash .github/scripts/check-no-cache-filters.sh
+
+      - name: Run check-no-cache-filters tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.no-cache-filters == 'true' }}
+        run: bats tests/scripts/check-no-cache-filters.bats
 
       - name: Run gen-config tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.gen-config == 'true' }}
