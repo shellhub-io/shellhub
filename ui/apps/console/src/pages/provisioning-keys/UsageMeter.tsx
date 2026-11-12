@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { type ProvisioningKey } from "@/client";
+import { formatCount } from "@/utils/count";
 import {
-  formatCount,
   getKeyBlockers,
   getUsageInfo,
   getWaitingInfo,

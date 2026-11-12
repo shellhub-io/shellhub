@@ -22,7 +22,7 @@ import {
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useUnverifiedDeviceCount } from "@/hooks/useDevices";
-import { formatCount } from "@/pages/provisioning-keys/helpers";
+import { formatCount } from "@/utils/count";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useSettingSave } from "@/hooks/useSettingSave";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
@@ -478,8 +478,8 @@ function BannerModal({
               overLimit ? "text-accent-red font-semibold" : "text-text-muted",
             )}
           >
-            {field.value.length.toLocaleString()}/
-            {BANNER_MAX_LENGTH.toLocaleString()}
+            {formatCount(field.value.length)}/
+            {formatCount(BANNER_MAX_LENGTH)}
           </span>
           {errors.banner?.message && (
             <span role="alert" className="text-2xs text-accent-red">

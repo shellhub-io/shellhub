@@ -19,6 +19,7 @@ import {
   useProvisioningKeys,
   useRevealProvisioningKey,
 } from "@/hooks/useProvisioningKeyRequests";
+import { formatCount } from "@/utils/count";
 import { formatDateShort } from "@/utils/date";
 import { capitalize } from "@/utils/string";
 import ProvisioningKeyActions from "./ProvisioningKeyActions";
@@ -28,7 +29,6 @@ import { UsageCount, UsageDetail } from "./UsageMeter";
 import {
   ephemeralPhrase,
   expiryPhrase,
-  formatCount,
   getUsageInfo,
   getWaitingInfo,
   isLegacyKey,
