@@ -9,7 +9,17 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-const reasonProvisioningKeyTenant = "enrolling with a provisioning key alone, whose digest provisioning_keys_key_digest_unique makes name exactly one namespace"
+const (
+	reasonAPIKeyDigest          = "authenticating an API key by its digest, which api_keys_key_digest_unique makes name exactly one namespace"
+	reasonDeviceCleanup         = "device-cleanup cron sweeps every namespace, bucketing its deletions per namespace afterwards"
+	reasonEphemeralCleanup      = "the ephemeral cleanup removes expired devices of every namespace, bucketing its deletions per namespace afterwards"
+	reasonHeartbeatBatch        = "a heartbeat batch spans every namespace holding a tunnel, and each beat is matched within its own"
+	reasonPairingByPublicKey    = "pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required"
+	reasonPresenceSweep         = "the presence sweep closes the unwritten tunnel closes of every namespace"
+	reasonProvisioningKeyTenant = "enrolling with a provisioning key alone, whose digest provisioning_keys_key_digest_unique makes name exactly one namespace"
+	reasonSessionReadBack       = "reading back the session this call just created, by its generated UID"
+	reasonTenantlessDeviceToken = "a device token minted before tokens carried a tenant names the device by UID alone, the devices table's primary key, and the server's signature vouches for that UID"
+)
 
 // BoundTo bounds an operation to the tenant a request carries. An absent tenant refuses the request
 // rather than widening it to every namespace, matching the tenant-guard middleware's fail-closed

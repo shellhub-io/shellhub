@@ -145,7 +145,7 @@ func (s *service) CreateDevicePairing(ctx context.Context, req *requests.DeviceP
 }
 
 func (s *service) acceptedDevicePairing(ctx context.Context, publicKey string) (*models.DevicePairing, bool, error) {
-	sc := scope.NewUnbounded("pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required")
+	sc := scope.NewUnbounded(reasonPairingByPublicKey)
 	device, err := s.store.DeviceResolve(ctx, sc, store.DevicePublicKeyResolver, publicKey, s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
 	switch {
 	case err == nil && device != nil:

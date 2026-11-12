@@ -103,7 +103,7 @@ func (pg *Pg) SessionCreate(ctx context.Context, session models.Session) (string
 		session.UID = uuid.Generate()
 	}
 
-	sc := scope.NewUnbounded("resolving the device that determines the new session's namespace")
+	sc := scope.NewUnbounded(reasonSessionDeviceResolve)
 
 	device, err := pg.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(session.DeviceUID))
 	if err != nil {

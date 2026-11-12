@@ -69,7 +69,7 @@ func (s *service) EphemeralCleanup() worker.CronHandler {
 func (s *service) DevicePresenceSweep() worker.CronHandler {
 	return func(ctx context.Context) error {
 		staleBefore := s.clock.Now().Add(-devicePresenceSweepGrace)
-		sc := scope.NewUnbounded("the presence sweep closes the unwritten tunnel closes of every namespace")
+		sc := scope.NewUnbounded(reasonPresenceSweep)
 
 		total := int64(0)
 		batches := 0
@@ -262,7 +262,7 @@ func (s *service) deviceCleanup() store.TransactionCb {
 			Tiebreak: "id",
 		}
 
-		sc := scope.NewUnbounded("device-cleanup cron sweeps every namespace, bucketing its deletions per namespace afterwards")
+		sc := scope.NewUnbounded(reasonDeviceCleanup)
 
 		_, totalCount, err := s.store.DeviceList(ctx, sc, store.DeviceAcceptableAsFalse, s.store.Options().Match(filter))
 		if err != nil {
@@ -354,7 +354,7 @@ func (s *service) ephemeralCleanup() store.TransactionCb {
 	return func(ctx context.Context) error {
 		log.Info("Starting cleanup for offline ephemeral devices")
 
-		sc := scope.NewUnbounded("the ephemeral cleanup removes expired devices of every namespace, bucketing its deletions per namespace afterwards")
+		sc := scope.NewUnbounded(reasonEphemeralCleanup)
 
 		devices, err := s.store.DeviceListExpiredEphemeral(ctx, sc)
 		if err != nil {

@@ -168,7 +168,7 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 	ctx, cancel := context.WithTimeout(context.Background(), deviceHeartbeatWriteTimeout)
 	defer cancel()
 
-	gone, err := h.store.DeviceHeartbeat(ctx, scope.NewUnbounded("a heartbeat batch spans every namespace holding a tunnel, and each beat is matched within its own"), beats, h.skipWithin)
+	gone, err := h.store.DeviceHeartbeat(ctx, scope.NewUnbounded(reasonHeartbeatBatch), beats, h.skipWithin)
 	if err != nil {
 		log.WithError(err).
 			WithField("devices", len(beats)).

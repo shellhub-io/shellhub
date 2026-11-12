@@ -288,8 +288,6 @@ type deviceAuth struct {
 	clientIP string
 }
 
-const reasonTenantlessDeviceToken = "a device token minted before tokens carried a tenant names the device by UID alone, the devices table's primary key, and the server's signature vouches for that UID"
-
 func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error {
 	sc := scope.NewUnbounded(reasonTenantlessDeviceToken)
 	if claims.TenantID != "" {
@@ -727,7 +725,7 @@ func (s *service) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, e
 	fromCache := apiKey.Digest != ""
 	if !fromCache {
 		var err error
-		sc := scope.NewUnbounded("authenticating an API key by its digest, which api_keys_key_digest_unique makes name exactly one namespace")
+		sc := scope.NewUnbounded(reasonAPIKeyDigest)
 		if apiKey, err = s.store.APIKeyResolve(ctx, sc, store.APIKeyDigestResolver, digest); err != nil {
 			if errors.Is(err, store.ErrAmbiguous) {
 				log.WithError(err).Error("an API key digest resolved to more than one namespace; refusing to authenticate it")
