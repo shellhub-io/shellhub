@@ -148,6 +148,8 @@ func (pg *Pg) ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolv
 		return nil, err
 	}
 
+	ctx = context.WithValue(ctx, CtxTableAlias, "provisioning_key")
+
 	provisioningKey, err := resolveUnique[entity.ProvisioningKey](ctx, pg.GetConnection(ctx), sc, column, val, []string{"Tags"}, opts...)
 	if err != nil {
 		return nil, err

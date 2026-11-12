@@ -62,6 +62,37 @@ func (s *Suite) TestProvisioningKeyModeRoundTrip(t *testing.T) {
 	})
 }
 
+// TestProvisioningKeyResolveForUpdate verifies a provisioning key resolves with the ForUpdate option
+// inside a transaction, which fails when the store sets no table alias for the row lock.
+func (s *Suite) TestProvisioningKeyResolveForUpdate(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+	tenantID := s.CreateNamespace(t)
+
+	digest := "3333333333333333333333333333333333333333333333333333333333333333"
+	_, err := st.ProvisioningKeyCreate(ctx, &models.ProvisioningKey{
+		ID:       digest,
+		Name:     "locked",
+		TenantID: tenantID,
+		Mode:     models.ProvisioningKeyModeAutomatic,
+		Reusable: true,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, st.WithTransaction(ctx, func(ctx context.Context) error {
+		key, err := st.ProvisioningKeyResolve(ctx, scope.MustBounded(tenantID), store.ProvisioningKeyNameResolver, "locked", st.Options().ForUpdate())
+		if err != nil {
+			return err
+		}
+
+		assert.Equal(t, digest, key.ID)
+
+		return nil
+	}))
+}
+
 // TestProvisioningKeyTags verifies a key holds its tags themselves: every read reports a renamed tag
 // under its new name, and an update replaces the tags the key holds.
 func (s *Suite) TestProvisioningKeyTags(t *testing.T) {
