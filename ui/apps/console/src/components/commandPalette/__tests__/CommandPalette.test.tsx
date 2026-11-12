@@ -18,7 +18,7 @@ const { copyMock } = vi.hoisted(() => ({ copyMock: vi.fn() }));
 
 vi.mock("@/hooks/useCopy", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/hooks/useCopy")>()),
-  useCopy: () => ({ copy: copyMock, copied: false }),
+  useCopy: () => copyMock,
 }));
 
 import CommandPalette from "@/components/commandPalette/CommandPalette";

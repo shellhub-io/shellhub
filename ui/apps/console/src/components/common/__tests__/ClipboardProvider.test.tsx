@@ -4,7 +4,6 @@ import {
   render,
   screen,
   waitFor,
-  act,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ClipboardProvider } from "../ClipboardProvider";
@@ -26,10 +25,10 @@ afterEach(() => {
 });
 
 function CopyConsumer({ text = "test-text" }: { text?: string }) {
-  const { copy, copied } = useCopy();
+  const copy = useCopy();
   return (
     <button type="button" data-testid="copy-btn" onClick={() => copy(text)}>
-      {copied ? "Copied!" : "Copy"}
+      Copy
     </button>
   );
 }
@@ -74,31 +73,6 @@ describe("ClipboardProvider / useCopy", () => {
       renderWithProvider("hello");
       fireEvent.click(screen.getByTestId("copy-btn"));
       expect(clipboardWriteText).toHaveBeenCalledWith("hello");
-    });
-
-    it("sets copied=true after a successful copy", async () => {
-      renderWithProvider();
-      fireEvent.click(screen.getByTestId("copy-btn"));
-      await waitFor(() =>
-        expect(screen.getByTestId("copy-btn")).toHaveTextContent("Copied!"),
-      );
-    });
-
-    it("resets copied to false after 1500 ms", async () => {
-      vi.useFakeTimers({ shouldAdvanceTime: true });
-      renderWithProvider();
-
-      fireEvent.click(screen.getByTestId("copy-btn"));
-      await waitFor(() =>
-        expect(screen.getByTestId("copy-btn")).toHaveTextContent("Copied!"),
-      );
-
-      await act(() => vi.advanceTimersByTime(1500));
-      await waitFor(() =>
-        expect(screen.getByTestId("copy-btn")).toHaveTextContent("Copy"),
-      );
-
-      vi.useRealTimers();
     });
 
     it("does not open the dialog on successful copy", async () => {
