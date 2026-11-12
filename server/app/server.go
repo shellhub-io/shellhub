@@ -597,7 +597,8 @@ func (s *Server) stopGateway() {
 // Shutdown stops the worker, the in-process gateway when it runs, and the HTTP and SSH servers,
 // then closes every device tunnel without reporting the devices offline. It waits up to
 // heartbeaterDrainTimeout for pending heartbeats, flushes telemetry, and logs each failure
-// instead of returning it.
+// instead of returning it. Call it only after [Server.Start] has returned: it reads the servers
+// Start creates, and while Start runs those are being written on another goroutine.
 func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
