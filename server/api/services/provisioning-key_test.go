@@ -417,7 +417,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(nil, store.ErrNoDocuments).Once()
 			},
 			expectedErr: NewErrProvisioningKeyNotFound("ci", store.ErrNoDocuments),
@@ -428,7 +428,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
 					Return([]string{"name"}, true, nil).Once()
@@ -441,7 +441,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Reusable: true}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Reusable: true, Revoked: true}).
 					Return(nil).Once()
@@ -454,7 +454,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyForbidden(),
@@ -465,7 +465,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyForbidden(),
@@ -476,7 +476,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyForbidden(),
@@ -487,7 +487,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyInvalidField(map[string]string{
@@ -500,7 +500,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 0, UsedTimes: 3, Reusable: true}).
 					Return(nil).Once()
@@ -513,7 +513,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
 					Return([]string{}, false, nil).Once()
@@ -530,7 +530,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, TagIDs: []string{"prod-id"}}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, Disabled: true}).
 					Return(nil).Once()
@@ -543,7 +543,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{"prod"}, TagIDs: []string{"prod-id"}}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Tags: []string{}, TagIDs: []string{}}).
 					Return(nil).Once()
@@ -556,7 +556,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
 					Return(nil, store.ErrNoDocuments).Once()
@@ -573,8 +573,6 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
-					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
 					Return(nil, errors.New("tag error")).Once()
 			},
@@ -586,7 +584,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
 					Return([]string{}, false, nil).Once()
@@ -601,7 +599,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyConflicts", ctx, scope.MustBounded(tenant), &models.ProvisioningKeyConflicts{Name: "runners"}).
 					Return([]string{}, false, nil).Once()
@@ -616,8 +614,6 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
-					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
 					Return(nil, store.ErrNoDocuments).Once()
 				storeMock.On("TagCreate", ctx, &models.Tag{Name: "edge", TenantID: tenant}).
@@ -626,12 +622,14 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			expectedErr: store.ErrDuplicate,
 		},
 		{
-			description: "resolves no tag when another field is rejected",
+			description: "rejects a usage limit below the times used when the request names tags",
 			req:         &requests.UpdateProvisioningKey{TenantID: tenant, CurrentName: "ci", Tags: []string{"edge"}, UsageLimit: &limitTwo},
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("TagResolve", ctx, scope.MustBounded(tenant), store.TagNameResolver, "edge", forUpdate).
+					Return(&models.Tag{ID: "edge-id", Name: "edge", TenantID: tenant}, nil).Once()
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, UsageLimit: 5, UsedTimes: 3}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyInvalidField(map[string]string{
@@ -644,7 +642,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 5}).
 					Return(nil).Once()
@@ -657,7 +655,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 10}).
 					Return(nil).Once()
@@ -670,7 +668,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: true, EphemeralTimeout: 10}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, Ephemeral: false, EphemeralTimeout: 0}).
 					Return(nil).Once()
@@ -683,7 +681,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 				expiry := now.AddDate(0, 0, 60)
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &expiry}).
@@ -698,7 +696,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 				existing := now.AddDate(0, 0, 30)
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: nil}).
 					Return(nil).Once()
@@ -712,7 +710,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 				existing := now.AddDate(0, 0, 30)
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing, Reusable: true}, nil).Once()
 				storeMock.On("ProvisioningKeyUpdate", ctx, &models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant, ExpiresAt: &existing, Reusable: true, Revoked: true}).
 					Return(nil).Once()
@@ -725,7 +723,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyInvalidField(map[string]string{
@@ -738,7 +736,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "ci", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "ci", TenantID: tenant}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyInvalidField(map[string]string{
@@ -751,7 +749,7 @@ func TestUpdateProvisioningKey(t *testing.T) {
 			requiredMocks: func(ctx context.Context) {
 				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenant).
 					Return(namespace, nil).Once()
-				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy").
+				storeMock.On("ProvisioningKeyResolve", ctx, mock.Anything, store.ProvisioningKeyNameResolver, "legacy", forUpdate).
 					Return(&models.ProvisioningKey{ID: "hash", Name: "legacy", TenantID: tenant, Type: models.ProvisioningKeyTypeLegacy, Reusable: true, Mode: models.ProvisioningKeyModeManual}, nil).Once()
 			},
 			expectedErr: NewErrProvisioningKeyForbidden(),
