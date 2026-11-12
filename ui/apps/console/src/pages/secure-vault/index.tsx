@@ -8,6 +8,7 @@ import {
   TrashIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useVaultStore } from "@/stores/vaultStore";
 import PageHeader from "@/components/common/PageHeader";
 import EmptyState, {
@@ -71,8 +72,7 @@ export default function SecureVault() {
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [syncOpen, setSyncOpen] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<VaultKeyEntry | null>(null);
+  const modal = useEditModal<VaultKeyEntry>();
   const [deleteTarget, setDeleteTarget] = useState<VaultKeyEntry | null>(null);
   const [search, setSearch] = useState("");
 
@@ -103,19 +103,6 @@ export default function SecureVault() {
       setPromoOpen(true);
     }
   }, [status, storageMode, user, tenant]);
-
-  const openNew = () => {
-    setEditTarget(null);
-    setModalOpen(true);
-  };
-  const openEdit = (entry: VaultKeyEntry) => {
-    setEditTarget(entry);
-    setModalOpen(true);
-  };
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
 
   const filtered = search
     ? keys.filter(
@@ -241,7 +228,7 @@ export default function SecureVault() {
             variant="primary"
             title="Edit"
             aria-label={`Edit ${entry.name}`}
-            onClick={() => openEdit(entry)}
+            onClick={() => modal.openEdit(entry)}
           >
             <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
           </IconButton>
@@ -269,7 +256,7 @@ export default function SecureVault() {
             description="Manage your encrypted SSH private keys."
           >
             <Button
-              onClick={openNew}
+              onClick={modal.openNew}
               icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}
             >
               Add Private Key
@@ -304,7 +291,7 @@ export default function SecureVault() {
 
       <VaultSettingsSection />
 
-      <KeyModal open={modalOpen} editKey={editTarget} onClose={closeModal} />
+      <KeyModal open={modal.isOpen} editKey={modal.target} onClose={modal.close} />
       <KeyDeleteDialog
         open={!!deleteTarget}
         entry={deleteTarget}

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   ExclamationTriangleIcon,
@@ -25,6 +24,7 @@ import {
 } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useEditModal } from "@/hooks/useEditModal";
 import { useRowAction } from "@/hooks/useRowAction";
 import ActiveBadge from "@/components/common/ActiveBadge";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -74,23 +74,7 @@ export default function FirewallRules() {
     run: (rule: FirewallRule) =>
       deleteRuleMutation.mutateAsync({ path: { id: rule.id } }),
   });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<FirewallRule | null>(null);
-
-  const openNew = () => {
-    setEditTarget(null);
-    setModalOpen(true);
-  };
-
-  const openEdit = (rule: FirewallRule) => {
-    setEditTarget(rule);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setEditTarget(null);
-  };
+  const modal = useEditModal<FirewallRule>();
 
   const filtered = params.search
     ? rules.filter(
@@ -174,7 +158,7 @@ export default function FirewallRules() {
               variant="primary"
               aria-label={`Edit firewall rule with priority ${rule.priority}`}
               title="Edit"
-              onClick={() => openEdit(rule)}
+              onClick={() => modal.openEdit(rule)}
             >
               <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
             </IconButton>
@@ -227,7 +211,7 @@ export default function FirewallRules() {
           <RestrictedAction action="firewall:create">
             <Button
               size="lg"
-              onClick={openNew}
+              onClick={modal.openNew}
               icon={
                 <PlusIcon
                   className="w-4 h-4"
@@ -242,9 +226,9 @@ export default function FirewallRules() {
         </EmptyState>
 
         <RuleModal
-          open={modalOpen}
-          editRule={editTarget}
-          onClose={closeModal}
+          open={modal.isOpen}
+          editRule={modal.target}
+          onClose={modal.close}
         />
       </>
     );
@@ -260,7 +244,7 @@ export default function FirewallRules() {
       >
         <RestrictedAction action="firewall:create">
           <Button
-            onClick={openNew}
+            onClick={modal.openNew}
             icon={
               <PlusIcon
                 className="w-4 h-4"
@@ -306,9 +290,9 @@ export default function FirewallRules() {
       />
 
       <RuleModal
-        open={modalOpen}
-        editRule={editTarget}
-        onClose={closeModal}
+        open={modal.isOpen}
+        editRule={modal.target}
+        onClose={modal.close}
       />
 
       <ConfirmDialog
