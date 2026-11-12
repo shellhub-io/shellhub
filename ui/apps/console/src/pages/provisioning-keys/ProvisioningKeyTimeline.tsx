@@ -27,9 +27,9 @@ import {
   type RegistrationSort,
 } from "@/hooks/useProvisioningKeyEvents";
 import { TOOLBAR_CONTROL } from "@/pages/devices/toolbar";
+import { formatCount } from "@/utils/count";
 import { formatDateFull } from "@/utils/date";
 import EventPublicKey from "./EventPublicKey";
-import { formatCount } from "./helpers";
 
 type Outcome = "waiting" | "accepted" | "rejected" | "settled" | "refused";
 

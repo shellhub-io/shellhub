@@ -372,10 +372,3 @@ export function lastUsedPhrase(key: ProvisioningKey): string {
     ? `last used ${formatRelative(key.last_used_at)}`
     : "never used";
 }
-
-/**
- * A count as the key screens print it, grouped by thousands so a fleet-sized number stays legible.
- */
-export function formatCount(n: number): string {
-  return n.toLocaleString("en-US");
-}

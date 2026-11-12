@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatCount } from "@/utils/count";
 
 /**
  * The longest login banner, in characters. It must match the server's limit on
@@ -15,7 +16,7 @@ export const bannerSchema = z.object({
     .string()
     .max(
       BANNER_MAX_LENGTH,
-      `A banner can be at most ${BANNER_MAX_LENGTH.toLocaleString()} characters.`,
+      `A banner can be at most ${formatCount(BANNER_MAX_LENGTH)} characters.`,
     ),
 });
 
