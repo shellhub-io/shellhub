@@ -44,8 +44,7 @@ func NewConn(socket Socket) *Conn {
 	}
 }
 
-// CharacterSize is the size of a single character in bytes when encoded in UTF-8.
-const CharacterSize = 4
+const maxEncodedRuneSize = 6
 
 // TermniosMaxLineLength is the maximum line length for a terminal input in characters.
 //
@@ -73,10 +72,11 @@ const TermniosMaxLineLength = 4096
 
 // ReadMessageBufferSize is the size of the buffer used to read messages from the websocket connection.
 //
-// As we read JSON messages from the websocket connection, we need to ensure that the buffer size is large enough
-// so, we have decided to use a buffer size of 16404 bytes, which is the [TermniosMaxLineLength] plus the size of the
-// minimum message size [MessageMinSize].
-const ReadMessageBufferSize = MessageMinSize + (TermniosMaxLineLength * CharacterSize)
+// It fits the empty message, [MessageMinSize], plus [TermniosMaxLineLength] runes of at most six
+// bytes each, the longest escape JSON.stringify and encoding/json write for one rune. Input the
+// rune limit accepts is refused when it arrives as non-compact JSON or with a rune escaped as a
+// surrogate pair.
+const ReadMessageBufferSize = MessageMinSize + (TermniosMaxLineLength * maxEncodedRuneSize)
 
 // ReadMessage decodes the next message into message, returning the bytes consumed. The read
 // is bounded by [ReadMessageBufferSize] so that a client cannot force unbounded buffering.

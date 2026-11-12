@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http/httptest"
 	"strings"
 	"sync"
@@ -92,6 +93,54 @@ func TestConnReadMessage_input(t *testing.T) {
 			assert.Equal(t, test.expect.message, &message)
 			assert.Equal(t, test.expect.read, read)
 			assert.ErrorIs(t, err, test.expect.err)
+		})
+	}
+}
+
+func TestConnReadMessage_inputSize(t *testing.T) {
+	tests := []struct {
+		description string
+		input       string
+		errs        []error
+	}{
+		{
+			description: "accepts 4096 runes that each take six bytes in JSON",
+			input:       strings.Repeat("\x1b", 4096),
+		},
+		{
+			description: "refuses input longer than 4096 runes",
+			input:       strings.Repeat("a", 4097),
+			errs:        []error{ErrConnReadMessageInputTooLong},
+		},
+		{
+			description: "refuses a message larger than the read limit",
+			input:       strings.Repeat("\x1b", 4097),
+			errs:        []error{ErrConnReadMessageJSONInvalid, io.ErrUnexpectedEOF},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			payload, err := json.Marshal(Message{Kind: messageKindInput, Data: test.input})
+			require.NoError(t, err)
+
+			socket := mocks.NewMockSocket(t)
+			socket.EXPECT().Read(mock.Anything).RunAndReturn(bytes.NewReader(payload).Read)
+
+			var message Message
+			read, err := NewConn(socket).ReadMessage(&message)
+
+			if len(test.errs) > 0 {
+				for _, expected := range test.errs {
+					require.ErrorIs(t, err, expected)
+				}
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, len(payload), read)
+			assert.Equal(t, &Message{Kind: messageKindInput, Data: test.input}, &message)
 		})
 	}
 }
