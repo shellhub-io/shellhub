@@ -15,7 +15,6 @@ import {
 import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import {
-  type Namespace,
   useEditNamespace,
   useNamespace,
 } from "@/hooks/useNamespaceRequests";
@@ -44,7 +43,7 @@ import StatePill from "@/components/common/StatePill";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SavedMark from "@/components/settings/SavedMark";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
-import { upgradeNamespaceMutation } from "@/client";
+import { type Namespace, upgradeNamespaceMutation } from "@/client";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   BANNER_MAX_LENGTH,

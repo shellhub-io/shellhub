@@ -16,7 +16,6 @@ import {
   getStatusDevicesOptions,
   leaveNamespace as leaveNamespaceSdk,
   listNamespaceMembersOptions,
-  type Namespace as GeneratedNamespace,
   type NamespaceMemberRole,
 } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
@@ -25,12 +24,6 @@ import {
   queryOperationId,
   useInvalidateByIds,
 } from "@/hooks/useInvalidateQueries";
-
-/**
- * A namespace as the console uses it: the generated model plus the type the cloud API adds and
- * the spec does not describe.
- */
-export type Namespace = GeneratedNamespace & { type?: string };
 
 /**
  * A member of a namespace. status tells an accepted member from an invitation not yet taken up;
@@ -57,7 +50,7 @@ export function useNamespaces({ enabled = true }: { enabled?: boolean } = {}) {
   });
 
   return {
-    namespaces: (result.data ?? []) as Namespace[],
+    namespaces: result.data ?? [],
     isLoading: result.isLoading,
     error: result.error,
     refetch: result.refetch,

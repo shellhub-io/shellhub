@@ -6,8 +6,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
+import type { Namespace } from "@/client";
 import {
-  type Namespace,
   useDeleteNamespace,
   useLeaveNamespace,
 } from "@/hooks/useNamespaceRequests";
