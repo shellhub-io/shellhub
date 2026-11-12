@@ -528,10 +528,12 @@ func (s *Server) setupSSH(service services.Service) error {
 
 // Start begins serving API requests and processing background tasks, serves the Prometheus
 // registry on the operator listener, and with the gateway enabled serves the public listeners
-// too. It blocks the current goroutine until the server stops, and returns the worker's, the :8080
-// listener's, the operator listener's or the gateway's start error, or whichever of the HTTP,
-// operator and SSH servers fails first.
-func (s *Server) Start() error {
+// too. It blocks the current goroutine until ctx is done, then returns nil and leaves every
+// component running for [Server.Shutdown] to stop. It returns the worker's, the :8080 listener's,
+// the operator listener's or the gateway's start error after stopping what it had started. It
+// returns whichever of the HTTP, operator and SSH servers fails first while the others keep
+// running.
+func (s *Server) Start(ctx context.Context) error {
 	log.Info("Starting server components")
 
 	if err := s.worker.Start(); err != nil {
@@ -574,7 +576,12 @@ func (s *Server) Start() error {
 	go func() { errs <- s.operator.Serve(operatorListener) }()
 	go func() { errs <- s.ssh.ListenAndServe() }()
 
-	return <-errs
+	select {
+	case err := <-errs:
+		return err
+	case <-ctx.Done():
+		return nil
+	}
 }
 
 func (s *Server) stopGateway() {

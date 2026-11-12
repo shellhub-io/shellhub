@@ -19,8 +19,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Run is the entry point for the API process. It parses environment variables,
-// sets up the server, and blocks until a termination signal is received.
+// Run is the entry point for the API process. It parses environment variables, sets up the
+// server, and serves until SIGINT or SIGTERM. It then shuts the server down and returns once the
+// shutdown has finished, so the process exits with status 0. A second signal during the shutdown
+// ends the process at once. When the environment does not parse, or the server fails to set up,
+// to start or to serve, Run logs the error and exits the process with status 1 without shutting
+// the server down.
 func Run() {
 	loglevel.UseEnvs(envs.OS())
 
@@ -54,24 +58,22 @@ func Run() {
 				return err
 			}
 
-			sigs := make(chan os.Signal, 1)
-			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			ctx, stop := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
 
-			go func() {
-				sig := <-sigs
-				log.WithField("signal", sig).
-					Info("shutting down the server")
-
-				server.Shutdown()
-				os.Exit(0)
-			}()
-
-			if err := server.Start(); err != nil {
+			if err := server.Start(ctx); err != nil {
 				log.WithError(err).
-					Error("failed too start the server")
+					Error("failed to start the server")
 
 				return err
 			}
+
+			stop()
+
+			log.WithField("cause", context.Cause(ctx)).
+				Info("shutting down the server")
+
+			server.Shutdown()
 
 			return nil
 		},
