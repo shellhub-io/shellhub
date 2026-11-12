@@ -192,18 +192,21 @@ type ProvisioningKeyService interface {
 	// list, the total count of documents, and an error, if any.
 	ListProvisioningKeys(ctx context.Context, req *requests.ListProvisioningKey) (provisioningKeys []models.ProvisioningKey, count int64, err error)
 
-	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. Tags, when set,
-	// replace the tags the key holds, creating any the namespace lacks. Tags are resolved only once
-	// every field has validated, in the transaction that writes the key, so a rejected request creates
-	// no tag. It returns [ErrForbidden] for an empty tenant, [ErrNamespaceNotFound] when no namespace
-	// carries the tenant, [ErrNamespaceLegacy] in a legacy namespace, [ErrProvisioningKeyNotFound]
-	// when no key has the current name and [ErrProvisioningKeyForbidden] for any field on a system
-	// key or a revoked key. It returns [ErrProvisioningKeyDuplicated] for a new name already taken,
-	// also by a parallel request between the conflict check and the update,
-	// [ErrProvisioningKeyInvalidField] for an unknown mode or one its settings do not satisfy, a usage
-	// limit below the times the key was used or an expiry outside 1 to 36500 days. Any other failure
-	// returns the store's error, a ctx cancelled or past its deadline and a tag that can be neither
-	// resolved nor created included.
+	// UpdateProvisioningKey updates a provisioning key identified by tenant ID and name. Tags, when
+	// set, replace the tags the key holds, creating any the namespace lacks. The update runs in one
+	// transaction that resolves the tags first and then reads the key under a row lock, the order a
+	// namespace deletion takes them in. A refused update rolls back the tags it created. Concurrent
+	// updates of one key run one after the other, each from the row the previous one committed, and an
+	// update that waits behind a revoke is refused. It returns [ErrForbidden] for an empty tenant,
+	// [ErrNamespaceNotFound] when no namespace carries the tenant, [ErrNamespaceLegacy] in a legacy
+	// namespace, and then the store's error for a tag that can be neither resolved nor created, ahead
+	// of any error about the key. It returns [ErrProvisioningKeyNotFound] when no key has the current
+	// name and [ErrProvisioningKeyForbidden] for any field on a system key or a revoked key. It returns
+	// [ErrProvisioningKeyDuplicated] for a new name already taken, also by a parallel request between
+	// the conflict check and the update, [ErrProvisioningKeyInvalidField] for an unknown mode or one
+	// its settings do not satisfy, a usage limit below the times the key was used or an expiry outside
+	// 1 to 36500 days. Any other failure returns the store's error, a ctx cancelled or past its
+	// deadline included.
 	UpdateProvisioningKey(ctx context.Context, req *requests.UpdateProvisioningKey) (err error)
 
 	// ListProvisioningKeyEvents pages the append-only enrollment history of the provisioning key whose
@@ -370,7 +373,21 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		return err
 	}
 
-	provisioningKey, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, req.CurrentName)
+	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		return s.updateProvisioningKey(ctx, sc, req)
+	})
+}
+
+func (s *service) updateProvisioningKey(ctx context.Context, sc scope.Scope, req *requests.UpdateProvisioningKey) error {
+	var tagIDs []string
+	if req.Tags != nil {
+		var err error
+		if tagIDs, err = s.provisioningKeyTagIDs(ctx, sc, req.Tags); err != nil {
+			return err
+		}
+	}
+
+	provisioningKey, err := s.store.ProvisioningKeyResolve(ctx, sc, store.ProvisioningKeyNameResolver, req.CurrentName, s.store.Options().ForUpdate())
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNoDocuments):
@@ -470,29 +487,20 @@ func (s *service) UpdateProvisioningKey(ctx context.Context, req *requests.Updat
 		provisioningKey.ExpiresAt = provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn.Value)
 	}
 
-	return s.store.WithTransaction(ctx, func(ctx context.Context) error {
-		provisioningKey.TagIDs = nil
+	provisioningKey.TagIDs = tagIDs
+	if req.Tags != nil {
+		provisioningKey.Tags = req.Tags
+	}
 
-		if req.Tags != nil {
-			tagIDs, err := s.provisioningKeyTagIDs(ctx, sc, req.Tags)
-			if err != nil {
-				return err
-			}
-
-			provisioningKey.Tags = req.Tags
-			provisioningKey.TagIDs = tagIDs
+	if err := s.store.ProvisioningKeyUpdate(ctx, provisioningKey); err != nil {
+		if errors.Is(err, store.ErrDuplicate) {
+			return NewErrProvisioningKeyDuplicated([]string{"name"})
 		}
 
-		if err := s.store.ProvisioningKeyUpdate(ctx, provisioningKey); err != nil {
-			if errors.Is(err, store.ErrDuplicate) {
-				return NewErrProvisioningKeyDuplicated([]string{"name"})
-			}
+		return err
+	}
 
-			return err
-		}
-
-		return nil
-	})
+	return nil
 }
 
 func (s *service) provisioningKeyTagIDs(ctx context.Context, sc scope.Scope, names []string) ([]string, error) {

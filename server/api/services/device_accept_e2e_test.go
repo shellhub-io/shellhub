@@ -122,21 +122,27 @@ func (e *enrollmentE2E) waitUntilBlockedOnLock(t *testing.T) {
 		).Scan(&waiting)
 
 		return err == nil && waiting > 0
-	}, 10*time.Second, 10*time.Millisecond, "the accept never blocked on a lock held by the concurrent merge")
+	}, 10*time.Second, 10*time.Millisecond, "the call never blocked on a lock held by the open transaction")
+}
+
+func (e *enrollmentE2E) whileHeldOpen(t *testing.T, writes func(ctx context.Context) error, call func() error) error {
+	t.Helper()
+
+	commit := e.heldOpen(t, writes)
+
+	waiting := make(chan error, 1)
+	go func() { waiting <- call() }()
+
+	e.waitUntilBlockedOnLock(t)
+	commit()
+
+	return <-waiting
 }
 
 func (e *enrollmentE2E) acceptWhileHeldOpen(t *testing.T, writes func(ctx context.Context) error, acceptedUID string) error {
 	t.Helper()
 
-	commit := e.heldOpen(t, writes)
-
-	loser := make(chan error, 1)
-	go func() { loser <- e.accept(context.Background(), acceptedUID) }()
-
-	e.waitUntilBlockedOnLock(t)
-	commit()
-
-	return <-loser
+	return e.whileHeldOpen(t, writes, func() error { return e.accept(context.Background(), acceptedUID) })
 }
 
 func (e *enrollmentE2E) acceptWhileMergeHeldOpen(t *testing.T, mac, oldUID, mergedUID, acceptedUID string) error {
