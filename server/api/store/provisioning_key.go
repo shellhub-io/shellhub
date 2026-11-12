@@ -33,8 +33,8 @@ type ProvisioningKeyStore interface {
 	// finds the namespace that owns the key. A name is unique only within a namespace, and an
 	// unbounded resolve by name that matches keys in several namespaces returns [ErrAmbiguous]. It
 	// returns [ErrResolverNotFound] for a resolver it does not know, [ErrInvalidScope] for a scope
-	// never constructed, [ErrNoDocuments] when no key matches, ctx's error when it is cancelled or
-	// its deadline passes and [ErrInternal] for any other failure.
+	// never constructed, [ErrNoDocuments] when no key matches, an option's own error, ctx's error
+	// when it is cancelled or its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyResolve(ctx context.Context, sc scope.Scope, resolver ProvisioningKeyResolver, value string, opts ...QueryOption) (*models.ProvisioningKey, error)
 
 	// ProvisioningKeyResolveSystem fetches the namespace's system-managed legacy key and its tags. It
