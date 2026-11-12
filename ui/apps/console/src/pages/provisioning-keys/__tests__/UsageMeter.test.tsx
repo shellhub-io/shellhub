@@ -1,11 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { mockProvisioningKey } from "@/tests/factories";
 import { fullText } from "@/tests/fullText";
 import UsageMeter from "../UsageMeter";
 
 function renderMeter(overrides: Parameters<typeof mockProvisioningKey>[0]) {
-  render(<UsageMeter provisioningKey={mockProvisioningKey(overrides)} />);
+  render(
+    <MemoryRouter>
+      <UsageMeter provisioningKey={mockProvisioningKey(overrides)} />
+    </MemoryRouter>,
+  );
 }
 
 describe("UsageMeter", () => {
@@ -63,6 +68,15 @@ describe("UsageMeter", () => {
     renderMeter({ usage_limit: 10, used_times: 3, ...key });
 
     expect(screen.getByText("not enrolling")).toBeInTheDocument();
+  });
+
+  it("links the waiting count to the key's activity page", () => {
+    renderMeter({ id: "key-1", usage_limit: 10, pending_devices: 2 });
+
+    expect(screen.getByRole("link", { name: "2 waiting" })).toHaveAttribute(
+      "href",
+      "/devices/add/fleet/key-1/activity",
+    );
   });
 
   it("names a spent key's state for a pointer", () => {

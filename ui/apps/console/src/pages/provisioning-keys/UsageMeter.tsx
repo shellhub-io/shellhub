@@ -120,19 +120,15 @@ export function UsageDetail({
  */
 export default function UsageMeter({
   provisioningKey,
-  muted,
-  linkWaiting,
 }: {
   provisioningKey: ProvisioningKey;
-  muted?: boolean;
-  linkWaiting?: boolean;
 }) {
   return (
     <div className="min-w-[7.5rem] leading-tight">
-      <UsageCount provisioningKey={provisioningKey} muted={muted} />
+      <UsageCount provisioningKey={provisioningKey} muted />
       <UsageDetail
         provisioningKey={provisioningKey}
-        linkWaiting={linkWaiting}
+        linkWaiting
         className="mt-0.5 block text-2xs"
       />
       <div className="mt-0.5 text-2xs text-text-muted whitespace-nowrap">
