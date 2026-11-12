@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	gliderssh "github.com/gliderlabs/ssh"
 	"github.com/labstack/echo-contrib/v5/pprof"
 	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
@@ -574,7 +575,15 @@ func (s *Server) Start() error {
 	go func() { errs <- s.operator.Serve(operatorListener) }()
 	go func() { errs <- s.ssh.ListenAndServe() }()
 
-	return <-errs
+	return serveError(<-errs)
+}
+
+func serveError(err error) error {
+	if errors.Is(err, http.ErrServerClosed) || errors.Is(err, gliderssh.ErrServerClosed) {
+		return nil
+	}
+
+	return err
 }
 
 func (s *Server) stopGateway() {

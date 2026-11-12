@@ -10,7 +10,9 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/loglevel"
@@ -57,23 +59,7 @@ func Run() {
 			sigs := make(chan os.Signal, 1)
 			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-			go func() {
-				sig := <-sigs
-				log.WithField("signal", sig).
-					Info("shutting down the server")
-
-				server.Shutdown()
-				os.Exit(0)
-			}()
-
-			if err := server.Start(); err != nil {
-				log.WithError(err).
-					Error("failed too start the server")
-
-				return err
-			}
-
-			return nil
+			return runServer(server, sigs)
 		},
 	})
 
@@ -83,4 +69,56 @@ func Run() {
 
 		os.Exit(1)
 	}
+}
+
+const serverShutdownTimeout = 30 * time.Second
+
+type lifecycle interface {
+	Start() error
+	Shutdown()
+}
+
+func runServer(s lifecycle, sigs <-chan os.Signal) error {
+	var once sync.Once
+
+	shutdown := func() {
+		once.Do(func() {
+			done := make(chan struct{})
+
+			go func() {
+				s.Shutdown()
+				close(done)
+			}()
+
+			select {
+			case <-done:
+			case <-time.After(serverShutdownTimeout):
+				log.Error("server shutdown timed out, forcing exit")
+				os.Exit(1)
+			}
+		})
+	}
+
+	go func() {
+		sig := <-sigs
+		log.WithField("signal", sig).
+			Info("shutting down the server")
+
+		go shutdown()
+
+		<-sigs
+		log.Warn("second signal received, forcing exit")
+		os.Exit(1)
+	}()
+
+	if err := s.Start(); err != nil {
+		log.WithError(err).
+			Error("failed too start the server")
+
+		return err
+	}
+
+	shutdown()
+
+	return nil
 }
