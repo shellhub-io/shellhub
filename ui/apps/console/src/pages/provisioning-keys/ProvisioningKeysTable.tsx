@@ -172,7 +172,7 @@ export default function ProvisioningKeysTable({
       key: "usage",
       header: "Usage",
       headerClassName: "w-40",
-      render: (key) => <UsageMeter provisioningKey={key} muted linkWaiting />,
+      render: (key) => <UsageMeter provisioningKey={key} />,
     },
     {
       key: "actions",
