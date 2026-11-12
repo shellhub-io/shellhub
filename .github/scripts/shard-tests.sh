@@ -28,6 +28,11 @@ if invalid=$(grep -vE '^[A-Za-z_][A-Za-z0-9_]*$' <<<"$names"); then
   exit 1
 fi
 
+if [[ -n "$first" ]] && ! grep -qE "$first" <<<"$names"; then
+  echo "shard-tests.sh: no test name matches the first-shard regex $first" >&2
+  exit 1
+fi
+
 shard_of() {
   local crc
   if [[ -n "$first" && "$1" =~ $first ]]; then
