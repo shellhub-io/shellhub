@@ -19,8 +19,6 @@ export default function TerminalSettingsDrawer({ open, onClose }: Props) {
       open={open}
       onClose={onClose}
       title="Terminal Settings"
-      width="sm"
-      bodyClassName="flex-1 overflow-y-auto"
     >
       {hasOpened && <TerminalSettingsBody />}
     </Drawer>

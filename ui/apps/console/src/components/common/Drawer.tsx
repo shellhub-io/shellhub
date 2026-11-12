@@ -9,15 +9,8 @@ interface DrawerProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  width?: "sm" | "md";
   children: ReactNode;
-  bodyClassName?: string;
 }
-
-const WIDTH_MAP = {
-  sm: "max-w-sm",
-  md: "max-w-md",
-};
 
 /**
  * A side panel for a task done while watching the page behind it, such as tuning the terminal's
@@ -28,9 +21,7 @@ export default function Drawer({
   open,
   onClose,
   title,
-  width = "md",
   children,
-  bodyClassName,
 }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const headingId = useId();
@@ -55,8 +46,7 @@ export default function Drawer({
         aria-hidden={!open}
         {...(!open ? { inert: true } : {})}
         className={cn(
-          "fixed inset-y-0 right-0 z-drawer w-full @container/drawer",
-          WIDTH_MAP[width],
+          "fixed inset-y-0 right-0 z-drawer w-full max-w-sm @container/drawer",
           "bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",
         )}
@@ -77,7 +67,7 @@ export default function Drawer({
             <XMarkIcon className="w-5 h-5" />
           </IconButton>
         </div>
-        <div className={bodyClassName ?? "flex-1 overflow-y-auto px-6 py-5"}>
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </div>
