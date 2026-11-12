@@ -193,9 +193,7 @@ func TestSSHServerRestart(t *testing.T) {
 
 	_, orphaned := openSession(t, ctx, compose, device, signer, "")
 
-	server := compose.Service(environment.ServiceServer)
-	require.NoError(t, server.Stop(ctx, nil))
-	require.NoError(t, server.Start(ctx))
+	compose.CrashServer(t)
 
 	requireSessionActive(t, ctx, compose, orphaned.UID, true)
 

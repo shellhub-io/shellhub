@@ -144,9 +144,7 @@ func TestSessionCloseRetiresASessionNoGatewayOwns(t *testing.T) {
 	conn, session := openShellSession(t, ctx, compose, device)
 	defer conn.Close() //nolint:errcheck // the connection is already dead once the server restarts
 
-	server := compose.Service(environment.ServiceServer)
-	require.NoError(t, server.Stop(ctx, nil))
-	require.NoError(t, server.Start(ctx))
+	compose.CrashServer(t)
 
 	requireSessionActive(t, ctx, compose, session.UID, true)
 
