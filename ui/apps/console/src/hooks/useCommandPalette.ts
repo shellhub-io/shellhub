@@ -104,7 +104,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const workspace = useWorkspaceTabs();
   const adminNav = useAdminNav({ active: adminContext });
   const nsName = namespace?.name ?? "";
-  const { copy } = useCopy();
+  const copy = useCopy();
   const recentEntries = useRecentDevicesStore(
     (s) => s.byTenant[tenant ?? ""] ?? EMPTY_RECENTS,
   );
