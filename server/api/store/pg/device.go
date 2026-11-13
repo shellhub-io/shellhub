@@ -515,6 +515,18 @@ func (pg *Pg) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) err
 	return pg.transactionLock(ctx, "device-mac:"+tenantID+":"+mac)
 }
 
+// DeviceLockAcceptance implements [store.DeviceStore].
+func (pg *Pg) DeviceLockAcceptance(ctx context.Context, sc scope.Scope) error {
+	switch {
+	case sc.IsBounded():
+		return pg.transactionLock(ctx, "device-accept:"+canonicalTenant(sc.TenantID()))
+	case sc.IsValid():
+		return pg.transactionLock(ctx, "device-accept")
+	default:
+		return store.ErrInvalidScope
+	}
+}
+
 // DeviceDelete implements [store.DeviceStore].
 func (pg *Pg) DeviceDelete(ctx context.Context, sc scope.Scope, device *models.Device) error {
 	if err := requireBoundedTo(sc, device.TenantID); err != nil {

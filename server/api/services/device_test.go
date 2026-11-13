@@ -1448,6 +1448,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("DeviceLockAcceptance", mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WithSavepoint", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Maybe()
 
 	ctx := context.Background()
 	cases := []struct {
@@ -2142,6 +2146,10 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("DeviceLockAcceptance", mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WithSavepoint", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Maybe()
 
 	licenseEvaluator := &mockLicenseEvaluator{}
 	licenseEvaluator.Test(t)
@@ -2526,6 +2534,10 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 	storeMock.On("Options").Return(queryOptionsMock).Maybe()
 	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
 	storeMock.On("DeviceLockMAC", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("DeviceLockAcceptance", mock.Anything, mock.Anything).Return(nil).Maybe()
+	storeMock.On("WithSavepoint", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Maybe()
 
 	ctx := context.Background()
 	const tenantID = "00000000-0000-0000-0000-000000000000"
@@ -2584,6 +2596,146 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 
 	storeMock.AssertExpectations(t)
 	storeMock.AssertNotCalled(t, "ProvisioningKeyIncrementUsage", mock.Anything, mock.Anything)
+}
+
+type transactionKey struct{}
+
+func TestUpdateDeviceStatus_acceptLocksBeforeReadingTheLimits(t *testing.T) {
+	override(t, &deviceMergeHooks, nil)
+
+	const tenantID = "00000000-0000-0000-0000-000000000000"
+
+	cases := []struct {
+		description   string
+		edition       envs.Edition
+		instanceLock  bool
+		expectedError error
+	}{
+		{
+			description:   "enterprise locks the instance, then the namespace",
+			edition:       envs.Enterprise,
+			instanceLock:  true,
+			expectedError: ErrMaxDeviceCountReached,
+		},
+		{
+			description:   "cloud has no instance-wide limit, so it locks only the namespace",
+			edition:       envs.Cloud,
+			instanceLock:  false,
+			expectedError: ErrDeviceLimit,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			queryOptionsMock := storemock.NewMockQueryOptions(t)
+			storeMock.On("Options").Return(queryOptionsMock).Maybe()
+			queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
+			queryOptionsMock.On("WithDeviceStatus", models.DeviceStatusAccepted).Return(nil).Maybe()
+
+			licenseEvaluator := &mockLicenseEvaluator{}
+			licenseEvaluator.Test(t)
+			t.Cleanup(func() { licenseEvaluator.AssertExpectations(t) })
+
+			ctx := context.Background()
+			inTx := context.WithValue(ctx, transactionKey{}, "accept")
+			inSavepoint := context.WithValue(inTx, transactionKey{}, "license")
+
+			device := &models.Device{
+				UID:      "racer",
+				Name:     "racer",
+				TenantID: tenantID,
+				Status:   models.DeviceStatusPending,
+				Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:01"},
+			}
+
+			storeMock.
+				On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(_ context.Context, cb store.TransactionCb) error { return cb(inTx) }).
+				Once()
+			namespaceLock := storeMock.
+				On("DeviceLockAcceptance", inTx, scope.MustBounded(tenantID)).
+				Return(nil).
+				Once()
+			if tc.instanceLock {
+				instanceLock := storeMock.
+					On("DeviceLockAcceptance", inTx, unboundedScope).
+					Return(nil).
+					Once()
+				namespaceLock.NotBefore(instanceLock)
+			}
+			storeMock.
+				On("NamespaceResolve", inTx, store.NamespaceTenantIDResolver, tenantID).
+				Return(&models.Namespace{TenantID: tenantID, MaxDevices: 1, DevicesAcceptedCount: 1}, nil).
+				Once().
+				NotBefore(namespaceLock)
+			storeMock.
+				On("DeviceResolve", inTx, mock.Anything, store.DeviceUIDResolver, "racer", mock.AnythingOfType("[]store.QueryOption")).
+				Return(device, nil).
+				Once()
+			storeMock.
+				On("WithSavepoint", inTx, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(_ context.Context, cb store.TransactionCb) error { return cb(inSavepoint) }).
+				Once().
+				NotBefore(namespaceLock)
+			licenseEvaluator.
+				On("CanAcceptDevice", inSavepoint).
+				Return(true, nil).
+				Once()
+			storeMock.On("DeviceLockMAC", inTx, scope.MustBounded(tenantID), "aa:bb:cc:dd:ee:01").Return(nil).Once()
+			storeMock.
+				On("DeviceResolve", inTx, mock.Anything, store.DeviceMACResolver, "aa:bb:cc:dd:ee:01", mock.AnythingOfType("[]store.QueryOption")).
+				Return(nil, store.ErrNoDocuments).
+				Once()
+			storeMock.
+				On("DeviceResolve", inTx, mock.Anything, store.DeviceHostnameResolver, "racer", mock.AnythingOfType("[]store.QueryOption")).
+				Return(nil, store.ErrNoDocuments).
+				Once()
+
+			service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(),
+				WithEdition(tc.edition), WithLicenseEvaluator(licenseEvaluator))
+
+			err := service.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+				TenantID: tenantID, UID: "racer", Status: "accepted",
+			})
+
+			require.ErrorIs(t, err, tc.expectedError)
+			storeMock.AssertNotCalled(t, "DeviceUpdate", mock.Anything, mock.Anything, mock.Anything)
+		})
+	}
+}
+
+func TestUpdateDeviceStatus_rejectTakesNoAcceptanceLock(t *testing.T) {
+	storeMock := storemock.NewMockStore(t)
+	queryOptionsMock := storemock.NewMockQueryOptions(t)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+	queryOptionsMock.On("ForUpdate").Return(nil).Maybe()
+
+	ctx := context.Background()
+	const tenantID = "00000000-0000-0000-0000-000000000000"
+
+	storeMock.
+		On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Once()
+	storeMock.
+		On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID, MaxDevices: -1}, nil).
+		Once()
+	storeMock.
+		On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "rejected", mock.AnythingOfType("[]store.QueryOption")).
+		Return(&models.Device{UID: "rejected", TenantID: tenantID, Status: models.DeviceStatusRejected}, nil).
+		Once()
+	storeMock.
+		On("ProvisioningKeyEventStampDecision", ctx, scope.MustBounded(tenantID), "rejected", models.DeviceStatusRejected, mock.Anything).
+		Return(nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), WithLicenseEvaluator(&mockLicenseEvaluator{}))
+
+	require.NoError(t, service.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+		TenantID: tenantID, UID: "rejected", Status: "rejected",
+	}))
 }
 
 func TestDeviceUpdate(t *testing.T) {

@@ -169,6 +169,15 @@ type DeviceStore interface {
 	// transaction.
 	DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error
 
+	// DeviceLockAcceptance blocks until no other transaction holds the device-acceptance lock of the
+	// scope, then holds it until the transaction in ctx ends. A bounded scope locks the acceptances
+	// into its namespace; an unbounded one is a separate, instance-wide lock that does not wait for
+	// the bounded ones, so a caller that needs both takes the unbounded lock first. It returns
+	// ErrInvalidScope for a zero scope, ErrLockOutsideTransaction when ctx carries no transaction,
+	// ctx's error when ctx ends while waiting, and an error wrapping ErrInternal when the lock query
+	// fails otherwise.
+	DeviceLockAcceptance(ctx context.Context, sc scope.Scope) error
+
 	// DeviceDelete deletes device, with its sessions, from the namespace sc is bounded to. It returns
 	// ErrInvalidScope, deleting nothing, when sc is not bounded or device's TenantID is not sc's
 	// tenant, [ErrNoDocuments] when sc holds no such device, and the store's error otherwise.
