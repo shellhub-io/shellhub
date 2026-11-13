@@ -41,6 +41,8 @@ source = "**"
 Cache-Control = "no-cache"
 X-Content-Type-Options = "nosniff"
 Referrer-Policy = "strict-origin-when-cross-origin"
+X-Frame-Options = "DENY"
+Content-Security-Policy = "frame-ancestors 'none'"
 
 [[advanced.headers]]
 source = "/assets/**"

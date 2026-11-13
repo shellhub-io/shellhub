@@ -57,6 +57,10 @@
 	tls {{ .TLSCertFile }} {{ .TLSKeyFile }}
 {{- end }}
 	encode gzip zstd
+{{- if .TLS }}
+
+	header Strict-Transport-Security "max-age=31536000"
+{{- end }}
 
 	map {http.request.port} {x_forwarded_port} {
 		"" {http.request.local.port}
@@ -133,6 +137,9 @@
 {{- end }}
 
 		handle {
+			header >X-Frame-Options "DENY"
+			header >Content-Security-Policy "frame-ancestors 'none'"
+
 			reverse_proxy {{ index .Upstreams "console" }} {
 				import forwarded
 			}
