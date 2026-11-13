@@ -10,7 +10,7 @@ Install cosign: https://docs.sigstore.dev/cosign/system_config/installation/
 
 ```bash
 cosign verify \
-  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/(docker-publish|build-agent)\.yml@refs/tags/v" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   shellhubio/<image>:<tag>
 ```
@@ -21,7 +21,7 @@ Replace `<image>` with the component name (`server`, `ui`, `agent`) and `<tag>` 
 
 ```bash
 cosign verify \
-  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/(docker-publish|build-agent)\.yml@refs/tags/v" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   shellhubio/server:v0.18.0
 ```
@@ -29,7 +29,7 @@ cosign verify \
 A successful verification prints the signature payload and confirms that:
 
 - The image has not been modified since it was published
-- The image was built by a GitHub Actions workflow in the `shellhub-io/shellhub` repository
+- The image was signed by the release workflow of a `shellhub-io/shellhub` tag (`docker-publish.yml` for `server` and `ui`, `build-agent.yml` for `agent`)
 - The signing event is recorded in a public transparency log
 
 ## Verifying SBOM attestations
@@ -38,7 +38,7 @@ Each image also carries a signed [CycloneDX](https://cyclonedx.org/) SBOM wrappe
 
 ```bash
 cosign verify-attestation \
-  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/(docker-publish|build-agent)\.yml@refs/tags/v" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   --type cyclonedx \
   shellhubio/<image>:<tag>
@@ -48,7 +48,7 @@ cosign verify-attestation \
 
 ```bash
 cosign verify-attestation \
-  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/(docker-publish|build-agent)\.yml@refs/tags/v" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   --type cyclonedx \
   shellhubio/server:v0.18.0
@@ -58,7 +58,7 @@ To extract the SBOM payload from the verified attestation:
 
 ```bash
 cosign verify-attestation \
-  --certificate-identity-regexp="https://github.com/shellhub-io/shellhub/" \
+  --certificate-identity-regexp="^https://github\.com/shellhub-io/shellhub/\.github/workflows/(docker-publish|build-agent)\.yml@refs/tags/v" \
   --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
   --type cyclonedx \
   shellhubio/<image>:<tag> | jq -r '.payload' | base64 -d | jq '.predicate'
