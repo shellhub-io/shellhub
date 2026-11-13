@@ -57,6 +57,21 @@ func (e Email) Image(alt string) (string, bool) {
 	return "", false
 }
 
+// Link returns the first link in the email to path, and false when no link goes there.
+func (e Email) Link(path string) (*url.URL, bool) {
+	for node := range e.html.Descendants() {
+		if node.Type != html.ElementNode || node.DataAtom != atom.A {
+			continue
+		}
+
+		if link, err := url.Parse(attribute(node, "href")); err == nil && link.Path == path {
+			return link, true
+		}
+	}
+
+	return nil, false
+}
+
 type mailpitAddress struct {
 	Address string `json:"Address"`
 }
@@ -177,17 +192,9 @@ func (s mailpitSummary) sentTo(address string) bool {
 }
 
 func linksTo(doc *html.Node, path string) bool {
-	for node := range doc.Descendants() {
-		if node.Type != html.ElementNode || node.DataAtom != atom.A {
-			continue
-		}
+	_, ok := Email{html: doc}.Link(path)
 
-		if link, err := url.Parse(attribute(node, "href")); err == nil && link.Path == path {
-			return true
-		}
-	}
-
-	return false
+	return ok
 }
 
 func attribute(node *html.Node, key string) string {
