@@ -17,10 +17,10 @@ const strayConfirmationCode = "23456789"
 
 // TestSSHApprovalIdentity covers the approval that turns an unknown key into an identity, past the
 // confirmation that lets the login in: a rejection or a lapsed window refuses it, a confirmation
-// can bound the key's life, a key approved twice binds to one person only, only a member allowed
-// to approve can decide and only a member can see the request, and the code the terminal shows is
-// the one the console shows. Holding an unknown key and confirming it are covered by
-// [TestIdentityAccessPolicy].
+// binds the key only once its code is typed at the terminal, a confirmation can bound the key's
+// life, a key approved twice binds to one person only, only a member allowed to approve can decide
+// and only a member can see the request, and the code the terminal shows is the one the console
+// shows. Holding an unknown key and confirming it are covered by [TestIdentityAccessPolicy].
 func TestSSHApprovalIdentity(t *testing.T) {
 	t.Parallel()
 
@@ -71,6 +71,40 @@ func TestSSHApprovalIdentity(t *testing.T) {
 		require.Error(t, parked.result(t))
 		assert.Equal(t, expiredReason, parked.denial())
 		assert.Empty(t, identitiesHolding(t, compose, ssh.FingerprintSHA256(signer.PublicKey())))
+	})
+
+	t.Run("a confirmation whose code is never typed binds nothing", func(t *testing.T) {
+		signer, _ := newSigner(t)
+		fingerprint := ssh.FingerprintSHA256(signer.PublicKey())
+
+		parked := startLogin(t, compose, sshid, signer)
+		prompt := parked.awaitApproval(t)
+
+		confirmApproval(t, compose, prompt.code)
+		assert.Empty(t, identitiesHolding(t, compose, fingerprint), "confirming in the console must not bind the key by itself")
+
+		parked.answer("")
+		require.Error(t, parked.result(t))
+		assert.Equal(t, dismissedReason, parked.denial())
+		assert.Empty(t, identitiesHolding(t, compose, fingerprint), "a login that never typed the code must leave the key unbound")
+	})
+
+	t.Run("a connection with the key while the code is still untyped is asked again", func(t *testing.T) {
+		signer, _ := newSigner(t)
+		fingerprint := ssh.FingerprintSHA256(signer.PublicKey())
+
+		parked := startLogin(t, compose, sshid, signer)
+		prompt := parked.awaitApproval(t)
+		confirmationCode := confirmApproval(t, compose, prompt.code)
+
+		again := startLogin(t, compose, sshid, signer)
+		assert.Equal(t, models.SSHApprovalIdentity, again.awaitApproval(t).kind,
+			"a confirmed approval must not let another connection with the key straight through")
+
+		parked.answer(confirmationCode)
+		require.NoError(t, parked.result(t))
+		assert.Equal(t, owner.ID, identityByFingerprint(t, compose, fingerprint).PrincipalID,
+			"typing the code binds the key to the person who approved it")
 	})
 
 	t.Run("a confirmation with an expiry enrolls a key that stops working when it expires", func(t *testing.T) {
