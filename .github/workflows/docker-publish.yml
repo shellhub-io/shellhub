@@ -130,7 +130,7 @@ jobs:
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "${{ github.workspace }}:/work:ro" \
-            ghcr.io/aquasecurity/trivy:0.63.0 image \
+            ghcr.io/aquasecurity/trivy:0.63.0@sha256:6fb0646988fcd2fdf7bf123f7174945ebc2c9c72d1fa1567c8d7daeeb70f8037 image \
               --severity CRITICAL,HIGH \
               --ignore-unfixed \
               --scanners vuln \
@@ -139,19 +139,29 @@ jobs:
               ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
 
       - name: Push '${{ matrix.project }}' image (same digest as scanned)
+        id: push
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+          IS_LATEST: ${{ steps.latest-check.outputs.is_latest }}
         run: |
-          docker push "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
-          if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
-            docker tag \
-              "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}" \
-              "${{ steps.image.outputs.name }}:latest"
-            docker push "${{ steps.image.outputs.name }}:latest"
+          docker push "$IMAGE:$RELEASE_VERSION"
+          if [[ "$IS_LATEST" == "true" ]]; then
+            docker tag "$IMAGE:$RELEASE_VERSION" "$IMAGE:latest"
+            docker push "$IMAGE:latest"
           fi
+
+          REF=$(docker inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$IMAGE:$RELEASE_VERSION" \
+            | grep -m1 "^$IMAGE@sha256:" || true)
+          if [[ -z "$REF" ]]; then
+            echo "::error::No registry digest for $IMAGE:$RELEASE_VERSION after the push"
+            exit 1
+          fi
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
 
       - name: Generate SBOM for '${{ matrix.project }}' image
         uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
-          image: ${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}
+          image: ${{ steps.push.outputs.ref }}
           format: cyclonedx-json
           output-file: sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json
           upload-artifact: false
@@ -175,18 +185,19 @@ jobs:
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Sign '${{ matrix.project }}' image with cosign
-        run: |
-          cosign sign --yes "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
-          if [[ "${{ steps.latest-check.outputs.is_latest }}" == "true" ]]; then
-            cosign sign --yes "${{ steps.image.outputs.name }}:latest"
-          fi
+        env:
+          IMAGE_REF: ${{ steps.push.outputs.ref }}
+        run: cosign sign --yes "$IMAGE_REF"
 
       - name: Attest SBOM for '${{ matrix.project }}' image
+        env:
+          IMAGE_REF: ${{ steps.push.outputs.ref }}
+          PROJECT: ${{ matrix.project }}
         run: |
           cosign attest --yes \
-            --predicate "sbom-${{ matrix.project }}-${{ env.RELEASE_VERSION }}.cdx.json" \
+            --predicate "sbom-$PROJECT-$RELEASE_VERSION.cdx.json" \
             --type cyclonedx \
-            "${{ steps.image.outputs.name }}:${{ env.RELEASE_VERSION }}"
+            "$IMAGE_REF"
 
   release-sboms:
     name: Attach SBOMs to GitHub Release
