@@ -74,10 +74,31 @@ built-in browser confirmation, so a step-up runs through the same IdP as the ori
 
 See [Login Approvals](/manage/access-control/login-approvals).
 
+## How the first SAML sign-in finds an account
+
+ShellHub keys a SAML account on the NameID your IdP sends as the subject, not on the email. On a
+user's first SAML sign-in no account has that subject yet, so ShellHub looks for one by the email
+the IdP asserts:
+
+- **No account has that email.** ShellHub creates one, bound to the subject, with no password.
+- **A local account has that email.** ShellHub binds it to the subject and signs the user in. From
+  then on that account signs in through SAML without asking for its ShellHub password or MFA code.
+  It keeps its password, so it can still sign in locally while local authentication is on.
+- **The account with that email is already bound to another subject.** ShellHub refuses the
+  sign-in.
+
+This is how existing local users move to SSO without losing their namespaces. It also means that
+whoever controls the email your IdP asserts for a person controls that person's ShellHub account,
+so map the email attribute to a field your users cannot edit themselves.
+
 ## Leaving local authentication on
 
 Keep at least one local administrator account working. If the IdP integration breaks — an expired
 certificate, a metadata change — a local account is how you get back in to fix it.
+
+Give that account an email your IdP never asserts. If the IdP sends the same address, the first
+SAML sign-in with it binds the administrator account to the IdP user, and from then on whoever the
+IdP signs in with that address reaches the account too, alongside the local password.
 
 ## Where to go next
 
