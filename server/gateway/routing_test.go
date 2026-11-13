@@ -59,6 +59,8 @@ func taggedUpstreams(t *testing.T) map[string]string {
 			w.Header().Set("X-Upstream-URI", r.URL.RequestURI())
 			w.Header().Set("X-Upstream-Host", r.Host)
 			w.Header().Set("X-Upstream-Real-IP", r.Header.Get("X-Real-IP"))
+			w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+			w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 			w.WriteHeader(http.StatusOK)
 		}))
 		t.Cleanup(upstream.Close)
@@ -272,20 +274,70 @@ func TestASuppliedCertificateServesTheSiteOverHTTPS(t *testing.T) {
 	})
 
 	t.Run("HTTPS presents the certificate and reaches the server", func(t *testing.T) {
-		certificate, err := os.ReadFile(cfg.TLSCertFile)
-		require.NoError(t, err)
-
-		roots := x509.NewCertPool()
-		require.True(t, roots.AppendCertsFromPEM(certificate))
-
-		client := noRedirects()
-		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: roots, ServerName: cfg.Domain, MinVersion: tls.VersionTLS12}}
-
-		res := send(t, client, "https://"+net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.httpsPort)), cfg.Domain, "/api/namespaces")
+		res := send(t, trustingClient(t, cfg), httpsBase(cfg), cfg.Domain, "/api/namespaces")
 
 		assert.Equal(t, http.StatusNoContent, res.StatusCode)
 		assert.Equal(t, "https", res.Header.Get("X-Seen-Forwarded-Proto"))
 	})
+}
+
+func TestTheConsoleRefusesToBeFramed(t *testing.T) {
+	cfg := configurations()["community"]
+	address := startServing(t, cfg, http.HandlerFunc(serverRecorder))
+
+	for _, target := range []string{"/", "/ssh-identities/new/ABCD1234"} {
+		t.Run(target, func(t *testing.T) {
+			res := send(t, noRedirects(), "http://"+address, cfg.Domain, target)
+
+			require.Equal(t, "console", res.Header.Get("X-Upstream"))
+			assert.Equal(t, []string{"DENY"}, res.Header.Values("X-Frame-Options"),
+				"the gateway's value replaces whatever the console server sends")
+			assert.Equal(t, []string{"frame-ancestors 'none'"}, res.Header.Values("Content-Security-Policy"))
+		})
+	}
+}
+
+func TestHTTPSTellsBrowsersToStayOnHTTPS(t *testing.T) {
+	cfg := configurations()["supplied certificate"]
+	cfg.TLSCertFile, cfg.TLSKeyFile = selfSignedCertificate(t, cfg.Domain)
+
+	startServing(t, cfg, http.HandlerFunc(serverRecorder))
+
+	for _, target := range []string{"/", "/api/namespaces"} {
+		t.Run(target, func(t *testing.T) {
+			res := send(t, trustingClient(t, cfg), httpsBase(cfg), cfg.Domain, target)
+
+			assert.Equal(t, "max-age=31536000", res.Header.Get("Strict-Transport-Security"),
+				"no includeSubDomains: web endpoints and the development hosts may still be plain HTTP")
+		})
+	}
+}
+
+func TestPlainHTTPSendsNoHSTS(t *testing.T) {
+	cfg := configurations()["community"]
+	address := startServing(t, cfg, http.HandlerFunc(serverRecorder))
+
+	res := send(t, noRedirects(), "http://"+address, cfg.Domain, "/")
+	assert.Empty(t, res.Header.Get("Strict-Transport-Security"))
+}
+
+func httpsBase(cfg *GatewayConfig) string {
+	return "https://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.httpsPort))
+}
+
+func trustingClient(t *testing.T, cfg *GatewayConfig) *http.Client {
+	t.Helper()
+
+	certificate, err := os.ReadFile(cfg.TLSCertFile)
+	require.NoError(t, err)
+
+	roots := x509.NewCertPool()
+	require.True(t, roots.AppendCertsFromPEM(certificate))
+
+	client := noRedirects()
+	client.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: roots, ServerName: cfg.Domain, MinVersion: tls.VersionTLS12}}
+
+	return client
 }
 
 func selfSignedCertificate(t *testing.T, domain string) (string, string) {
