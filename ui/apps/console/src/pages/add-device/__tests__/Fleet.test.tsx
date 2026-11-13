@@ -114,6 +114,49 @@ describe("Fleet", () => {
     expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
   });
 
+  it("opens the install command from the row's chevron", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click((await keyRow("auto-key")).getByTestId("install-chevron"));
+
+    expect(
+      await screen.findByText(/PROVISIONING_KEY=secret-of-auto-key/),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the row folded when its actions menu is opened", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(
+      (await keyRow("auto-key")).getByRole("button", {
+        name: "Provisioning key actions",
+      }),
+    );
+
+    expect(
+      await screen.findByRole("menuitem", { name: /Edit/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/PROVISIONING_KEY=/)).not.toBeInTheDocument();
+  });
+
+  it("says the key could not be loaded when revealing it fails", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("*/api/namespaces/provisioning-key/:key/reveal", () =>
+        HttpResponse.json({ message: "internal" }, { status: 500 }),
+      ),
+    );
+    renderPage();
+
+    await user.click(await screen.findByRole("row", { name: /auto-key/ }));
+
+    expect(
+      await screen.findByText(/Could not load this key.*Reopen it to try again/),
+    ).toBeInTheDocument();
+  });
+
   it("tells a role that cannot read keys why there is no command", async () => {
     const user = userEvent.setup();
     let reveals = 0;
