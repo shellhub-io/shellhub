@@ -37,6 +37,7 @@ jobs:
           private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
           owner: shellhub-io
           repositories: cloud
+          permission-contents: read
 
       - name: Checkout cloud source (server-enterprise only)
         if: matrix.project == 'server-enterprise'
