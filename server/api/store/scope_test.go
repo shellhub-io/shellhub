@@ -44,6 +44,7 @@ var globalMethods = map[string]string{
 	"NamespaceLockOwner":           "the namespace root addresses namespaces themselves",
 	"Options":                      "query options plumbing",
 	"WithTransaction":              "transaction plumbing",
+	"WithSavepoint":                "transaction plumbing",
 }
 
 var unconvertedMethods = map[string]string{ //nolint:gosec // method names and the slice converting them, not credentials

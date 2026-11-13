@@ -187,6 +187,8 @@ var Groups = []Group{
 	}},
 	{Name: "TransactionStore", Tests: []TestFunc{
 		(*Suite).TestWithTransaction,
+		(*Suite).TestWithSavepoint,
+		(*Suite).TestDeviceLockAcceptance,
 	}},
 	{Name: "ScopeIsolation", Tests: []TestFunc{
 		(*Suite).TestScopeIsolationDeviceResolve,

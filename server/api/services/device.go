@@ -506,9 +506,7 @@ func (s *service) UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUp
 }
 
 func (s *service) updateDeviceStatusOwnedBy(ctx context.Context, req *requests.DeviceUpdateStatus, ownerID string) error {
-	licensed, licenseErr := s.validateLicenseForDeviceAcceptance(ctx, models.DeviceStatus(req.Status))
-
-	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID, licensed, licenseErr)); err != nil {
+	if err := s.store.WithTransaction(ctx, s.updateDeviceStatus(req, ownerID)); err != nil {
 		return err
 	}
 
@@ -545,12 +543,18 @@ func (s *service) chargeProvisioningKeyUse(ctx context.Context, tenantID, provis
 	return nil
 }
 
-func (s *service) validateLicenseForDeviceAcceptance(ctx context.Context, status models.DeviceStatus) (bool, error) {
-	if s.licenseEvaluator == nil || status != models.DeviceStatusAccepted {
+func (s *service) validateLicenseForDeviceAcceptance(ctx context.Context) (bool, error) {
+	if s.licenseEvaluator == nil {
 		return true, nil
 	}
 
-	ok, err := s.licenseEvaluator.CanAcceptDevice(ctx)
+	var ok bool
+	err := s.store.WithSavepoint(ctx, func(ctx context.Context) error {
+		var err error
+		ok, err = s.licenseEvaluator.CanAcceptDevice(ctx)
+
+		return err
+	})
 	if err != nil {
 		if s.edition.IsCloud() {
 			log.WithError(err).Error("cloud license evaluation failed; refusing device acceptance")
@@ -566,8 +570,30 @@ func (s *service) validateLicenseForDeviceAcceptance(ctx context.Context, status
 	return ok, nil
 }
 
-func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string, licensed bool, licenseErr error) store.TransactionCb {
+func (s *service) lockDeviceAcceptance(ctx context.Context, tenantID string) error {
+	if s.edition.IsEnterprise() {
+		if err := s.store.DeviceLockAcceptance(ctx, scope.NewUnbounded("the license limits the devices accepted across every namespace")); err != nil {
+			return err
+		}
+	}
+
+	sc, err := scope.NewBounded(tenantID)
+	if err != nil {
+		return NewErrNamespaceNotFound(tenantID, err)
+	}
+
+	return s.store.DeviceLockAcceptance(ctx, sc)
+}
+
+func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID string) store.TransactionCb {
 	return func(ctx context.Context) error {
+		newStatus := models.DeviceStatus(req.Status)
+		if newStatus == models.DeviceStatusAccepted {
+			if err := s.lockDeviceAcceptance(ctx, req.TenantID); err != nil {
+				return err
+			}
+		}
+
 		namespace, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.TenantID)
 		if err != nil {
 			return NewErrNamespaceNotFound(req.TenantID, err)
@@ -588,15 +614,15 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 		}
 
 		oldStatus := device.Status
-		newStatus := models.DeviceStatus(req.Status)
 
 		if newStatus == device.Status {
 			return nil
 		}
 
 		if newStatus == models.DeviceStatusAccepted {
-			if licenseErr != nil {
-				return licenseErr
+			licensed, err := s.validateLicenseForDeviceAcceptance(ctx)
+			if err != nil {
+				return err
 			}
 
 			if err := s.store.DeviceLockMAC(ctx, sc, device.Identity.MAC); err != nil {

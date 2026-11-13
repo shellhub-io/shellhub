@@ -45,7 +45,8 @@ type LicenseEvaluator interface {
 	//   - another error if the check itself fails (e.g., license fetch error)
 	//
 	// It reads the license and the device count through ctx, so a read that fails aborts
-	// any transaction ctx carries. Call it before opening one.
+	// any transaction ctx carries. Inside a transaction, call it through
+	// [store.TransactionStore.WithSavepoint].
 	CanAcceptDevice(ctx context.Context) (bool, error)
 
 	// CanConnectDevice reports whether the current license allows connecting to an
