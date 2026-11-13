@@ -178,7 +178,8 @@ export default function Fleet() {
                   ) : revealError ? (
                     <Callout variant="error">
                       Could not load this key, so there is no command to copy.
-                      Check your connection and try again.
+                      Reopen it to try again, or create a new key if it keeps
+                      failing.
                     </Callout>
                   ) : method === "connector" ? (
                     <ConnectorCommand provisioningKey={revealedKey || "…"} />
