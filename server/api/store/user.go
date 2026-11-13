@@ -46,6 +46,13 @@ type UserStore interface {
 	// the database error otherwise.
 	UserUpdateOnboardingSurvey(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error
 
+	// UserUpdateEmail sets a user's email, and its update time, through a targeted write that
+	// leaves every other column as it is, so a change that commits meanwhile, a new password
+	// included, is kept. Returns [ErrNoDocuments] if no user is found, [ErrDuplicate] joined with a
+	// [DuplicateFieldError] naming "email" when another user holds the address, and the database
+	// error otherwise.
+	UserUpdateEmail(ctx context.Context, userID, email string) error
+
 	// UserGetInfo retrieves the user's information, like the owned and associated namespaces.
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)

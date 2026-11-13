@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
 import { apiErrorFields, isSdkError } from "@/api/errors";
 import { emailRefusalMessage } from "@/utils/emailRefusal";
 import {
+  changesAnAddress,
   editProfileSchema,
   type EditProfileFormValues,
   type CurrentProfileValues,
@@ -12,20 +14,24 @@ import {
 
 import {
   FormInputField,
+  FormPasswordField,
 } from "@/components/common/fields/rhf";
 import {
   PencilSquareIcon,
   CheckIcon,
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@shellhub/design-system/primitives";
+import { Button, Callout } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SettingsField from "@/components/settings/SettingsField";
 
 /**
- * Edits the signed-in user's own name and emails. Changing the email starts a
- * re-confirmation, so the account keeps the old address until the new one is verified.
+ * Edits the signed-in user's own name and emails. Changing either email asks for the current
+ * password. Where the instance confirms a new email by mail (Cloud), the account keeps the old one
+ * until the link sent to the new one is opened, and onEmailPending receives the new address; on
+ * other editions the change applies at once. An account whose emails its identity provider
+ * manages edits only its name.
  */
 export function EditProfileModal({
   open,
@@ -33,18 +39,23 @@ export function EditProfileModal({
   currentName,
   currentEmail,
   currentRecoveryEmail,
+  emailsManagedExternally = false,
+  onEmailPending,
 }: {
   open: boolean;
   onClose: () => void;
   currentName: string;
   currentEmail: string;
   currentRecoveryEmail: string;
+  emailsManagedExternally?: boolean;
+  onEmailPending?: (email: string) => void;
 }) {
   const updateProfile = useAuthStore((s) => s.updateProfile);
 
   const current: CurrentProfileValues = {
     name: currentName,
     email: currentEmail,
+    recoveryEmail: currentRecoveryEmail,
   };
   const schema = editProfileSchema(current);
 
@@ -52,8 +63,18 @@ export function EditProfileModal({
     name: currentName,
     email: currentEmail,
     recoveryEmail: currentRecoveryEmail,
+    currentPassword: "",
   });
   const { control, trigger, setError, clearErrors, formState } = form;
+
+  const [watchedEmail, watchedRecoveryEmail] = useWatch({
+    control,
+    name: ["email", "recoveryEmail"],
+  });
+  const needsPassword = changesAnAddress(
+    { email: watchedEmail, recoveryEmail: watchedRecoveryEmail },
+    current,
+  );
 
   const onValid = async (values: EditProfileFormValues) => {
     clearErrors("root");
@@ -63,15 +84,32 @@ export function EditProfileModal({
       name?: string;
       email?: string;
       recovery_email?: string;
+      current_password?: string;
     } = {};
     if (dirty.name) data.name = values.name.trim();
     if (dirty.email) data.email = values.email;
     if (dirty.recoveryEmail) data.recovery_email = values.recoveryEmail;
+    if (changesAnAddress(values, current)) {
+      data.current_password = values.currentPassword;
+    }
 
     try {
       await updateProfile(data);
+      const savedEmail = useAuthStore.getState().email ?? "";
+      const held =
+        data.email !== undefined &&
+        savedEmail.toLowerCase() !== data.email.toLowerCase();
       onClose();
+      if (held && data.email) onEmailPending?.(data.email);
     } catch (err) {
+      if (isSdkError(err) && err.status === 403) {
+        setError("currentPassword", {
+          type: "server",
+          message: "Current password is incorrect.",
+        });
+        return;
+      }
+
       const fields = apiErrorFields(err);
       const emailRefusal = emailRefusalMessage(fields.email);
       const recoveryEmailRefusal = emailRefusalMessage(fields.recovery_email);
@@ -123,6 +161,12 @@ export function EditProfileModal({
         label="Email"
         type="email"
         placeholder="you@example.com"
+        disabled={emailsManagedExternally}
+        hint={
+          emailsManagedExternally
+            ? "Managed by your identity provider."
+            : undefined
+        }
         onValueChange={() => {
           void trigger("recoveryEmail");
           clearErrors("root");
@@ -135,9 +179,25 @@ export function EditProfileModal({
         label="Recovery Email"
         type="email"
         placeholder="recovery@example.com"
-        hint="Optional. Used for account recovery if you lose access."
+        disabled={emailsManagedExternally}
+        hint={
+          emailsManagedExternally
+            ? "Managed by your identity provider."
+            : "Optional. Used for account recovery if you lose access."
+        }
         onValueChange={() => clearErrors("root")}
       />
+      {needsPassword && (
+        <FormPasswordField
+          name="currentPassword"
+          control={control}
+          id="profile-current-password"
+          label="Current Password"
+          autoComplete="current-password"
+          hint="Required to change an email."
+          onValueChange={() => clearErrors("root")}
+        />
+      )}
     </FormModal>
   );
 }
@@ -147,8 +207,9 @@ export function EditProfileModal({
  * them.
  */
 export default function AccountProfile() {
-  const { name, email, recoveryEmail } = useAuthStore();
+  const { name, email, recoveryEmail, origin } = useAuthStore();
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   if (!name && !email) {
     return <PageLoader label="Loading profile" padding="lg" />;
@@ -179,6 +240,11 @@ export default function AccountProfile() {
           description="How you sign in and where account mail goes."
         >
           <span className="text-sm font-mono text-text-secondary">{email}</span>
+          {pendingEmail && (
+            <Callout variant="info" className="mt-2">
+              We sent a confirmation link to {pendingEmail}. Your email changes once you open it.
+            </Callout>
+          )}
         </SettingsField>
 
         <SettingsField
@@ -198,6 +264,8 @@ export default function AccountProfile() {
         currentName={name ?? ""}
         currentEmail={email ?? ""}
         currentRecoveryEmail={recoveryEmail ?? ""}
+        emailsManagedExternally={origin === "saml"}
+        onEmailPending={setPendingEmail}
       />
     </>
   );

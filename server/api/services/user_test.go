@@ -159,11 +159,12 @@ func TestUpdateUser(t *testing.T) {
 		{
 			description: "Fail when could not update user",
 			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
-				RecoveryEmail: "recovery@test.com",
+				UserID:          "000000000000000000000000",
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				CurrentPassword: "secret",
 			},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
@@ -174,6 +175,7 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "james.smith@shellhub.io",
 						RecoveryEmail: "recover@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 				updatedUser := &models.User{
 					ID: "000000000000000000000000",
@@ -183,11 +185,16 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "john.doe@test.com",
 						RecoveryEmail: "recovery@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).
@@ -204,6 +211,7 @@ func TestUpdateUser(t *testing.T) {
 							Email:         "james.smith@shellhub.io",
 							RecoveryEmail: "recover@test.com",
 						},
+						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 					},
 					errors.New("error", "", 0),
 				),
@@ -212,11 +220,12 @@ func TestUpdateUser(t *testing.T) {
 		{
 			description: "Fail when UserUpdate returns duplicate email",
 			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
-				RecoveryEmail: "recovery@test.com",
+				UserID:          "000000000000000000000000",
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				CurrentPassword: "secret",
 			},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
@@ -227,6 +236,7 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "james.smith@shellhub.io",
 						RecoveryEmail: "recover@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 				updatedUser := &models.User{
 					ID: "000000000000000000000000",
@@ -236,11 +246,16 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "john.doe@test.com",
 						RecoveryEmail: "recovery@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).
@@ -254,11 +269,12 @@ func TestUpdateUser(t *testing.T) {
 		{
 			description: "Fail when UserUpdate returns duplicate username",
 			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
-				RecoveryEmail: "recovery@test.com",
+				UserID:          "000000000000000000000000",
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				CurrentPassword: "secret",
 			},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
@@ -269,6 +285,7 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "james.smith@shellhub.io",
 						RecoveryEmail: "recover@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 				updatedUser := &models.User{
 					ID: "000000000000000000000000",
@@ -278,11 +295,16 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "john.doe@test.com",
 						RecoveryEmail: "recovery@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).
@@ -296,11 +318,12 @@ func TestUpdateUser(t *testing.T) {
 		{
 			description: "Fail when UserUpdate returns unhandled duplicate (no field info)",
 			req: &requests.UpdateUser{
-				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
-				RecoveryEmail: "recovery@test.com",
+				UserID:          "000000000000000000000000",
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				CurrentPassword: "secret",
 			},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
@@ -311,6 +334,7 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "james.smith@shellhub.io",
 						RecoveryEmail: "recover@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 				updatedUser := &models.User{
 					ID: "000000000000000000000000",
@@ -320,11 +344,16 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "john.doe@test.com",
 						RecoveryEmail: "recovery@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).
@@ -434,13 +463,114 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
-			description: "Success to update user",
+			description: "Fails to change the email when the current password does not match, saving nothing",
+			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
+				Email:           "john.doe@test.com",
+				CurrentPassword: "wrong",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Email: "james.smith@shellhub.io"},
+						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
+					}, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "wrong", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrUserPasswordNotMatch(nil),
+			},
+		},
+		{
+			description: "Fails to change the email without the current password, saving nothing",
+			req: &requests.UpdateUser{
+				UserID: "000000000000000000000000",
+				Email:  "john.doe@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Email: "james.smith@shellhub.io"},
+						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
+					}, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrUserPasswordNotMatch(nil),
+			},
+		},
+		{
+			description: "Fails to change the recovery email without the current password, saving nothing",
 			req: &requests.UpdateUser{
 				UserID:        "000000000000000000000000",
-				Name:          "John Doe",
-				Username:      "john_doe",
-				Email:         "john.doe@test.com",
 				RecoveryEmail: "recovery@test.com",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Email: "james.smith@shellhub.io", RecoveryEmail: "recover@test.com"},
+						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
+					}, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(false).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrUserPasswordNotMatch(nil),
+			},
+		},
+		{
+			description: "Saves a name change and an unchanged email without the current password",
+			req: &requests.UpdateUser{
+				UserID: "000000000000000000000000",
+				Name:   "John Doe",
+				Email:  "James.Smith@Shellhub.io",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(&models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Name: "James Smith", Email: "james.smith@shellhub.io"},
+					}, nil).
+					Once()
+				storeMock.
+					On("UserUpdate", ctx, &models.User{
+						ID:       "000000000000000000000000",
+						UserData: models.UserData{Name: "John Doe", Email: "james.smith@shellhub.io"},
+					}).
+					Return(nil).
+					Once()
+			},
+			expected: Expected{
+				err: nil,
+			},
+		},
+		{
+			description: "Success to update user",
+			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
+				Name:            "John Doe",
+				Username:        "john_doe",
+				Email:           "john.doe@test.com",
+				RecoveryEmail:   "recovery@test.com",
+				CurrentPassword: "secret",
 			},
 			requiredMocks: func(ctx context.Context) {
 				user := &models.User{
@@ -451,6 +581,7 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "james.smith@shellhub.io",
 						RecoveryEmail: "recover@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 				updatedUser := &models.User{
 					ID: "000000000000000000000000",
@@ -460,11 +591,16 @@ func TestUpdateUser(t *testing.T) {
 						Email:         "john.doe@test.com",
 						RecoveryEmail: "recovery@test.com",
 					},
+					Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 				}
 
 				storeMock.
 					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
 					Return(user, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
 					Once()
 				storeMock.
 					On("UserUpdate", ctx, updatedUser).

@@ -1,0 +1,46 @@
+post:
+  operationId: confirmEmailChange
+  summary: Confirm an email change
+  description: |
+    Makes the address a user asked to change their email to the account's
+    email, with the token mailed to that address. The token works once and
+    for a day. The account's previous email and recovery email are then
+    told of the change.
+  tags:
+    - cloud
+    - users
+  security: []
+  parameters:
+    - name: uid
+      description: User's UID.
+      schema:
+        type: string
+        example: 507f1f77bcf86cd799439011
+      required: true
+      in: path
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            token:
+              description: The token from the confirmation email.
+              type: string
+          example:
+            token: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+          required:
+            - token
+  responses:
+    '200':
+      description: The new email is set.
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
+    '500':
+      $ref: ../components/responses/500.yaml

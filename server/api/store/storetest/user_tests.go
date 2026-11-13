@@ -241,6 +241,54 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 	})
 }
 
+// TestUserUpdateEmail checks that UserUpdateEmail writes the email alone, keeping a password saved
+// after the user was read, refuses an address another user holds, and yields ErrNoDocuments for an
+// unknown user.
+func (s *Suite) TestUserUpdateEmail(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("fails when user is not found", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		err := st.UserUpdateEmail(ctx, "00000000-0000-0000-0000-000000000000", "nobody@test.com")
+		assert.ErrorIs(t, err, store.ErrNoDocuments)
+	})
+
+	t.Run("sets the email and keeps a password saved since the user was read", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
+
+		stale, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+
+		stale.Password = models.UserPassword{Hash: "newhash"}
+		require.NoError(t, st.UserUpdate(ctx, stale))
+
+		require.NoError(t, st.UserUpdateEmail(ctx, userID, "john@new.test.com"))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, "john@new.test.com", updated.Email)
+		assert.Equal(t, "newhash", updated.Password.Hash)
+	})
+
+	t.Run("names the email when another user holds it", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateUser(t, WithUsername("jane_doe"), WithEmail("jane.doe@test.com"))
+		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
+
+		err := st.UserUpdateEmail(ctx, userID, "jane.doe@test.com")
+		require.ErrorIs(t, err, store.ErrDuplicate)
+
+		field, ok := store.DuplicatedField(err)
+		assert.True(t, ok)
+		assert.Equal(t, "email", field)
+	})
+}
+
 // TestUserRevokeTokens checks that each revocation advances the user's token version by one, and
 // that revoking an unknown user's tokens yields ErrNoDocuments.
 func (s *Suite) TestUserRevokeTokens(t *testing.T) {

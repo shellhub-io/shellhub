@@ -135,7 +135,7 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 	user.id, user.token = login.ID, login.Token
 
 	resp, err := asBearer(t, compose, user.token).
-		SetBody(map[string]string{"recovery_email": user.recoveryEmail}).
+		SetBody(map[string]string{"recovery_email": user.recoveryEmail, "current_password": ShellHubPassword}).
 		Patch("/api/users")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())

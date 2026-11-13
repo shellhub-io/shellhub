@@ -91,6 +91,7 @@ const LegacyProfileRedirect = lazy(
 );
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
+const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
 const AcceptInvite = lazy(() => import("./pages/AcceptInvite"));
 const AcceptDevice = lazy(() => import("./pages/AcceptDevice"));
 const SecureVault = lazy(() => import("./pages/secure-vault"));
@@ -146,6 +147,7 @@ export default function App() {
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route path="/confirm-email" element={<ConfirmEmail />} />
                 </>
               )}
               <Route path="/accept-invite" element={<AcceptInvite />} />

@@ -144,6 +144,7 @@ test.describe("MFA", () => {
       );
 
       await page.getByLabel("Recovery Email").fill(recoveryEmail);
+      await page.getByLabel("Current Password").fill(password);
       await page.getByRole("button", { name: "Save & Continue" }).click();
       const { recovery_codes: shownCodes } = (await (
         await generated
@@ -191,6 +192,7 @@ test.describe("MFA", () => {
         .getByRole("button", { name: "Use a different recovery email" })
         .click();
       await page.getByLabel("Recovery Email").fill(replacement);
+      await page.getByLabel("Current Password").fill(password);
       await page.getByRole("button", { name: "Save & Continue" }).click();
       await completeEnrollment(page);
 
@@ -211,6 +213,7 @@ test.describe("MFA", () => {
           r.url().endsWith("/api/users") && r.request().method() === "PATCH",
       );
       await page.getByLabel("Recovery Email").fill(owner.email);
+      await page.getByLabel("Current Password").fill(password);
       await page.getByRole("button", { name: "Save & Continue" }).click();
 
       expect((await saved).status()).toBe(400);

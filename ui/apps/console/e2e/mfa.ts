@@ -57,7 +57,7 @@ export async function signInWithMFA(
 export async function setRecoveryEmail(token: string, recoveryEmail: string) {
   await updateUser({
     ...buildRequestContext({ token }),
-    body: { recovery_email: recoveryEmail },
+    body: { recovery_email: recoveryEmail, current_password: password },
   });
 }
 

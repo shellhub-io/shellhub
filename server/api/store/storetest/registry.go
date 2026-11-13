@@ -25,6 +25,7 @@ var Groups = []Group{
 		(*Suite).TestUserUpdateOnboardingSurvey,
 		(*Suite).TestUserUpdateDoesNotClobberOnboardingSurvey,
 		(*Suite).TestUserUpdateDoesNotClobberTokenVersion,
+		(*Suite).TestUserUpdateEmail,
 		(*Suite).TestUserRevokeTokens,
 		(*Suite).TestUserUpdateRevokingTokens,
 		(*Suite).TestUserDelete,

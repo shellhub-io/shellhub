@@ -24,6 +24,12 @@ reset path — a reset sends one code to your sign-in address and another to the
 needs both — and it cannot be set from a locked-out account, which is the moment you would think
 of it.
 
+Changing either address asks for your current password, so an open session alone cannot point the
+reset path somewhere else. On Cloud a new sign-in address takes effect only once you open the link
+mailed to it, and your previous addresses are told about every change. An account created through
+SSO cannot change either address from the console: its email comes from the identity provider,
+which sets it again at every SSO sign-in.
+
 ## Enabling it
 
 From **Account** › **Security**.
