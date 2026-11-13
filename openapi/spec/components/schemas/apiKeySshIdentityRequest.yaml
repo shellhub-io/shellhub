@@ -18,6 +18,7 @@ properties:
       expires. The gateway refuses a login whose key has expired.
     type: integer
     minimum: 1
+    maximum: 365
     example: 30
   single_use:
     description: |

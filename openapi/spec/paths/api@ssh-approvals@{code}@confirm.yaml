@@ -39,6 +39,7 @@ post:
                 key has expired.
               type: integer
               minimum: 1
+              maximum: 365
               example: 30
   responses:
     '200':
