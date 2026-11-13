@@ -155,6 +155,10 @@ func TestRegisterUserEmailCheck(t *testing.T) {
 func TestUpdateUserEmailCheck(t *testing.T) {
 	override(t, &emailCheckHooks, []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")})
 
+	hashMock := hashmock.NewMockHasher(t)
+	hash.Set(t, hashMock)
+	hashMock.On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").Return(true).Maybe()
+
 	ctx := context.Background()
 
 	current := func() *models.User {
@@ -166,6 +170,7 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 				Email:         "james@shellhub.test",
 				RecoveryEmail: "recovery@shellhub.test",
 			},
+			Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 		}
 	}
 
@@ -179,13 +184,13 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 		{
 			description: "refuses a new email the hook refuses, naming the email field",
 			user:        current(),
-			req:         &requests.UpdateUser{UserID: "000000000000000000000000", Email: "james@listed.test"},
+			req:         &requests.UpdateUser{UserID: "000000000000000000000000", Email: "james@listed.test", CurrentPassword: "secret"},
 			expected:    NewErrInvalidFields(ErrBadRequest, map[string]string{"email": "disposable"}),
 		},
 		{
 			description: "refuses a new recovery email the hook refuses, naming the recovery_email field",
 			user:        current(),
-			req:         &requests.UpdateUser{UserID: "000000000000000000000000", RecoveryEmail: "backup@listed.test"},
+			req:         &requests.UpdateUser{UserID: "000000000000000000000000", RecoveryEmail: "backup@listed.test", CurrentPassword: "secret"},
 			expected:    NewErrInvalidFields(ErrBadRequest, map[string]string{"recovery_email": "disposable"}),
 		},
 		{
@@ -193,6 +198,7 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 			user:        current(),
 			req: &requests.UpdateUser{
 				UserID: "000000000000000000000000", Email: "james@listed.test", RecoveryEmail: "backup@listed.test",
+				CurrentPassword: "secret",
 			},
 			expected: NewErrInvalidFields(ErrBadRequest, map[string]string{
 				"email": "disposable", "recovery_email": "disposable",
@@ -201,7 +207,7 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 		{
 			description: "saves a new email the hook accepts",
 			user:        current(),
-			req:         &requests.UpdateUser{UserID: "000000000000000000000000", Email: "james@example.test"},
+			req:         &requests.UpdateUser{UserID: "000000000000000000000000", Email: "james@example.test", CurrentPassword: "secret"},
 			saves:       true,
 		},
 		{

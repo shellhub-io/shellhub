@@ -17,13 +17,18 @@ patch:
             username:
               type: string
             email:
+              description: |
+                Changing it requires `current_password`. On Cloud the new
+                address takes effect only after its owner opens the
+                confirmation link mailed to it; until then the account keeps
+                the old one, and the request still answers 200.
               type: string
             recovery_email:
               description: |
                 A recovery email serves as the user's final recourse to regain
                 access to their account. It cannot be the same as the user's
                 primary email. Once defined, it cannot be updated to an empty
-                value.
+                value. Changing it requires `current_password`.
               type: string
             password:
               description: |
@@ -32,7 +37,9 @@ patch:
               type: string
             current_password:
               description: |
-                It's required when updating the user's password.
+                The user's current password. It's required when changing the
+                password, the email or the recovery email, so an account that
+                signs in only through SSO cannot change them here.
               type: string
   responses:
     '200':
@@ -53,6 +60,8 @@ patch:
               recovery_email: disposable
     '401':
       $ref: ../components/responses/401.yaml
+    '403':
+      $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
     '409':

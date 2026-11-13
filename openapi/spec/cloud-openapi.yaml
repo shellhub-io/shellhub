@@ -105,6 +105,8 @@ paths:
     $ref: paths/api@user@resend_email.yaml
   /api/user/{uid}/update_password:
     $ref: paths/api@user@{uid}@update_password.yaml
+  /api/user/{uid}/confirm_email:
+    $ref: paths/api@user@{uid}@confirm_email.yaml
   /api/user/confirm_account:
     $ref: paths/api@user@confirm_account.yaml
   /api/user/recover_password:

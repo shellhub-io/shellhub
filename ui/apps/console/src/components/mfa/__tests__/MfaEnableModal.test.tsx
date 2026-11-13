@@ -74,8 +74,17 @@ describe("MfaEnableModal", () => {
         />,
       );
 
+      const sent: unknown[] = [];
+      server.use(
+        http.patch("*/api/users", async ({ request }) => {
+          sent.push(await request.json());
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+
       const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
       await user.type(emailInput, "new-recovery@example.com");
+      await user.type(screen.getByLabelText("Current Password"), "secret");
 
       const nextButton = screen.getByRole("button", { name: /save/i });
       await user.click(nextButton);
@@ -83,6 +92,57 @@ describe("MfaEnableModal", () => {
       await waitFor(() => {
         expect(screen.getByText(/Save Recovery Codes/i)).toBeInTheDocument();
       });
+      expect(sent).toEqual([
+        {
+          recovery_email: "new-recovery@example.com",
+          current_password: "secret",
+        },
+      ]);
+    });
+
+    it("keeps Save disabled until the current password is entered", async () => {
+      const user = userEvent.setup();
+      render(
+        <MfaEnableModal
+          open={true}
+          onClose={onClose}
+          onSuccess={onSuccess}
+          currentRecoveryEmail={null}
+        />,
+      );
+
+      await user.type(
+        screen.getByPlaceholderText(/recovery@example\.com/i),
+        "new-recovery@example.com",
+      );
+
+      expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+    });
+
+    it("says the current password is wrong on a 403", async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.patch("*/api/users", () => HttpResponse.json({}, { status: 403 })),
+      );
+      render(
+        <MfaEnableModal
+          open={true}
+          onClose={onClose}
+          onSuccess={onSuccess}
+          currentRecoveryEmail={null}
+        />,
+      );
+
+      await user.type(
+        screen.getByPlaceholderText(/recovery@example\.com/i),
+        "new-recovery@example.com",
+      );
+      await user.type(screen.getByLabelText("Current Password"), "wrong");
+      await user.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        await screen.findByText("Current password is incorrect."),
+      ).toBeInTheDocument();
     });
 
     it("shows error when email is already in use (409)", async () => {
@@ -102,6 +162,7 @@ describe("MfaEnableModal", () => {
 
       const emailInput = screen.getByPlaceholderText(/recovery@example\.com/i);
       await user.type(emailInput, "duplicate@example.com");
+      await user.type(screen.getByLabelText("Current Password"), "secret");
 
       const nextButton = screen.getByRole("button", { name: /save/i });
       await user.click(nextButton);
