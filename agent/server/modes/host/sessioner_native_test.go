@@ -259,6 +259,7 @@ func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
 				Shell:    "/bin/sh",
 				HomeDir:  "/root",
 			}, nil)
+			osauthMock.On("ListGroups", "root").Return([]uint32{}, nil)
 
 			deviceName := "test-device"
 			s := NewSessioner(&deviceName, func() *exec.Cmd {
@@ -275,6 +276,54 @@ func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
 
 			assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called")
 			assert.Equal(t, tc.code, atomic.LoadInt32(&sess.exitCode))
+		})
+	}
+}
+
+func TestSFTP_PassesTheUsersGroupsToTheSFTPServer(t *testing.T) {
+	cases := []struct {
+		name     string
+		groups   []uint32
+		err      error
+		expected string
+	}{
+		{name: "user's supplementary groups", groups: []uint32{4, 27}, expected: "SUPPLEMENTARY_GIDS=4,27\n"},
+		{name: "user without supplementary groups", groups: []uint32{}, expected: "SUPPLEMENTARY_GIDS=\n"},
+		{name: "group lookup fails", groups: nil, err: errors.New("group file unreadable"), expected: "SUPPLEMENTARY_GIDS=\n"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			osauthMock := &osauthMocks.MockBackend{}
+			osauth.Set(t, osauthMock)
+
+			osauthMock.On("LookupUser", "alice").Return(&osauth.User{
+				UID:      1000,
+				GID:      1000,
+				Username: "alice",
+				Shell:    "/bin/sh",
+				HomeDir:  "/home/alice",
+			}, nil)
+			osauthMock.On("ListGroups", "alice").Return(tc.groups, tc.err)
+
+			received := filepath.Join(t.TempDir(), "groups")
+
+			deviceName := "test-device"
+			s := NewSessioner(&deviceName, func() *exec.Cmd {
+				return exec.CommandContext(t.Context(), "/bin/sh", "-c", `echo "SUPPLEMENTARY_GIDS=${SUPPLEMENTARY_GIDS-unset}" > "$0"`, received) //nolint:gosec // the path comes from t.TempDir
+			})
+
+			sess := newFakeSession("session-sftp-groups", "alice")
+
+			testCtx, ok := sess.ctx.(*testSSHContext)
+			require.True(t, ok)
+			testCtx.SetValue(gliderssh.ContextKeyConn, &gossh.ServerConn{Conn: &fakeGosshConn{}})
+
+			require.NoError(t, s.SFTP(sess))
+
+			got, err := os.ReadFile(received) //nolint:gosec // the path comes from t.TempDir
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, string(got))
 		})
 	}
 }

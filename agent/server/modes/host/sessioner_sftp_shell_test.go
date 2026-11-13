@@ -26,6 +26,7 @@ func sftpSessionForShell(t *testing.T, shell string) (*Sessioner, *fakeSession, 
 		Shell:    shell,
 		HomeDir:  "/home/git",
 	}, nil)
+	osauthMock.On("ListGroups", "git").Return([]uint32{}, nil).Maybe()
 
 	var serverStarted atomic.Bool
 

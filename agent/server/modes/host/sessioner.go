@@ -437,9 +437,19 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	gid := fmt.Sprintf("GID=%d", looked.GID)
 	uid := fmt.Sprintf("UID=%d", looked.UID)
 
+	groups, err := osauth.ListGroups(looked.Username)
+	if err != nil {
+		log.WithError(err).WithFields(log.Fields{
+			"user": session.Context().User(),
+		}).Warn("Failed to list the user's groups; the SFTP session runs without supplementary groups")
+
+		groups = nil
+	}
+
 	cmd.Env = append(cmd.Env, home)
 	cmd.Env = append(cmd.Env, gid)
 	cmd.Env = append(cmd.Env, uid)
+	cmd.Env = append(cmd.Env, "SUPPLEMENTARY_GIDS="+command.FormatSFTPGroups(groups))
 
 	input, err := cmd.StdinPipe()
 	if err != nil {
