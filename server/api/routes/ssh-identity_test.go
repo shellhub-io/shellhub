@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -91,5 +92,82 @@ func TestCreateAPIKeySSHIdentityNeedsTheManagePermission(t *testing.T) {
 
 			require.Equal(t, tc.expected, rec.Result().StatusCode)
 		})
+	}
+}
+
+func TestSSHIdentityExpiresInIsAtMost365Days(t *testing.T) {
+	const (
+		userID   = "11111111-1111-4111-1111-111111111111"
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		keyData  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILBk key"
+	)
+
+	endpoints := []struct {
+		description string
+		url         string
+		bodyFormat  string
+		expectCall  func(svcMock *servicemock.MockService, expiresIn int)
+	}{
+		{
+			description: "create SSH identity",
+			url:         "/api/ssh-identities",
+			bodyFormat:  `{"data":"` + keyData + `","expires_in":%d}`,
+			expectCall: func(svcMock *servicemock.MockService, expiresIn int) {
+				svcMock.On("CreateSSHIdentity", mock.Anything, mock.MatchedBy(func(req *requests.SSHIdentityCreate) bool {
+					return req.ExpiresIn != nil && *req.ExpiresIn == expiresIn
+				})).Return(&models.SSHIdentity{ID: "id1"}, nil).Once()
+			},
+		},
+		{
+			description: "create API key SSH identity",
+			url:         "/api/namespaces/api-key/ci/ssh-identities",
+			bodyFormat:  `{"data":"` + keyData + `","expires_in":%d}`,
+			expectCall: func(svcMock *servicemock.MockService, expiresIn int) {
+				svcMock.On("CreateAPIKeySSHIdentity", mock.Anything, mock.MatchedBy(func(req *requests.APIKeySSHIdentityCreate) bool {
+					return req.ExpiresIn != nil && *req.ExpiresIn == expiresIn
+				})).Return(&models.SSHIdentity{ID: "id1"}, nil).Once()
+			},
+		},
+		{
+			description: "confirm SSH approval",
+			url:         "/api/ssh-approvals/ABCD1234/confirm",
+			bodyFormat:  `{"expires_in":%d}`,
+			expectCall: func(svcMock *servicemock.MockService, expiresIn int) {
+				svcMock.On("ConfirmSSHApproval", mock.Anything, userID, mock.MatchedBy(func(req *requests.SSHApprovalConfirm) bool {
+					return req.ExpiresIn != nil && *req.ExpiresIn == expiresIn
+				})).Return("confirmation", nil).Once()
+			},
+		},
+	}
+
+	cases := []struct {
+		description string
+		expiresIn   int
+		expected    int
+	}{
+		{"365 days reaches the service", 365, http.StatusOK},
+		{"366 days is refused before the service", 366, http.StatusBadRequest},
+		{"a date past Postgres' range is refused before the service", 1_000_000_000_000, http.StatusBadRequest},
+	}
+
+	for _, endpoint := range endpoints {
+		for _, tc := range cases {
+			t.Run(endpoint.description+": "+tc.description, func(t *testing.T) {
+				svcMock := servicemock.NewMockService(t)
+				if tc.expected == http.StatusOK {
+					endpoint.expectCall(svcMock, tc.expiresIn)
+				}
+
+				body := strings.NewReader(fmt.Sprintf(endpoint.bodyFormat, tc.expiresIn))
+				req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, endpoint.url, body)
+				req.Header.Set("Content-Type", "application/json")
+				req = identitytest.As(req, identity.Identity{ID: userID, TenantID: tenantID, Role: authorizer.RoleOwner})
+
+				rec := httptest.NewRecorder()
+				newTestRouter(t, svcMock).ServeHTTP(rec, req)
+
+				require.Equal(t, tc.expected, rec.Result().StatusCode)
+			})
+		}
 	}
 }

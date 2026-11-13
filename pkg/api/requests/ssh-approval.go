@@ -43,8 +43,8 @@ type SSHApprovalConfirm struct {
 	Code string `param:"code" json:"-" validate:"required"`
 	// ExpiresIn is how many days the key being bound should keep working,
 	// omitted for a key that never expires. Only meaningful for the identity
-	// kind, since a re-auth binds nothing.
-	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1"`
+	// kind, since a re-auth binds nothing. More than 365 days is refused.
+	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1,max=365"`
 }
 
 // SSHApprovalReject is the request data for the deny endpoint.
