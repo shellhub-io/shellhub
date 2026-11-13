@@ -38,6 +38,12 @@ type MembershipInvitationStore interface {
 	// that ID.
 	MembershipInvitationDelete(ctx context.Context, invitation *models.MembershipInvitation) error
 
+	// MembershipInvitationCancelByInviter cancels every pending invitation, expired or not, that
+	// inviterID issued in the namespace sc is bounded to, so none of them can be redeemed. It joins
+	// the transaction the context carries. It returns store.ErrInvalidScope when sc is not bounded,
+	// nil when there is nothing to cancel, and the database's error otherwise.
+	MembershipInvitationCancelByInviter(ctx context.Context, sc scope.Scope, inviterID string) error
+
 	// UserMembershipInvitationList returns all membership invitations for a given user.
 	// The user email is resolved from both "users" and "user_invitations" tables.
 	UserMembershipInvitationList(ctx context.Context, userID string, opts ...QueryOption) ([]models.MembershipInvitation, int64, error)

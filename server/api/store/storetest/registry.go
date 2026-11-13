@@ -175,6 +175,7 @@ var Groups = []Group{
 		(*Suite).TestMembershipInvitationResolveBySig,
 		(*Suite).TestMembershipInvitationUpdate,
 		(*Suite).TestMembershipInvitationDelete,
+		(*Suite).TestMembershipInvitationCancelByInviter,
 		(*Suite).TestUserMembershipInvitationList,
 		(*Suite).TestNamespaceMembershipInvitationList,
 		(*Suite).TestNamespaceMembershipInvitationListWithStatusFilter,

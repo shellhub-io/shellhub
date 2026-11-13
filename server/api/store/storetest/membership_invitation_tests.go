@@ -503,6 +503,69 @@ func (s *Suite) TestMembershipInvitationDelete(t *testing.T) {
 	})
 }
 
+// TestMembershipInvitationCancelByInviter shows it cancels every pending invitation the inviter
+// issued in the scoped namespace, expired or not, and nothing else.
+func (s *Suite) TestMembershipInvitationCancelByInviter(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("cancels the inviter's pending invitations in that namespace only", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+		otherTenantID := s.CreateNamespace(t)
+		inviter := s.CreateUser(t)
+		otherInviter := s.CreateUser(t)
+
+		now := s.Clock().Now()
+		valid := now.Add(7 * 24 * time.Hour)
+		expired := now.Add(-time.Hour)
+
+		invite := func(tenantID, invitedBy string, status models.MembershipInvitationStatus, expiresAt *time.Time) string {
+			invitee := s.CreateUser(t)
+			require.NoError(t, st.MembershipInvitationCreate(ctx, newMembershipInvitation(tenantID, invitee, invitedBy, status, expiresAt)))
+
+			return invitee
+		}
+
+		pending := invite(tenantID, inviter, models.MembershipInvitationStatusPending, &valid)
+		pendingExpired := invite(tenantID, inviter, models.MembershipInvitationStatusPending, &expired)
+		rejected := invite(tenantID, inviter, models.MembershipInvitationStatusRejected, &valid)
+		byOther := invite(tenantID, otherInviter, models.MembershipInvitationStatusPending, &valid)
+		elsewhere := invite(otherTenantID, inviter, models.MembershipInvitationStatusPending, &valid)
+
+		require.NoError(t, st.MembershipInvitationCancelByInviter(ctx, scope.MustBounded(tenantID), inviter))
+
+		for _, tc := range []struct {
+			tenantID string
+			invitee  string
+			want     models.MembershipInvitationStatus
+		}{
+			{tenantID, pending, models.MembershipInvitationStatusCancelled},
+			{tenantID, pendingExpired, models.MembershipInvitationStatusCancelled},
+			{tenantID, rejected, models.MembershipInvitationStatusRejected},
+			{tenantID, byOther, models.MembershipInvitationStatusPending},
+			{otherTenantID, elsewhere, models.MembershipInvitationStatusPending},
+		} {
+			resolved, err := st.MembershipInvitationResolve(ctx, scope.MustBounded(tc.tenantID), tc.invitee)
+			require.NoError(t, err)
+			assert.Equal(t, tc.want, resolved.Status, "invitee %s", tc.invitee)
+		}
+	})
+
+	t.Run("succeeds when the inviter has no pending invitation", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		tenantID := s.CreateNamespace(t)
+
+		require.NoError(t, st.MembershipInvitationCancelByInviter(ctx, scope.MustBounded(tenantID), s.CreateUser(t)))
+	})
+
+	t.Run("refuses an unbounded scope", func(t *testing.T) {
+		require.ErrorIs(t, st.MembershipInvitationCancelByInviter(ctx, scope.NewUnbounded(reasonTestQueryMechanics), s.CreateUser(t)), store.ErrInvalidScope)
+	})
+}
+
 func newMembershipInvitation(tenantID, userID, invitedBy string, status models.MembershipInvitationStatus, expiresAt *time.Time) *models.MembershipInvitation {
 	return &models.MembershipInvitation{
 		TenantID:    tenantID,

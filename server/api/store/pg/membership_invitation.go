@@ -129,6 +129,30 @@ func (pg *Pg) MembershipInvitationDelete(ctx context.Context, invitation *models
 	return nil
 }
 
+// MembershipInvitationCancelByInviter implements [store.MembershipInvitationStore].
+func (pg *Pg) MembershipInvitationCancelByInviter(ctx context.Context, sc scope.Scope, inviterID string) error {
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	now := pg.clock.Now()
+
+	if _, err := pg.GetConnection(ctx).NewUpdate().
+		Model((*entity.MembershipInvitation)(nil)).
+		Set("status = ?", models.MembershipInvitationStatusCancelled).
+		Set("status_updated_at = ?", now).
+		Set("updated_at = ?", now).
+		Where("tenant_id = ?", tenantID).
+		Where("invited_by = ?", inviterID).
+		Where("status = ?", models.MembershipInvitationStatusPending).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
 // UserMembershipInvitationList implements [store.MembershipInvitationStore].
 func (pg *Pg) UserMembershipInvitationList(ctx context.Context, userID string, opts ...store.QueryOption) ([]models.MembershipInvitation, int64, error) {
 	db := pg.GetConnection(ctx)

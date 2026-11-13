@@ -3341,6 +3341,69 @@ func (_c *MockStore_InstanceUsage_Call) RunAndReturn(run func(ctx context.Contex
 	return _c
 }
 
+// MembershipInvitationCancelByInviter provides a mock function for the type MockStore
+func (_mock *MockStore) MembershipInvitationCancelByInviter(ctx context.Context, sc scope.Scope, inviterID string) error {
+	ret := _mock.Called(ctx, sc, inviterID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MembershipInvitationCancelByInviter")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string) error); ok {
+		r0 = returnFunc(ctx, sc, inviterID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_MembershipInvitationCancelByInviter_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MembershipInvitationCancelByInviter'
+type MockStore_MembershipInvitationCancelByInviter_Call struct {
+	*mock.Call
+}
+
+// MembershipInvitationCancelByInviter is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - inviterID string
+func (_e *MockStore_Expecter) MembershipInvitationCancelByInviter(ctx any, sc any, inviterID any) *MockStore_MembershipInvitationCancelByInviter_Call {
+	return &MockStore_MembershipInvitationCancelByInviter_Call{Call: _e.mock.On("MembershipInvitationCancelByInviter", ctx, sc, inviterID)}
+}
+
+func (_c *MockStore_MembershipInvitationCancelByInviter_Call) Run(run func(ctx context.Context, sc scope.Scope, inviterID string)) *MockStore_MembershipInvitationCancelByInviter_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationCancelByInviter_Call) Return(err error) *MockStore_MembershipInvitationCancelByInviter_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_MembershipInvitationCancelByInviter_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, inviterID string) error) *MockStore_MembershipInvitationCancelByInviter_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MembershipInvitationCreate provides a mock function for the type MockStore
 func (_mock *MockStore) MembershipInvitationCreate(ctx context.Context, invitation *models.MembershipInvitation) error {
 	ret := _mock.Called(ctx, invitation)
