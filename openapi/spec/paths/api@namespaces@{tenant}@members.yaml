@@ -45,7 +45,7 @@ delete:
     cannot leave a namespace; they must delete it instead. Leaving the
     namespace the caller's own token names answers a replacement token that
     excludes it; leaving any other namespace answers no content, because that
-    token keeps working.
+    token keeps working. The caller's pending invitations are cancelled.
   tags:
     - community
     - members

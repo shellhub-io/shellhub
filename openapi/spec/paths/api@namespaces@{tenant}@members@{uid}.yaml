@@ -5,7 +5,8 @@ delete:
     Remove a member from a namespace. The devices the member paired are removed
     with them and their agents go back to pairing, except the ones named in
     `keep_devices`, which stay as team devices. The API keys the member created
-    stay, since an API key belongs to the namespace.
+    stay, since an API key belongs to the namespace. The member's pending
+    invitations are cancelled.
   tags:
     - community
     - namespaces
@@ -51,7 +52,8 @@ patch:
   description: |
     Update a member role from a namespace. When the new role cannot accept
     devices, the devices the member paired are removed and their agents go back
-    to pairing, except the ones named in `keep_devices`.
+    to pairing, except the ones named in `keep_devices`. When the new role
+    cannot add members, the member's pending invitations are cancelled.
   tags:
     - community
     - namespaces

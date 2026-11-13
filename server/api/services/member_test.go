@@ -323,6 +323,32 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 	cacheMock := cachemock.NewMockCache(t)
 
+	demoteAdministratorToOperator := func(ctx context.Context) *mock.Call {
+		storeMock.
+			On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+			Return(&models.Namespace{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "namespace",
+				Owner:    "000000000000000000000000",
+				Members: []models.Member{
+					{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
+					{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator},
+				},
+			}, nil).
+			Once()
+		storeMock.
+			On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+			Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+			Once()
+		storeMock.
+			On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleOperator}).
+			Return(nil).
+			Once()
+
+		return storeMock.
+			On("MembershipInvitationCancelByInviter", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), "000000000000000000000001")
+	}
+
 	cases := []struct {
 		description   string
 		req           *requests.NamespaceUpdateMember
@@ -480,6 +506,10 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
 					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(errors.New("error")).
 					Once()
@@ -514,6 +544,10 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					}, nil).
 					Once()
 				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
 					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
 					Return(nil).
 					Once()
@@ -523,6 +557,40 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 					Once()
 			},
 			expected: nil,
+		},
+		{
+			description: "[community|enterprise|cloud] cancels the invitations of an administrator demoted to operator",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleOperator,
+			},
+			requiredMocks: func(ctx context.Context) {
+				demoteAdministratorToOperator(ctx).
+					Return(nil).
+					Once()
+				cacheMock.
+					On("Delete", ctx, "token_00000000-0000-4000-0000-000000000000000000000000000000000001").
+					Return(nil).
+					Once()
+			},
+			expected: nil,
+		},
+		{
+			description: "[community|enterprise|cloud] fails when the demoted administrator's invitations cannot be cancelled",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleOperator,
+			},
+			requiredMocks: func(ctx context.Context) {
+				demoteAdministratorToOperator(ctx).
+					Return(errors.New("error")).
+					Once()
+			},
+			expected: errors.New("error"),
 		},
 		{
 			description: "[community|enterprise|cloud] BFLA: fails when admin tries to demote an owner",

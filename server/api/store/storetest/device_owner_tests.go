@@ -3,6 +3,7 @@ package storetest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
@@ -155,8 +156,8 @@ func (s *Suite) TestDeviceOwnerMustBeAMember(t *testing.T) {
 }
 
 // TestNamespaceDepartMember shows a departure removes only the member's own devices in that
-// namespace, leaves the namespace's API keys alone, keeps what it is told to keep, and changes
-// nothing when it fails.
+// namespace, cancels the invitations the member issued, leaves the namespace's API keys alone,
+// keeps what it is told to keep, and changes nothing when it fails.
 func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -268,6 +269,33 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, models.DeviceStatusAccepted, device.Status)
 		assert.NotNil(t, device.KeyVerifiedAt)
+	})
+
+	t.Run("cancels the pending invitations the member issued, with or without the membership", func(t *testing.T) {
+		for _, departure := range []store.MemberDeparture{{}, {KeepMembership: true}} {
+			require.NoError(t, s.provider.CleanDatabase(t))
+
+			tenantID, memberID := s.ownedDeviceFixture(t)
+			sc := scope.MustBounded(tenantID)
+			invitee := s.CreateUser(t)
+			expiresAt := s.Clock().Now().Add(7 * 24 * time.Hour)
+			require.NoError(t, st.MembershipInvitationCreate(ctx, &models.MembershipInvitation{
+				TenantID:    tenantID,
+				UserID:      invitee,
+				InvitedBy:   memberID,
+				Role:        authorizer.RoleAdministrator,
+				Status:      models.MembershipInvitationStatusPending,
+				ExpiresAt:   &expiresAt,
+				Invitations: 1,
+			}))
+
+			_, err := st.NamespaceDepartMember(ctx, sc, memberID, departure)
+			require.NoError(t, err)
+
+			invitation, err := st.MembershipInvitationResolve(ctx, sc, invitee)
+			require.NoError(t, err)
+			assert.Equal(t, models.MembershipInvitationStatusCancelled, invitation.Status, "KeepMembership=%t", departure.KeepMembership)
+		}
 	})
 
 	t.Run("keeps the listed devices as team devices", func(t *testing.T) {

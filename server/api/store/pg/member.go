@@ -103,6 +103,10 @@ func (pg *Pg) NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberI
 
 		departed.RemovedDevices = removed
 
+		if err := pg.MembershipInvitationCancelByInviter(ctx, sc, memberID); err != nil {
+			return err
+		}
+
 		if departure.KeepMembership {
 			return nil
 		}

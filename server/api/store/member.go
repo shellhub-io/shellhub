@@ -22,11 +22,13 @@ type MemberStore interface {
 	NamespaceDeleteMembership(ctx context.Context, sc scope.Scope, member *models.Member) error
 
 	// NamespaceDepartMember ends a member's standing in the namespace as one unit: the accepted
-	// devices they own are removed with their owner cleared and, unless departure keeps it, the
-	// membership is deleted. The API keys they created are not touched. It joins the transaction the
-	// context carries and opens its own otherwise.
+	// devices they own are removed with their owner cleared, the pending invitations they issued
+	// are cancelled and, unless departure keeps it, the membership is deleted. The API keys they
+	// created are not touched. It joins the transaction the context carries and opens its own
+	// otherwise.
 	//
-	// It returns [ErrDeviceNotOwned] when departure keeps a device the member does not own, and
-	// [ErrNoDocuments] when the membership to delete does not exist; either changes nothing.
+	// It returns [ErrDeviceNotOwned] when departure keeps a device the member does not own,
+	// [ErrNoDocuments] when the membership to delete does not exist, and the database's error when
+	// a step fails otherwise; none of them changes anything.
 	NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberID string, departure MemberDeparture) (*models.MemberDeparted, error)
 }

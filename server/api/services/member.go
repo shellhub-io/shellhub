@@ -44,7 +44,9 @@ type MemberService interface {
 	AddNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceAddMember) (*models.Namespace, error)
 
 	// UpdateNamespaceMember updates a member with the specified ID in the specified namespace. The member's role cannot
-	// have more authority than the user who is updating the member; owners cannot be created.
+	// have more authority than the user who is updating the member; owners cannot be created. A
+	// new role without NamespaceAddMember cancels the member's pending invitations in the same
+	// transaction.
 	//
 	// It returns ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded
 	// to another namespace or the namespace carrying req.TenantID cannot be resolved, whatever the
@@ -57,7 +59,8 @@ type MemberService interface {
 	UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error
 
 	// RemoveNamespaceMember removes a specified member from a namespace. The action must be performed by a user with higher
-	// authority than the target member. Owners cannot be removed.
+	// authority than the target member. Owners cannot be removed. The member departs as
+	// DepartNamespaceMember describes, pending invitations included.
 	//
 	// It returns the namespace as stored afterwards. It returns ErrForbidden when sc was never
 	// constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
@@ -70,6 +73,7 @@ type MemberService interface {
 	RemoveNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceRemoveMember) (*models.Namespace, error)
 
 	// LeaveNamespace allows an authenticated user to remove themselves from a namespace. Owners cannot leave a namespace.
+	// The user departs as DepartNamespaceMember describes, pending invitations included.
 	// If the user attempts to leave the namespace they are authenticated to, their authentication token will be invalidated
 	// and a new one, at req.TokenVersion when set, is returned. That token comes from
 	// [SignInService.RenewUserToken] after the leave is saved.
@@ -83,8 +87,9 @@ type MemberService interface {
 	// edition's check returns, as is; and the store's error otherwise.
 	LeaveNamespace(ctx context.Context, req *requests.LeaveNamespace) (*models.UserAuthResponse, error)
 
-	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave
-	// and, unless departure keeps it, their membership is deleted. The API keys they created stay,
+	// DepartNamespaceMember ends a member's standing in a namespace: their paired devices leave,
+	// the pending invitations they sent are cancelled and, unless departure keeps it, their
+	// membership is deleted. The API keys they created stay,
 	// since a key belongs to the namespace. It commits that as one unit and then settles it (see
 	// SettleMemberDeparture). A caller that must fold the departure into a transaction of its own
 	// calls the store's NamespaceDepartMember and SettleMemberDeparture instead.
@@ -305,7 +310,17 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req
 	bounded := scope.MustBounded(namespace.TenantID)
 
 	if member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
-		if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
+		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+			if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
+				return err
+			}
+
+			if member.Role.HasPermission(authorizer.NamespaceAddMember) {
+				return nil
+			}
+
+			return s.store.MembershipInvitationCancelByInviter(ctx, bounded, member.ID)
+		}); err != nil {
 			return err
 		}
 

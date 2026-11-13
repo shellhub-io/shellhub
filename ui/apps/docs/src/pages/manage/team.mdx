@@ -23,6 +23,10 @@ is still created and the console gives you its link to copy — send it however 
 the person entirely: `user create` and `namespace member add` on the host put them in. See
 [Administration](/selfhosted/administration).
 
+An invitation holds only while whoever sent it can still add members. If they leave, are removed,
+or are demoted below administrator before it is accepted, the invitation is cancelled and its link
+stops working. Invite the person again yourself if they should still join.
+
 ## Membership and device access are different things
 
 This is the distinction that matters most on this page, and the one people get wrong.
@@ -54,7 +58,8 @@ policy edited either time. Per-person policies are for genuine exceptions.
 
 ## Removing someone
 
-Removing a member ends their access to the namespace.
+Removing a member ends their access to the namespace and cancels the invitations they sent that
+are still pending.
 
 Two things to do alongside it:
 
