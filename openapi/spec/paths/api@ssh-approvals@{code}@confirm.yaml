@@ -2,8 +2,14 @@ post:
   operationId: confirmSshApproval
   summary: Confirm an SSH login approval
   description: |
-    Confirm a pending `identity` approval: bind the presented key to your account
-    and release the login the gateway is holding open.
+    Confirm a pending `identity` approval for your account. The response carries
+    a confirmation code; once it is typed at the terminal the login is waiting
+    at, the gateway binds the presented key to your account and releases the
+    login. Confirming alone binds nothing: if the code is never typed, the
+    approval lapses with its window and the key stays unknown.
+
+    A key that is already another member's identity in the namespace returns
+    409.
 
     A `reauth` approval is not confirmable here. Releasing one means proving a
     factor, which happens on the web terminal re-auth endpoint. Accepting a bare
@@ -45,8 +51,8 @@ post:
       description: |
         The approval was confirmed. The response carries the confirmation code to
         show the approver: they type it at the terminal their login is waiting at,
-        which is what proves they reached this screen rather than merely followed
-        a link.
+        which proves they reached this screen rather than merely followed a link,
+        and is what binds the key.
       content:
         application/json:
           schema:
@@ -66,5 +72,7 @@ post:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml

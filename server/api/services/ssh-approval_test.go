@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"regexp"
 	"testing"
 
@@ -345,11 +346,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					Return(namespace, nil).
 					Once()
 				storeMock.
-					On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-				storeMock.
-					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
+					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", rejectedBy("owner1"), now).
 					Return(false, nil).
 					Once()
 			},
@@ -366,11 +363,7 @@ func TestSSHApprovalDecideAuthorization(t *testing.T) {
 					Return(namespace, nil).
 					Once()
 				storeMock.
-					On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-					Once()
-				storeMock.
-					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
+					On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", rejectedBy("owner1"), now).
 					Return(true, nil).
 					Once()
 			},
@@ -425,12 +418,11 @@ func TestConfirmSSHApprovalRefusesReauthWithoutAFactor(t *testing.T) {
 	require.Error(t, err)
 
 	storeMock.AssertExpectations(t)
-	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	storeMock.AssertNotCalled(t, "SSHIdentityTouchReauth", mock.Anything, mock.Anything, mock.Anything)
 }
 
-// Confirming an identity approval binds the presented key to the approver.
-func TestConfirmSSHApprovalIdentity(t *testing.T) {
+func TestConfirmSSHApprovalIdentityBindsNothing(t *testing.T) {
 	namespace := &models.Namespace{
 		Name:     "namespace1",
 		TenantID: "00000000-0000-4000-0000-000000000000",
@@ -438,10 +430,6 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 	}
 
 	storeMock := new(storemock.MockStore)
-	queryOptionsMock := new(storemock.MockQueryOptions)
-	storeMock.On("Options").Return(queryOptionsMock).Maybe()
-
-	clk := clock.NewFixed(now)
 
 	storeMock.
 		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
@@ -458,21 +446,110 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return(namespace, nil).
 		Once()
 	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(nil, store.ErrNoDocuments).
+		Once()
+
+	var decided models.SSHApprovalDecision
+	storeMock.
+		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", mock.MatchedBy(func(decision models.SSHApprovalDecision) bool {
+			decided = decision
+
+			return true
+		}), now).
+		Return(true, nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+	days := 30
+	confirmationCode, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q", ExpiresIn: &days})
+	require.NoError(t, err)
+
+	require.Equal(t, models.SSHApprovalConfirmed, decided.State)
+	require.Equal(t, "owner1", decided.DecidedBy)
+	require.Equal(t, confirmationCode, decided.ConfirmationCode)
+	require.Equal(t, &days, decided.IdentityExpiresIn)
+
+	storeMock.AssertExpectations(t)
+	storeMock.AssertNotCalled(t, "SSHIdentityCreate", mock.Anything, mock.Anything)
+	storeMock.AssertNotCalled(t, "SSHIdentityUpdate", mock.Anything, mock.Anything)
+}
+
+func TestConfirmSSHApprovalRefusesAKeyBoundToSomeoneElse(t *testing.T) {
+	namespace := &models.Namespace{
+		Name:     "namespace1",
+		TenantID: "00000000-0000-4000-0000-000000000000",
+		Members:  []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}},
+	}
+
+	storeMock := new(storemock.MockStore)
+
+	storeMock.
+		On("SSHApprovalGet", mock.Anything, "WXYZ2K7Q", now).
+		Return(&models.SSHApproval{
+			TenantID:    namespace.TenantID,
+			Kind:        models.SSHApprovalIdentity,
+			Fingerprint: "SHA256:abc",
+			State:       models.SSHApprovalPending,
+		}, nil).
+		Once()
+	storeMock.
+		On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, namespace.TenantID).
+		Return(namespace, nil).
+		Once()
+	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "someone-else", Fingerprint: "SHA256:abc"}, nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
+	require.ErrorIs(t, err, ErrSSHIdentityDuplicated)
+
+	storeMock.AssertExpectations(t)
+	storeMock.AssertNotCalled(t, "SSHApprovalDecide", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestRedeemSSHApprovalBindsTheKeyToTheApprover(t *testing.T) {
+	tenantID := "00000000-0000-4000-0000-000000000000"
+
+	storeMock := new(storemock.MockStore)
+	queryOptionsMock := new(storemock.MockQueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	days := 30
+	storeMock.
 		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
 		Once()
 	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalConfirmed, "owner1", mock.Anything, now).
-		Return(true, nil).
+		On("SSHApprovalRedeem", mock.Anything, "WXYZ2K7Q", "CONF1234", now).
+		Return(&models.SSHApproval{
+			TenantID:          tenantID,
+			Kind:              models.SSHApprovalIdentity,
+			Fingerprint:       "SHA256:abc",
+			Data:              []byte("ssh-ed25519 AAAA"),
+			State:             models.SSHApprovalConfirmed,
+			DecidedBy:         "owner1",
+			ConfirmationCode:  "CONF1234",
+			IdentityExpiresIn: &days,
+		}, nil).
 		Once()
-
+	storeMock.
+		On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, tenantID).
+		Return(&models.Namespace{TenantID: tenantID, Members: []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}}}, nil).
+		Once()
 	storeMock.
 		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
 		Return(nil, store.ErrNoDocuments).
 		Once()
 	storeMock.
 		On("SSHIdentityCreate", mock.Anything, mock.MatchedBy(func(identity *models.SSHIdentity) bool {
-			return identity.PrincipalID == "owner1" && identity.Fingerprint == "SHA256:abc"
+			return identity.PrincipalID == "owner1" &&
+				identity.Fingerprint == "SHA256:abc" &&
+				identity.ExpiresAt != nil && identity.ExpiresAt.Equal(now.AddDate(0, 0, days))
 		})).
 		Return("id1", nil).
 		Once()
@@ -481,16 +558,210 @@ func TestConfirmSSHApprovalIdentity(t *testing.T) {
 		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "owner1", Fingerprint: "SHA256:abc"}, nil).
 		Once()
 	storeMock.
-		On("SSHIdentityTouchLastUsed", mock.Anything, namespace.TenantID, "SHA256:abc").
+		On("SSHIdentityTouchLastUsed", mock.Anything, tenantID, "SHA256:abc").
 		Return(nil).
 		Once()
 
-	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clk))
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
 
-	_, err := service.ConfirmSSHApproval(context.TODO(), "owner1", &requests.SSHApprovalConfirm{Code: "WXYZ2K7Q"})
+	err := service.RedeemSSHApproval(context.TODO(), &requests.SSHApprovalRedeem{Code: "wxyz-2k7q", ConfirmationCode: "conf-1234"})
 	require.NoError(t, err)
 
 	storeMock.AssertExpectations(t)
+}
+
+func TestRedeemSSHApprovalSettlesARaceForTheSameApprover(t *testing.T) {
+	tenantID := "00000000-0000-4000-0000-000000000000"
+	approval := &models.SSHApproval{
+		TenantID:    tenantID,
+		Kind:        models.SSHApprovalIdentity,
+		Fingerprint: "SHA256:abc",
+		Data:        []byte("ssh-ed25519 AAAA"),
+		State:       models.SSHApprovalConfirmed,
+		DecidedBy:   "owner1",
+	}
+	namespace := &models.Namespace{TenantID: tenantID, Members: []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}}}
+
+	storeMock := new(storemock.MockStore)
+	queryOptionsMock := new(storemock.MockQueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	storeMock.
+		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Twice()
+	storeMock.On("SSHApprovalRedeem", mock.Anything, "WXYZ2K7Q", "CONF1234", now).Return(approval, nil).Twice()
+	storeMock.On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, tenantID).Return(namespace, nil).Twice()
+	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(nil, store.ErrNoDocuments).
+		Once()
+	storeMock.
+		On("SSHIdentityCreate", mock.Anything, mock.Anything).
+		Return("", store.ErrDuplicate).
+		Once()
+	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "owner1", Fingerprint: "SHA256:abc"}, nil).
+		Once()
+	storeMock.On("SSHIdentityTouchLastUsed", mock.Anything, tenantID, "SHA256:abc").Return(nil).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+	err := service.RedeemSSHApproval(context.TODO(), &requests.SSHApprovalRedeem{Code: "WXYZ2K7Q", ConfirmationCode: "CONF1234"})
+	require.NoError(t, err)
+
+	storeMock.AssertExpectations(t)
+}
+
+func TestRedeemSSHApprovalLeavesAKeyAnotherAccountWonBound(t *testing.T) {
+	tenantID := "00000000-0000-4000-0000-000000000000"
+	approval := &models.SSHApproval{
+		TenantID:    tenantID,
+		Kind:        models.SSHApprovalIdentity,
+		Fingerprint: "SHA256:abc",
+		Data:        []byte("ssh-ed25519 AAAA"),
+		State:       models.SSHApprovalConfirmed,
+		DecidedBy:   "owner1",
+	}
+	namespace := &models.Namespace{TenantID: tenantID, Members: []models.Member{{ID: "owner1", Role: authorizer.RoleOwner}}}
+
+	storeMock := new(storemock.MockStore)
+	queryOptionsMock := new(storemock.MockQueryOptions)
+	storeMock.On("Options").Return(queryOptionsMock).Maybe()
+
+	storeMock.
+		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+		Twice()
+	storeMock.On("SSHApprovalRedeem", mock.Anything, "WXYZ2K7Q", "CONF1234", now).Return(approval, nil).Twice()
+	storeMock.On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, tenantID).Return(namespace, nil).Twice()
+	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(nil, store.ErrNoDocuments).
+		Once()
+	storeMock.
+		On("SSHIdentityCreate", mock.Anything, mock.Anything).
+		Return("", store.ErrDuplicate).
+		Once()
+	storeMock.
+		On("SSHIdentityResolve", mock.Anything, mock.Anything, store.SSHIdentityFingerprintResolver, "SHA256:abc").
+		Return(&models.SSHIdentity{ID: "id1", PrincipalID: "someone-else", Fingerprint: "SHA256:abc"}, nil).
+		Once()
+
+	service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+	err := service.RedeemSSHApproval(context.TODO(), &requests.SSHApprovalRedeem{Code: "WXYZ2K7Q", ConfirmationCode: "CONF1234"})
+	require.ErrorIs(t, err, ErrSSHIdentityDuplicated)
+
+	storeMock.AssertExpectations(t)
+	storeMock.AssertNumberOfCalls(t, "SSHApprovalRedeem", 2)
+	storeMock.AssertNotCalled(t, "SSHIdentityTouchLastUsed", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func TestRedeemSSHApprovalChecksTheApproverWhenItBinds(t *testing.T) {
+	tenantID := "00000000-0000-4000-0000-000000000000"
+
+	cases := []struct {
+		description string
+		members     []models.Member
+		expectedErr error
+	}{
+		{
+			description: "the approver was demoted to a role that cannot add SSH keys",
+			members:     []models.Member{{ID: "member1", Role: authorizer.RoleObserver}},
+			expectedErr: ErrRoleForbidden,
+		},
+		{
+			description: "the approver left the namespace",
+			members:     []models.Member{},
+			expectedErr: ErrNamespaceMemberNotFound,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := new(storemock.MockStore)
+			storeMock.
+				On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
+			storeMock.
+				On("SSHApprovalRedeem", mock.Anything, "WXYZ2K7Q", "CONF1234", now).
+				Return(&models.SSHApproval{
+					TenantID:    tenantID,
+					Kind:        models.SSHApprovalIdentity,
+					Fingerprint: "SHA256:abc",
+					State:       models.SSHApprovalConfirmed,
+					DecidedBy:   "member1",
+				}, nil).
+				Once()
+			storeMock.
+				On("NamespaceResolve", mock.Anything, store.NamespaceTenantIDResolver, tenantID).
+				Return(&models.Namespace{TenantID: tenantID, Members: tc.members}, nil).
+				Once()
+
+			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+			err := service.RedeemSSHApproval(context.TODO(), &requests.SSHApprovalRedeem{Code: "WXYZ2K7Q", ConfirmationCode: "CONF1234"})
+			require.ErrorIs(t, err, tc.expectedErr)
+
+			storeMock.AssertExpectations(t)
+			storeMock.AssertNotCalled(t, "SSHIdentityCreate", mock.Anything, mock.Anything)
+		})
+	}
+}
+
+func TestRedeemSSHApprovalRefusesWhatItCannotBind(t *testing.T) {
+	outage := errors.New("connection refused")
+
+	cases := []struct {
+		description string
+		approval    *models.SSHApproval
+		redeemErr   error
+		expectedErr error
+	}{
+		{
+			description: "no confirmed approval matches the code and confirmation code",
+			approval:    nil,
+			redeemErr:   store.ErrNoDocuments,
+			expectedErr: ErrSSHApprovalCodeNotFound,
+		},
+		{
+			description: "the approval is a re-auth, which binds nothing",
+			approval:    &models.SSHApproval{Kind: models.SSHApprovalReauth, DecidedBy: "owner1", State: models.SSHApprovalConfirmed},
+			redeemErr:   nil,
+			expectedErr: ErrSSHApprovalCodeNotFound,
+		},
+		{
+			description: "the store fails",
+			approval:    nil,
+			redeemErr:   outage,
+			expectedErr: outage,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := new(storemock.MockStore)
+			storeMock.
+				On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
+				Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+				Once()
+			storeMock.
+				On("SSHApprovalRedeem", mock.Anything, "WXYZ2K7Q", "CONF1234", now).
+				Return(tc.approval, tc.redeemErr).
+				Once()
+
+			service := NewService(storeMock, privateKey, publicKey, new(cachemock.MockCache), WithClock(clock.NewFixed(now)))
+
+			err := service.RedeemSSHApproval(context.TODO(), &requests.SSHApprovalRedeem{Code: "WXYZ2K7Q", ConfirmationCode: "CONF1234"})
+			require.ErrorIs(t, err, tc.expectedErr)
+
+			storeMock.AssertExpectations(t)
+			storeMock.AssertNotCalled(t, "SSHIdentityCreate", mock.Anything, mock.Anything)
+		})
+	}
 }
 
 // Rejecting decides the approval without touching any identity.
@@ -519,11 +790,7 @@ func TestRejectSSHApproval(t *testing.T) {
 		Return(namespace, nil).
 		Once()
 	storeMock.
-		On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
-		Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
-		Once()
-	storeMock.
-		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", models.SSHApprovalRejected, "owner1", "", now).
+		On("SSHApprovalDecide", mock.Anything, "WXYZ2K7Q", rejectedBy("owner1"), now).
 		Return(true, nil).
 		Once()
 
@@ -533,4 +800,13 @@ func TestRejectSSHApproval(t *testing.T) {
 	require.NoError(t, err)
 
 	storeMock.AssertExpectations(t)
+}
+
+func rejectedBy(userID string) models.SSHApprovalDecision {
+	return models.SSHApprovalDecision{
+		State:             models.SSHApprovalRejected,
+		DecidedBy:         userID,
+		ConfirmationCode:  "",
+		IdentityExpiresIn: nil,
+	}
 }

@@ -103,7 +103,12 @@ func releaseSSHApproval(ctx context.Context, st store.Store, req *requests.WebRe
 
 	confirmationCode := pairingcode.New(pairingcode.DeviceCodeLength)
 
-	claimed, err := st.SSHApprovalDecide(ctx, approval.Code, models.SSHApprovalConfirmed, req.UserID, confirmationCode, now)
+	claimed, err := st.SSHApprovalDecide(ctx, approval.Code, models.SSHApprovalDecision{
+		State:             models.SSHApprovalConfirmed,
+		DecidedBy:         req.UserID,
+		ConfirmationCode:  confirmationCode,
+		IdentityExpiresIn: nil,
+	}, now)
 	if err != nil {
 		return "", err
 	}

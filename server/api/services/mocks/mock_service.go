@@ -6268,6 +6268,63 @@ func (_c *MockService_RecordOnboardingSurvey_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// RedeemSSHApproval provides a mock function for the type MockService
+func (_mock *MockService) RedeemSSHApproval(ctx context.Context, req *requests.SSHApprovalRedeem) error {
+	ret := _mock.Called(ctx, req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RedeemSSHApproval")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *requests.SSHApprovalRedeem) error); ok {
+		r0 = returnFunc(ctx, req)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_RedeemSSHApproval_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RedeemSSHApproval'
+type MockService_RedeemSSHApproval_Call struct {
+	*mock.Call
+}
+
+// RedeemSSHApproval is a helper method to define mock.On call
+//   - ctx context.Context
+//   - req *requests.SSHApprovalRedeem
+func (_e *MockService_Expecter) RedeemSSHApproval(ctx any, req any) *MockService_RedeemSSHApproval_Call {
+	return &MockService_RedeemSSHApproval_Call{Call: _e.mock.On("RedeemSSHApproval", ctx, req)}
+}
+
+func (_c *MockService_RedeemSSHApproval_Call) Run(run func(ctx context.Context, req *requests.SSHApprovalRedeem)) *MockService_RedeemSSHApproval_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *requests.SSHApprovalRedeem
+		if args[1] != nil {
+			arg1 = args[1].(*requests.SSHApprovalRedeem)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_RedeemSSHApproval_Call) Return(err error) *MockService_RedeemSSHApproval_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_RedeemSSHApproval_Call) RunAndReturn(run func(ctx context.Context, req *requests.SSHApprovalRedeem) error) *MockService_RedeemSSHApproval_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RegisterUser provides a mock function for the type MockService
 func (_mock *MockService) RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error) {
 	ret := _mock.Called(ctx, req)

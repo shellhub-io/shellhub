@@ -143,15 +143,15 @@ export default function SSHApproval({
           <ResultMessage
             tone="success"
             icon={<CheckCircleIcon className="w-7 h-7" strokeWidth={1.5} />}
-            title={reauth ? "Re-authenticated" : "Key added"}
+            title={reauth ? "Re-authenticated" : "Approved"}
             description={
               (routed && confirmationCode
                 ? reauth
                   ? "Type this code at your terminal to continue the login."
-                  : "It's in your SSH Identities. Type this code at your terminal to continue the login."
+                  : "Type this code at your terminal. The key joins your SSH Identities once it does."
                 : reauth
                   ? "Your terminal can continue the login."
-                  : "It's in your SSH Identities.") +
+                  : "The key joins your SSH Identities once your terminal continues the login.") +
               (reauth ? reauthWindowSentence(details?.reauthPeriod ?? 0) : "")
             }
             action={<DoneButton onClick={close} />}

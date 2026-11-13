@@ -8,7 +8,8 @@ import "time"
 type SSHApprovalKind string
 
 const (
-	// SSHApprovalIdentity binds the presented key as a new identity.
+	// SSHApprovalIdentity binds the presented key as a new identity, once the
+	// confirmation code is typed on the connection that asked.
 	SSHApprovalIdentity SSHApprovalKind = "identity"
 	// SSHApprovalReauth refreshes the re-auth window of an identity that already
 	// exists, because a policy demands a fresh one. It creates nothing.
@@ -23,7 +24,8 @@ const (
 	// SSHApprovalPending is an approval nobody has answered yet. A pending row past its ExpiresAt is
 	// no longer pending — it is unknown.
 	SSHApprovalPending SSHApprovalState = "pending"
-	// SSHApprovalConfirmed is an approval a member granted; the parked login proceeds.
+	// SSHApprovalConfirmed is an approval a member granted. The parked login proceeds once the
+	// confirmation code is typed at its terminal, and an identity approval is consumed then.
 	SSHApprovalConfirmed SSHApprovalState = "confirmed"
 	// SSHApprovalRejected is an approval a member denied; the parked login is refused.
 	SSHApprovalRejected SSHApprovalState = "rejected"
@@ -55,10 +57,26 @@ type SSHApproval struct {
 	// ConfirmationCode is minted when the approval is confirmed and shown only in
 	// the console, to the person who confirmed it. They type it at the terminal,
 	// which is what proves they reached the console rather than merely following
-	// a link. Empty until confirmed.
-	ConfirmationCode string    `json:"confirmation_code"`
-	RequestedAt      time.Time `json:"requested_at"`
-	ExpiresAt        time.Time `json:"expires_at"`
+	// a link, and on an identity approval it is what binds the key. Empty until
+	// confirmed.
+	ConfirmationCode string `json:"confirmation_code"`
+	// IdentityExpiresIn is how many days the identity an approval binds keeps
+	// working, chosen by the approver and applied when the code is typed. Nil
+	// for an identity that never expires.
+	IdentityExpiresIn *int      `json:"identity_expires_in"`
+	RequestedAt       time.Time `json:"requested_at"`
+	ExpiresAt         time.Time `json:"expires_at"`
+}
+
+// SSHApprovalDecision is what a member's answer writes onto a pending approval.
+type SSHApprovalDecision struct {
+	State     SSHApprovalState
+	DecidedBy string
+	// ConfirmationCode is set on a confirmation only.
+	ConfirmationCode string
+	// IdentityExpiresIn is set on an identity confirmation only; see
+	// [SSHApproval.IdentityExpiresIn].
+	IdentityExpiresIn *int
 }
 
 // SSHApprovalCreated is the response to creating an approval: the short code the
