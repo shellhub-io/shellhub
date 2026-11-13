@@ -195,6 +195,7 @@ export default function ProvisioningKeysTable({
           </div>
           <ChevronRightIcon
             aria-hidden="true"
+            data-testid="install-chevron"
             className={cn(
               "w-4 h-4 shrink-0 text-text-muted transition-transform",
               !isInstallable(key) && "invisible",
