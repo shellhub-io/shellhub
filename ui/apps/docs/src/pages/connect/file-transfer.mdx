@@ -58,6 +58,17 @@ Which unix users you may connect as is decided by access policies. A policy gran
 `deploy` means you transfer as `deploy` and nothing else, even on a device where `root` exists.
 See [Access Policies](/manage/access-control/access-policies).
 
+## Restricted accounts
+
+The agent refuses SFTP for an account whose login shell confines it: `nologin`, `false`,
+`git-shell`, `rbash`, `rksh` or `rzsh`. That covers `scp` too, which uses SFTP by default. OpenSSH with its default
+`sftp-server` subsystem refuses these accounts too, because it runs the subsystem through the
+login shell. Commands run through the login shell as well, so the shell decides what they may do.
+
+If you serve SFTP to `nologin` accounts on purpose, as an OpenSSH `internal-sftp` setup does, set
+`SHELLHUB_SFTP_ALLOW_RESTRICTED_SHELLS=true` in the agent's environment. Those accounts then get
+SFTP access to everything their unix user can read and write. The agent has no `ChrootDirectory`.
+
 ## What recording does and does not capture
 
 Session recording captures the terminal — what was typed and what was displayed. **File transfer

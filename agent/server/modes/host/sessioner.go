@@ -405,13 +405,6 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	}).Info("SFTP session started")
 	defer session.Close() //nolint:errcheck
 
-	newSFTPServerCommand := command.SFTPServerCommand
-	if s.sftpServerCommand != nil {
-		newSFTPServerCommand = s.sftpServerCommand
-	}
-
-	cmd := newSFTPServerCommand()
-
 	looked, err := osauth.LookupUser(session.User())
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
@@ -420,6 +413,25 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 
 		return errors.New("failed to lookup user")
 	}
+
+	if shellConfinesSFTP(looked.Shell) {
+		log.WithFields(log.Fields{
+			"user":  session.Context().User(),
+			"shell": looked.Shell,
+		}).Warn("refusing sftp: the account's login shell confines it")
+
+		fmt.Fprintln(session.Stderr(), "This account is not available for SFTP.") //nolint:errcheck // the session ends with exit status 1 either way
+		_ = session.Exit(1)
+
+		return errors.New("sftp refused by the account's login shell")
+	}
+
+	newSFTPServerCommand := command.SFTPServerCommand
+	if s.sftpServerCommand != nil {
+		newSFTPServerCommand = s.sftpServerCommand
+	}
+
+	cmd := newSFTPServerCommand()
 
 	home := "HOME=" + looked.HomeDir
 	gid := fmt.Sprintf("GID=%d", looked.GID)

@@ -127,6 +127,7 @@ value that is not a positive duration under one minute.
 | `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` | `60` | Maximum lockout minutes after repeated failed sign-ins, 0 disables |
 | `SHELLHUB_ACCOUNT_LOCKOUT_BASE` | `1m` | First lockout's length as a Go duration, at least `1s`; each later one is four times longer |
 | `SHELLHUB_PERMIT_EMPTY_PASSWORDS` | `false` | Agent-side |
+| `SHELLHUB_SFTP_ALLOW_RESTRICTED_SHELLS` | `false` | Agent-side; serve SFTP to accounts whose login shell is `nologin`, `false`, `git-shell`, `rbash`, `rksh` or `rzsh` |
 | `SHELLHUB_REDIS_CACHE_POOL_SIZE` | `0` | 0 means the driver default |
 | `SHELLHUB_WORKER_SCHEDULE` | `@daily` | Cron format |
 | `SHELLHUB_ASYNQ_UNIQUENESS_TIMEOUT` | `24` | Hours; 0 or less disables uniqueness |

@@ -21,6 +21,7 @@ GOARM
 GOOS
 homelab
 homelabs
+nologin
 provisioningkey
 journalctl
 keepalives
@@ -42,13 +43,16 @@ Podman
 postcommand
 Quadlet
 raspberrypi
+rbash
 Redocly
 reflash
 reflashed
 reflashes
 rescoped
 revdial
+rksh
 rootfs
+rzsh
 selfhosted
 ShellHub
 shellhubio
