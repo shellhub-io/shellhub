@@ -25,9 +25,10 @@ type SSHIdentityCreate struct {
 	// asserts it, so it may only ever label the identity — the approval path is
 	// not accepted here precisely because that one the server knows for itself.
 	Source models.SSHIdentitySource `json:"source" validate:"omitempty,oneof=manual browser"`
-	// ExpiresIn is how many days the key should keep working, omitted for a key
-	// that never expires. The gateway refuses a login with an expired key.
-	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1"`
+	// ExpiresIn is how many days the key should keep working, at most 365,
+	// omitted for a key that never expires. The gateway refuses a login with an
+	// expired key.
+	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1,max=365"`
 }
 
 // APIKeySSHIdentityCreate is the request data for enrolling an SSH public key that an API key
@@ -41,9 +42,9 @@ type APIKeySSHIdentityCreate struct {
 	Name     string `json:"name" validate:""`
 	// Data is the OpenSSH public key to enroll.
 	Data string `json:"data" validate:"required"`
-	// ExpiresIn is how many days the key should keep working, omitted for a key that never
-	// expires.
-	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1"`
+	// ExpiresIn is how many days the key should keep working, at most 365, omitted for a key
+	// that never expires.
+	ExpiresIn *int `json:"expires_in" validate:"omitempty,min=1,max=365"`
 	// SingleUse burns the identity once a session has been established with it, which is what
 	// a one-shot job wants: upload a key, connect, and leave nothing reusable behind.
 	SingleUse bool `json:"single_use"`
