@@ -273,6 +273,13 @@ func (s *seats) SetType(seat int, kind string) {
 	s.items.Store(seat, item)
 }
 
+func (s *seats) Delete(seat int) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.items.Delete(seat)
+}
+
 // NewSession creates a new Session but differs from [New] as it only creates
 // the session without registering, connecting to the agent, etc.
 //
@@ -889,6 +896,33 @@ func (s *Session) SetSeatPty(seat int, status bool) {
 // [SeatTypeExec].
 func (s *Session) SetSeatType(seat int, kind string) {
 	s.seats.SetType(seat, kind)
+}
+
+// ReleaseSeat closes the agent and client channels the seat holds, ignoring the errors from
+// closing them, and forgets the seat, so a connection that runs many shells or execs keeps nothing
+// from the ones that ended. Releasing a seat that does not exist, or one already released, does
+// nothing. Afterwards the seat is unknown: [Session.Seat] reports false and
+// [Session.CloseAgentWrite] returns [ErrSeatNotFound]. It is safe for concurrent use.
+func (s *Session) ReleaseSeat(seat int) {
+	s.agent.mu.Lock()
+	agent, hasAgent := s.agent.channels[seat]
+	delete(s.agent.channels, seat)
+	s.agent.mu.Unlock()
+
+	if hasAgent {
+		agent.Close() //nolint:errcheck // the seat is over, and an already closed channel errors too
+	}
+
+	s.client.mu.Lock()
+	client, hasClient := s.client.channels[seat]
+	delete(s.client.channels, seat)
+	s.client.mu.Unlock()
+
+	if hasClient {
+		client.Close() //nolint:errcheck // the seat is over, and an already closed channel errors too
+	}
+
+	s.seats.Delete(seat)
 }
 
 // LogFields returns the fields that identify this session in a log line.

@@ -23,11 +23,17 @@ func (*fakeChannel) SendRequest(_ string, _ bool, _ []byte) (bool, error) {
 	return true, nil
 }
 
-type fakeNewChannel struct{}
+type fakeNewChannel struct {
+	channel gossh.Channel
+}
 
-func (*fakeNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, error) {
+func (f *fakeNewChannel) Accept() (gossh.Channel, <-chan *gossh.Request, error) {
 	requests := make(chan *gossh.Request)
 	close(requests)
+
+	if f.channel != nil {
+		return f.channel, requests, nil
+	}
 
 	return &fakeChannel{}, requests, nil
 }
@@ -104,6 +110,122 @@ func TestDropAgentChannelConcurrent(t *testing.T) {
 	wg.Wait()
 
 	assert.Empty(t, sess.agent.channels)
+}
+
+func countSeats(sess *Session) int {
+	count := 0
+
+	sess.seats.items.Range(func(_, _ any) bool {
+		count++
+
+		return true
+	})
+
+	return count
+}
+
+func occupySeat(t *testing.T, sess *Session) (int, *recordingChannel, *recordingChannel) {
+	t.Helper()
+
+	seat, err := sess.NewSeat()
+	require.NoError(t, err)
+
+	agent := new(recordingChannel)
+	sess.agent.channels[seat] = &AgentChannel{Channel: agent, Requests: nil}
+
+	client := new(recordingChannel)
+	_, err = sess.NewClientChannel(&fakeNewChannel{channel: client}, seat)
+	require.NoError(t, err)
+
+	return seat, agent, client
+}
+
+func assertSeatKept(t *testing.T, sess *Session, seat int, agent, client *recordingChannel) {
+	t.Helper()
+
+	assert.False(t, agent.closed)
+	assert.False(t, client.closed)
+	assert.Contains(t, sess.agent.channels, seat)
+	assert.Contains(t, sess.client.channels, seat)
+
+	_, ok := sess.Seat(seat)
+	assert.True(t, ok)
+	assert.Equal(t, 1, sess.client.open)
+}
+
+func TestReleaseSeatForgetsTheSeat(t *testing.T) {
+	const seats = 100
+
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
+
+	for range seats {
+		seat, agent, client := occupySeat(t, sess)
+
+		sess.ReleaseSeat(seat)
+
+		assert.True(t, agent.closed, "seat %d kept its agent channel open", seat)
+		assert.True(t, client.closed, "seat %d kept its client channel open", seat)
+
+		_, ok := sess.Seat(seat)
+		assert.False(t, ok, "seat %d is still known", seat)
+		require.ErrorIs(t, sess.CloseAgentWrite(seat), ErrSeatNotFound)
+	}
+
+	assert.Empty(t, sess.agent.channels)
+	assert.Empty(t, sess.client.channels)
+	assert.Zero(t, countSeats(sess))
+	assert.Zero(t, sess.client.open)
+}
+
+func TestReleaseSeatLeavesOtherSeatsAlone(t *testing.T) {
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
+
+	released, _, _ := occupySeat(t, sess)
+	kept, agent, client := occupySeat(t, sess)
+
+	sess.ReleaseSeat(released)
+
+	assertSeatKept(t, sess, kept, agent, client)
+}
+
+func TestReleaseSeatIgnoresAReleasedOrUnknownSeat(t *testing.T) {
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
+
+	released, _, _ := occupySeat(t, sess)
+	kept, agent, client := occupySeat(t, sess)
+
+	sess.ReleaseSeat(released)
+	sess.ReleaseSeat(released)
+	sess.ReleaseSeat(404)
+
+	assertSeatKept(t, sess, kept, agent, client)
+}
+
+func TestReleaseSeatConcurrent(t *testing.T) {
+	const seats = 32
+
+	sess := newTestSession(servicemocks.NewMockService(t), nil)
+
+	ids := make([]int, 0, seats)
+
+	for range seats {
+		seat, _, _ := occupySeat(t, sess)
+		ids = append(ids, seat)
+	}
+
+	wg := new(sync.WaitGroup)
+
+	for _, seat := range ids {
+		wg.Go(func() {
+			sess.ReleaseSeat(seat)
+		})
+	}
+
+	wg.Wait()
+
+	assert.Empty(t, sess.agent.channels)
+	assert.Empty(t, sess.client.channels)
+	assert.Zero(t, countSeats(sess))
 }
 
 // TestSeatsConcurrentAccess covers the seat fields themselves: they are written
