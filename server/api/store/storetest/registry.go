@@ -126,6 +126,7 @@ var Groups = []Group{
 	{Name: "SSHApprovalStore", Tests: []TestFunc{
 		(*Suite).TestSSHApprovalExpiryHidesTheRow,
 		(*Suite).TestSSHApprovalDecideIsClaimedOnce,
+		(*Suite).TestSSHApprovalRedeemTakesTheConfirmedApprovalOnce,
 		(*Suite).TestSSHApprovalCleanupRemovesOnlyTheExpired,
 	}},
 	{Name: "AccessPolicyStore", Tests: []TestFunc{

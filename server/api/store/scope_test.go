@@ -96,6 +96,7 @@ var unconvertedMethods = map[string]string{ //nolint:gosec // method names and t
 	"SSHApprovalCreate":                "slice 3: SSH approval methods",
 	"SSHApprovalGet":                   "slice 3: SSH approval methods",
 	"SSHApprovalDecide":                "slice 3: SSH approval methods",
+	"SSHApprovalRedeem":                "slice 3: SSH approval methods",
 	"SSHApprovalCleanup":               "slice 3: SSH approval methods",
 }
 

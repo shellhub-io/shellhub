@@ -5,6 +5,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer/dialertest"
@@ -37,6 +38,10 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 		Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil). //nolint:exhaustruct // only the code is read
 		Once()
 	serviceMock.EXPECT().
+		RedeemSSHApproval(mock.Anything, &requests.SSHApprovalRedeem{Code: "AB12CD34", ConfirmationCode: "CONF1234"}).
+		Return(nil).
+		Once()
+	serviceMock.EXPECT().
 		Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
 		Return(&models.Decision{Allowed: true}, nil). //nolint:exhaustruct // only Allowed is read
 		Once()
@@ -66,11 +71,105 @@ func TestResumeFinishesAParkedLoginWithoutEvaluatingAgain(t *testing.T) {
 	_, state := ObtainSession(ctx)
 	require.Equal(t, StateChallenged, state, "a parked login sits in StateChallenged until the client answers")
 
-	require.NoError(t, sess.Resume(ctx, "user-id"))
+	require.NoError(t, sess.Resume(ctx, Approval{Approver: "user-id", ConfirmationCode: "CONF1234"}))
 
 	_, state = ObtainSession(ctx)
 	assert.Equal(t, StateFinished, state, "Resume must carry the login through to the same end Auth reaches")
 	assert.True(t, sess.registered, "Resume must register the session, or its teardown has nothing to deactivate")
+}
+
+func TestResumeRefusesAnApprovalItCannotRedeem(t *testing.T) {
+	cases := []struct {
+		description string
+		redeemErr   error
+		expectedErr error
+	}{
+		{
+			description: "the approval is gone",
+			redeemErr:   services.NewErrSSHApprovalCodeNotFound("AB12CD34", nil),
+			expectedErr: ErrApprovalExpired,
+		},
+		{
+			description: "the approver was demoted",
+			redeemErr:   services.NewErrRoleForbidden(),
+			expectedErr: ErrAccessDenied,
+		},
+		{
+			description: "the approver left the namespace",
+			redeemErr:   services.NewErrNamespaceMemberNotFound("user-id", nil),
+			expectedErr: ErrAccessDenied,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			pubKey := newTestSSHKey(t)
+			fingerprint := gossh.FingerprintSHA256(pubKey)
+
+			serviceMock := servicemocks.NewMockService(t)
+			serviceMock.EXPECT().
+				ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+				Return(nil, false, nil).
+				Once()
+			serviceMock.EXPECT().
+				CreateSSHApproval(mock.Anything, mock.Anything).
+				Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil). //nolint:exhaustruct // only the code is read
+				Once()
+			serviceMock.EXPECT().
+				Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
+				Return(&models.Decision{Allowed: true}, nil). //nolint:exhaustruct // only Allowed is read
+				Once()
+			serviceMock.EXPECT().
+				RedeemSSHApproval(mock.Anything, &requests.SSHApprovalRedeem{Code: "AB12CD34", ConfirmationCode: "CONF1234"}).
+				Return(tc.redeemErr).
+				Once()
+
+			sess := newIdentitySession(serviceMock, false)
+
+			ctx := newStubContext()
+			advance(ctx, sess, StateEvaluated)
+
+			auth, err := sess.ResolveKeyAuth(ctx, pubKey)
+			require.NoError(t, err)
+			require.ErrorIs(t, sess.Auth(ctx, auth), ErrApprovalRequired)
+
+			err = sess.Resume(ctx, Approval{Approver: "user-id", ConfirmationCode: "CONF1234"})
+			require.ErrorIs(t, err, tc.expectedErr)
+			assert.False(t, sess.registered)
+		})
+	}
+}
+
+func TestResumeBindsNothingForALoginThePolicyRefuses(t *testing.T) {
+	pubKey := newTestSSHKey(t)
+	fingerprint := gossh.FingerprintSHA256(pubKey)
+
+	serviceMock := servicemocks.NewMockService(t)
+	serviceMock.EXPECT().
+		ResolveSSHIdentity(mock.Anything, "tenant-id", fingerprint).
+		Return(nil, false, nil).
+		Once()
+	serviceMock.EXPECT().
+		CreateSSHApproval(mock.Anything, mock.Anything).
+		Return(&models.SSHApprovalCreated{Code: "AB12CD34"}, nil). //nolint:exhaustruct // only the code is read
+		Once()
+	serviceMock.EXPECT().
+		Authorize(mock.Anything, "tenant-id", models.Principal{Kind: models.PrincipalUser, ID: "user-id"}, "device-uid", "user", "127.0.0.1").
+		Return(&models.Decision{Allowed: false, Reason: models.ReasonNotAMember}, nil). //nolint:exhaustruct // only Allowed and Reason are read
+		Once()
+
+	sess := newIdentitySession(serviceMock, false)
+
+	ctx := newStubContext()
+	advance(ctx, sess, StateEvaluated)
+
+	auth, err := sess.ResolveKeyAuth(ctx, pubKey)
+	require.NoError(t, err)
+	require.ErrorIs(t, sess.Auth(ctx, auth), ErrApprovalRequired)
+
+	err = sess.Resume(ctx, Approval{Approver: "user-id", ConfirmationCode: "CONF1234"})
+	require.ErrorIs(t, err, ErrAccessDenied)
+	assert.False(t, sess.registered)
 }
 
 // TestAuthRetriesAfterTheDialToTheDeviceFailed is the retry a client gets for

@@ -210,7 +210,7 @@ func TestStampWebReauthReleasesTheHeldLogin(t *testing.T) {
 			storeMock.On("SSHApprovalGet", mock.Anything, code, now).Return(tc.approval, tc.approvalErr).Once()
 
 			if tc.expectDecide {
-				storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, mock.Anything, now).
+				storeMock.On("SSHApprovalDecide", mock.Anything, code, mock.MatchedBy(confirmedBy(userID)), now).
 					Return(tc.claimed, nil).Once()
 			}
 
@@ -267,7 +267,7 @@ func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
 			Code: code, TenantID: tenantID, Kind: models.SSHApprovalReauth,
 			Fingerprint: fingerprint, State: models.SSHApprovalPending,
 		}, nil).Once()
-	storeMock.On("SSHApprovalDecide", mock.Anything, code, models.SSHApprovalConfirmed, userID, mock.Anything, now).
+	storeMock.On("SSHApprovalDecide", mock.Anything, code, mock.MatchedBy(confirmedBy(userID)), now).
 		Return(true, nil).Once()
 
 	confirmationCode, err := StampWebReauth(ctx, store.Store(storeMock), &requests.WebReauthVerify{
@@ -281,4 +281,12 @@ func TestStampWebReauthReturnsNoCodeWhenTheCommitFails(t *testing.T) {
 	assert.Empty(t, confirmationCode, "a code minted inside a transaction that did not commit must not reach the caller")
 
 	storeMock.AssertExpectations(t)
+}
+
+func confirmedBy(userID string) func(models.SSHApprovalDecision) bool {
+	return func(decision models.SSHApprovalDecision) bool {
+		return decision.State == models.SSHApprovalConfirmed &&
+			decision.DecidedBy == userID &&
+			decision.ConfirmationCode != ""
+	}
 }

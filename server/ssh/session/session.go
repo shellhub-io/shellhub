@@ -620,18 +620,30 @@ func (s *Session) beginChallenge(ctx context.Context, auth parked, kind models.S
 	return nil
 }
 
+// Approval is a console approval the client proved it reached: who approved the
+// login, and the confirmation code typed on this connection.
+type Approval struct {
+	Approver         string
+	ConfirmationCode string
+}
+
 // Confirm checks the answer the client gave to its challenge and reports who
-// approved the login.
+// approved the login, with the code that proved it.
 //
-// The answer is not the authorization. The approval a person made in the console
-// is, and the confirmation code only proves they reached that screen. An empty
-// answer is a dismissed dialog or a client with nobody to prompt, and reports
-// ErrPromptDismissed rather than something worth asking again for. The stored
-// decision is still read first, because rejecting in the console answers with
-// that same empty frame and the person has to be told which of the two it was.
-func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
+// The approval a person made in the console decides the login, and the
+// confirmation code proves they reached that screen; on an identity approval,
+// Resume binds the key only with that code. An empty answer is a dismissed
+// dialog or a client with nobody to prompt, and reports ErrPromptDismissed
+// rather than something worth asking again for. The stored decision is still
+// read first, because rejecting in the console answers with that same empty
+// frame and the person has to be told which of the two it was. A wrong code
+// reports ErrConfirmationMismatch, a decision not taken yet ErrApprovalPending,
+// a rejection ErrApprovalRejected, a lapsed approval ErrApprovalExpired, a
+// session parked on no challenge ErrAccessDenied, and the service's error
+// otherwise.
+func (s *Session) Confirm(ctx context.Context, answer string) (Approval, error) {
 	if s.challenge == nil {
-		return "", ErrAccessDenied
+		return Approval{}, ErrAccessDenied
 	}
 
 	typed := pairingcode.Normalize(strings.TrimSpace(answer))
@@ -639,21 +651,21 @@ func (s *Session) Confirm(ctx context.Context, answer string) (string, error) {
 	status, err := s.approvalDecision(ctx)
 	if err != nil {
 		if typed == "" && errors.Is(err, ErrApprovalPending) {
-			return "", ErrPromptDismissed
+			return Approval{}, ErrPromptDismissed
 		}
 
-		return "", err
+		return Approval{}, err
 	}
 
 	if typed == "" {
-		return "", ErrPromptDismissed
+		return Approval{}, ErrPromptDismissed
 	}
 
 	if subtle.ConstantTimeCompare([]byte(typed), []byte(status.ConfirmationCode)) != 1 {
-		return "", ErrConfirmationMismatch
+		return Approval{}, ErrConfirmationMismatch
 	}
 
-	return status.UserID, nil
+	return Approval{Approver: status.UserID, ConfirmationCode: typed}, nil
 }
 
 // NoKeyReason is what a person sees when they reach the gateway with no SSH key
@@ -795,15 +807,26 @@ func (s *Session) Auth(ctx gliderssh.Context, auth Auth) error {
 	}
 }
 
-// Resume finishes a login that Auth parked on an approval, once the client has
-// answered its challenge and the approval came back confirmed by approver.
-func (s *Session) Resume(ctx gliderssh.Context, approver string) error {
+// Resume finishes a login that Auth parked on an approval, once Confirm has
+// accepted the client's answer. A parked identity approval binds the presented
+// key to the approver here, once the access policy grants the approver this
+// login, so a refused login, a member who left after approving included, binds
+// nothing.
+//
+// It returns ErrInvalidSessionState for a session not parked on a challenge;
+// ErrAccessDenied when no access policy grants the approver, when the approver
+// can no longer bind keys in the namespace, or when a single-use identity was
+// already consumed; ErrApprovalExpired when the approval can no longer be
+// redeemed; and otherwise the service's error from binding the key, consuming
+// the identity or registering the session, or the error from reaching the
+// device.
+func (s *Session) Resume(ctx gliderssh.Context, approval Approval) error {
 	sess, state := ObtainSession(ctx)
 	if state != StateChallenged || sess.challenge == nil {
 		return ErrInvalidSessionState
 	}
 
-	g, err := sess.challenge.auth.approved(sess, approver)
+	g, err := sess.challenge.auth.approved(sess, approval)
 	if err != nil {
 		return err
 	}

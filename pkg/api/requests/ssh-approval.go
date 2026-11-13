@@ -32,6 +32,13 @@ type SSHApprovalStatus struct {
 	Code string `param:"code" json:"-" validate:"required"`
 }
 
+// SSHApprovalRedeem is what the SSH gateway sends once the client typed the
+// confirmation code of an identity approval, to bind the presented key.
+type SSHApprovalRedeem struct {
+	Code             string `json:"-"`
+	ConfirmationCode string `json:"-"`
+}
+
 // SSHApprovalGet is the request data for the endpoint the console page uses to
 // render the approval request details.
 type SSHApprovalGet struct {
