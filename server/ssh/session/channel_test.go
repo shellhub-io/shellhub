@@ -84,34 +84,6 @@ func TestNewClientChannelRejectsSeatTwice(t *testing.T) {
 	assert.ErrorIs(t, err, ErrSeatAlreadySet)
 }
 
-// TestDropAgentChannelConcurrent exercises the removal path against the same map
-// under contention, as the channel handler uses it to roll back a seat whose
-// client side failed to open.
-func TestDropAgentChannelConcurrent(t *testing.T) {
-	const seats = 32
-
-	sess := newTestSession(servicemocks.NewMockService(t), nil)
-
-	for seat := range seats {
-		sess.agent.channels[seat] = &AgentChannel{Channel: &fakeChannel{}, Requests: nil}
-	}
-
-	wg := new(sync.WaitGroup)
-	wg.Add(seats)
-
-	for seat := range seats {
-		go func() {
-			defer wg.Done()
-
-			sess.DropAgentChannel(seat)
-		}()
-	}
-
-	wg.Wait()
-
-	assert.Empty(t, sess.agent.channels)
-}
-
 func countSeats(sess *Session) int {
 	count := 0
 

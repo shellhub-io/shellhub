@@ -92,21 +92,6 @@ func (s *Session) NewAgentChannel(seat int) (*AgentChannel, error) {
 	return a, nil
 }
 
-// DropAgentChannel closes the agent channel on a seat and forgets it, so a seat
-// whose client side failed to open does not keep a live channel behind it.
-func (s *Session) DropAgentChannel(seat int) {
-	s.agent.mu.Lock()
-	defer s.agent.mu.Unlock()
-
-	channel, ok := s.agent.channels[seat]
-	if !ok {
-		return
-	}
-
-	channel.Close() //nolint:errcheck
-	delete(s.agent.channels, seat)
-}
-
 func (s *Session) clientConfig() (*gossh.ClientConfig, error) {
 	hostKey, err := devicekey.ParsePublicKey(s.Device.PublicKey)
 	if err != nil {

@@ -138,6 +138,8 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 		return
 	}
 
+	defer sess.ReleaseSeat(seat)
+
 	agent, err := sess.NewAgentChannel(seat)
 	if err != nil {
 		reject(err, openFailureMessage(err))
@@ -150,7 +152,6 @@ func sessionChannel(ctx gliderssh.Context, sess Session, newChan gossh.NewChanne
 	client, err := sess.NewClientChannel(newChan, seat)
 	if err != nil {
 		reject(err, "failed to accept the channel opening")
-		sess.DropAgentChannel(seat)
 
 		return
 	}

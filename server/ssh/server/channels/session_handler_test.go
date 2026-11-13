@@ -32,7 +32,7 @@ type fakeSession struct {
 	recordedErr   error
 
 	calls     []string
-	dropped   []int
+	released  []int
 	events    []recordedEvent
 	forwarded []string
 
@@ -115,13 +115,20 @@ func (f *fakeSession) NewClientChannel(_ gossh.NewChannel, _ int) (*session.Clie
 	return &session.ClientChannel{Channel: &nopChannel{}, Requests: closedRequests()}, nil
 }
 
-func (f *fakeSession) DropAgentChannel(seat int) {
-	f.record("DropAgentChannel")
+func (f *fakeSession) ReleaseSeat(seat int) {
+	f.record("ReleaseSeat")
 
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	f.dropped = append(f.dropped, seat)
+	f.released = append(f.released, seat)
+}
+
+func (f *fakeSession) releasedSeats() []int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return slices.Clone(f.released)
 }
 
 func (f *fakeSession) ForwardAgent(gossh.Conn, func(device, client gossh.Channel)) {
@@ -303,17 +310,49 @@ func TestSessionChannelRejectsWhenTheAgentChannelFails(t *testing.T) {
 	assert.False(t, sess.called("NewClientChannel"), "the client channel must not be opened")
 }
 
-// A client channel that fails after the agent channel opened must not leave the
-// agent side live behind an unusable seat.
-func TestSessionChannelDropsTheAgentChannelWhenTheClientChannelFails(t *testing.T) {
-	sess := &fakeSession{clientChanErr: errors.New("client hung up")}
-	newChan := new(rejectingNewChannel)
+func TestSessionChannelReleasesItsSeat(t *testing.T) {
+	const seat = 7
 
-	sessionChannel(newStubContext(), sess, newChan)
+	tests := []struct {
+		name     string
+		sess     *fakeSession
+		rejected bool
+	}{
+		{
+			name:     "when the agent channel fails",
+			sess:     &fakeSession{newSeat: seat, agentChanErr: errors.New("agent is gone")},
+			rejected: true,
+		},
+		{
+			name:     "when the client channel fails",
+			sess:     &fakeSession{newSeat: seat, clientChanErr: errors.New("client hung up")},
+			rejected: true,
+		},
+		{
+			name:     "when the channel ends",
+			sess:     &fakeSession{newSeat: seat},
+			rejected: false,
+		},
+	}
 
-	assert.True(t, newChan.rejected, "the channel must be rejected")
-	require.True(t, sess.called("DropAgentChannel"), "the agent channel must be dropped")
-	assert.Equal(t, []int{0}, sess.dropped)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			newChan := new(rejectingNewChannel)
+
+			sessionChannel(newStubContext(), tt.sess, newChan)
+
+			assert.Equal(t, tt.rejected, newChan.rejected)
+			assert.Equal(t, []int{seat}, tt.sess.releasedSeats())
+		})
+	}
+}
+
+func TestSessionChannelReleasesNoSeatWhenItTookNone(t *testing.T) {
+	sess := &fakeSession{newSeatErr: errors.New("no seats left")}
+
+	sessionChannel(newStubContext(), sess, new(rejectingNewChannel))
+
+	assert.False(t, sess.called("ReleaseSeat"))
 }
 
 var _ Session = (*fakeSession)(nil)
