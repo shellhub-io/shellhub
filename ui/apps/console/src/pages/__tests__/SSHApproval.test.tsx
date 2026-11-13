@@ -132,7 +132,10 @@ describe("SSHApproval", () => {
       await screen.findByRole("button", { name: /add key/i }),
     );
 
-    expect(await screen.findByText("Key added")).toBeInTheDocument();
+    expect(await screen.findByText("Approved")).toBeInTheDocument();
+    expect(
+      await screen.findByText(/joins your ssh identities once/i),
+    ).toBeInTheDocument();
   });
 
   it("rejects the request and reports the outcome", async () => {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -67,11 +68,22 @@ func (s *Suite) TestSSHApprovalDecideIsClaimedOnce(t *testing.T) {
 
 	s.newPendingApproval(t, tenantID, "BBBB2222", now.Add(time.Minute))
 
-	claimed, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalConfirmed, userID, "CONF1234", now)
+	days := 30
+	claimed, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalDecision{
+		State:             models.SSHApprovalConfirmed,
+		DecidedBy:         userID,
+		ConfirmationCode:  "CONF1234",
+		IdentityExpiresIn: &days,
+	}, now)
 	require.NoError(t, err)
 	assert.True(t, claimed)
 
-	claimedAgain, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalRejected, userID, "", now)
+	claimedAgain, err := st.SSHApprovalDecide(ctx, "BBBB2222", models.SSHApprovalDecision{
+		State:             models.SSHApprovalRejected,
+		DecidedBy:         userID,
+		ConfirmationCode:  "",
+		IdentityExpiresIn: nil,
+	}, now)
 	require.NoError(t, err)
 	assert.False(t, claimedAgain, "a second submit must not overwrite the decision")
 
@@ -81,8 +93,53 @@ func (s *Suite) TestSSHApprovalDecideIsClaimedOnce(t *testing.T) {
 	assert.Equal(t, userID, approval.DecidedBy)
 	assert.Equal(t, "CONF1234", approval.ConfirmationCode,
 		"the code the person types at their terminal has to survive the round trip, and this is the only seam with a real database")
-	assert.NotEqual(t, approval.DecidedBy, approval.ConfirmationCode,
-		"decided_by and confirmation_code are adjacent same-typed arguments, so a transposition has to fail here")
+	require.NotNil(t, approval.IdentityExpiresIn)
+	assert.Equal(t, 30, *approval.IdentityExpiresIn)
+}
+
+// TestSSHApprovalRedeemTakesTheConfirmedApprovalOnce verifies an approval binds only with its
+// confirmation code, only once confirmed, and only once.
+func (s *Suite) TestSSHApprovalRedeemTakesTheConfirmedApprovalOnce(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	tenantID := s.CreateNamespace(t)
+	userID := s.CreateUser(t)
+	now := s.Clock().Now().UTC().Truncate(time.Second)
+
+	s.newPendingApproval(t, tenantID, "EEEE5555", now.Add(time.Minute))
+
+	_, err := st.SSHApprovalRedeem(ctx, "EEEE5555", "", now)
+	require.ErrorIs(t, err, store.ErrNoDocuments, "a pending approval has nothing to bind")
+
+	days := 7
+	claimed, err := st.SSHApprovalDecide(ctx, "EEEE5555", models.SSHApprovalDecision{
+		State:             models.SSHApprovalConfirmed,
+		DecidedBy:         userID,
+		ConfirmationCode:  "CONF5555",
+		IdentityExpiresIn: &days,
+	}, now)
+	require.NoError(t, err)
+	require.True(t, claimed)
+
+	_, err = st.SSHApprovalRedeem(ctx, "EEEE5555", "WRONG555", now)
+	require.ErrorIs(t, err, store.ErrNoDocuments, "the approval binds only with the code the console showed")
+
+	_, err = st.SSHApprovalRedeem(ctx, "EEEE5555", "CONF5555", now.Add(2*time.Minute))
+	require.ErrorIs(t, err, store.ErrNoDocuments, "an expired approval binds nothing")
+
+	approval, err := st.SSHApprovalRedeem(ctx, "EEEE5555", "CONF5555", now)
+	require.NoError(t, err)
+	assert.Equal(t, userID, approval.DecidedBy)
+	assert.Equal(t, "SHA256:EEEE5555", approval.Fingerprint)
+	assert.Equal(t, []byte("ssh-ed25519 AAAA"), approval.Data)
+	require.NotNil(t, approval.IdentityExpiresIn)
+	assert.Equal(t, 7, *approval.IdentityExpiresIn)
+
+	_, err = st.SSHApprovalRedeem(ctx, "EEEE5555", "CONF5555", now)
+	require.ErrorIs(t, err, store.ErrNoDocuments, "a second redeem must not bind again")
 }
 
 // TestSSHApprovalCleanupRemovesOnlyTheExpired verifies the cron prunes by expiry alone.

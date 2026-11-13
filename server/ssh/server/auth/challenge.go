@@ -22,10 +22,11 @@ const maxChallengeAnswers = 3
 // ApprovalChallenge asks the person at the terminal to approve the login in the
 // console, and finishes it once they answer.
 //
-// The answer is a release, never an authorization: it says the decision is worth
-// reading, and the decision itself is the approval the person confirmed in the
-// console. An empty answer, which is what a client with no way to prompt sends
-// back, therefore denies rather than waits.
+// The answer is the confirmation code the console showed the person who
+// approved, and a login goes on only with both: the approval decides it, and
+// the code proves that person is at this terminal. An identity approval binds
+// its key only once the code arrives here. An empty answer, which is what a
+// client with no way to prompt sends back, therefore denies rather than waits.
 func ApprovalChallenge(ctx gliderssh.Context, offer offerFunc) challengeFunc {
 	return func(_ gossh.ConnMetadata, ask gossh.KeyboardInteractiveChallenge) (*gossh.Permissions, error) {
 		logger := log.WithFields(log.Fields{"uid": ctx.SessionID(), "sshid": ctx.User()})
@@ -48,9 +49,9 @@ func ApprovalChallenge(ctx gliderssh.Context, offer offerFunc) challengeFunc {
 				return nil, err
 			}
 
-			approver, err := sess.Confirm(ctx, answer(answers))
+			approval, err := sess.Confirm(ctx, answer(answers))
 			if err == nil {
-				if err := sess.Resume(ctx, approver); err != nil {
+				if err := sess.Resume(ctx, approval); err != nil {
 					logger.WithError(err).Warn("failed to finish an approved login")
 
 					return nil, deny(ask, reasonOf(err))

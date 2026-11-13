@@ -85,3 +85,14 @@ func TestConfirmReadsAVanishedApprovalAsExpired(t *testing.T) {
 	require.ErrorIs(t, err, ErrApprovalExpired)
 	require.NotErrorIs(t, err, ErrApprovalPending, "an expired approval is not one still worth waiting on")
 }
+
+func TestConfirmHandsOnTheCodeItAccepted(t *testing.T) {
+	service := servicemocks.NewMockService(t)
+	service.On("GetSSHApprovalStatus", mock.Anything, mock.Anything).
+		Return(&models.SSHApprovalStatus{State: models.SSHApprovalConfirmed, UserID: "user-id", ConfirmationCode: "REALCODE"}, nil) //nolint:exhaustruct // only the fields Confirm reads
+
+	approval, err := parkedSession(service).Confirm(context.Background(), " real-code ")
+
+	require.NoError(t, err)
+	require.Equal(t, Approval{Approver: "user-id", ConfirmationCode: "REALCODE"}, approval)
+}

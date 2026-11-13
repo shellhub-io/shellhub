@@ -6366,8 +6366,8 @@ func (_c *MockStore_SSHApprovalCreate_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // SSHApprovalDecide provides a mock function for the type MockStore
-func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time) (bool, error) {
-	ret := _mock.Called(ctx, code, state, userID, confirmationCode, now)
+func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, decision models.SSHApprovalDecision, now time.Time) (bool, error) {
+	ret := _mock.Called(ctx, code, decision, now)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SSHApprovalDecide")
@@ -6375,16 +6375,16 @@ func (_mock *MockStore) SSHApprovalDecide(ctx context.Context, code string, stat
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) (bool, error)); ok {
-		return returnFunc(ctx, code, state, userID, confirmationCode, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalDecision, time.Time) (bool, error)); ok {
+		return returnFunc(ctx, code, decision, now)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) bool); ok {
-		r0 = returnFunc(ctx, code, state, userID, confirmationCode, now)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, models.SSHApprovalDecision, time.Time) bool); ok {
+		r0 = returnFunc(ctx, code, decision, now)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.SSHApprovalState, string, string, time.Time) error); ok {
-		r1 = returnFunc(ctx, code, state, userID, confirmationCode, now)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, models.SSHApprovalDecision, time.Time) error); ok {
+		r1 = returnFunc(ctx, code, decision, now)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -6399,15 +6399,13 @@ type MockStore_SSHApprovalDecide_Call struct {
 // SSHApprovalDecide is a helper method to define mock.On call
 //   - ctx context.Context
 //   - code string
-//   - state models.SSHApprovalState
-//   - userID string
-//   - confirmationCode string
+//   - decision models.SSHApprovalDecision
 //   - now time.Time
-func (_e *MockStore_Expecter) SSHApprovalDecide(ctx any, code any, state any, userID any, confirmationCode any, now any) *MockStore_SSHApprovalDecide_Call {
-	return &MockStore_SSHApprovalDecide_Call{Call: _e.mock.On("SSHApprovalDecide", ctx, code, state, userID, confirmationCode, now)}
+func (_e *MockStore_Expecter) SSHApprovalDecide(ctx any, code any, decision any, now any) *MockStore_SSHApprovalDecide_Call {
+	return &MockStore_SSHApprovalDecide_Call{Call: _e.mock.On("SSHApprovalDecide", ctx, code, decision, now)}
 }
 
-func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time)) *MockStore_SSHApprovalDecide_Call {
+func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, code string, decision models.SSHApprovalDecision, now time.Time)) *MockStore_SSHApprovalDecide_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -6417,29 +6415,19 @@ func (_c *MockStore_SSHApprovalDecide_Call) Run(run func(ctx context.Context, co
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 models.SSHApprovalState
+		var arg2 models.SSHApprovalDecision
 		if args[2] != nil {
-			arg2 = args[2].(models.SSHApprovalState)
+			arg2 = args[2].(models.SSHApprovalDecision)
 		}
-		var arg3 string
+		var arg3 time.Time
 		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
-		}
-		var arg5 time.Time
-		if args[5] != nil {
-			arg5 = args[5].(time.Time)
+			arg3 = args[3].(time.Time)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
-			arg4,
-			arg5,
 		)
 	})
 	return _c
@@ -6450,7 +6438,7 @@ func (_c *MockStore_SSHApprovalDecide_Call) Return(b bool, err error) *MockStore
 	return _c
 }
 
-func (_c *MockStore_SSHApprovalDecide_Call) RunAndReturn(run func(ctx context.Context, code string, state models.SSHApprovalState, userID string, confirmationCode string, now time.Time) (bool, error)) *MockStore_SSHApprovalDecide_Call {
+func (_c *MockStore_SSHApprovalDecide_Call) RunAndReturn(run func(ctx context.Context, code string, decision models.SSHApprovalDecision, now time.Time) (bool, error)) *MockStore_SSHApprovalDecide_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6525,6 +6513,86 @@ func (_c *MockStore_SSHApprovalGet_Call) Return(sSHApproval *models.SSHApproval,
 }
 
 func (_c *MockStore_SSHApprovalGet_Call) RunAndReturn(run func(ctx context.Context, code string, now time.Time) (*models.SSHApproval, error)) *MockStore_SSHApprovalGet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SSHApprovalRedeem provides a mock function for the type MockStore
+func (_mock *MockStore) SSHApprovalRedeem(ctx context.Context, code string, confirmationCode string, now time.Time) (*models.SSHApproval, error) {
+	ret := _mock.Called(ctx, code, confirmationCode, now)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SSHApprovalRedeem")
+	}
+
+	var r0 *models.SSHApproval
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, time.Time) (*models.SSHApproval, error)); ok {
+		return returnFunc(ctx, code, confirmationCode, now)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, time.Time) *models.SSHApproval); ok {
+		r0 = returnFunc(ctx, code, confirmationCode, now)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.SSHApproval)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, time.Time) error); ok {
+		r1 = returnFunc(ctx, code, confirmationCode, now)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_SSHApprovalRedeem_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SSHApprovalRedeem'
+type MockStore_SSHApprovalRedeem_Call struct {
+	*mock.Call
+}
+
+// SSHApprovalRedeem is a helper method to define mock.On call
+//   - ctx context.Context
+//   - code string
+//   - confirmationCode string
+//   - now time.Time
+func (_e *MockStore_Expecter) SSHApprovalRedeem(ctx any, code any, confirmationCode any, now any) *MockStore_SSHApprovalRedeem_Call {
+	return &MockStore_SSHApprovalRedeem_Call{Call: _e.mock.On("SSHApprovalRedeem", ctx, code, confirmationCode, now)}
+}
+
+func (_c *MockStore_SSHApprovalRedeem_Call) Run(run func(ctx context.Context, code string, confirmationCode string, now time.Time)) *MockStore_SSHApprovalRedeem_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 time.Time
+		if args[3] != nil {
+			arg3 = args[3].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_SSHApprovalRedeem_Call) Return(sSHApproval *models.SSHApproval, err error) *MockStore_SSHApprovalRedeem_Call {
+	_c.Call.Return(sSHApproval, err)
+	return _c
+}
+
+func (_c *MockStore_SSHApprovalRedeem_Call) RunAndReturn(run func(ctx context.Context, code string, confirmationCode string, now time.Time) (*models.SSHApproval, error)) *MockStore_SSHApprovalRedeem_Call {
 	_c.Call.Return(run)
 	return _c
 }

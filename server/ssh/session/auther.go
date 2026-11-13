@@ -93,7 +93,7 @@ type Auth interface {
 type parked interface {
 	Auth
 	presented() presentedKey
-	approved(session *Session, approver string) (grant, error)
+	approved(session *Session, approval Approval) (grant, error)
 }
 
 type publicKeyAuth struct {
@@ -236,11 +236,25 @@ func (a *approvalAuth) presented() presentedKey {
 	return a.key
 }
 
-func (a *approvalAuth) approved(session *Session, approver string) (grant, error) {
-	principal := models.Principal{Kind: models.PrincipalUser, ID: approver}
+func (a *approvalAuth) approved(session *Session, approval Approval) (grant, error) {
+	principal := models.Principal{Kind: models.PrincipalUser, ID: approval.Approver}
 
 	if _, err := session.authorize(a.ctx, principal); err != nil {
 		return grant{}, err
+	}
+
+	if err := session.service.RedeemSSHApproval(a.ctx, &requests.SSHApprovalRedeem{
+		Code:             session.ApprovalCode,
+		ConfirmationCode: approval.ConfirmationCode,
+	}); err != nil {
+		switch {
+		case errors.Is(err, services.ErrSSHApprovalCodeNotFound):
+			return grant{}, ErrApprovalExpired
+		case errors.Is(err, services.ErrRoleForbidden), errors.Is(err, services.ErrNamespaceMemberNotFound):
+			return grant{}, ErrAccessDenied
+		default:
+			return grant{}, err
+		}
 	}
 
 	return grant{principal: principal, login: gatewayCredential, redeems: ""}, nil
@@ -283,7 +297,7 @@ func (a *identityAuth) presented() presentedKey {
 	return a.key
 }
 
-func (a *identityAuth) approved(*Session, string) (grant, error) {
+func (a *identityAuth) approved(*Session, Approval) (grant, error) {
 	return identityGrant(a.identity, a.key), nil
 }
 

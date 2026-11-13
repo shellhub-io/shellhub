@@ -36,14 +36,15 @@ func (pg *Pg) SSHApprovalGet(ctx context.Context, code string, now time.Time) (*
 }
 
 // SSHApprovalDecide implements [store.SSHApprovalStore].
-func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.SSHApprovalState, userID, confirmationCode string, now time.Time) (bool, error) {
+func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, decision models.SSHApprovalDecision, now time.Time) (bool, error) {
 	db := pg.GetConnection(ctx)
 
 	res, err := db.NewUpdate().
 		Model((*entity.SSHApproval)(nil)).
-		Set("state = ?", string(state)).
-		Set("decided_by = ?", userID).
-		Set("confirmation_code = ?", confirmationCode).
+		Set("state = ?", string(decision.State)).
+		Set("decided_by = ?", decision.DecidedBy).
+		Set("confirmation_code = ?", decision.ConfirmationCode).
+		Set("identity_expires_in = ?", decision.IdentityExpiresIn).
 		Where("code = ?", code).
 		Where("state = ?", string(models.SSHApprovalPending)).
 		Where("expires_at > ?", now).
@@ -58,6 +59,25 @@ func (pg *Pg) SSHApprovalDecide(ctx context.Context, code string, state models.S
 	}
 
 	return affected == 1, nil
+}
+
+// SSHApprovalRedeem implements [store.SSHApprovalStore].
+func (pg *Pg) SSHApprovalRedeem(ctx context.Context, code, confirmationCode string, now time.Time) (*models.SSHApproval, error) {
+	db := pg.GetConnection(ctx)
+
+	approval := new(entity.SSHApproval)
+	if err := db.NewDelete().
+		Model(approval).
+		Where("code = ?", code).
+		Where("state = ?", string(models.SSHApprovalConfirmed)).
+		Where("confirmation_code = ?", confirmationCode).
+		Where("expires_at > ?", now).
+		Returning("*").
+		Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	return entity.SSHApprovalToModel(approval), nil
 }
 
 // SSHApprovalCleanup implements [store.SSHApprovalStore].
