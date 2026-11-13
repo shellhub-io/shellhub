@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// SFTPGroupsEnv names the environment variable that carries the SFTP server's supplementary
+// groups, encoded by [FormatSFTPGroups]. It is not GROUPS because bash keeps a GROUPS of its own.
+const SFTPGroupsEnv = "SUPPLEMENTARY_GIDS"
+
 // FormatSFTPGroups encodes the supplementary groups an SFTP server process must run with, in the
 // form [ParseSFTPGroups] reads. An empty or nil list encodes as the empty string.
 func FormatSFTPGroups(groups []uint32) string {

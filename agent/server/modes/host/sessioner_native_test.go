@@ -280,6 +280,31 @@ func TestSFTP_SendsTheSFTPServerExitCode(t *testing.T) {
 	}
 }
 
+func TestSFTP_DeniedCredentialSwitch(t *testing.T) {
+	origCheckCredentialSwitch := checkCredentialSwitchFn
+
+	t.Cleanup(func() {
+		checkCredentialSwitchFn = origCheckCredentialSwitch
+	})
+
+	checkCredentialSwitchFn = func() error {
+		return errors.New("setgroups denied in unprivileged user namespace")
+	}
+
+	deviceName := "test-device"
+	s := NewSessioner(&deviceName, func() *exec.Cmd {
+		t.Error("the SFTP server started although the credential switch is denied")
+
+		return exec.CommandContext(t.Context(), "/bin/true")
+	})
+
+	sess := newFakeSession("session-sftp-cred-switch", "root")
+
+	require.Error(t, s.SFTP(sess))
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCalled), "session.Exit must be called once")
+	assert.Equal(t, int32(1), atomic.LoadInt32(&sess.exitCode), "session.Exit must be called with code 1")
+}
+
 func TestSFTP_PassesTheUsersGroupsToTheSFTPServer(t *testing.T) {
 	cases := []struct {
 		name     string

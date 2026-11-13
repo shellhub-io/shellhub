@@ -405,6 +405,10 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	}).Info("SFTP session started")
 	defer session.Close() //nolint:errcheck
 
+	if err := refuseIfCredentialSwitchDenied(session); err != nil {
+		return err
+	}
+
 	looked, err := osauth.LookupUser(session.User())
 	if err != nil {
 		log.WithError(err).WithFields(log.Fields{
@@ -449,7 +453,7 @@ func (s *Sessioner) SFTP(session gliderssh.Session) error {
 	cmd.Env = append(cmd.Env, home)
 	cmd.Env = append(cmd.Env, gid)
 	cmd.Env = append(cmd.Env, uid)
-	cmd.Env = append(cmd.Env, "SUPPLEMENTARY_GIDS="+command.FormatSFTPGroups(groups))
+	cmd.Env = append(cmd.Env, command.SFTPGroupsEnv+"="+command.FormatSFTPGroups(groups))
 
 	input, err := cmd.StdinPipe()
 	if err != nil {

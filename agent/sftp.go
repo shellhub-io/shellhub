@@ -34,14 +34,15 @@ func (p *pipe) Close() error {
 
 // NewSFTPServer creates a new SFTP server when a new session is created between the agent and the server.
 //
-// It reads the session user's credentials from HOME, UID, GID and SUPPLEMENTARY_GIDS, as
+// It reads the session user's credentials from HOME, UID, GID and [command.SFTPGroupsEnv], as
 // Sessioner.SFTP sets them. When the agent runs as root it replaces the supplementary groups, then
-// the gid, then the uid, so the server keeps none of the agent's own groups; a missing
-// SUPPLEMENTARY_GIDS means no supplementary groups. When the agent does not run as root it switches
+// the gid, then the uid, so the server keeps none of the agent's own groups; a missing group list
+// means no supplementary groups. When the agent does not run as root it switches
 // nothing and serves as the agent's own user, as shell and exec sessions do. It serves nothing, and
 // reports on stderr, when a credential is missing or malformed, when the chroot to /host fails in
 // Docker mode, when it cannot enter HOME, when a credential switch is refused, or when the SFTP
-// server cannot start.
+// server cannot start. Once serving, it reports on stderr any error that ends the session other
+// than the client closing it.
 func NewSFTPServer(mode command.SFTPServerMode) {
 	piped := &pipe{os.Stdin, os.Stdout, os.Stderr}
 
@@ -107,11 +108,11 @@ func sftpCredentialsFromEnv(lookup func(string) (string, bool)) (sftpCredentials
 		return sftpCredentials{}, err
 	}
 
-	encodedGroups, _ := lookup("SUPPLEMENTARY_GIDS")
+	encodedGroups, _ := lookup(command.SFTPGroupsEnv)
 
 	groups, err := command.ParseSFTPGroups(encodedGroups)
 	if err != nil {
-		return sftpCredentials{}, fmt.Errorf("SUPPLEMENTARY_GIDS environment variable is malformed: %w", err)
+		return sftpCredentials{}, fmt.Errorf("%s environment variable is malformed: %w", command.SFTPGroupsEnv, err)
 	}
 
 	return sftpCredentials{home: home, uid: uid, gid: gid, groups: groups}, nil

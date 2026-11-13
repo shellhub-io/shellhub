@@ -62,13 +62,13 @@ func TestSFTPCredentialsFromEnv(t *testing.T) {
 	}{
 		{
 			name:        "user with supplementary groups",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", "SUPPLEMENTARY_GIDS": "4,27"},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", command.SFTPGroupsEnv: "4,27"},
 			expected:    sftpCredentials{home: "/home/alice", uid: 1000, gid: 1000, groups: []int{4, 27}},
 			requireErrs: require.NoError,
 		},
 		{
 			name:        "user without supplementary groups",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", command.SFTPGroupsEnv: ""},
 			expected:    sftpCredentials{home: "/home/alice", uid: 1000, gid: 1000, groups: []int{}},
 			requireErrs: require.NoError,
 		},
@@ -80,32 +80,32 @@ func TestSFTPCredentialsFromEnv(t *testing.T) {
 		},
 		{
 			name:        "malformed supplementary gids",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", "SUPPLEMENTARY_GIDS": "wheel"},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "1000", command.SFTPGroupsEnv: "wheel"},
 			requireErrs: require.Error,
 		},
 		{
 			name:        "malformed uid",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "alice", "GID": "1000", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "alice", "GID": "1000", command.SFTPGroupsEnv: ""},
 			requireErrs: require.Error,
 		},
 		{
 			name:        "malformed gid",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "alice", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "GID": "alice", command.SFTPGroupsEnv: ""},
 			requireErrs: require.Error,
 		},
 		{
 			name:        "missing home",
-			env:         map[string]string{"UID": "1000", "GID": "1000", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"UID": "1000", "GID": "1000", command.SFTPGroupsEnv: ""},
 			requireErrs: require.Error,
 		},
 		{
 			name:        "missing uid",
-			env:         map[string]string{"HOME": "/home/alice", "GID": "1000", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"HOME": "/home/alice", "GID": "1000", command.SFTPGroupsEnv: ""},
 			requireErrs: require.Error,
 		},
 		{
 			name:        "missing gid",
-			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", "SUPPLEMENTARY_GIDS": ""},
+			env:         map[string]string{"HOME": "/home/alice", "UID": "1000", command.SFTPGroupsEnv: ""},
 			requireErrs: require.Error,
 		},
 	}
@@ -284,7 +284,7 @@ func startSFTPServerAs(t *testing.T, home string, uid, gid int, groups string) *
 		"HOME=" + home,
 		fmt.Sprintf("UID=%d", uid),
 		fmt.Sprintf("GID=%d", gid),
-		"SUPPLEMENTARY_GIDS=" + groups,
+		command.SFTPGroupsEnv + "=" + groups,
 	}
 
 	var stderr bytes.Buffer
