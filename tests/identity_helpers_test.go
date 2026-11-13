@@ -28,6 +28,7 @@ const (
 	rejectedReason     = "This login was rejected in the console."
 	expiredReason      = "This request expired. Connect again to get a new one."
 	accessDeniedReason = "An access policy does not allow this login."
+	dismissedReason    = "This prompt was dismissed, or this client cannot answer it. Connect again to get a new request."
 )
 
 var reauthPromptPattern = regexp.MustCompile(`/ssh-identities/confirm/([2-9A-Z]{8})`)
