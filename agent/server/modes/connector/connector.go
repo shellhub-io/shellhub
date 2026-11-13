@@ -21,18 +21,18 @@ type Mode struct {
 }
 
 func attachShellToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
-	return attachToContainer(ctx, cli, "shell", container, user, true, []string{}, size)
+	return attachToContainer(ctx, cli, "shell", container, user, true, "", size)
 }
 
-func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
-	return attachToContainer(ctx, cli, "exec", container, user, isPty, commands, size)
+func attachExecToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, isPty bool, command string, size [2]int) (*types.HijackedResponse, string, error) {
+	return attachToContainer(ctx, cli, "exec", container, user, isPty, command, size)
 }
 
 func attachHereDocToContainer(ctx context.Context, cli dockerclient.APIClient, container string, user *osauth.User, size [2]int) (*types.HijackedResponse, string, error) {
-	return attachToContainer(ctx, cli, "heredoc", container, user, false, []string{}, size)
+	return attachToContainer(ctx, cli, "heredoc", container, user, false, "", size)
 }
 
-func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *osauth.User, isPty bool, commands []string, size [2]int) (*types.HijackedResponse, string, error) {
+func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestType string, container string, user *osauth.User, isPty bool, command string, size [2]int) (*types.HijackedResponse, string, error) {
 	if user.Shell == "" {
 		user.Shell = "/bin/sh"
 	}
@@ -54,11 +54,7 @@ func attachToContainer(ctx context.Context, cli dockerclient.APIClient, requestT
 			case "shell":
 				return []string{user.Shell}
 			case "exec":
-				if isPty {
-					return append([]string{user.Shell, "-c"}, commands...)
-				}
-
-				return commands
+				return []string{user.Shell, "-c", command}
 			case "heredoc":
 				return []string{user.Shell}
 			default:
