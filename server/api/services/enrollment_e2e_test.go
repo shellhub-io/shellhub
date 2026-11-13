@@ -53,17 +53,30 @@ func setupEnrollmentE2EWith(t *testing.T, options ...Option) *enrollmentE2E {
 
 	provider.Clock().Set(now)
 
+	tenantID := createOwnedNamespace(t, st, "owner", "e2e")
+
+	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), append([]Option{
+		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()), WithIssuer("https://shellhub.example.com"),
+	}, options...)...)
+
+	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
+}
+
+func createOwnedNamespace(t *testing.T, st store.Store, username, namespace string) string {
+	t.Helper()
+	ctx := context.Background()
+
 	owner, err := st.UserCreate(ctx, &models.User{
 		Origin:        models.UserOriginLocal,
 		Status:        models.UserStatusConfirmed,
 		MaxNamespaces: -1,
-		UserData:      models.UserData{Name: "owner", Email: "owner@example.com", Username: "owner"},
+		UserData:      models.UserData{Name: username, Email: username + "@example.com", Username: username},
 		Password:      models.UserPassword{Hash: "hash"},
 	})
 	require.NoError(t, err)
 
 	tenantID, err := st.NamespaceCreate(ctx, &models.Namespace{
-		Name:       "e2e",
+		Name:       namespace,
 		Owner:      owner,
 		MaxDevices: -1,
 		Members:    []models.Member{{ID: owner, Role: authorizer.RoleOwner}},
@@ -71,11 +84,7 @@ func setupEnrollmentE2EWith(t *testing.T, options ...Option) *enrollmentE2E {
 	})
 	require.NoError(t, err)
 
-	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), append([]Option{
-		WithEnrollmentWebhookCIDRs(ParseEnrollmentWebhookCIDRs("127.0.0.0/8,::1/128")), WithClock(provider.Clock()), WithIssuer("https://shellhub.example.com"),
-	}, options...)...)
-
-	return &enrollmentE2E{clock: provider.Clock(), svc: svc, st: st, db: provider.DB(), tenantID: tenantID}
+	return tenantID
 }
 
 func setupLegacyEnrollmentE2E(t *testing.T) *enrollmentE2E {
