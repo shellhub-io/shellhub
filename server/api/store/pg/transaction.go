@@ -48,16 +48,35 @@ func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 // TODO: The transaction handle is stored in the context for simplicity.
 // This hides the dependency and makes it less explicit.
 // Consider refactoring to expose a typed TxStore in the future for better clarity.
-func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) (err error) {
+func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) error {
 	tx, err := pg.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return fromSQLError(err)
 	}
 
+	return runIn(ctx, tx, fn)
+}
+
+// WithSavepoint implements [store.TransactionStore].
+func (pg *Pg) WithSavepoint(ctx context.Context, fn store.TransactionCb) error {
+	tx, ok := ctx.Value(txKey).(bun.Tx)
+	if !ok {
+		return pg.WithTransaction(ctx, fn)
+	}
+
+	savepoint, err := tx.BeginTx(ctx, nil)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	return runIn(ctx, savepoint, fn)
+}
+
+func runIn(ctx context.Context, tx bun.Tx, fn store.TransactionCb) error {
 	defer func() {
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				log.WithError(rollbackErr).Error("transaction rollback failed after panic")
+				log.WithError(rollbackErr).Error("rollback failed after panic")
 			}
 
 			panic(p)
@@ -66,7 +85,7 @@ func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) (err 
 
 	if err := fn(context.WithValue(ctx, txKey, tx)); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			log.WithError(rollbackErr).Error("transaction rollback failed after error")
+			log.WithError(rollbackErr).Error("rollback failed after error")
 		}
 
 		return err

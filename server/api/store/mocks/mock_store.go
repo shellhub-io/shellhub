@@ -2056,6 +2056,63 @@ func (_c *MockStore_DeviceLocations_Call) RunAndReturn(run func(ctx context.Cont
 	return _c
 }
 
+// DeviceLockAcceptance provides a mock function for the type MockStore
+func (_mock *MockStore) DeviceLockAcceptance(ctx context.Context, sc scope.Scope) error {
+	ret := _mock.Called(ctx, sc)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeviceLockAcceptance")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope) error); ok {
+		r0 = returnFunc(ctx, sc)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeviceLockAcceptance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeviceLockAcceptance'
+type MockStore_DeviceLockAcceptance_Call struct {
+	*mock.Call
+}
+
+// DeviceLockAcceptance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+func (_e *MockStore_Expecter) DeviceLockAcceptance(ctx any, sc any) *MockStore_DeviceLockAcceptance_Call {
+	return &MockStore_DeviceLockAcceptance_Call{Call: _e.mock.On("DeviceLockAcceptance", ctx, sc)}
+}
+
+func (_c *MockStore_DeviceLockAcceptance_Call) Run(run func(ctx context.Context, sc scope.Scope)) *MockStore_DeviceLockAcceptance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeviceLockAcceptance_Call) Return(err error) *MockStore_DeviceLockAcceptance_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeviceLockAcceptance_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope) error) *MockStore_DeviceLockAcceptance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeviceLockMAC provides a mock function for the type MockStore
 func (_mock *MockStore) DeviceLockMAC(ctx context.Context, sc scope.Scope, mac string) error {
 	ret := _mock.Called(ctx, sc, mac)
@@ -9743,6 +9800,63 @@ func (_c *MockStore_UserUpdateRevokingTokens_Call) Return(err error) *MockStore_
 }
 
 func (_c *MockStore_UserUpdateRevokingTokens_Call) RunAndReturn(run func(ctx context.Context, user *models.User) error) *MockStore_UserUpdateRevokingTokens_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithSavepoint provides a mock function for the type MockStore
+func (_mock *MockStore) WithSavepoint(ctx context.Context, cb store.TransactionCb) error {
+	ret := _mock.Called(ctx, cb)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithSavepoint")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.TransactionCb) error); ok {
+		r0 = returnFunc(ctx, cb)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_WithSavepoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithSavepoint'
+type MockStore_WithSavepoint_Call struct {
+	*mock.Call
+}
+
+// WithSavepoint is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cb store.TransactionCb
+func (_e *MockStore_Expecter) WithSavepoint(ctx any, cb any) *MockStore_WithSavepoint_Call {
+	return &MockStore_WithSavepoint_Call{Call: _e.mock.On("WithSavepoint", ctx, cb)}
+}
+
+func (_c *MockStore_WithSavepoint_Call) Run(run func(ctx context.Context, cb store.TransactionCb)) *MockStore_WithSavepoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.TransactionCb
+		if args[1] != nil {
+			arg1 = args[1].(store.TransactionCb)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_WithSavepoint_Call) Return(err error) *MockStore_WithSavepoint_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_WithSavepoint_Call) RunAndReturn(run func(ctx context.Context, cb store.TransactionCb) error) *MockStore_WithSavepoint_Call {
 	_c.Call.Return(run)
 	return _c
 }

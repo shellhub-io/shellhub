@@ -23,6 +23,7 @@ var unboundedScopeSites = []string{
 	"api/services/auth.go:AuthDeviceToken",
 	"api/services/auth.go:provisioningKeyTenant",
 	"api/services/device-pairing.go:acceptedDevicePairing",
+	"api/services/device.go:lockDeviceAcceptance",
 	"api/services/heartbeat.go:flush",
 	"api/services/session.go:CreateSession",
 	"api/services/task.go:DevicePresenceSweep",
