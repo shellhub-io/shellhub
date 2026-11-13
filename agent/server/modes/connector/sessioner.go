@@ -78,7 +78,7 @@ func (s *Sessioner) Exec(session gliderssh.Session) error {
 		return ErrUserNotFound
 	}
 
-	resp, id, err := attachExecToContainer(session.Context(), s.docker, container, user, isPty, session.Command(), [2]int{sspty.Window.Height, sspty.Window.Width})
+	resp, id, err := attachExecToContainer(session.Context(), s.docker, container, user, isPty, session.RawCommand(), [2]int{sspty.Window.Height, sspty.Window.Width})
 	if err != nil {
 		return err
 	}

@@ -34,6 +34,7 @@ type fakeSession struct {
 	command    []string
 	rawCommand string
 	signals    chan chan<- gliderssh.Signal
+	stderr     io.ReadWriter
 
 	exitCalled int32 // atomic: 0 = not called, 1 = called
 	exitCode   int32 // atomic: last code passed to Exit()
@@ -53,7 +54,13 @@ func (f *fakeSession) SendRequest(name string, wantReply bool, payload []byte) (
 	return false, nil
 }
 
-func (f *fakeSession) Stderr() io.ReadWriter { return devNull{} }
+func (f *fakeSession) Stderr() io.ReadWriter {
+	if f.stderr != nil {
+		return f.stderr
+	}
+
+	return devNull{}
+}
 
 // --- gliderssh.Session methods ---
 
