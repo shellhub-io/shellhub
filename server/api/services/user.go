@@ -22,7 +22,13 @@ type UserService interface {
 	// map "email" to the hook's reason; an invited account is not checked, since the invitation
 	// fixed its email. An invited account signs in locally, so while the instance has local
 	// sign-in off it yields [ErrAuthMethodNotAllowed] before anything is created, and the store's
-	// error as is when the system settings cannot be read.
+	// error as is when the system settings cannot be read. [ErrAuthForbidden] answers a
+	// registration open sign-up does not allow and whose code resolves to no pending invitation,
+	// and one whose code resolves to an invitation its sender no longer has the authority to
+	// issue: they left the namespace, or no longer hold NamespaceAddMember and authority over its
+	// role. A code that resolves to no invitation of this invitee registers the account without a
+	// membership. [ErrNamespaceNotFound] answers when the invitation's namespace cannot be resolved
+	// to check its sender, whatever the store's error.
 	RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error)
 
 	// UpdateUser updates the user's data, such as email and username, and a password change revokes

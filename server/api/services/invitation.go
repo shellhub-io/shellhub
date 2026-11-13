@@ -59,12 +59,15 @@ type InvitationService interface {
 	ResolveInvitation(ctx context.Context, req *requests.ResolveInvitation) (*responses.ResolveInvitation, error)
 
 	// AcceptInvite adds the invited user to the namespace and consumes the invitation. The request
-	// must carry the invitation's code: an invitation addressed to the caller is not enough. It
-	// returns ErrUserNotFound when the caller has no account, ErrNamespaceNotFound when the
-	// namespace does not exist, ErrNamespaceMemberDuplicated when the caller already belongs to it,
-	// and ErrNamespaceMemberNotFound when the code resolves to no pending, unexpired invitation of
-	// the caller to that namespace, or the invitation stops being pending before it is consumed.
-	// Any other store error from the transaction is returned unwrapped.
+	// must carry the invitation's code: an invitation addressed to the caller is not enough, and
+	// whoever sent it must still be a member holding NamespaceAddMember and authority over its role.
+	// It returns ErrUserNotFound when the caller has no account; ErrNamespaceNotFound when the
+	// namespace does not exist or cannot be resolved again to check the sender, whatever the store's
+	// error; ErrNamespaceMemberDuplicated when the caller already belongs to it;
+	// ErrNamespaceMemberNotFound when the code resolves to no pending, unexpired invitation of the
+	// caller to that namespace, when its sender lost the authority to issue it, or when the
+	// invitation stops being pending before it is consumed; and the store's error, unwrapped, when
+	// looking the code up or the transaction fails otherwise.
 	AcceptInvite(ctx context.Context, req *requests.AcceptInvite) error
 
 	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the copyable
@@ -150,8 +153,12 @@ func (s *service) AcceptInvite(ctx context.Context, req *requests.AcceptInvite) 
 	}
 
 	grant, err := s.redeemInvitation(ctx, req.UserID, req.Code)
-	if err != nil {
+	if errors.Is(err, errInvitationNotRedeemable) || errors.Is(err, errInviterLostAuthority) {
 		return NewErrNamespaceMemberNotFound(req.UserID, err)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if grant.tenantID != n.TenantID {

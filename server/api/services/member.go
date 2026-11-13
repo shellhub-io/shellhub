@@ -189,7 +189,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 
 			return err
 		case existing.IsExpired(s.clock.Now()):
-			if err := s.resendMembershipInvitation(ctx, existing, role); err != nil {
+			if err := s.resendMembershipInvitation(ctx, existing, invitedBy, role); err != nil {
 				return err
 			}
 			invitation = existing
@@ -250,13 +250,14 @@ func (s *service) createMembershipInvitation(ctx context.Context, tenantID, invi
 	return invitation, nil
 }
 
-func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, role authorizer.Role) error {
+func (s *service) resendMembershipInvitation(ctx context.Context, invitation *models.MembershipInvitation, invitedBy string, role authorizer.Role) error {
 	now := s.clock.Now()
 	expiresAt := now.Add(7 * 24 * time.Hour)
 
 	sig := pairingcode.New(pairingcode.InviteCodeLength)
 
 	invitation.Status = models.MembershipInvitationStatusPending
+	invitation.InvitedBy = invitedBy
 	invitation.Role = role
 	invitation.ExpiresAt = &expiresAt
 	invitation.UpdatedAt = now

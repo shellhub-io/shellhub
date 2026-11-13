@@ -100,6 +100,18 @@ post:
               email: disposable
     '401':
       $ref: ../components/responses/401.yaml
+    '403':
+      description: |
+        The registration is refused. Open sign-up is off on this edition and
+        the request carries no invite code that resolves to a pending
+        invitation, or the invitation's sender can no longer add members with
+        its role.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
+          example:
+            message: forbidden
     '409':
       $ref: ../components/responses/409.yaml
     '500':

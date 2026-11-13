@@ -4,7 +4,8 @@ patch:
   description: |
     Accepts a pending membership invitation for the authenticated user.
     The user must be logged into the account that was invited and send the
-    invite code from the invitation link.
+    invite code from the invitation link. The invitation is refused while
+    whoever sent it can no longer add members with its role.
   tags:
     - community
     - members

@@ -119,7 +119,14 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 	var grant *membershipGrant
 
 	if req.Sig != "" {
-		if g, err := s.redeemInvitation(ctx, invitation.ID, req.Sig); err == nil {
+		g, err := s.redeemInvitation(ctx, invitation.ID, req.Sig)
+		switch {
+		case errors.Is(err, errInviterLostAuthority):
+			return nil, NewErrAuthForbidden()
+		case errors.Is(err, errInvitationNotRedeemable):
+		case err != nil:
+			return nil, err
+		default:
 			grant = &g
 			user.Status = invitedAccountStatus()
 

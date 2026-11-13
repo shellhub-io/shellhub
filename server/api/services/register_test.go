@@ -45,6 +45,11 @@ func TestService_RegisterUser(t *testing.T) {
 		return mock.MatchedBy(func(u *models.User) bool { return u.Status == status })
 	}
 
+	inviterIs := func(storeMock *storemock.MockStore, inviterID string, role authorizer.Role) {
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+			Return(&models.Namespace{TenantID: "tenant", Members: []models.Member{{ID: inviterID, Role: role}}}, nil).Once()
+	}
+
 	cases := []struct {
 		description          string
 		openSignup           bool
@@ -107,6 +112,7 @@ func TestService_RegisterUser(t *testing.T) {
 				}
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
 					Return(membership, nil).Twice()
+				inviterIs(storeMock, membership.InvitedBy, authorizer.RoleAdministrator)
 				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
@@ -146,6 +152,7 @@ func TestService_RegisterUser(t *testing.T) {
 				}
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
 					Return(membership, nil).Twice()
+				inviterIs(storeMock, membership.InvitedBy, authorizer.RoleAdministrator)
 				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
 				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
 					Return(&models.UserInvitation{
@@ -176,6 +183,7 @@ func TestService_RegisterUser(t *testing.T) {
 				}
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
 					Return(membership, nil).Twice()
+				inviterIs(storeMock, membership.InvitedBy, authorizer.RoleAdministrator)
 				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
@@ -196,6 +204,47 @@ func TestService_RegisterUser(t *testing.T) {
 				storeMock.On("MembershipInvitationDelete", ctx, membership).Return(nil).Once()
 			},
 			expected: Expected{false, 0, nil},
+		},
+		{
+			description: "refuses an invited registration whose inviter no longer holds authority over its role",
+			req: requests.RegisterUser{
+				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
+			},
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				membership := &models.MembershipInvitation{
+					UserID: "invitee", TenantID: "tenant", InvitedBy: "former-admin", Role: authorizer.RoleAdministrator,
+				}
+				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
+					Return(membership, nil).Twice()
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
+					Return(&models.UserInvitation{
+						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
+					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
+				inviterIs(storeMock, membership.InvitedBy, authorizer.RoleOperator)
+			},
+			expected: Expected{false, 0, NewErrAuthForbidden()},
+		},
+		{
+			description: "fails when the invitation's namespace cannot be resolved to check its sender, creating nothing",
+			req: requests.RegisterUser{
+				Name: "Alice", Username: "alice", Password: "secret123", Sig: "INVITECODE12",
+			},
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				membership := &models.MembershipInvitation{
+					UserID: "invitee", TenantID: "tenant", InvitedBy: "owner", Role: authorizer.RoleOperator,
+				}
+				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
+					Return(membership, nil).Twice()
+				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
+					Return(&models.UserInvitation{
+						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
+					}, nil).Once()
+				storeMock.On("SystemGet", ctx).Return(localSignInOn(), nil).Once()
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant").
+					Return(nil, errors.New("error")).Once()
+			},
+			expected: Expected{false, 0, NewErrNamespaceNotFound("tenant", errors.New("error"))},
 		},
 		{
 			description: "refuses an invited registration before creating it while local sign-in is off",
@@ -228,6 +277,7 @@ func TestService_RegisterUser(t *testing.T) {
 				}
 				storeMock.On("MembershipInvitationResolveBySig", ctx, "INVITECODE12").
 					Return(membership, nil).Twice()
+				inviterIs(storeMock, membership.InvitedBy, authorizer.RoleAdministrator)
 				storeMock.On("UserInvitationGet", ctx, store.UserInvitationIDResolver, "invitee").
 					Return(&models.UserInvitation{
 						ID: "invitee", Email: "alice@test.com", Status: models.UserInvitationStatusPending,
