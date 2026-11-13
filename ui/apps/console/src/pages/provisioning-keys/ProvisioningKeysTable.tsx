@@ -179,19 +179,20 @@ export default function ProvisioningKeysTable({
       header: "",
       headerClassName: "w-20",
       render: (key) => (
-        <div
-          role="presentation"
-          className="flex items-center justify-end gap-1"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
-        >
-          <ProvisioningKeyActionsMenu
-            provisioningKey={key}
-            onEdit={onEdit}
-            onToggleDisabled={onToggleDisabled}
-            onRevoke={onRevoke}
-            onActivity={openActivity}
-          />
+        <div className="flex items-center justify-end gap-1">
+          <div
+            role="presentation"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <ProvisioningKeyActionsMenu
+              provisioningKey={key}
+              onEdit={onEdit}
+              onToggleDisabled={onToggleDisabled}
+              onRevoke={onRevoke}
+              onActivity={openActivity}
+            />
+          </div>
           <ChevronRightIcon
             aria-hidden="true"
             className={cn(
