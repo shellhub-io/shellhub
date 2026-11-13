@@ -25,7 +25,7 @@
     "@astrojs/sitemap": "^3.7.4",
     "@shellhub/design-system": "*",
     "asciinema-player": "^3.17.0",
-    "astro": "^7.4.5",
+    "astro": "^7.4.12",
     "hast-util-from-html": "^2.0.3",
     "hast-util-select": "^6.0.4",
     "hast-util-to-mdast": "^10.1.2",
