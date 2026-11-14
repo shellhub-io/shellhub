@@ -15,7 +15,7 @@ import AuthActions from "@/components/auth/AuthActions";
 import SignInForm from "@/components/auth/SignInForm";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import { isTokenExpired } from "@/utils/authToken";
-import { getInfo, getSamlAuthUrl } from "../client";
+import { getInfo, getSamlAuthUrl, redeemSamlSignIn } from "@/client";
 
 const SSO_RESTART_KEY = "shellhub.ssoRestart";
 const SSO_RESTART_WINDOW_MS = 2 * 60_000;
@@ -23,6 +23,22 @@ const SSO_RESTART_WINDOW_MS = 2 * 60_000;
 function restartedRecently() {
   const restartedAt = Number(sessionStorage.getItem(SSO_RESTART_KEY));
   return restartedAt > 0 && Date.now() - restartedAt < SSO_RESTART_WINDOW_MS;
+}
+
+const ssoRedemptions = new Map<string, Promise<string>>();
+
+function redeemSsoCode(code: string) {
+  let redemption = ssoRedemptions.get(code);
+  if (!redemption) {
+    redemption = redeemSamlSignIn({
+      body: { code },
+      throwOnError: true,
+    })
+      .then(({ data }) => data.token)
+      .finally(() => ssoRedemptions.delete(code));
+    ssoRedemptions.set(code, redemption);
+  }
+  return redemption;
 }
 
 async function startSsoSignIn() {
@@ -38,7 +54,8 @@ async function startSsoSignIn() {
  * own, it starts an SSO sign-in, and shows an error instead if it started one in this tab within
  * the last two minutes, which means the IdP keeps sending sign-ins it was not asked for. A session
  * whose token expired counts as signed out here, so it neither sends the page away nor blocks the
- * sign-in.
+ * sign-in. Reached with `?sso_code=`, where the server sends a finished SSO sign-in, it redeems
+ * the code once for the session.
  */
 export default function Login() {
   const isCloudEdition = isCloud();
@@ -51,6 +68,7 @@ export default function Login() {
 
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
+  const ssoCode = searchParams.get("sso_code");
   const missingAssertions = searchParams.get("missing_assertions");
   const token = useAuthStore((s) => s.token);
   const signedIn = token !== null && !isTokenExpired(token);
@@ -58,7 +76,7 @@ export default function Login() {
   const [ssoRestartRefused] = useState(
     () => ssoRestart && restartedRecently(),
   );
-  const [tokenLoading, setTokenLoading] = useState(!!queryToken);
+  const [tokenLoading, setTokenLoading] = useState(!!queryToken || !!ssoCode);
   const [authentication, setAuthentication] = useState<{
     local?: boolean;
     saml?: boolean;
@@ -96,21 +114,32 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!queryToken) return;
+    if (!queryToken && !ssoCode) return;
 
-    const { logout, loginWithToken } = useAuthStore.getState();
-    logout();
+    const signInWith = (sessionToken: string) => {
+      const { logout, loginWithToken } = useAuthStore.getState();
+      logout();
+      return loginWithToken(sessionToken);
+    };
 
-    loginWithToken(queryToken)
+    const signedIn = ssoCode
+      ? redeemSsoCode(ssoCode).then(signInWith)
+      : signInWith(queryToken ?? "");
+
+    signedIn
       .then(() => {
         sessionStorage.removeItem(SSO_RESTART_KEY);
-        void navigate("/dashboard");
+        void navigate("/dashboard", { replace: true });
       })
       .catch(() => {
         setTokenLoading(false);
-        setError("Failed to authenticate with the provided token.");
+        setError(
+          ssoCode
+            ? "Failed to complete the SSO sign-in. Please try again."
+            : "Failed to authenticate with the provided token.",
+        );
       });
-  }, [queryToken, navigate]);
+  }, [queryToken, ssoCode, navigate]);
 
   const failSsoStart = () => {
     sessionStorage.removeItem(SSO_RESTART_KEY);
@@ -139,7 +168,7 @@ export default function Login() {
   const showLocalForm = !isEnterpriseEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseEdition && authentication?.local === false;
 
-  if (signedIn && !queryToken && !signOut) {
+  if (signedIn && !queryToken && !ssoCode && !signOut) {
     return <Navigate to="/" replace />;
   }
 

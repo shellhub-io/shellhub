@@ -138,6 +138,8 @@ paths:
     $ref: paths/api@user@saml@reauth.yaml
   /api/user/saml/request:
     $ref: paths/api@user@saml@request.yaml
+  /api/user/saml/token:
+    $ref: paths/api@user@saml@token.yaml
   /admin/api/authentication:
     $ref: paths/admin@api@authentication.yaml
   /admin/api/authentication/local:

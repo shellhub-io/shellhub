@@ -67,7 +67,8 @@ client.interceptors.response.use((response, request) => {
       const isSignInStep =
         response.url.includes("/api/login") ||
         response.url.includes("/api/user/mfa/auth") ||
-        response.url.includes("/api/user/confirm_account");
+        response.url.includes("/api/user/confirm_account") ||
+        response.url.includes("/api/user/saml/token");
       const landing = isSignInLanding(window.location.search);
       const { isFromAbandonedSession, logout } = useAuthStore.getState();
       const abandoned = isFromAbandonedSession(sentToken(request));

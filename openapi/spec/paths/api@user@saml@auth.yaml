@@ -56,8 +56,9 @@ post:
     sign-in of its own: an IdP-initiated sign-in, a request that expired or
     was already answered, a replayed assertion.
 
-    Without a `RelayState`, it signs the user in and redirects to `/login` with the
-    session token, or with the attributes the assertion is missing. With a
+    Without a `RelayState`, it signs the user in and redirects to `/login` with a
+    one-time code in `sso_code`, which the console redeems at
+    `/api/user/saml/token`, or with the attributes the assertion is missing. With a
     `RelayState`, it answers a re-authentication started at
     `/api/user/saml/reauth` and redirects to `/sso-reauth` with `status=ok` and
     the confirmation code that approves the SSH login, or with `status=error`.

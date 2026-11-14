@@ -4,7 +4,11 @@ import { inflateRawSync } from "node:zlib";
 import sshpk from "sshpk";
 import { DOMParser, type Element } from "@xmldom/xmldom";
 import { SignedXml } from "xml-crypto";
-import { configureSamlAuthentication, getSamlAuthUrl } from "@/client";
+import {
+  configureSamlAuthentication,
+  getSamlAuthUrl,
+  redeemSamlSignIn,
+} from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { adminUser, requireEnv } from "./env";
 import { required } from "./helpers";
@@ -347,26 +351,39 @@ export async function signInThroughApi(user: SamlUser) {
     response.headers.get("location"),
     `a redirect from the assertion consumer, got ${response.status}`,
   );
-  return required(
-    new URL(location, action).searchParams.get("token"),
-    `a session token in ${location}`,
+  const code = required(
+    new URL(location, action).searchParams.get("sso_code"),
+    `a sign-in code in ${location}`,
   );
+  const { data } = await redeemSamlSignIn({
+    ...buildRequestContext(),
+    body: { code },
+  });
+  return required(data.token, `a session token for the code in ${location}`);
 }
 
 export async function waitForSessionToken(context: BrowserContext) {
+  const redeemed = context.waitForEvent(
+    "response",
+    (response) => new URL(response.url()).pathname === "/api/user/saml/token",
+  );
+  void redeemed.catch(() => undefined);
   const landing = await context.waitForEvent("request", (request) => {
     const url = new URL(request.url());
     return (
       url.pathname === "/login" &&
-      (url.searchParams.has("token") ||
+      (url.searchParams.has("sso_code") ||
         url.searchParams.has("missing_assertions"))
     );
   });
-  const url = new URL(landing.url());
-  return required(
-    url.searchParams.get("token"),
-    `a session token from the assertion consumer, got missing assertions "${url.searchParams.get("missing_assertions")}"`,
-  );
+  const missing = new URL(landing.url()).searchParams.get("missing_assertions");
+  if (missing !== null) {
+    throw new Error(
+      `expected a sign-in code from the assertion consumer, got missing assertions "${missing}"`,
+    );
+  }
+  const { token } = (await (await redeemed).json()) as { token?: string };
+  return required(token, "a session token from the sign-in code");
 }
 
 export async function signInWithSso(page: Page) {

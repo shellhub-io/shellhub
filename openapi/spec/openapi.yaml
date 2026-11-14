@@ -302,6 +302,8 @@ paths:
     $ref: paths/api@user@saml@reauth.yaml
   /api/user/saml/request:
     $ref: paths/api@user@saml@request.yaml
+  /api/user/saml/token:
+    $ref: paths/api@user@saml@token.yaml
   /api/user/mfa/auth:
     $ref: paths/api@user@mfa@auth.yaml
   /api/user/mfa/recover:

@@ -431,7 +431,7 @@ test.describe("SAML", instanceWide, () => {
 
       const first = await landing();
       expect(first.pathname).toBe("/login");
-      expect(first.searchParams.has("token")).toBe(true);
+      expect(first.searchParams.has("sso_code")).toBe(true);
       const replayed = await landing();
       expect(replayed.pathname).toBe("/login");
       expect(replayed.searchParams.get("sso")).toBe("start");
