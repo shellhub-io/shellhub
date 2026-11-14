@@ -18,6 +18,7 @@ var globalMethods = map[string]string{
 	"UserResolve":                  "users are global, not namespace-owned",
 	"UserRevokeTokens":             "users are global, not namespace-owned",
 	"UserUpdate":                   "users are global, not namespace-owned",
+	"UserUpdateEmail":              "users are global, not namespace-owned",
 	"UserUpdateOnboardingSurvey":   "users are global, not namespace-owned",
 	"UserUpdatePreferredNamespace": "users are global, not namespace-owned",
 	"UserUpdateRevokingTokens":     "users are global, not namespace-owned",

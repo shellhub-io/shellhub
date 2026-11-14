@@ -9,12 +9,14 @@ import { validateRecoveryEmail } from "./validate";
 export interface CurrentProfileValues {
   name: string;
   email: string;
+  recoveryEmail: string;
 }
 
 const editProfileFields = z.object({
   name: z.string(),
   email: z.string(),
   recoveryEmail: z.string(),
+  currentPassword: z.string(),
 });
 
 /**
@@ -23,10 +25,24 @@ const editProfileFields = z.object({
 export type EditProfileFormValues = z.infer<typeof editProfileFields>;
 
 /**
+ * Whether values.email or values.recoveryEmail differs from its counterpart in current, compared
+ * exactly, so a difference in case or padding alone counts as a change.
+ */
+export function changesAnAddress(
+  values: Pick<EditProfileFormValues, "email" | "recoveryEmail">,
+  current: CurrentProfileValues,
+): boolean {
+  return (
+    values.email !== current.email ||
+    values.recoveryEmail !== current.recoveryEmail
+  );
+}
+
+/**
  * Builds the edit-profile schema around the current values, so an unchanged field is not
  * re-validated: a stored value that fails today's rules must not block saving the other fields.
  * A field counts as changed when its input differs from the stored value at all, padding
- * included.
+ * included. Changing either email requires the current password.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
@@ -40,6 +56,14 @@ export function editProfileSchema(current: CurrentProfileValues) {
       const emailError = validateEmail(values.email);
       if (emailError)
         ctx.addIssue({ code: "custom", path: ["email"], message: emailError });
+    }
+
+    if (changesAnAddress(values, current) && !values.currentPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["currentPassword"],
+        message: "Enter your current password to change an email",
+      });
     }
 
     if (values.recoveryEmail) {

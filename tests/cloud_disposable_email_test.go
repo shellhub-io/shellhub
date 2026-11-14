@@ -61,7 +61,7 @@ func TestCloudDisposableEmail(t *testing.T) {
 		for _, field := range []string{"email", "recovery_email"} {
 			t.Run("an update refuses a listed "+field, func(t *testing.T) {
 				resp, err := asBearer(t, compose, token).
-					SetBody(map[string]string{field: field + "@mailinator.com"}).
+					SetBody(map[string]string{field: field + "@mailinator.com", "current_password": ShellHubPassword}).
 					Patch("/api/users")
 				require.NoError(t, err)
 				require.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())

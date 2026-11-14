@@ -178,6 +178,27 @@ func (pg *Pg) UserUpdateOnboardingSurvey(ctx context.Context, userID string, out
 	return nil
 }
 
+// UserUpdateEmail implements [store.UserStore].
+func (pg *Pg) UserUpdateEmail(ctx context.Context, userID, email string) error {
+	db := pg.GetConnection(ctx)
+
+	r, err := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("email = ?", email).
+		Set("updated_at = ?", pg.clock.Now()).
+		Where("id = ?", userID).
+		Exec(ctx)
+	if err != nil {
+		return fromSQLError(err)
+	}
+
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
+	return nil
+}
+
 // UserRevokeTokens implements [store.UserStore].
 func (pg *Pg) UserRevokeTokens(ctx context.Context, userID string) error {
 	db := pg.GetConnection(ctx)

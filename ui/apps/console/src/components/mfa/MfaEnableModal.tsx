@@ -7,6 +7,7 @@ import {
 import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
 import Modal from "../common/Modal";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import PasswordField from "@/components/common/fields/PasswordField";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "@/client";
 import { isSdkError } from "@/api/errors";
@@ -37,6 +38,7 @@ export default function MfaEnableModal({
   const [error, setError] = useState("");
 
   const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [userWantsNewEmail, setUserWantsNewEmail] = useState(false);
   const showRecoveryEmailInput = !currentRecoveryEmail || userWantsNewEmail;
 
@@ -68,16 +70,22 @@ export default function MfaEnableModal({
 
     try {
       await updateUser({
-        body: { recovery_email: recoveryEmail },
+        body: {
+          recovery_email: recoveryEmail,
+          current_password: currentPassword,
+        },
         throwOnError: true,
       });
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
+      const status = isSdkError(err) ? err.status : 0;
       setError(
-        isSdkError(err) && err.status === 409
+        status === 409
           ? "Email already in use"
-          : "Failed to save recovery email",
+          : status === 403
+            ? "Current password is incorrect."
+            : "Failed to save recovery email",
       );
     } finally {
       setLoading(false);
@@ -151,6 +159,7 @@ export default function MfaEnableModal({
     timeoutRef.current = setTimeout(() => {
       setStep(1);
       setRecoveryEmail("");
+      setCurrentPassword("");
       setUserWantsNewEmail(false);
       setRecoveryCodes([]);
       setCodesSaved(false);
@@ -185,7 +194,7 @@ export default function MfaEnableModal({
             {showRecoveryEmailInput ? (
               <Button
                 onClick={() => void handleSaveRecoveryEmail()}
-                disabled={!recoveryEmail.trim()}
+                disabled={!recoveryEmail.trim() || !currentPassword}
                 loading={loading}
               >
                 Save & Continue
@@ -269,6 +278,16 @@ export default function MfaEnableModal({
                 <p className="text-2xs text-text-muted mt-1.5">
                   Must be different from your main email address
                 </p>
+                <div className="mt-4">
+                  <PasswordField
+                    id="enable-mfa-current-password"
+                    label="Current Password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={setCurrentPassword}
+                    hint="Required to change the recovery email."
+                  />
+                </div>
               </div>
             ) : (
               <div className="space-y-3">

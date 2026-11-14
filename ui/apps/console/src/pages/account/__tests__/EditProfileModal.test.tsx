@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -16,7 +17,11 @@ const defaultProps = {
   currentRecoveryEmail: "recovery@example.com",
 };
 
-async function changeField(label: string, value: string, props = defaultProps) {
+async function changeField(
+  label: string,
+  value: string,
+  props: ComponentProps<typeof EditProfileModal> = defaultProps,
+) {
   const user = userEvent.setup();
   render(<EditProfileModal {...props} />);
   const input = screen.getByLabelText(label);
@@ -146,6 +151,7 @@ describe("EditProfileModal", () => {
           label,
           "someone@refused.test",
         );
+        await user.type(screen.getByLabelText("Current Password"), "secret");
         await user.click(screen.getByRole("button", { name: /^save$/i }));
 
         await screen.findByText(message);
@@ -158,5 +164,99 @@ describe("EditProfileModal", () => {
         expect(defaultProps.onClose).not.toHaveBeenCalled();
       },
     );
+  });
+
+  describe("current password", () => {
+    it("is asked for only once an email changes", async () => {
+      const user = userEvent.setup();
+      render(<EditProfileModal {...defaultProps} />);
+
+      await user.type(screen.getByLabelText("Name"), "x");
+      expect(screen.queryByLabelText("Current Password")).not.toBeInTheDocument();
+
+      await user.clear(screen.getByLabelText("Recovery Email"));
+      await user.type(screen.getByLabelText("Recovery Email"), "other@example.com");
+      expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
+    });
+
+    it("is sent with the changed email", async () => {
+      const { user } = await changeField("Email", "new@example.com");
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({
+          email: "new@example.com",
+          current_password: "secret",
+        }),
+      );
+    });
+
+    it("is marked incorrect when the server refuses it", async () => {
+      useAuthStore.setState({ updateProfile: realUpdateProfile } as Partial<
+        ReturnType<typeof useAuthStore.getState>
+      >);
+      server.use(
+        http.patch("*/api/users", () =>
+          HttpResponse.json({ message: "forbidden" }, { status: 403 }),
+        ),
+      );
+      const { user } = await changeField("Email", "new@example.com");
+      const password = screen.getByLabelText("Current Password");
+      await user.type(password, "wrong");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await screen.findByText("Current password is incorrect.");
+      expect(password).toHaveAccessibleDescription(
+        expect.stringContaining("Current password is incorrect."),
+      );
+    });
+  });
+
+  describe("email held for confirmation", () => {
+    it("reports the new email pending when the account keeps the old one", async () => {
+      const onEmailPending = vi.fn();
+      useAuthStore.setState({
+        email: "user@example.com",
+        updateProfile: vi.fn(),
+      } as Partial<ReturnType<typeof useAuthStore.getState>>);
+      const { user } = await changeField("Email", "new@example.com", {
+        ...defaultProps,
+        onEmailPending,
+      });
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() => expect(onEmailPending).toHaveBeenCalledWith("new@example.com"));
+    });
+
+    it("reports nothing pending when the new email took effect", async () => {
+      const onEmailPending = vi.fn();
+      useAuthStore.setState({
+        email: "new@example.com",
+        updateProfile: vi.fn(),
+      } as Partial<ReturnType<typeof useAuthStore.getState>>);
+      const { user } = await changeField("Email", "new@example.com", {
+        ...defaultProps,
+        onEmailPending,
+      });
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() => expect(defaultProps.onClose).toHaveBeenCalled());
+      expect(onEmailPending).not.toHaveBeenCalled();
+    });
+  });
+
+  it("locks both emails of an account its identity provider manages", () => {
+    render(<EditProfileModal {...defaultProps} emailsManagedExternally />);
+
+    expect(screen.getByLabelText("Email")).toBeDisabled();
+    expect(screen.getByLabelText("Recovery Email")).toBeDisabled();
   });
 });
