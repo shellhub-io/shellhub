@@ -3,6 +3,7 @@ import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { getInfo } from "@/client";
 import { isCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
+import { isTokenExpired } from "@/utils/authToken";
 import { Spinner } from "@shellhub/design-system/primitives";
 
 /**
@@ -34,7 +35,7 @@ export default function SetupGuard() {
     return () => controller.abort();
   }, [isCloudEdition, location.pathname]);
 
-  const authed = !!token;
+  const authed = token !== null && !isTokenExpired(token);
 
   if (loading && !authed) {
     return (

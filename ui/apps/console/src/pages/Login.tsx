@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useEffectEvent } from "react";
 import {
   useNavigate,
   Navigate,
@@ -14,13 +14,48 @@ import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthActions from "@/components/auth/AuthActions";
 import SignInForm from "@/components/auth/SignInForm";
 import ScreenIntro from "@/components/layout/ScreenIntro";
-import { getInfo, getSamlAuthUrl } from "../client";
+import { isTokenExpired } from "@/utils/authToken";
+import { getInfo, getSamlAuthUrl, redeemSamlSignIn } from "@/client";
+
+const SSO_RESTART_KEY = "shellhub.ssoRestart";
+const SSO_RESTART_WINDOW_MS = 2 * 60_000;
+
+function restartedRecently() {
+  const restartedAt = Number(sessionStorage.getItem(SSO_RESTART_KEY));
+  return restartedAt > 0 && Date.now() - restartedAt < SSO_RESTART_WINDOW_MS;
+}
+
+const ssoRedemptions = new Map<string, Promise<string>>();
+
+function redeemSsoCode(code: string) {
+  let redemption = ssoRedemptions.get(code);
+  if (!redemption) {
+    redemption = redeemSamlSignIn({
+      body: { code },
+      throwOnError: true,
+    })
+      .then(({ data }) => data.token)
+      .finally(() => ssoRedemptions.delete(code));
+    ssoRedemptions.set(code, redemption);
+  }
+  return redemption;
+}
+
+async function startSsoSignIn() {
+  const { data } = await getSamlAuthUrl({ throwOnError: true });
+  window.location.replace(data.url);
+}
 
 /**
  * The sign-in page. What it offers depends on the edition (SSO exists only on enterprise, sign-up
  * only on cloud) and on where the user was going, which it returns them to afterwards. Reached with
  * `signOut: true` in the location state, it ends the current session itself and keeps the notice
- * beside it.
+ * beside it. Reached with `?sso=start`, where the server sends a sign-in the IdP started on its
+ * own, it starts an SSO sign-in, and shows an error instead if it started one in this tab within
+ * the last two minutes, which means the IdP keeps sending sign-ins it was not asked for. A session
+ * whose token expired counts as signed out here, so it neither sends the page away nor blocks the
+ * sign-in. Reached with `?sso_code=`, where the server sends a finished SSO sign-in, it redeems
+ * the code once for the session.
  */
 export default function Login() {
   const isCloudEdition = isCloud();
@@ -33,14 +68,30 @@ export default function Login() {
 
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
+  const ssoCode = searchParams.get("sso_code");
   const missingAssertions = searchParams.get("missing_assertions");
-  const [tokenLoading, setTokenLoading] = useState(!!queryToken);
+  const token = useAuthStore((s) => s.token);
+  const signedIn = token !== null && !isTokenExpired(token);
+  const ssoRestart = searchParams.get("sso") === "start" && !signedIn;
+  const [ssoRestartRefused] = useState(
+    () => ssoRestart && restartedRecently(),
+  );
+  const [tokenLoading, setTokenLoading] = useState(!!queryToken || !!ssoCode);
   const [authentication, setAuthentication] = useState<{
     local?: boolean;
     saml?: boolean;
   } | null>(null);
-  const [ssoLoading, setSsoLoading] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(
+    ssoRestart && !ssoRestartRefused,
+  );
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const { token: stored, logout } = useAuthStore.getState();
+    if (stored && isTokenExpired(stored)) {
+      logout();
+    }
+  }, []);
 
   useEffect(() => {
     if (notice) {
@@ -60,38 +111,64 @@ export default function Login() {
       .catch(() => setAuthentication(null));
   }, []);
 
-  const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!queryToken) return;
+    if (!queryToken && !ssoCode) return;
 
-    const { logout, loginWithToken } = useAuthStore.getState();
-    logout();
+    const signInWith = (sessionToken: string) => {
+      const { logout, loginWithToken } = useAuthStore.getState();
+      logout();
+      return loginWithToken(sessionToken);
+    };
 
-    loginWithToken(queryToken)
-      .then(() => navigate("/dashboard"))
+    const signedIn = ssoCode
+      ? redeemSsoCode(ssoCode).then(signInWith)
+      : signInWith(queryToken ?? "");
+
+    signedIn
+      .then(() => {
+        sessionStorage.removeItem(SSO_RESTART_KEY);
+        void navigate("/dashboard", { replace: true });
+      })
       .catch(() => {
         setTokenLoading(false);
-        setError("Failed to authenticate with the provided token.");
+        setError(
+          ssoCode
+            ? "Failed to complete the SSO sign-in. Please try again."
+            : "Failed to authenticate with the provided token.",
+        );
       });
-  }, [queryToken, navigate]);
+  }, [queryToken, ssoCode, navigate]);
 
-  const handleSsoLogin = async () => {
-    setSsoLoading(true);
-    try {
-      const { data } = await getSamlAuthUrl({ throwOnError: true });
-      window.location.replace(data.url);
-    } catch {
-      setError("Failed to retrieve SSO login URL. Please try again.");
-      setSsoLoading(false);
+  const failSsoStart = () => {
+    sessionStorage.removeItem(SSO_RESTART_KEY);
+    setError("Failed to retrieve SSO login URL. Please try again.");
+    setSsoLoading(false);
+  };
+  const onRestartFailed = useEffectEvent(failSsoStart);
+
+  useEffect(() => {
+    if (!ssoRestart) return;
+
+    if (ssoRestartRefused) {
+      sessionStorage.removeItem(SSO_RESTART_KEY);
+      return;
     }
+
+    sessionStorage.setItem(SSO_RESTART_KEY, String(Date.now()));
+    startSsoSignIn().catch(() => onRestartFailed());
+  }, [ssoRestart, ssoRestartRefused]);
+
+  const handleSsoLogin = () => {
+    setSsoLoading(true);
+    startSsoSignIn().catch(failSsoStart);
   };
 
   const showLocalForm = !isEnterpriseEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseEdition && authentication?.local === false;
 
-  if (token && !queryToken && !signOut) {
+  if (signedIn && !queryToken && !ssoCode && !signOut) {
     return <Navigate to="/" replace />;
   }
 
@@ -120,6 +197,12 @@ export default function Login() {
             mappings. Please contact your administrator.
           </Callout>
         )}
+        {ssoRestartRefused && (
+          <Callout variant="error">
+            Your identity provider keeps starting sign-ins ShellHub did not
+            request. Use the SSO button to sign in.
+          </Callout>
+        )}
         {error && <Callout variant="error">{error}</Callout>}
       </div>
 
@@ -132,7 +215,7 @@ export default function Login() {
             disabled={ssoLoading}
             icon={<ArrowRightEndOnRectangleIcon className="w-4 h-4" />}
             data-testid="sso-btn"
-            onClick={() => void handleSsoLogin()}
+            onClick={handleSsoLogin}
           >
             Login with SSO
           </Button>

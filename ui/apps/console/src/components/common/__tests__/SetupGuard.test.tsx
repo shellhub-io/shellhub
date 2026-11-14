@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
-import { VALID_JWT } from "@/tests/seedAuthStore";
+import { EXPIRED_JWT, VALID_JWT } from "@/tests/seedAuthStore";
 import SetupGuard from "../SetupGuard";
 
 function mockSetup(done: boolean) {
@@ -122,6 +122,18 @@ describe("SetupGuard", () => {
 
     expect(await screen.findByText("app content")).toBeInTheDocument();
     expect(screen.queryByText("setup page")).not.toBeInTheDocument();
+  });
+
+  it("holds a session whose token expired at the spinner, as it does a signed-out one, until the setup check answers", async () => {
+    mockSetup(true);
+    useAuthStore.setState({
+      token: EXPIRED_JWT,
+    });
+    renderAt("/");
+
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.queryByText("app content")).not.toBeInTheDocument();
+    expect(await screen.findByText("app content")).toBeInTheDocument();
   });
 
   it("redirects an unauthenticated visitor to /setup on a fresh install", async () => {

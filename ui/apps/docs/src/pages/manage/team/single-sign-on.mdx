@@ -67,17 +67,49 @@ first. Enterprise features sit behind a license check, and an expired or missing
 the most common cause.
 </Callout>
 
+## Signing in from your IdP's dashboard
+
+ShellHub accepts a SAML response only as the answer to a sign-in request it sent, and only once.
+When someone opens ShellHub from the app list on your IdP's dashboard, the IdP sends a response
+nobody asked for. ShellHub discards it and starts a sign-in of its own, which the IdP answers from
+the session the user already has, so the user still lands signed in.
+
 ## Re-authentication through SAML
 
 On Enterprise, a policy's re-authentication step can be satisfied through SAML rather than the
 built-in browser confirmation, so a step-up runs through the same IdP as the original sign-in.
 
+The step-up sends the IdP a `ForceAuthn` request, which asks it to authenticate the user again even
+when the user has an active IdP session. ShellHub refuses the step-up when the IdP's answer shows an authentication from
+before the step-up started, so it needs an IdP that honours `ForceAuthn`.
+
 See [Login Approvals](/manage/access-control/login-approvals).
+
+## How the first SAML sign-in finds an account
+
+ShellHub keys a SAML account on the NameID your IdP sends as the subject, not on the email. On a
+user's first SAML sign-in no account has that subject yet, so ShellHub looks for one by the email
+the IdP asserts:
+
+- **No account has that email.** ShellHub creates one, bound to the subject, with no password.
+- **A local account has that email.** ShellHub binds it to the subject and signs the user in. From
+  then on that account signs in through SAML without asking for its ShellHub password or MFA code.
+  It keeps its password, so it can still sign in locally while local authentication is on.
+- **The account with that email is already bound to another subject.** ShellHub refuses the
+  sign-in.
+
+This is how existing local users move to SSO without losing their namespaces. It also means that
+whoever controls the email your IdP asserts for a person controls that person's ShellHub account,
+so map the email attribute to a field your users cannot edit themselves.
 
 ## Leaving local authentication on
 
 Keep at least one local administrator account working. If the IdP integration breaks — an expired
 certificate, a metadata change — a local account is how you get back in to fix it.
+
+Give that account an email your IdP never asserts. If the IdP sends the same address, the first
+SAML sign-in with it binds the administrator account to the IdP user, and from then on whoever the
+IdP signs in with that address reaches the account too, alongside the local password.
 
 ## Where to go next
 

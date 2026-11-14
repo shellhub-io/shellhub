@@ -5,6 +5,14 @@ import { mockUserAuth } from "./factories";
 export const VALID_JWT =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjk5OTk5OTk5OTksInN1YiI6InRlc3QifQ.fake-sig";
 
+/** A JWT whose `exp` claim is `exp`, in seconds, and whose other claims are `claims`. */
+export function jwtExpiringAt(exp: number, claims: Record<string, unknown> = {}) {
+  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ ...claims, exp }))}.sig`;
+}
+
+/** JWT that `isTokenExpired` reports expired: a session left in storage after it ran out. */
+export const EXPIRED_JWT = jwtExpiringAt(1);
+
 type AuthData = Pick<
   ReturnType<typeof useAuthStore.getState>,
   | "name"

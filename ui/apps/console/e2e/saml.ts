@@ -4,7 +4,11 @@ import { inflateRawSync } from "node:zlib";
 import sshpk from "sshpk";
 import { DOMParser, type Element } from "@xmldom/xmldom";
 import { SignedXml } from "xml-crypto";
-import { configureSamlAuthentication, getSamlAuthUrl } from "@/client";
+import {
+  configureSamlAuthentication,
+  getSamlAuthUrl,
+  redeemSamlSignIn,
+} from "@/client";
 import { buildRequestContext, loginAs } from "./api";
 import { adminUser, requireEnv } from "./env";
 import { required } from "./helpers";
@@ -102,12 +106,15 @@ const requireAttribute = (request: Element, name: string) =>
 type AssertionFields = {
   user: SamlUser;
   attributes: AttributeNames;
-  requestId: string;
+  requestId?: string;
   consumer: string;
   audience: string;
   issued: string;
   expires: string;
 };
+
+const inResponseTo = (requestId?: string) =>
+  requestId ? ` InResponseTo="${requestId}"` : "";
 
 function buildAssertion(fields: AssertionFields) {
   const { user, attributes, requestId, consumer, audience, issued, expires } =
@@ -118,7 +125,7 @@ function buildAssertion(fields: AssertionFields) {
     "<saml:Subject>",
     `<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">${user.email}</saml:NameID>`,
     '<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">',
-    `<saml:SubjectConfirmationData InResponseTo="${requestId}" NotOnOrAfter="${expires}" Recipient="${consumer}"/>`,
+    `<saml:SubjectConfirmationData${inResponseTo(requestId)} NotOnOrAfter="${expires}" Recipient="${consumer}"/>`,
     "</saml:SubjectConfirmation>",
     "</saml:Subject>",
     `<saml:Conditions NotBefore="${issued}" NotOnOrAfter="${expires}">`,
@@ -164,12 +171,13 @@ function buildResponse(
   request: Element,
   user: SamlUser,
   attributes: AttributeNames,
+  unsolicited: boolean,
 ) {
   const now = new Date();
   const fields = {
     user,
     attributes,
-    requestId: requireAttribute(request, "ID"),
+    requestId: unsolicited ? undefined : requireAttribute(request, "ID"),
     consumer: requireAttribute(request, "AssertionConsumerServiceURL"),
     audience: required(
       request.getElementsByTagNameNS(
@@ -182,7 +190,7 @@ function buildResponse(
     expires: new Date(now.getTime() + 5 * 60_000).toISOString(),
   };
   const response = [
-    `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${buildSamlId()}" Version="2.0" IssueInstant="${fields.issued}" Destination="${fields.consumer}" InResponseTo="${fields.requestId}">`,
+    `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${buildSamlId()}" Version="2.0" IssueInstant="${fields.issued}" Destination="${fields.consumer}"${inResponseTo(fields.requestId)}>`,
     `<saml:Issuer>${identityProvider}</saml:Issuer>`,
     '<samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status>',
     buildAssertion(fields),
@@ -249,8 +257,14 @@ export function answerSignOnRequest(
   request: SignOnRequest,
   user: SamlUser,
   attributes = defaultAttributes,
+  unsolicited = false,
 ) {
-  const { consumer, xml } = buildResponse(request.document, user, attributes);
+  const { consumer, xml } = buildResponse(
+    request.document,
+    user,
+    attributes,
+    unsolicited,
+  );
   return {
     action: consumerURL(consumer),
     samlResponse: Buffer.from(xml).toString("base64"),
@@ -287,47 +301,89 @@ export async function answerSignOn(
       replaceRelayState?.(request.relayState) ?? request.relayState;
     await route.fulfill({
       contentType: "text/html",
-      body: `<form method="post" action="${action}"><input type="hidden" name="SAMLResponse" value="${samlResponse}"><input type="hidden" name="RelayState" value="${relayState}"></form><script>document.forms[0].submit()</script>`,
+      body: autoSubmitSignOnResponse(action, {
+        SAMLResponse: samlResponse,
+        RelayState: relayState,
+      }),
     });
   });
   return requests;
 }
 
-export async function signInThroughApi(user: SamlUser) {
+export function autoSubmitSignOnResponse(
+  action: URL | string,
+  fields: Record<string, string>,
+) {
+  const inputs = Object.entries(fields)
+    .map(
+      ([name, value]) =>
+        `<input type="hidden" name="${name}" value="${value}">`,
+    )
+    .join("");
+  return `<form method="post" action="${action}">${inputs}</form><script>document.forms[0].submit()</script>`;
+}
+
+export async function buildSignOnResponse(
+  user: SamlUser,
+  { unsolicited = false } = {},
+) {
   const { data } = await getSamlAuthUrl(buildRequestContext());
-  const { action, samlResponse } = answerSignOnRequest(
+  return answerSignOnRequest(
     parseRedirectRequest(new URL(data.url)),
     user,
+    defaultAttributes,
+    unsolicited,
   );
-  const response = await fetch(action, {
+}
+
+export function postSignOnResponse(action: URL, samlResponse: string) {
+  return fetch(action, {
     method: "POST",
     redirect: "manual",
     body: new URLSearchParams({ SAMLResponse: samlResponse }),
   });
+}
+
+export async function signInThroughApi(user: SamlUser) {
+  const { action, samlResponse } = await buildSignOnResponse(user);
+  const response = await postSignOnResponse(action, samlResponse);
   const location = required(
     response.headers.get("location"),
     `a redirect from the assertion consumer, got ${response.status}`,
   );
-  return required(
-    new URL(location, action).searchParams.get("token"),
-    `a session token in ${location}`,
+  const code = required(
+    new URL(location, action).searchParams.get("sso_code"),
+    `a sign-in code in ${location}`,
   );
+  const { data } = await redeemSamlSignIn({
+    ...buildRequestContext(),
+    body: { code },
+  });
+  return required(data.token, `a session token for the code in ${location}`);
 }
 
 export async function waitForSessionToken(context: BrowserContext) {
+  const redeemed = context.waitForEvent(
+    "response",
+    (response) => new URL(response.url()).pathname === "/api/user/saml/token",
+  );
+  void redeemed.catch(() => undefined);
   const landing = await context.waitForEvent("request", (request) => {
     const url = new URL(request.url());
     return (
       url.pathname === "/login" &&
-      (url.searchParams.has("token") ||
+      (url.searchParams.has("sso_code") ||
         url.searchParams.has("missing_assertions"))
     );
   });
-  const url = new URL(landing.url());
-  return required(
-    url.searchParams.get("token"),
-    `a session token from the assertion consumer, got missing assertions "${url.searchParams.get("missing_assertions")}"`,
-  );
+  const missing = new URL(landing.url()).searchParams.get("missing_assertions");
+  if (missing !== null) {
+    throw new Error(
+      `expected a sign-in code from the assertion consumer, got missing assertions "${missing}"`,
+    );
+  }
+  const { token } = (await (await redeemed).json()) as { token?: string };
+  return required(token, "a session token from the sign-in code");
 }
 
 export async function signInWithSso(page: Page) {
