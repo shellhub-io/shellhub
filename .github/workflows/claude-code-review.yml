@@ -181,7 +181,7 @@ jobs:
 
       - name: Generate cloud context token
         id: cloud-token
-        if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.can_request_review == 'true'
+        if: steps.gate.outputs.proceed == 'true' && (steps.author-check.outputs.can_request_review == 'true' || steps.auth-check.outputs.authorized == 'true')
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
@@ -259,6 +259,7 @@ jobs:
           author-can-request-review: ${{ steps.author-check.outputs.can_request_review }}
           command-trigger: ${{ github.event_name != 'pull_request_target' }}
           sibling-repository: ${{ steps.cloud-token.outputs.token != '' && 'shellhub-io/cloud' || '' }}
+          sibling-requested: ${{ steps.auth-check.outputs.authorized == 'true' }}
           sibling-ref: ${{ steps.cloud-branch.outputs.ref }}
           sibling-path: cloud
           app-token: ${{ steps.cloud-token.outputs.token }}
