@@ -123,9 +123,13 @@ describe("request interceptor", () => {
     },
   );
 
-  it("keeps the session on an expired token during a token login", async () => {
+  it.each([
+    ["a token login", "?token=abc"],
+    ["an SSO code redemption", "?sso_code=abc"],
+    ["an SSO restart", "?sso=start"],
+  ])("leaves an expired token to the page during %s", async (_, search) => {
     vi.useFakeTimers();
-    setLocation("?token=abc");
+    setLocation(search);
     useAuthStore.setState({ token: makeJwt(pastExp()) });
     respondWith(200);
 
@@ -193,6 +197,15 @@ describe("response interceptor", () => {
     respondWith(401);
 
     await client.post({ url: "/api/user/confirm_account" });
+
+    expect(window.location.href).toBe("");
+  });
+
+  it("stays on the page on 401 from a spent SSO code, so the page can say why", async () => {
+    setLocation("?sso_code=spent");
+    respondWith(401);
+
+    await client.post({ url: "/api/user/saml/token" });
 
     expect(window.location.href).toBe("");
   });

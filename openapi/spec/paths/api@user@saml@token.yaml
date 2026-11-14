@@ -1,0 +1,45 @@
+post:
+  operationId: redeemSamlSignIn
+  summary: Redeem a SAML sign-in
+  description: |
+    Trades the one-time code the assertion consumer service sent the browser to
+    `/login` with for the session it signed in, so the session token never
+    travels in a URL. A code is redeemed once, within a minute of the sign-in.
+
+    To access this endpoint, SAML authentication must be enabled and the
+    instance must be running the Enterprise edition. If not, the endpoint
+    returns a `501 Not Implemented` status code.
+  tags:
+    - cloud
+    - users
+  security: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - code
+          properties:
+            code:
+              type: string
+              description: The code from the `sso_code` query parameter of the `/login` redirect
+              example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
+  responses:
+    '200':
+      description: The signed-in session
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/userAuth.yaml
+    '400':
+      $ref: ../components/responses/400.yaml
+    '401':
+      $ref: ../components/responses/401.yaml
+    '500':
+      $ref: ../components/responses/500.yaml
+    '501':
+      description: SAML authentication is not enabled or instance is not running Enterprise edition
+    '503':
+      $ref: ../components/responses/503.yaml
