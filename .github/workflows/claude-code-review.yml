@@ -42,14 +42,15 @@ jobs:
       claude-ref: ${{ steps.claude-branch.outputs.ref }}
 
     steps:
-      - name: Generate cross-repo token
-        id: app-token
+      - name: Generate team membership token
+        id: members-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
           private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
           owner: shellhub-io
-          repositories: cloud,claude
+          repositories: claude
+          permission-members: read
 
       - name: Resolve PR head ref
         id: pr-ref
@@ -75,13 +76,15 @@ jobs:
       - name: Checkout shellhub (PR branch)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
+          allow-unsafe-pr-checkout: true
           ref: ${{ steps.pr-ref.outputs.sha }}
 
       - name: Check /review authorization
         id: auth-check
         if: github.event_name != 'pull_request_target'
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.members-token.outputs.token }}
           COMMENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REVIEW_TEAMS: admin core
           EVENT_NAME: ${{ github.event_name }}
@@ -158,7 +161,7 @@ jobs:
         if: steps.gate.outputs.proceed == 'true'
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.members-token.outputs.token }}
           REVIEW_TEAMS: admin core
           PR_AUTHOR: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
         run: |
@@ -176,6 +179,29 @@ jobs:
             fi
           done
 
+      - name: Generate cloud context token
+        id: cloud-token
+        if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.can_request_review == 'true'
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        with:
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: cloud
+          permission-contents: read
+
+      - name: Determine cloud branch
+        id: cloud-branch
+        if: steps.cloud-token.outputs.token != ''
+        uses: ./.actions/.github/actions/paired-branch
+        with:
+          repository: shellhub-io/cloud
+          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
+          pr-repository: ${{ github.repository }}
+          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
+          token: ${{ steps.cloud-token.outputs.token }}
+          gh-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate issue token
         id: issue-token
         if: steps.gate.outputs.proceed == 'true' && steps.author-check.outputs.can_request_review == 'true'
@@ -189,17 +215,16 @@ jobs:
           permission-issues: read
           permission-pull-requests: read
 
-      - name: Determine cloud branch
-        id: cloud-branch
+      - name: Generate claude config token
+        id: config-token
         if: steps.gate.outputs.proceed == 'true'
-        uses: ./.actions/.github/actions/paired-branch
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
-          repository: shellhub-io/cloud
-          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          pr-repository: ${{ github.repository }}
-          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
-          token: ${{ steps.app-token.outputs.token }}
-          gh-token: ${{ secrets.GITHUB_TOKEN }}
+          app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
+          owner: shellhub-io
+          repositories: claude
+          permission-contents: read
 
       - name: Determine claude branch
         id: claude-branch
@@ -210,7 +235,7 @@ jobs:
           head-ref: ${{ steps.author-check.outputs.is_admin == 'true' && (github.head_ref || github.event.pull_request.head.ref) || '' }}
           pr-repository: ${{ steps.author-check.outputs.is_admin == 'true' && github.repository || '' }}
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.config-token.outputs.token }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout claude config
@@ -218,7 +243,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/claude
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.config-token.outputs.token }}
           persist-credentials: false
           ref: ${{ steps.claude-branch.outputs.ref }}
           fetch-depth: 1
@@ -233,10 +258,10 @@ jobs:
           pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
           author-can-request-review: ${{ steps.author-check.outputs.can_request_review }}
           command-trigger: ${{ github.event_name != 'pull_request_target' }}
-          sibling-repository: shellhub-io/cloud
+          sibling-repository: ${{ steps.cloud-token.outputs.token != '' && 'shellhub-io/cloud' || '' }}
           sibling-ref: ${{ steps.cloud-branch.outputs.ref }}
           sibling-path: cloud
-          app-token: ${{ steps.app-token.outputs.token }}
+          app-token: ${{ steps.cloud-token.outputs.token }}
           issue-token: ${{ steps.issue-token.outputs.token }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -253,20 +278,21 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Generate cross-repo token
-        id: app-token
+      - name: Generate claude config token
+        id: config-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
           private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
           owner: shellhub-io
           repositories: claude
+          permission-contents: read
 
       - name: Checkout claude config
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/claude
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.config-token.outputs.token }}
           persist-credentials: false
           ref: ${{ needs.review.outputs.claude-ref || 'master' }}
           sparse-checkout: .github/actions
