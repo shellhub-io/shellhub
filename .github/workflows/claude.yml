@@ -22,17 +22,17 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
-      id-token: write
 
     steps:
-      - name: Generate cross-repo token
-        id: app-token
+      - name: Generate claude config token
+        id: config-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           app-id: ${{ secrets.CLOUD_DISPATCH_APP_ID }}
           private-key: ${{ secrets.CLOUD_DISPATCH_APP_PRIVATE_KEY }}
           owner: shellhub-io
-          repositories: shellhub,cloud,claude,team
+          repositories: claude
+          permission-contents: read
 
       - name: Resolve PR head ref
         id: pr-ref
@@ -59,44 +59,14 @@ jobs:
       - name: Checkout shellhub
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          persist-credentials: false
           ref: ${{ steps.pr-ref.outputs.sha || '' }}
-
-      - name: Checkout trusted actions
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          ref: master
-          sparse-checkout: .github/actions
-          sparse-checkout-cone-mode: false
-          path: .actions
-
-      - name: Determine cloud branch
-        id: cloud-branch
-        if: github.event_name == 'pull_request_review_comment' || (github.event_name == 'issue_comment' && github.event.issue.pull_request)
-        uses: ./.actions/.github/actions/paired-branch
-        with:
-          repository: shellhub-io/cloud
-          head-ref: ${{ github.head_ref || github.event.pull_request.head.ref }}
-          pr-repository: ${{ github.repository }}
-          pr-number: ${{ github.event.pull_request.number || github.event.issue.number }}
-          token: ${{ steps.app-token.outputs.token }}
-          gh-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout cloud (context)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          repository: shellhub-io/cloud
-          token: ${{ steps.app-token.outputs.token }}
-          ref: ${{ steps.cloud-branch.outputs.ref || 'master' }}
-          fetch-depth: 1
-          path: cloud
 
       - name: Checkout claude config
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: shellhub-io/claude
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.config-token.outputs.token }}
           persist-credentials: false
           fetch-depth: 1
           path: claude
