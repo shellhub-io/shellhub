@@ -53,7 +53,7 @@ Configuration is a root filesystem overlay. Write the file the service reads:
 ```bash
 $ cat > rootfs_overlay/etc/default/shellhub-agent <<-EOF
 SERVER_ADDRESS="https://cloud.shellhub.io"
-PRIVATE_KEY="/etc/shellhub-agent.key"
+PRIVATE_KEY="/etc/shellhub-agent/shellhub.key"
 PROVISIONING_KEY="<your-provisioning-key>"
 EOF
 ```
