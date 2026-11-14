@@ -67,10 +67,21 @@ first. Enterprise features sit behind a license check, and an expired or missing
 the most common cause.
 </Callout>
 
+## Signing in from your IdP's dashboard
+
+ShellHub accepts a SAML response only as the answer to a sign-in request it sent, and only once.
+When someone opens ShellHub from the app list on your IdP's dashboard, the IdP sends a response
+nobody asked for. ShellHub discards it and starts a sign-in of its own, which the IdP answers from
+the session the user already has, so the user still lands signed in.
+
 ## Re-authentication through SAML
 
 On Enterprise, a policy's re-authentication step can be satisfied through SAML rather than the
 built-in browser confirmation, so a step-up runs through the same IdP as the original sign-in.
+
+The step-up sends the IdP a `ForceAuthn` request, which asks it to authenticate the user again even
+when the user has an active IdP session. ShellHub refuses the step-up when the IdP's answer shows an authentication from
+before the step-up started, so it needs an IdP that honours `ForceAuthn`.
 
 See [Login Approvals](/manage/access-control/login-approvals).
 

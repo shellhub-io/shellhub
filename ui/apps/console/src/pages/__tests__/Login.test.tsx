@@ -11,6 +11,7 @@ import {
   setPendingDeviceCode,
 } from "@/utils/navigation";
 import { mockInfo, mockUserAuth } from "@/tests/factories";
+import { EXPIRED_JWT, VALID_JWT } from "@/tests/seedAuthStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { getConfig, defaultConfig } from "@/env";
@@ -24,9 +25,9 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 const mockGetConfig = vi.mocked(getConfig);
 
-function renderLogin() {
+function renderLogin(path = "/") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <Login />
     </MemoryRouter>,
   );
@@ -431,6 +432,120 @@ describe("Login", () => {
           screen.getByText(/failed to retrieve sso login url/i),
         ).toBeInTheDocument(),
       );
+    });
+
+    describe("when the server sends back a sign-in the IdP started", () => {
+      const originalLocation = window.location;
+
+      beforeEach(() => {
+        Object.defineProperty(window, "location", {
+          writable: true,
+          value: { ...originalLocation, replace: vi.fn() },
+        });
+        mockGetConfig.mockReturnValue({
+          ...defaultConfig,
+          edition: "enterprise",
+        });
+        setInfo({ local: true, saml: true });
+      });
+
+      afterEach(() => {
+        sessionStorage.clear();
+        Object.defineProperty(window, "location", {
+          writable: true,
+          value: originalLocation,
+        });
+      });
+
+      it("starts an SSO sign-in of its own", async () => {
+        renderLogin("/login?sso=start");
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledWith(
+            "https://idp.example.com/sso",
+          ),
+        );
+      });
+
+      it("shows an error instead of starting again when the IdP sends it back a second time", async () => {
+        renderLogin("/login?sso=start").unmount();
+
+        renderLogin("/login?sso=start");
+
+        expect(
+          await screen.findByText(/did not request/i),
+        ).toBeInTheDocument();
+        expect(window.location.replace).toHaveBeenCalledTimes(1);
+      });
+
+      it("starts again once the error has been shown", async () => {
+        renderLogin("/login?sso=start").unmount();
+        const { unmount } = renderLogin("/login?sso=start");
+        await screen.findByText(/did not request/i);
+        unmount();
+
+        renderLogin("/login?sso=start");
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledTimes(2),
+        );
+      });
+
+      it("starts again when its previous restart is more than two minutes old", async () => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        renderLogin("/login?sso=start").unmount();
+        vi.setSystemTime(Date.now() + 3 * 60_000);
+
+        renderLogin("/login?sso=start");
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledTimes(2),
+        );
+        expect(screen.queryByText(/did not request/i)).not.toBeInTheDocument();
+      });
+
+      it("starts again after a restart that could not reach the IdP", async () => {
+        server.use(
+          http.get(
+            "*/api/user/saml/auth",
+            () => HttpResponse.json({}, { status: 500 }),
+            { once: true },
+          ),
+        );
+        const { unmount } = renderLogin("/login?sso=start");
+        await screen.findByText(/failed to retrieve sso login url/i);
+        unmount();
+
+        renderLogin("/login?sso=start");
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledWith(
+            "https://idp.example.com/sso",
+          ),
+        );
+      });
+
+      it("starts an SSO sign-in over a session whose token expired, and drops that session", async () => {
+        useAuthStore.setState({ token: EXPIRED_JWT });
+
+        renderLogin("/login?sso=start");
+
+        await waitFor(() =>
+          expect(window.location.replace).toHaveBeenCalledWith(
+            "https://idp.example.com/sso",
+          ),
+        );
+        expect(useAuthStore.getState().token).toBeNull();
+      });
+
+      it("does not start a sign-in for a user already signed in", async () => {
+        useAuthStore.setState({ token: VALID_JWT });
+
+        renderLogin("/login?sso=start");
+
+        await act(async () => {});
+        expect(window.location.replace).not.toHaveBeenCalled();
+      });
     });
 
     it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {

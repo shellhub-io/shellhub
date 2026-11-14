@@ -22,11 +22,14 @@ import {
 import {
   adminContext,
   answerSignOn,
+  autoSubmitSignOnResponse,
   buildSamlUser,
+  buildSignOnResponse,
   disableSaml,
   enableSaml,
   identityProvider,
   idpCertificate,
+  postSignOnResponse,
   samlReason,
   signInThroughApi,
   signInWithSso,
@@ -393,6 +396,45 @@ test.describe("SAML", instanceWide, () => {
         path: { id: account.id },
       });
       expect(data).toMatchObject({ email: user.email, username: "" });
+    });
+
+    test("a sign-in the identity provider starts on its own restarts as one ShellHub sends", async ({
+      page,
+    }) => {
+      const user = buildSamlUser();
+      const requests = await answerSignOn(page.context(), user);
+      const { action, samlResponse } = await buildSignOnResponse(user, {
+        unsolicited: true,
+      });
+
+      const token = waitForSessionToken(page.context());
+      await page.setContent(
+        autoSubmitSignOnResponse(action, { SAMLResponse: samlResponse }),
+      );
+
+      expect((await readSessionUser(await token)).email).toBe(user.email);
+      expect(requests).toHaveLength(1);
+    });
+
+    test("a replayed SAML response starts a new sign-in instead of signing in", async () => {
+      const { action, samlResponse } = await buildSignOnResponse(
+        buildSamlUser(),
+      );
+      const landing = async () => {
+        const response = await postSignOnResponse(action, samlResponse);
+        expect(response.status).toBe(303);
+        return new URL(
+          required(response.headers.get("location"), "a redirect"),
+          action,
+        );
+      };
+
+      const first = await landing();
+      expect(first.pathname).toBe("/login");
+      expect(first.searchParams.has("token")).toBe(true);
+      const replayed = await landing();
+      expect(replayed.pathname).toBe("/login");
+      expect(replayed.searchParams.get("sso")).toBe("start");
     });
 
     test("a SAML sign-in with a local account's email signs in to that account", async ({

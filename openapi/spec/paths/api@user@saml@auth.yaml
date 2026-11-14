@@ -49,6 +49,13 @@ post:
     The assertion consumer service. The Identity Provider posts the user's signed
     assertion here through the browser.
 
+    It takes a response only when its assertion answers an authentication
+    request ShellHub sent for the same flow and still waits on, and each
+    assertion only once. A sign-in response that answers no request it still
+    waits on redirects to `/login?sso=start`, where the console starts a
+    sign-in of its own: an IdP-initiated sign-in, a request that expired or
+    was already answered, a replayed assertion.
+
     Without a `RelayState`, it signs the user in and redirects to `/login` with the
     session token, or with the attributes the assertion is missing. With a
     `RelayState`, it answers a re-authentication started at
@@ -74,12 +81,14 @@ post:
               type: string
               description: The re-authentication token, when the assertion answers a re-authentication
   responses:
-    '301':
+    '303':
       description: Redirects the browser back to the console
       headers:
         Location:
           schema:
             type: string
+    '403':
+      $ref: '../components/responses/403.yaml'
     '500':
       $ref: '../components/responses/500.yaml'
     '503':

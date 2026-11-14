@@ -1,19 +1,7 @@
+import { isSignInLanding, isTokenExpired } from "@/utils/authToken";
 import { client } from "../client/client.gen";
 import { useAuthStore } from "../stores/authStore";
 import { useConnectivityStore } from "../stores/connectivityStore";
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload: unknown = JSON.parse(atob(token.split(".")[1]));
-    if (typeof payload === "object" && payload !== null && "exp" in payload) {
-      const { exp } = payload;
-      return typeof exp === "number" && exp * 1000 < Date.now();
-    }
-    return false;
-  } catch {
-    return true;
-  }
-}
 
 class ExpiredTokenError extends Error {}
 
@@ -52,10 +40,7 @@ client.interceptors.request.use((request) => {
   const token = useAuthStore.getState().token;
   if (token) {
     if (isTokenExpired(token)) {
-      const isTokenLogin = new URLSearchParams(window.location.search).has(
-        "token",
-      );
-      if (!isTokenLogin) {
+      if (!isSignInLanding(window.location.search)) {
         useAuthStore.getState().logout();
         window.location.href = "/login";
       }
@@ -83,12 +68,10 @@ client.interceptors.response.use((response, request) => {
         response.url.includes("/api/login") ||
         response.url.includes("/api/user/mfa/auth") ||
         response.url.includes("/api/user/confirm_account");
-      const isTokenLogin = new URLSearchParams(window.location.search).has(
-        "token",
-      );
+      const landing = isSignInLanding(window.location.search);
       const { isFromAbandonedSession, logout } = useAuthStore.getState();
       const abandoned = isFromAbandonedSession(sentToken(request));
-      if (!isSignInStep && !isTokenLogin && !abandoned) {
+      if (!isSignInStep && !landing && !abandoned) {
         logout();
         window.location.href = "/login";
       }
