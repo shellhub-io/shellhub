@@ -16,7 +16,8 @@ import {
   ArrowRightIcon,
   ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
+import StatusMessage from "@/components/common/StatusMessage";
 import BaseDialog from "@/components/common/BaseDialog";
 import CopyButton from "@/components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
@@ -697,19 +698,6 @@ function reauthWindowSentence(periodSeconds: number) {
       : `${Math.max(1, Math.round(periodSeconds / 60))} minutes`;
 
   return ` Connecting with it again won't ask for the next ${window}.`;
-}
-
-function StatusMessage({ label }: { label: string }) {
-  return (
-    <div
-      className="flex flex-col items-center gap-3 py-6"
-      role="status"
-      aria-live="polite"
-    >
-      <Spinner size="2xl" />
-      <p className="text-sm text-text-muted">{label}</p>
-    </div>
-  );
 }
 
 function CodeBlock({ label, code }: { label: string; code: string }) {
