@@ -1,10 +1,26 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "enabledManagers": ["custom.regex"],
+  "enabledManagers": ["custom.regex", "npm"],
   "minimumReleaseAge": "7 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "dependencyDashboard": false,
   "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@redocly/cli"],
+      "enabled": true,
+      "rangeStrategy": "pin",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchPackageNames": ["@redocly/cli"],
+      "groupName": "Redocly CLI",
+      "minimumReleaseAge": "7 days"
+    },
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["golang"],
