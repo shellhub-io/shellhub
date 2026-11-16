@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
 
+import { formatTimeLeft, lockoutEndFrom } from "@/utils/lockout";
+
 interface CountdownState {
   display: string;
   expired: boolean;
   epoch: number | null;
-}
-
-function lockoutEndFrom(headers: Headers): number | null {
-  const epoch = Number(headers.get("x-account-lockout"));
-
-  return epoch > 0 ? epoch : null;
 }
 
 function useLockoutCountdown(lockoutEndEpoch: number | null) {
@@ -27,17 +23,9 @@ function useLockoutCountdown(lockoutEndEpoch: number | null) {
       if (diff <= 0) {
         clearInterval(interval);
         setState({ display: "", expired: true, epoch: lockoutEndEpoch });
-      } else if (diff < 60) {
-        const s = Math.floor(diff);
-        setState({
-          display: `${s} ${s === 1 ? "second" : "seconds"}`,
-          expired: false,
-          epoch: lockoutEndEpoch,
-        });
       } else {
-        const m = Math.floor(diff / 60);
         setState({
-          display: `${m} ${m === 1 ? "minute" : "minutes"}`,
+          display: formatTimeLeft(diff),
           expired: false,
           epoch: lockoutEndEpoch,
         });

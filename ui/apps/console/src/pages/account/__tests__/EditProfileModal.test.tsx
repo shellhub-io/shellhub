@@ -259,6 +259,31 @@ describe("EditProfileModal", () => {
         expect.stringContaining("Current password is incorrect."),
       );
     });
+
+    it("names the lockout a wrong one starts", async () => {
+      useAuthStore.setState({ updateProfile: realUpdateProfile } as Partial<
+        ReturnType<typeof useAuthStore.getState>
+      >);
+      server.use(
+        http.patch("*/api/users", () =>
+          HttpResponse.json(
+            { message: "too many wrong attempts" },
+            {
+              status: 429,
+              headers: { "X-Account-Lockout": String(Math.floor(Date.now() / 1000) + 270) },
+            },
+          ),
+        ),
+      );
+      const { user } = await changeField("Email", "new@example.com");
+      await user.type(screen.getByLabelText("Current Password"), "wrong");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      expect(
+        await screen.findByText("Too many wrong attempts. Try again in 4 minutes."),
+      ).toBeInTheDocument();
+    });
   });
 
   describe("email held for confirmation", () => {

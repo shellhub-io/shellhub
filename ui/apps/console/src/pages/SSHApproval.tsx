@@ -22,7 +22,7 @@ import BaseDialog from "@/components/common/BaseDialog";
 import CopyButton from "@/components/common/CopyButton";
 import InputField from "@/components/common/fields/InputField";
 import OtpCells from "@/components/mfa/OtpCells";
-import { isSdkError } from "@/api/errors";
+import { isSdkError, lockoutMessage } from "@/api/errors";
 import { webTerminalReauth, getSamlReauthUrl } from "@/client";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useSSHApproval, ApprovalDetails } from "@/hooks/useSSHApproval";
@@ -483,12 +483,14 @@ function ReauthFactor({
       });
       onDone(result.data?.confirmation_code ?? "");
     } catch (err) {
+      const status = isSdkError(err) ? err.status : undefined;
       setError(
-        isSdkError(err) && err.status === 403
-          ? mfaEnabled
-            ? "Invalid code. It changes every 30 seconds — enter the current one."
-            : "Incorrect password."
-          : "Re-authentication failed. Please try again.",
+        lockoutMessage(err) ??
+          (status === 403
+            ? mfaEnabled
+              ? "Invalid code. It changes every 30 seconds — enter the current one."
+              : "Incorrect password."
+            : "Re-authentication failed. Please try again."),
       );
       if (mfaEnabled) otp.reset();
       setSubmitting(false);

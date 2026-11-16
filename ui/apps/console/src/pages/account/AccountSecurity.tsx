@@ -4,7 +4,7 @@ import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
-import { isSdkError } from "@/api/errors";
+import { isSdkError, lockoutMessage } from "@/api/errors";
 
 import {
   changePasswordSchema,
@@ -77,9 +77,10 @@ function ChangePasswordModal({
       }
 
       const errorMessage =
-        isSdkError(err) && err.status === 403
+        lockoutMessage(err) ??
+        (isSdkError(err) && err.status === 403
           ? "Current password is incorrect."
-          : "Failed to change password.";
+          : "Failed to change password.");
 
       setError("root", { message: errorMessage });
     }

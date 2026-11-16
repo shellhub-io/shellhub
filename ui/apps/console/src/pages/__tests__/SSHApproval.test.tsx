@@ -197,6 +197,36 @@ describe("SSHApproval", () => {
     expect(screen.queryByText(/re-authenticated/i)).not.toBeInTheDocument();
   });
 
+  it("names the lockout a wrong password starts", async () => {
+    server.use(
+      http.post("*/api/web-terminal/reauth", () =>
+        HttpResponse.json(
+            { message: "too many wrong attempts" },
+            {
+              status: 429,
+              headers: { "X-Account-Lockout": String(Math.floor(Date.now() / 1000) + 270) },
+            },
+          ),
+      ),
+    );
+    const user = userEvent.setup();
+    setApproval({ kind: "reauth" });
+
+    renderAt("/ssh-identities/confirm/WXYZ2K7Q");
+    await screen.findByText(/re-authenticate to continue/i);
+    await user.click(screen.getByRole("button", { name: /continue/i }));
+
+    await user.type(
+      await screen.findByLabelText(/account password/i),
+      "wrong",
+    );
+    await user.click(screen.getByRole("button", { name: /re-authenticate/i }));
+
+    expect(
+      await screen.findByText("Too many wrong attempts. Try again in 4 minutes."),
+    ).toBeInTheDocument();
+  });
+
   it("proves the password and reports the login released", async () => {
     const user = userEvent.setup();
     setApproval({ kind: "reauth" });

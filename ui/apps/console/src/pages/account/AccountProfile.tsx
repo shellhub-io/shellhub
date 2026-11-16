@@ -3,7 +3,7 @@ import { useWatch } from "react-hook-form";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import { useAuthStore } from "@/stores/authStore";
 import FormModal from "@/components/common/FormModal";
-import { apiErrorFields, isSdkError } from "@/api/errors";
+import { apiErrorFields, isSdkError, lockoutMessage } from "@/api/errors";
 import { emailRefusalMessage } from "@/utils/emailRefusal";
 import {
   changesAnAddress,
@@ -115,6 +115,12 @@ export function EditProfileModal({
       if (heldEmail) onEmailPending?.(heldEmail);
       if (heldRecoveryEmail) onRecoveryEmailPending?.(heldRecoveryEmail);
     } catch (err) {
+      const lockout = lockoutMessage(err);
+      if (lockout) {
+        setError("currentPassword", { type: "server", message: lockout });
+        return;
+      }
+
       if (isSdkError(err) && err.status === 403) {
         setError("currentPassword", {
           type: "server",

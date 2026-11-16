@@ -1,3 +1,5 @@
+import { formatTimeLeft, lockoutEndFrom } from "@/utils/lockout";
+
 /**
  * Shape attached to errors by the fetch error interceptor in fetchInterceptors.ts.
  * The interceptor monkey-patches `.status` and `.headers` onto the parsed
@@ -72,4 +74,22 @@ export function apiErrorFields(err: unknown): Record<string, string> {
     Object.entries(fields as Record<string, unknown>)
       .filter((entry): entry is [string, string] => typeof entry[1] === "string"),
   );
+}
+
+/**
+ * Turns a 429 from a password or code check into text naming how long the lockout has left, read
+ * from the Unix time in seconds that `X-Account-Lockout` carries. A missing, zero or malformed end,
+ * or one less than a second away, asks to wait a moment instead. Anything that is not an API error
+ * with status 429 gives undefined, so a caller falls back to its own message. now is the current
+ * time in milliseconds.
+ */
+export function lockoutMessage(err: unknown, now = Date.now()): string | undefined {
+  if (!isSdkError(err) || err.status !== 429) return undefined;
+
+  const end = lockoutEndFrom(err.headers);
+  const left = end === null ? 0 : end - now / 1000;
+
+  if (left < 1) return "Too many wrong attempts. Wait a moment and try again.";
+
+  return `Too many wrong attempts. Try again in ${formatTimeLeft(left)}.`;
 }
