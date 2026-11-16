@@ -7,8 +7,10 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import {
   mockDevice as mockDeviceFactory,
+  mockLicense,
   mockNamespace,
 } from "@/tests/factories";
+import { NamespaceModeProbe } from "@/tests/NamespaceModeProbe";
 import { setEdition } from "@/tests/edition";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -66,13 +68,14 @@ function setDevices(devices: Device[]) {
   server.use(http.get("*/api/devices", () => jsonWithTotal(devices)));
 }
 
-function renderPalette(queryClient = createTestQueryClient()) {
+function renderPalette(queryClient = createTestQueryClient(), path = "/") {
   return render(
     <>
       <CommandPalette />
       <LocationProbe />
+      <NamespaceModeProbe />
     </>,
-    { wrapper: createTestWrapper({ initialEntries: ["/"], queryClient }) },
+    { wrapper: createTestWrapper({ initialEntries: [path], queryClient }) },
   );
 }
 
@@ -733,6 +736,67 @@ describe("CommandPalette", () => {
 
     expect(useTerminalStore.getState().sessions[0].state).toBe("shown");
     expect(useCommandPaletteStore.getState().view).toBeNull();
+  });
+
+  describe("command mode pages", () => {
+    function serveNamespace(legacy: boolean) {
+      const base = mockNamespace({ name: "dev" });
+      server.use(
+        http.get("*/api/namespaces/:tenant", () =>
+          HttpResponse.json({ ...base, settings: { ...base.settings, legacy } }),
+        ),
+      );
+    }
+
+    it.each([
+      {
+        kind: "legacy",
+        legacy: true,
+        shown: ["Containers", "Public Keys", "Firewall Rules"],
+        hidden: ["Access Policies", "Claim a Device"],
+      },
+      {
+        kind: "new",
+        legacy: false,
+        shown: ["Containers", "Access Policies", "SSH Identities", "Claim a Device"],
+        hidden: ["Public Keys"],
+      },
+    ])(
+      "offers the sidebar's pages in a $kind namespace",
+      async ({ kind, legacy, shown, hidden }) => {
+        serveNamespace(legacy);
+        const user = userEvent.setup();
+        renderPalette();
+
+        await screen.findByText(`mode: ${kind}`);
+        await user.type(await screen.findByRole("combobox"), ">");
+
+        for (const label of shown) {
+          expect(await screen.findByText(label)).toBeInTheDocument();
+        }
+        for (const label of hidden) {
+          expect(screen.queryByText(label)).not.toBeInTheDocument();
+        }
+      },
+    );
+
+    it("offers the admin console's pages and no device actions in the admin area", async () => {
+      setEdition("enterprise");
+      useAuthStore.setState({ isAdmin: true });
+      server.use(
+        http.get("*/admin/api/license", () => HttpResponse.json(mockLicense())),
+      );
+      const user = userEvent.setup();
+      renderPalette(createTestQueryClient(), "/admin/license");
+
+      await user.type(await screen.findByRole("combobox"), ">");
+
+      expect(await screen.findByText("Users")).toBeInTheDocument();
+      expect(screen.getByText("License")).toBeInTheDocument();
+      for (const label of ["Dashboard", "Add Device", "Claim a Device"]) {
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
+    });
   });
 
   describe("opened from the new-tab picker", () => {
