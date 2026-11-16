@@ -31,12 +31,14 @@ import { formatCount } from "@/utils/count";
 import { formatDateFull } from "@/utils/date";
 import EventPublicKey from "./EventPublicKey";
 
-type Outcome = "waiting" | "accepted" | "rejected" | "settled" | "refused";
+type Outcome =
+  "waiting" | "accepted" | "rejected" | "settled" | "refused" | "replaced";
 
 type Decide = (entity: EntityBase, operation: "accept" | "reject") => void;
 
 function outcomeOf(event: ProvisioningKeyEvent): Outcome {
   if (event.refusal) return "refused";
+  if (event.replaced) return "replaced";
   if (event.is_current && event.device_status === "pending") return "waiting";
   const decided = event.decided_status;
   if (decided === "accepted" || decided === "rejected") return decided;
@@ -59,6 +61,7 @@ const DOT: Record<Outcome, string> = {
   rejected: "bg-accent-red",
   settled: "bg-text-muted/40",
   refused: "bg-accent-red/60",
+  replaced: "bg-accent-yellow",
 };
 
 const VERDICT: Record<Outcome, { label: string; className: string }> = {
@@ -67,6 +70,7 @@ const VERDICT: Record<Outcome, { label: string; className: string }> = {
   rejected: { label: "rejected", className: "text-accent-red" },
   settled: { label: "", className: "" },
   refused: { label: "refused", className: "text-accent-red" },
+  replaced: { label: "replaced a device", className: "text-accent-yellow" },
 };
 
 function Dot({ outcome, top }: { outcome: Outcome; top: string }) {
@@ -352,6 +356,25 @@ function RefusedEntry({ event }: { event: ProvisioningKeyEvent }) {
   );
 }
 
+function ReplacedEntry({ event }: { event: ProvisioningKeyEvent }) {
+  return (
+    <EntryRow
+      event={event}
+      outcome="replaced"
+      note={
+        <p className="mt-0.5 ml-12 text-2xs text-text-muted">
+          Took the place of{" "}
+          <span className="font-mono text-text-secondary">
+            {event.replaced?.name}
+          </span>
+          , which was offline and reported the same identity. Its record was
+          deleted.
+        </p>
+      }
+    />
+  );
+}
+
 function Entry({
   event,
   decide,
@@ -361,6 +384,7 @@ function Entry({
 }) {
   const outcome = outcomeOf(event);
   if (outcome === "refused") return <RefusedEntry event={event} />;
+  if (outcome === "replaced") return <ReplacedEntry event={event} />;
   return outcome === "waiting" ? (
     <WaitingEntry event={event} decide={decide} />
   ) : (
@@ -494,8 +518,7 @@ function RegistrationActivity({
 
       <div className="flex items-center justify-between gap-4 pl-8">
         <span className="text-2xs font-mono text-text-muted">
-          {formatCount(events.length)} of {formatCount(totalCount)}{" "}
-          registrations
+          {formatCount(events.length)} of {formatCount(totalCount)} entries
         </span>
         {isLoadingMore && (
           <span className="text-2xs font-mono text-text-muted">
@@ -633,7 +656,7 @@ function SearchSummary({
   return (
     <p aria-live="polite" className="text-xs text-text-secondary">
       {formatCount(history.totalCount)}{" "}
-      {history.totalCount === 1 ? "registration" : "registrations"} with &ldquo;
+      {history.totalCount === 1 ? "entry" : "entries"} with &ldquo;
       {hostname}&rdquo; in the hostname &middot;{" "}
       <button
         type="button"
@@ -651,7 +674,8 @@ function SearchSummary({
  * how it ended and the searched text marked in each hostname, newest or oldest first and grouped
  * by day. A device still waiting for a decision stands out as a card in the line, with what it reported and
  * its accept and reject; any other line expands to the same details. A refused agent is a line with
- * the reason and a link to the setting that refused it, and nothing to accept. Older registrations
+ * the reason and a link to the setting that refused it, and nothing to accept. A replacement is a
+ * line of its own naming the offline device it took the place of. Older registrations
  * load as the reader nears the end; a page that fails keeps the ones already shown and offers a
  * retry. history must be the one built from view. emptyMessage
  * is what an empty history says when nothing is searched; a search that matches nothing says so

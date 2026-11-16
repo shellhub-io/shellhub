@@ -1,5 +1,6 @@
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import StepperField from "@/components/common/fields/StepperField";
+import OptionCard from "./OptionCard";
 
 /**
  * The ephemeral toggle: whether devices enrolled with this key are removed when they go offline.
@@ -18,13 +19,7 @@ export default function EphemeralField({
   onTimeoutChange: (value: number) => void;
 }) {
   return (
-    <div
-      className={`rounded-xl border p-4 transition-colors ${
-        enabled
-          ? "border-primary/40 bg-primary/[0.05]"
-          : "border-border bg-transparent"
-      }`}
-    >
+    <OptionCard active={enabled}>
       <CheckboxField
         id={id}
         label="Ephemeral devices"
@@ -49,6 +44,6 @@ export default function EphemeralField({
           <span className="text-2xs text-text-muted">min offline</span>
         </div>
       )}
-    </div>
+    </OptionCard>
   );
 }

@@ -23,13 +23,24 @@ export function useDeviceActionRunner() {
     onSuccess: invalidateDevices,
   });
 
-  return async (entity: EntityBase, operation: EntityOperation) => {
+  return async (
+    entity: EntityBase,
+    operation: EntityOperation,
+    replace = false,
+  ) => {
     if (operation === "reject") {
       await reject.mutateAsync({ path: { uid: entity.uid, status: "reject" } });
       return;
     }
 
-    const action = operation === "accept" ? accept : remove;
-    await action.mutateAsync({ path: { uid: entity.uid } });
+    if (operation === "accept") {
+      await accept.mutateAsync({
+        path: { uid: entity.uid },
+        ...(replace ? { body: { replace: true } } : {}),
+      });
+      return;
+    }
+
+    await remove.mutateAsync({ path: { uid: entity.uid } });
   };
 }

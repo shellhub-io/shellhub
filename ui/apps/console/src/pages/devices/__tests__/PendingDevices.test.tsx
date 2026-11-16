@@ -4,9 +4,14 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockNamespace, mockProvisioningKeyEvent } from "@/tests/factories";
+import {
+  mockDevice,
+  mockNamespace,
+  mockProvisioningKeyEvent,
+} from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import PendingDevices from "../PendingDevices";
+import { clickOnceEnabled, noReplacedDevice } from "@/tests/replacement";
 
 let accepted: string[];
 
@@ -38,6 +43,12 @@ beforeEach(() => {
     http.get("*/api/namespaces/:tenant", () =>
       HttpResponse.json(mockNamespace()),
     ),
+    http.get("*/api/devices/:uid", ({ params }) =>
+      HttpResponse.json(
+        mockDevice({ uid: String(params.uid), status: "pending" }),
+      ),
+    ),
+    ...noReplacedDevice,
   );
 });
 
@@ -114,15 +125,11 @@ describe("PendingDevices", () => {
     renderPage();
 
     await user.click(await screen.findByRole("button", { name: "Accept" }));
-    await user.click(
-      await screen.findByRole("button", { name: "Accept device" }),
-    );
+    await clickOnceEnabled("Accept device", user);
     await waitFor(() => expect(accepted).toEqual(["uid-waiting"]));
 
     await user.click(screen.getByRole("button", { name: "Accept instead" }));
-    await user.click(
-      await screen.findByRole("button", { name: "Accept device" }),
-    );
+    await clickOnceEnabled("Accept device", user);
     await waitFor(() =>
       expect(accepted).toEqual(["uid-waiting", "uid-rejected"]),
     );
@@ -218,7 +225,7 @@ describe("PendingDevices", () => {
     renderPage("/devices/pending?search=kitchen");
 
     expect(
-      await screen.findByText(/1 registration with .kitchen. in the hostname/),
+      await screen.findByText(/1 entry with .kitchen. in the hostname/),
     ).toBeInTheDocument();
   });
 

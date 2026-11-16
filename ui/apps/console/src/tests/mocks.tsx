@@ -46,6 +46,7 @@ export function MockConfirmDialog({
   cancelLabel = "Cancel",
   children,
   errorMessage,
+  confirmDisabled = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -56,6 +57,7 @@ export function MockConfirmDialog({
   cancelLabel?: string;
   children?: ReactNode;
   errorMessage?: string | null;
+  confirmDisabled?: boolean;
 }) {
   if (!open) return null;
   return (
@@ -67,7 +69,11 @@ export function MockConfirmDialog({
       <button type="button" onClick={onClose}>
         {cancelLabel}
       </button>
-      <button type="button" onClick={() => void onConfirm()}>
+      <button
+        type="button"
+        disabled={confirmDisabled}
+        onClick={() => void onConfirm()}
+      >
         {confirmLabel}
       </button>
     </div>

@@ -11,13 +11,11 @@ import InputField from "@/components/common/fields/InputField";
 import TagsSelector from "@/components/common/fields/TagsSelector";
 import { KEY_NAME_MAX_LENGTH, validateKeyName } from "@/utils/validation";
 import EphemeralField from "./EphemeralField";
+import ReplaceOfflineDevicesField from "./ReplaceOfflineDevicesField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
-import {
-  parseAllowedIdentities,
-  validateModeConfig,
-} from "./helpers";
+import { parseAllowedIdentities, validateModeConfig } from "./helpers";
 
 /**
  * Edits a provisioning key's name and limits. The key itself is not re-issued.
@@ -41,6 +39,7 @@ function EditProvisioningKeyModal({
   const [usageLimit, setUsageLimit] = useState(0);
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
+  const [replaceOfflineDevices, setReplaceOfflineDevices] = useState(true);
   const [expiresIn, setExpiresIn] = useState("-1");
   const [expiryTouched, setExpiryTouched] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
@@ -82,6 +81,7 @@ function EditProvisioningKeyModal({
     setUsageLimit(provisioningKey?.usage_limit ?? 0);
     setEphemeral(provisioningKey?.ephemeral ?? false);
     setEphemeralTimeout(provisioningKey?.ephemeral_timeout || 10);
+    setReplaceOfflineDevices(provisioningKey?.replace_offline_devices ?? true);
     const { days, expired } = getRemainingDays(provisioningKey?.expires_at);
     setExpiresIn(days);
     setExpiryTouched(false);
@@ -145,6 +145,7 @@ function EditProvisioningKeyModal({
         tags,
         ephemeral,
         ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
+        replace_offline_devices: replaceOfflineDevices,
       };
 
       await updateKey.mutateAsync({
@@ -247,6 +248,11 @@ function EditProvisioningKeyModal({
           onEnabledChange={setEphemeral}
           timeout={ephemeralTimeout}
           onTimeoutChange={setEphemeralTimeout}
+        />
+        <ReplaceOfflineDevicesField
+          id="edit-provisioning-key-replace-offline-devices"
+          checked={replaceOfflineDevices}
+          onChange={setReplaceOfflineDevices}
         />
         <TagsSelector
           id="edit-provisioning-key-tags"

@@ -406,6 +406,7 @@ export function mockProvisioningKey(
     usage_limit: 0,
     used_times: 0,
     ephemeral: false,
+    replace_offline_devices: true,
     tags: [],
     revoked: false,
     disabled: false,
@@ -533,7 +534,9 @@ export function mockLegacyNamespace(
  * Builds a device map palette for a test, each colour a distinct rgb() so an assertion can tell
  * which one a layer drew.
  */
-export function mockMapPalette(overrides: Partial<MapPalette> = {}): MapPalette {
+export function mockMapPalette(
+  overrides: Partial<MapPalette> = {},
+): MapPalette {
   return {
     online: "rgb(0, 200, 0)",
     partial: "rgb(200, 200, 0)",

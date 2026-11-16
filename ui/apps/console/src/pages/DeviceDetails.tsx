@@ -266,6 +266,7 @@ export default function DeviceDetails() {
               ownerId={device.owner_id}
             />
           }
+          replaced={device.replaced}
         />
 
         <Card className="p-5 space-y-4">
@@ -278,21 +279,13 @@ export default function DeviceDetails() {
               label="Operating System"
               value={device.info?.pretty_name}
             />
-            <InfoItem
-              label="Architecture"
-              value={device.info?.arch}
-              mono
-            />
+            <InfoItem label="Architecture" value={device.info?.arch} mono />
             <InfoItem label="Platform">
               {device.info?.platform && (
                 <PlatformBadge platform={device.info.platform} />
               )}
             </InfoItem>
-            <InfoItem
-              label="Agent Version"
-              value={device.info?.version}
-              mono
-            />
+            <InfoItem label="Agent Version" value={device.info?.version} mono />
           </dl>
         </Card>
 

@@ -112,6 +112,48 @@ describe("Provisioning key page", () => {
     expect(screen.queryByText(/Accept instead/)).not.toBeInTheDocument();
   });
 
+  it("records a replacement as an entry of its own, naming the device it replaced", async () => {
+    server.use(
+      http.get("*/api/namespaces/provisioning-key/:id/history", () =>
+        jsonWithTotal([
+          mockProvisioningKeyEvent({
+            id: "replacement",
+            device_uid: "device-new",
+            hostname: "fresh-image",
+            is_current: false,
+            replaced: {
+              uid: "device-old",
+              name: "field-box",
+              at: "2024-03-05T10:00:00Z",
+            },
+            timestamp: "2024-03-05T10:00:00Z",
+          }),
+          mockProvisioningKeyEvent({
+            id: "enrollment",
+            device_uid: "device-new",
+            hostname: "fresh-image",
+            decided_status: "accepted",
+            device_status: "accepted",
+            is_current: true,
+            timestamp: "2024-03-05T09:59:00Z",
+          }),
+        ]),
+      ),
+    );
+    renderPage();
+
+    expect(await screen.findByText("· replaced a device")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        fullText(
+          "Took the place of field-box, which was offline and reported the same identity. Its record was deleted.",
+        ),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("· accepted")).toBeInTheDocument();
+    expect(screen.getByText("2 of 2 entries")).toBeInTheDocument();
+  });
+
   it("narrows the key's registrations to the hostnames containing the search", async () => {
     let searched: string | null = null;
     server.use(

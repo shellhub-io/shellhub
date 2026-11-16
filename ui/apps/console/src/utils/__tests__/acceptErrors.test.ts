@@ -65,6 +65,16 @@ describe("getAcceptErrorMessage", () => {
       expect(result).not.toMatch(/permission/i);
     });
 
+    it("explains a refused replacement of an offline device", () => {
+      expect(
+        msg({
+          status: 403,
+          message:
+            "accepting the device replaces an offline device with the same identity, which needs permission to remove devices",
+        }),
+      ).toMatch(/replaces an offline device.*allowed to remove devices/i);
+    });
+
     it("keeps the permission copy for any other 403 message", () => {
       expect(msg({ status: 403, message: "forbidden" })).toMatch(/permission/i);
     });
@@ -79,6 +89,13 @@ describe("getAcceptErrorMessage", () => {
       const result = msg({ status: 409, fields: { "identity.mac": "duplicated" } });
 
       expect(result).toMatch(/same MAC address is connected/i);
+      expect(result).not.toMatch(/rename/i);
+    });
+
+    it("names the device an unconfirmed replacement would replace", () => {
+      const result = msg({ status: 409, fields: { replace: "field-box" } });
+
+      expect(result).toMatch(/replaces field-box/);
       expect(result).not.toMatch(/rename/i);
     });
 

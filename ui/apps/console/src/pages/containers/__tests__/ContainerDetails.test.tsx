@@ -43,7 +43,7 @@ vi.mock("@/hooks/useActionDialog", () => ({
 
 vi.mock("@/utils/date", () => ({
   formatRelative: () => "just now",
-  formatDateFull: () => "Jan 15, 2024",
+  formatDateFull: (date: string) => `full date of ${date}`,
 }));
 
 const mockNavigate = vi.fn();
@@ -127,6 +127,23 @@ beforeEach(() => {
 });
 
 describe("ContainerDetails", () => {
+  it("names the container it replaced and when", async () => {
+    setContainer({
+      replaced: {
+        uid: "old-container-uid",
+        name: "old-container",
+        at: "2026-01-02T03:04:05Z",
+      },
+    });
+    renderPage();
+
+    expect(
+      await screen.findByRole("definition", { name: "Replaced" }),
+    ).toHaveTextContent(
+      "old-container (old-container-uid) on full date of 2026-01-02T03:04:05Z",
+    );
+  });
+
   describe("loading and missing states", () => {
     it("tells the user the container is missing when the query fails", async () => {
       server.use(
