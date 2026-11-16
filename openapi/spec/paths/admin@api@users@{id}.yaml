@@ -27,7 +27,11 @@ delete:
 put:
   operationId: adminUpdateUser
   summary: Update user
-  description: Update a user.
+  description: |
+    Update a user. A new email takes effect at once. On Cloud it is refused
+    like a self-service change when its domain is disposable or cannot
+    receive mail, and the user's previous email and recovery email are told
+    of the change.
   tags:
     - admin
     - enterprise

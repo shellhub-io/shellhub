@@ -36,7 +36,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	t.Cleanup(compose.Down)
 
 	t.Run("a recovery code completes the password step", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-recover")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-recover")
 		mfaToken := passwordStep(t, compose, user)
 
 		auth := new(models.UserAuthResponse)
@@ -51,7 +51,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("a recovery code without the password step signs no one in", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-recover-alone")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-recover-alone")
 
 		auth := new(models.UserAuthResponse)
 		resp, err := compose.Anonymous(t.Context()).
@@ -72,7 +72,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("the emailed codes reset MFA and the user signs in with the password", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-reset")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-reset")
 		codes := requestMFAReset(t, compose, user)
 
 		resp, err := compose.Anonymous(t.Context()).SetBody(codes).Put("/api/user/mfa/reset/" + user.id)
@@ -88,7 +88,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("the emailed codes last 24 hours and the pair is refused once one of them expires", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-expired")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-expired")
 		codes := requestMFAReset(t, compose, user)
 
 		for _, address := range []string{"main", "recovery"} {
@@ -223,7 +223,7 @@ type mfaUser struct {
 	recoveryCodes []string
 }
 
-func newMFAUser(t *testing.T, compose *environment.DockerCompose, username string) mfaUser {
+func newMFAUser(t *testing.T, compose *environment.DockerCompose, edition environment.Edition, username string) mfaUser {
 	t.Helper()
 
 	user := mfaUser{
@@ -243,6 +243,9 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, username strin
 		Patch("/api/users")
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	if edition == environment.EditionCloud {
+		confirmMailedAddress(t, compose, user.recoveryEmail)
+	}
 
 	generated := struct {
 		Secret        string   `json:"secret"`

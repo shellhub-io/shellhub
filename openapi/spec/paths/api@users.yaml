@@ -18,28 +18,42 @@ patch:
               type: string
             email:
               description: |
-                Changing it requires `current_password`. On Cloud the new
-                address takes effect only after its owner opens the
-                confirmation link mailed to it; until then the account keeps
-                the old one, and the request still answers 200.
+                Changing it requires `current_password`, and `mfa_code` when
+                the account has MFA enabled. On Cloud the new address takes
+                effect only after its owner opens the confirmation link mailed
+                to it; until then the account keeps the old one, and the
+                request still answers 200.
               type: string
             recovery_email:
               description: |
                 A recovery email serves as the user's final recourse to regain
                 access to their account. It cannot be the same as the user's
                 primary email. Once defined, it cannot be updated to an empty
-                value. Changing it requires `current_password`.
+                value. Changing it requires `current_password`, and `mfa_code`
+                when the account has MFA enabled. On Cloud the new address takes
+                effect only after its owner opens the confirmation link mailed
+                to it; until then the account keeps the old one, and the
+                request still answers 200.
               type: string
             password:
               description: |
-                The new password. Changing it signs out every session the user holds, including
-                the one making this request.
+                The new password. Changing it requires `current_password`, and
+                `mfa_code` when the account has MFA enabled, and signs out every
+                session the user holds, including the one making this request.
               type: string
             current_password:
               description: |
                 The user's current password. It's required when changing the
                 password, the email or the recovery email, so an account that
                 signs in only through SSO cannot change them here.
+              type: string
+            mfa_code:
+              description: |
+                A code from the user's authenticator app, or one of their
+                recovery codes, which is then used up. It's required to change
+                the password, the email or the recovery email of an account
+                with MFA enabled. Wrong codes count toward the same lockout as
+                MFA sign-in.
               type: string
   responses:
     '200':
@@ -49,7 +63,9 @@ patch:
         The request is invalid. On Cloud, a new `email` or `recovery_email`
         whose domain is a known disposable-email domain answers with that field
         set to `disposable`, and one whose domain cannot receive mail with
-        `unreachable`.
+        `unreachable`. A password or address change on an account with MFA enabled
+        answers with `mfa_code` set to the reason when the code is missing,
+        wrong, or refused while the account is locked out.
       content:
         application/json:
           schema:

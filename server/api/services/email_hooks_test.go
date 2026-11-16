@@ -75,7 +75,8 @@ func TestCheckEmail(t *testing.T) {
 			return "unreachable"
 		})
 
-		assert.Equal(t, "disposable", checkEmail(ctx, "alice@listed.test"))
+		s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache())
+		assert.Equal(t, "disposable", s.CheckEmail(ctx, "alice@listed.test"))
 		assert.False(t, secondCalled)
 	})
 }
@@ -238,4 +239,57 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 			assert.Equal(t, tc.expected, s.UpdateUser(ctx, tc.req))
 		})
 	}
+}
+
+func TestNotifyEmailsChanged(t *testing.T) {
+	ctx := context.Background()
+
+	before := &models.User{UserData: models.UserData{Email: "james@shellhub.test", RecoveryEmail: "recovery@shellhub.test"}}
+
+	cases := []struct {
+		description string
+		after       *models.User
+		fired       bool
+	}{
+		{
+			description: "runs the hooks when the email changes",
+			after:       &models.User{UserData: models.UserData{Email: "james@example.test", RecoveryEmail: "recovery@shellhub.test"}},
+			fired:       true,
+		},
+		{
+			description: "runs the hooks when the recovery email changes",
+			after:       &models.User{UserData: models.UserData{Email: "james@shellhub.test", RecoveryEmail: "backup@example.test"}},
+			fired:       true,
+		},
+		{
+			description: "runs no hook when neither address changes",
+			after:       &models.User{UserData: models.UserData{Email: "james@shellhub.test", RecoveryEmail: "recovery@shellhub.test"}},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			changes := recordEmailsChanged(t)
+
+			s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache())
+			s.NotifyEmailsChanged(ctx, EmailsChange{Before: before, After: tc.after})
+
+			if tc.fired {
+				assert.Equal(t, []EmailsChange{{Before: before, After: tc.after}}, *changes)
+			} else {
+				assert.Empty(t, *changes)
+			}
+		})
+	}
+}
+
+func TestOnMFACodeCheck(t *testing.T) {
+	override(t, &mfaCodeCheckHooks, nil)
+
+	assert.PanicsWithValue(t, "services: OnMFACodeCheck called with nil hook", func() {
+		OnMFACodeCheck(nil)
+	})
+
+	OnMFACodeCheck(func(context.Context, *models.User, string) (string, error) { return "", nil })
+	assert.Len(t, mfaCodeCheckHooks, 1)
 }

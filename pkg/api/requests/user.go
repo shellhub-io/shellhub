@@ -13,6 +13,9 @@ type UpdateUser struct {
 	// Password is the new password. If not empty, [UserDataUpdate.CurrentPassword] must be the current user's password.
 	Password        string `json:"password" validate:"omitempty,password"`
 	CurrentPassword string `json:"current_password"`
+	// MFACode is an authenticator or recovery code, required to change the password, the email or
+	// the recovery email of an account with MFA enabled where the instance enforces MFA.
+	MFACode string `json:"mfa_code"`
 }
 
 // RevokeUserTokens is the request of the endpoint that revokes every token the caller holds.
