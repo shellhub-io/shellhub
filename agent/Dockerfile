@@ -50,6 +50,27 @@ FROM ${DOCKERHUB_MIRROR}alpine:${ALPINE_VERSION} AS runtime-utils
 
 RUN apk add --no-cache util-linux setpriv ca-certificates libgcc
 
+FROM runtime-utils AS runtime-rootfs
+
+RUN <<EOF
+set -eu
+set -- /etc/ssl/certs/ca-certificates.crt /usr/bin/nsenter /bin/setpriv \
+    /usr/lib/libcap-ng.so.* /usr/lib/libeconf.so.* /usr/lib/libgcc_s.so.1 /lib/ld-musl-*.so.1
+
+for file; do
+    mkdir -p "/rootfs${file%/*}"
+    cp -a "$file" "/rootfs$file"
+done
+cp -L /etc/os-release /etc/alpine-release /rootfs/etc/
+
+apk info -q --who-owns "$@" >/tmp/owners
+mkdir -p /rootfs/lib/apk/db
+awk 'NR == FNR { wanted["P:" $0]; next }
+     { for (i = 1; i <= NF; i++) if ($i in wanted) { printf "%s\n\n", $0; next } }' \
+    /tmp/owners RS= FS='\n' /lib/apk/db/installed >/rootfs/lib/apk/db/installed
+test "$(grep -c '^P:' /rootfs/lib/apk/db/installed)" -eq "$(sort -u /tmp/owners | wc -l)"
+EOF
+
 FROM toolchain AS tools
 
 RUN apk add --no-cache openssl openssh-client util-linux setpriv
@@ -81,16 +102,7 @@ FROM scratch
 
 ARG TARGETARCH
 
-COPY --from=runtime-utils /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-COPY --from=runtime-utils /usr/bin/nsenter /usr/bin/
-COPY --from=runtime-utils /bin/setpriv /bin/
-
-COPY --from=runtime-utils /usr/lib/libcap-ng.so.* /usr/lib/
-COPY --from=runtime-utils /usr/lib/libeconf.so.* /usr/lib/
-COPY --from=runtime-utils /usr/lib/libgcc_s.so.1 /usr/lib/
-
-COPY --from=runtime-utils /lib/ld-musl-*.so.1 /lib/
+COPY --from=runtime-rootfs /rootfs/ /
 
 COPY --from=builder /go/src/github.com/shellhub-io/shellhub/agent/agent /bin/agent
 
