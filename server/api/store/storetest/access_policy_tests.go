@@ -101,6 +101,65 @@ func (s *Suite) TestAccessPolicyAllDevicesRoundTrip(t *testing.T) {
 	assert.Empty(t, stored.Filter.Tags)
 }
 
+// TestAccessPolicyUpdateStoresTheNewSubject verifies an update replaces the subject whatever its
+// type was before, API keys included, so the stored rule names the new subject and not the old key.
+func (s *Suite) TestAccessPolicyUpdateStoresTheNewSubject(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	tenantID := s.CreateNamespace(t)
+	sc := scope.MustBounded(tenantID)
+	memberID := s.CreateUser(t)
+	s.CreateMembership(t, tenantID, memberID, "operator")
+	keyA := s.CreateAPIKeyID(t, tenantID)
+	keyB := s.CreateAPIKeyID(t, tenantID)
+
+	member := models.PolicySubject{Type: models.PolicySubjectUser, Value: memberID}
+	operators := models.PolicySubject{Type: models.PolicySubjectRole, Value: "operator"}
+	everyMember := models.PolicySubject{Type: models.PolicySubjectAllMembers}
+	apiKeyA := models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyA}
+	apiKeyB := models.PolicySubject{Type: models.PolicySubjectAPIKey, Value: keyB}
+
+	cases := []struct {
+		name string
+		from models.PolicySubject
+		to   models.PolicySubject
+	}{
+		{name: "from one API key to another", from: apiKeyA, to: apiKeyB},
+		{name: "from a member to an API key", from: member, to: apiKeyB},
+		{name: "from an API key to a member", from: apiKeyA, to: member},
+		{name: "from a role to an API key", from: operators, to: apiKeyB},
+		{name: "from an API key to every member", from: apiKeyA, to: everyMember},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			policy := &models.AccessPolicy{
+				TenantID: tenantID,
+				Name:     "rule",
+				Subject:  tc.from,
+				Filter:   models.AccessPolicyFilter{All: true},
+				Logins:   []string{"*"},
+				SourceIP: []string{},
+				Action:   models.PolicyActionAllow,
+			}
+
+			id, err := st.AccessPolicyCreate(ctx, policy)
+			require.NoError(t, err)
+
+			policy.ID = id
+			policy.Subject = tc.to
+			require.NoError(t, st.AccessPolicyUpdate(ctx, policy))
+
+			stored, err := st.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, id)
+			require.NoError(t, err)
+			assert.Equal(t, tc.to, stored.Subject)
+		})
+	}
+}
+
 // TestAccessPolicyCreateLeavesNothingWhenATagIsGone verifies a policy whose tag link cannot be
 // written is not kept: without the link its filter would select no device at all.
 func (s *Suite) TestAccessPolicyCreateLeavesNothingWhenATagIsGone(t *testing.T) {

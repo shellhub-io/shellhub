@@ -133,6 +133,7 @@ var Groups = []Group{
 	{Name: "AccessPolicyStore", Tests: []TestFunc{
 		(*Suite).TestAccessPolicyTagFilterRoundTrip,
 		(*Suite).TestAccessPolicyAllDevicesRoundTrip,
+		(*Suite).TestAccessPolicyUpdateStoresTheNewSubject,
 		(*Suite).TestAccessPolicyCreateLeavesNothingWhenATagIsGone,
 		(*Suite).TestAccessPolicyUpdateReplacesTheTagFilter,
 		(*Suite).TestAccessPolicySubjectMustMatchSomeone,
