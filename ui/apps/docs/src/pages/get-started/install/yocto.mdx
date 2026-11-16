@@ -53,7 +53,7 @@ SHELLHUB_PROVISIONING_KEY = "<your-provisioning-key>"
 | Variable | Default |
 |---|---|
 | `SHELLHUB_SERVER_ADDRESS` | `https://cloud.shellhub.io` |
-| `SHELLHUB_PRIVATE_KEY` | `/etc/shellhub-agent.key` |
+| `SHELLHUB_PRIVATE_KEY` | `/etc/shellhub-agent/shellhub.key` |
 | `SHELLHUB_PROVISIONING_KEY` | *(none)* |
 | `SHELLHUB_TENANT_ID` | *(none, deprecated)* |
 
@@ -77,7 +77,7 @@ There, set `SHELLHUB_TENANT_ID` instead and accept each device from Pending devi
 
 <Callout variant="info">
 The layer puts the device key at `/etc/shellhub-agent.key`. The installation
-script uses `/etc/shellhub.key` instead, so the two paths are not interchangeable if you
+script uses `/etc/shellhub-agent/shellhub.key` instead, so the two paths are not interchangeable if you
 are comparing an image build against a machine you installed by hand.
 </Callout>
 

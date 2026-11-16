@@ -2,6 +2,9 @@
 
 # Overridden variables from Go template: {{.Overrides}}
 
+# Default private key path
+DEFAULT_PRIVATE_KEY="/etc/shellhub-agent/shellhub.key"
+
 require_tenant() {
   [ -z "$TENANT_ID" ] && {
     echo "ERROR: TENANT_ID is required for this installation method."
@@ -67,7 +70,7 @@ EOF
 }
 
 tenant_file() {
-  _KEY="${PRIVATE_KEY:-/etc/shellhub.key}"
+  _KEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
 
   echo "${_KEY#/host}.tenant"
 }
@@ -315,7 +318,13 @@ podman_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CONTAINER_KEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
+    case "$_CONTAINER_KEY" in
+      /host*) ;;
+      *) _CONTAINER_KEY="/host$_CONTAINER_KEY" ;;
+    esac
+
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=$_CONTAINER_KEY"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -351,7 +360,7 @@ podman_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "podman"
-    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CKEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
     enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO podman logs --tail 50 $CONTAINER_NAME"
   fi
 }
@@ -403,7 +412,13 @@ docker_install() {
   esac
 
   if [ -z "$MODE" ]; then
-    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CONTAINER_KEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
+    case "$_CONTAINER_KEY" in
+      /host*) ;;
+      *) _CONTAINER_KEY="/host$_CONTAINER_KEY" ;;
+    esac
+
+    ARGS="$ARGS -e SHELLHUB_PRIVATE_KEY=$_CONTAINER_KEY"
 
     echo "🚀 Starting ShellHub container in Agent mode..."
   fi
@@ -439,7 +454,7 @@ docker_install() {
 
   if [ -z "$MODE" ]; then
     install_agent_wrapper "docker"
-    _CKEY="${PRIVATE_KEY:-/host/etc/shellhub.key}"
+    _CKEY="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
     enroll_agent_interactively "$SUDO $WRAPPER_PATH" "${_CKEY#/host}" "$SUDO docker logs --tail 50 $CONTAINER_NAME"
   fi
 }
@@ -484,7 +499,7 @@ snap_install() {
 
     sudo snap set shellhub server-address="$SERVER_ADDRESS"
     sudo snap set shellhub tenant-id="$TENANT_ID"
-    sudo snap set shellhub private-key="${PRIVATE_KEY:-/etc/shellhub.key}"
+    sudo snap set shellhub private-key="${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}"
 
     sudo snap start shellhub
   } || {
@@ -560,7 +575,7 @@ standalone_install() {
   AGENT_LOG_CMD=""
   command -v journalctl >/dev/null 2>&1 && AGENT_LOG_CMD="$SUDO journalctl -u shellhub-agent --no-pager -n 50 --since @$_SERVICE_STARTED"
 
-  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-/etc/shellhub.key}" "$AGENT_LOG_CMD"
+  enroll_agent_interactively "$SUDO $INSTALL_BIN" "${PRIVATE_KEY:-$DEFAULT_PRIVATE_KEY}" "$AGENT_LOG_CMD"
   _ENROLLMENT_STATUS=$?
 
   rm -rf "$TMP_DIR"
