@@ -19,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -188,6 +189,8 @@ func TestNewAgent(t *testing.T) {
 }
 
 func TestNewAgentWithConfig(t *testing.T) {
+	t.Setenv(AllowInsecureServerEnv, "")
+
 	type expected struct {
 		agent *Agent
 		err   error
@@ -226,6 +229,17 @@ func TestNewAgentWithConfig(t *testing.T) {
 			expected: expected{
 				agent: nil,
 				err:   ErrNewAgentWithConfigInvalidServerAddress,
+			},
+		},
+		{
+			description: "fail when server address is plain http and not loopback",
+			config: &Config{
+				ServerAddress: "http://shellhub.example.com",
+			},
+			mode: new(HostMode),
+			expected: expected{
+				agent: nil,
+				err:   ErrPlaintextServerAddress,
 			},
 		},
 		{
@@ -907,4 +921,108 @@ func TestInvalidConfigMessagesNamesTheEnvironmentVariable(t *testing.T) {
 			assert.Equal(t, tc.expected, InvalidConfigMessages[Config](tc.fields))
 		})
 	}
+}
+
+func TestValidateServerAddress(t *testing.T) {
+	tests := []struct {
+		description   string
+		address       string
+		allowInsecure bool
+		expected      error
+	}{
+		{description: "refuses an empty address", address: "", expected: ErrNewAgentWithConfigEmptyServerAddress},
+		{description: "refuses a relative address", address: "shellhub.example.com", expected: ErrNewAgentWithConfigInvalidServerAddress},
+		{description: "refuses an address with no scheme or host", address: "/shellhub", expected: ErrNewAgentWithConfigInvalidServerAddress},
+		{description: "refuses an http host name", address: "http://shellhub.example.com", expected: ErrPlaintextServerAddress},
+		{description: "refuses an http address", address: "http://192.0.2.10:8080", expected: ErrPlaintextServerAddress},
+		{description: "refuses an upper-case http scheme", address: "HTTP://shellhub.example.com", expected: ErrPlaintextServerAddress},
+		{description: "refuses a host name that starts like a loopback address", address: "http://127.example.com", expected: ErrPlaintextServerAddress},
+		{description: "refuses a host name that ends like localhost", address: "http://evil-localhost", expected: ErrPlaintextServerAddress},
+		{description: "accepts https", address: "https://shellhub.example.com", expected: nil},
+		{description: "accepts localhost", address: "http://localhost", expected: nil},
+		{description: "accepts an upper-case localhost", address: "http://LOCALHOST:8080", expected: nil},
+		{description: "accepts a name under localhost", address: "http://shellhub.localhost", expected: nil},
+		{description: "accepts an IPv4 loopback address", address: "http://127.0.0.1:8080", expected: nil},
+		{description: "accepts the IPv6 loopback address", address: "http://[::1]:8080", expected: nil},
+		{description: "accepts an http host name when insecure is allowed", address: "http://shellhub.example.com", allowInsecure: true, expected: nil},
+		{description: "still refuses an empty address when insecure is allowed", address: "", allowInsecure: true, expected: ErrNewAgentWithConfigEmptyServerAddress},
+		{description: "still refuses a relative address when insecure is allowed", address: "shellhub.example.com", allowInsecure: true, expected: ErrNewAgentWithConfigInvalidServerAddress},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			assert.ErrorIs(t, ValidateServerAddress(test.address, test.allowInsecure), test.expected)
+		})
+	}
+}
+
+func TestValidateServerAddressWarnsWhenItAllowsPlainHTTP(t *testing.T) {
+	hook := logtest.NewGlobal()
+	t.Cleanup(hook.Reset)
+
+	require.NoError(t, ValidateServerAddress("http://shellhub.example.com", true))
+
+	entry := hook.LastEntry()
+	require.NotNil(t, entry)
+	assert.Equal(t, log.WarnLevel, entry.Level)
+	assert.Contains(t, entry.Message, AllowInsecureServerEnv)
+	assert.Equal(t, "http://shellhub.example.com", entry.Data["server_address"])
+}
+
+func TestValidateServerAddressLogsNothingForHTTPSOrLoopbackWhenInsecureIsAllowed(t *testing.T) {
+	tests := []struct {
+		description string
+		address     string
+	}{
+		{description: "https", address: "https://shellhub.example.com"},
+		{description: "localhost", address: "http://localhost"},
+		{description: "an IPv4 loopback address", address: "http://127.0.0.1:8080"},
+		{description: "the IPv6 loopback address", address: "http://[::1]:8080"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			hook := logtest.NewGlobal()
+			t.Cleanup(hook.Reset)
+
+			require.NoError(t, ValidateServerAddress(test.address, true))
+			assert.Empty(t, hook.AllEntries())
+		})
+	}
+}
+
+func TestInsecureServerAllowed(t *testing.T) {
+	tests := []struct {
+		description string
+		value       string
+		expected    bool
+	}{
+		{description: "is off when unset", value: "", expected: false},
+		{description: "is on for true", value: "true", expected: true},
+		{description: "is on for an upper-case TRUE", value: "TRUE", expected: true},
+		{description: "is off for 1", value: "1", expected: false},
+		{description: "is off for false", value: "false", expected: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			t.Setenv(AllowInsecureServerEnv, test.value)
+
+			assert.Equal(t, test.expected, InsecureServerAllowed())
+		})
+	}
+}
+
+func TestNewAgentWithConfigAcceptsPlainHTTPWhenTheEnvironmentAllowsIt(t *testing.T) {
+	t.Setenv(AllowInsecureServerEnv, "true")
+
+	agent, err := NewAgentWithConfig(&Config{
+		ServerAddress:    "http://shellhub.example.com",
+		TenantID:         "1c462afa-e4b6-41a5-ba54-7236a1770466",
+		PrivateKey:       "/tmp/shellhub.key",
+		TransportVersion: TransportV2,
+	}, new(HostMode))
+
+	require.NoError(t, err)
+	assert.Equal(t, "http://shellhub.example.com", agent.config.ServerAddress)
 }
