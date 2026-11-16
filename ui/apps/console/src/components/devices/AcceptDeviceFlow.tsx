@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Button, Dropdown, Spinner } from "@shellhub/design-system/primitives";
+import StatusMessage from "@/components/common/StatusMessage";
 import type { Namespace, ResolveDeviceLoginCodeResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -834,19 +835,6 @@ function CommandChip() {
       />
       shellhub-agent login
     </code>
-  );
-}
-
-function StatusMessage({ label }: { label: string }) {
-  return (
-    <div
-      className="flex flex-col items-center gap-3 py-6"
-      role="status"
-      aria-live="polite"
-    >
-      <Spinner size="2xl" />
-      <p className="text-sm text-text-muted">{label}</p>
-    </div>
   );
 }
 
