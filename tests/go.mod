@@ -8,7 +8,7 @@ require (
 	github.com/containerd/errdefs v1.0.0
 	github.com/docker/cli v29.9.2+incompatible
 	github.com/docker/compose/v5 v5.7.0
-	github.com/getkin/kin-openapi v0.152.0
+	github.com/getkin/kin-openapi v0.153.0
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/hibiken/asynq v0.26.0
@@ -108,8 +108,6 @@ require (
 	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/morikuni/aec v1.1.0 // indirect
-	github.com/oasdiff/yaml v0.1.1 // indirect
-	github.com/oasdiff/yaml3 v0.0.14 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -155,7 +153,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
+	go.yaml.in/yaml/v4 v4.0.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
