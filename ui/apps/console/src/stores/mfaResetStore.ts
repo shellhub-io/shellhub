@@ -1,6 +1,27 @@
 import { create } from "zustand";
+import { isSdkError } from "../api/errors";
 import { requestResetMfa, resetMfa } from "../client";
 import { useAuthStore } from "./authStore";
+
+const mfaResetThrottledMessage =
+  "A reset was already requested in the last minute. Check both inboxes, or wait a minute and try again.";
+
+/** mfaResetRequestFailedMessage is shown when a reset request fails for any reason but a 429. */
+export const mfaResetRequestFailedMessage = "Unable to send reset emails. Please try again.";
+
+/**
+ * mfaResetCodesRejectedMessage is shown when completing a reset fails for any reason, a refused
+ * code pair or otherwise. The server cancels the codes after three pairs with one right code, so
+ * the text points the user to a new reset.
+ */
+export const mfaResetCodesRejectedMessage =
+  "Invalid verification codes. Three wrong attempts cancel the codes, so request a new reset if this keeps failing.";
+
+function mfaResetRequestError(err: unknown): string {
+  if (isSdkError(err) && err.status === 429) return mfaResetThrottledMessage;
+
+  return mfaResetRequestFailedMessage;
+}
 
 /** What the sign-in page says after an MFA reset, which signs no one in. */
 export const mfaResetNotice = "MFA is off. Sign in with your password.";
@@ -44,10 +65,10 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
         mfaResetIdentifier: identifier,
         loading: false,
       });
-    } catch {
+    } catch (err) {
       set({
         loading: false,
-        error: "Unable to send reset emails. Please check your identifier.",
+        error: mfaResetRequestError(err),
       });
       throw new Error("Reset request failed");
     }
@@ -79,7 +100,7 @@ export const useMfaResetStore = create<MfaResetState>()((set, get) => ({
     } catch {
       set({
         loading: false,
-        error: "Invalid verification codes. Please check and try again.",
+        error: mfaResetCodesRejectedMessage,
       });
       throw new Error("Invalid codes");
     }

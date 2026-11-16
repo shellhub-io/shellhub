@@ -243,6 +243,25 @@ describe("MfaDisableDialog", () => {
       }
     }
 
+    it("says a reset was already asked for when the request is throttled", async () => {
+      server.use(
+        http.post("*/api/user/mfa/reset", () =>
+          HttpResponse.json({ message: "too many requests" }, { status: 429 }),
+        ),
+      );
+      const user = renderDialog();
+
+      await navigateToEmailReset(user);
+      await user.click(
+        screen.getByRole("button", { name: /send verification codes/i }),
+      );
+
+      expect(
+        await screen.findByText(/already requested in the last minute/i),
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/Emails Sent!/i)).not.toBeInTheDocument();
+    });
+
     it("submits email codes, then signs out on the sign-in page", async () => {
       seedAuthStore();
       server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
@@ -278,7 +297,7 @@ describe("MfaDisableDialog", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/Invalid email verification codes/i),
+          screen.getByText(/Three wrong attempts cancel the codes/i),
         ).toBeInTheDocument();
       });
       expect(onSuccess).not.toHaveBeenCalled();

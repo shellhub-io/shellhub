@@ -60,7 +60,7 @@ describe("MfaResetRequest", () => {
   it("shows the store error in a Callout when the request fails", async () => {
     const mockRequest = vi.fn().mockImplementation(async () => {
       useMfaResetStore.setState({
-        error: "Unable to send reset emails. Please check your identifier.",
+        error: "Unable to send reset emails. Please try again.",
       });
       throw new Error("Reset request failed");
     });

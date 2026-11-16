@@ -95,9 +95,25 @@ describe("mfaResetStore", () => {
       const state = useMfaResetStore.getState();
       expect(state.loading).toBe(false);
       expect(state.error).toBe(
-        "Unable to send reset emails. Please check your identifier.",
+        "Unable to send reset emails. Please try again.",
       );
       expect(state.mfaResetToken).toBeNull();
+    });
+
+    it("says a reset was already asked for when the request is throttled", async () => {
+      server.use(
+        http.post("*/api/user/mfa/reset", () =>
+          HttpResponse.json({ message: "too many requests" }, { status: 429 }),
+        ),
+      );
+
+      await expect(
+        useMfaResetStore.getState().requestMfaReset("admin"),
+      ).rejects.toThrow("Reset request failed");
+
+      expect(useMfaResetStore.getState().error).toBe(
+        "A reset was already requested in the last minute. Check both inboxes, or wait a minute and try again.",
+      );
     });
   });
 
@@ -168,7 +184,7 @@ describe("mfaResetStore", () => {
       const state = useMfaResetStore.getState();
       expect(state.loading).toBe(false);
       expect(state.error).toBe(
-        "Invalid verification codes. Please check and try again.",
+        "Invalid verification codes. Three wrong attempts cancel the codes, so request a new reset if this keeps failing.",
       );
       expect(state.mfaResetToken).toBe("user-123");
     });
