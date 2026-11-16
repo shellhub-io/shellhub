@@ -102,6 +102,16 @@ A sign-in already past the password step can still send wrong codes for 30 minut
 started. The last of those can start one more lockout, so with the default cap the MFA lockout
 can last up to about 90 minutes after the password change.
 
+### MFA reset limits
+
+A reset has limits of its own, and wrong reset codes never lock you out of signing in. A pair with
+one right code and one wrong counts as a miss, so only someone who reads one of your two addresses
+can trip it. The third miss cancels both codes, and a new pair needs a new request. Asking again
+while a reset is pending emails the same codes again, at most once a minute, so someone else asking
+for a reset of your account cannot cancel yours. After a pair is cancelled, the next one waits 1
+minute, then 4, 16 and 60 minutes for each further cancellation, until a day passes without one; a
+request during the wait sends nothing.
+
 ## Where to go next
 
 - [Single Sign-On (SAML)](/manage/team/single-sign-on) — Delegating sign-in to your IdP.

@@ -9,6 +9,14 @@ put:
 
     The reset revokes every token the user holds and signs no one in: the
     user signs in afterwards with the password alone.
+
+    While the server checks a guess, it refuses another guess for the same user
+    if the two share the sign-in code or the recovery code. A guess with
+    both codes wrong never blocks a pair with a right code. A pair with one
+    right code and one wrong counts as a miss, and the third miss cancels the
+    codes, so the user requests a new pair. A pair with both codes wrong counts
+    nothing. Wrong codes, a token that names no account and a refused
+    concurrent guess all answer `403`.
   tags:
     - cloud
     - mfa
@@ -39,7 +47,5 @@ put:
       $ref: ../components/responses/401.yaml
     '403':
       $ref: ../components/responses/403.yaml
-    '404':
-      $ref: ../components/responses/404.yaml
     '500':
       $ref: ../components/responses/500.yaml

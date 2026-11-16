@@ -2,9 +2,20 @@ post:
   operationId: requestResetMFA
   summary: Request Reset MFA
   description: |
-    Sends an email to both the user's main and recovery addresses. Each email
-    contains a unique code, which remains valid for at most 1 day. The user
-    must provide both codes to reset their MFA.
+    Email one code to the account's sign-in address and another to its recovery
+    address. Both are needed to reset MFA. A new pair is valid for a day; while
+    one is pending, a request emails it again with its original expiry instead
+    of replacing it. A pair cancelled by three misses makes the next new pair
+    wait 1 minute, then 4, 16 and 60 for each further cancellation, until a day
+    passes without one; a request during the wait answers `200` and sends
+    nothing.
+
+    It answers `200` with a token whether or not the identifier names an account
+    that can reset MFA, and sends the codes only when it does. The same
+    identifier can ask once a minute; asking again sooner answers `429`. An
+    account asked for within the last minute under another identifier also gets
+    `200` and a token for it, but the server sends nothing and the earlier pair
+    stays valid.
   tags:
     - cloud
     - mfa
@@ -24,7 +35,7 @@ post:
             - identifier
   responses:
     '200':
-      description: Success to send the email.
+      description: The request was accepted.
       content:
         application/json:
           schema:
@@ -43,9 +54,11 @@ post:
       $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
-    '403':
-      $ref: ../components/responses/403.yaml
-    '404':
-      $ref: ../components/responses/404.yaml
+    '429':
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/apiError.yaml
     '500':
       $ref: ../components/responses/500.yaml
