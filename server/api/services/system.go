@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -25,8 +26,10 @@ type SystemService interface {
 
 	// SystemDownloadInstallScript renders the agent install script, injecting
 	// instance-derived defaults (notably SERVER_ADDRESS from the scheme, host and port reached
-	// names) so the user does not have to pass them on the command line. It returns the os.ReadFile
-	// error when the install.sh template cannot be read.
+	// names) so the user does not have to pass them on the command line. When the client reached the
+	// server over http and the public URL is https:// and names that host, SERVER_ADDRESS is the
+	// public URL instead. It returns the os.ReadFile error when the install.sh template cannot be
+	// read.
 	SystemDownloadInstallScript(ctx context.Context, req *requests.SystemInstallScript, reached origin.Origin) (string, error)
 }
 
@@ -88,31 +91,51 @@ func (s *service) SystemDownloadInstallScript(_ context.Context, req *requests.S
 		return "", err
 	}
 
-	return renderInstallScript(string(raw), req, reached), nil
+	return renderInstallScript(string(raw), req, reached, s.issuer), nil
 }
 
-func renderInstallScript(template string, req *requests.SystemInstallScript, reached origin.Origin) string {
-	return strings.Replace(template, "{{.Overrides}}", buildInstallOverrides(req, reached), 1)
+func renderInstallScript(template string, req *requests.SystemInstallScript, reached origin.Origin, publicURL string) string {
+	return strings.Replace(template, "{{.Overrides}}", buildInstallOverrides(req, reached, publicURL), 1)
 }
 
-func buildInstallOverrides(req *requests.SystemInstallScript, reached origin.Origin) string {
-	scheme := reached.Scheme
-	if scheme != "http" && scheme != "https" {
-		scheme = "https"
-	}
-
+func buildInstallOverrides(req *requests.SystemInstallScript, reached origin.Origin, publicURL string) string {
 	var b strings.Builder
 	b.WriteString("\n")
 
-	if address := ClientFacingAddress(scheme, reached.Host, reached.Port); address != "" {
-		writeInstallOverride(&b, "SERVER_ADDRESS", scheme+"://"+address)
-	}
+	writeInstallOverride(&b, "SERVER_ADDRESS", installServerAddress(reached, publicURL))
 
 	writeInstallOverride(&b, "TENANT_ID", req.TenantID)
 	writeInstallOverride(&b, "PREFERRED_HOSTNAME", req.PreferredHostname)
 	writeInstallOverride(&b, "PREFERRED_IDENTITY", req.PreferredIdentity)
 
 	return b.String()
+}
+
+func installServerAddress(reached origin.Origin, publicURL string) string {
+	if public, err := url.Parse(publicURL); err == nil && reached.Scheme == "http" && public.Scheme == "https" && reachedPublicHost(reached, public) {
+		return strings.TrimSuffix(publicURL, "/")
+	}
+
+	scheme := reached.Scheme
+	if scheme != "http" && scheme != "https" {
+		scheme = "https"
+	}
+
+	address := ClientFacingAddress(scheme, reached.Host, reached.Port)
+	if address == "" {
+		return ""
+	}
+
+	return scheme + "://" + address
+}
+
+func reachedPublicHost(reached origin.Origin, public *url.URL) bool {
+	host := reached.Host
+	if name, _, err := net.SplitHostPort(host); err == nil {
+		host = name
+	}
+
+	return strings.EqualFold(strings.Trim(host, "[]"), public.Hostname())
 }
 
 func writeInstallOverride(b *strings.Builder, name, value string) {
