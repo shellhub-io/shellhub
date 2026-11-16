@@ -95,9 +95,9 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        uses: ./shellhub/.github/actions/node-setup
         with:
-          node-version: "24.22.1"
+          versions-file: shellhub/versions.env
 
       - name: Install Node dependencies
         uses: ./shellhub/.github/actions/ui-deps

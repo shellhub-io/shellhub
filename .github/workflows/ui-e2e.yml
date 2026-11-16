@@ -46,6 +46,7 @@ jobs:
               - 'versions.env'
               - '.github/workflows/ui-e2e.yml'
               - '.github/workflows/ui-e2e-run.yml'
+              - '.github/actions/node-setup/**'
             images:
               - 'server/**'
               - 'agent/**'
