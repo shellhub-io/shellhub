@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { isEnterpriseOrCloud } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { isAccountPath } from "@/utils/accountRoute";
@@ -21,10 +22,12 @@ import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
  * even when reached by a link rather than the palette, that tab remembers the page it is on, and
  * a tab for a namespace the user no longer belongs to is dropped once the namespace list says so.
  * The admin console's refusal belongs to no context, so it neither opens a tab nor becomes the
- * page one returns to.
+ * page one returns to. Nor does an admin page the admin console is about to refuse, which renders
+ * once at its own path before the redirect lands.
  */
 export function useSyncWorkspaceTab(pathname: string, isAdminRoute: boolean) {
   const tenant = useAuthStore((s) => s.tenant);
+  const canEnterAdmin = useAuthStore((s) => s.isAdmin) && isEnterpriseOrCloud();
   const { namespace } = useNamespace(tenant ?? "");
   const { namespaces, isLoading, error } = useNamespaces();
 
@@ -42,6 +45,7 @@ export function useSyncWorkspaceTab(pathname: string, isAdminRoute: boolean) {
       return;
     }
     if (isAdminRoute) {
+      if (!canEnterAdmin) return;
       store.ensure(adminTab(pathname));
       store.remember(ADMIN_TAB_ID, pathname);
       return;
@@ -49,7 +53,7 @@ export function useSyncWorkspaceTab(pathname: string, isAdminRoute: boolean) {
     if (!tenant || !namespace) return;
     store.ensure(namespaceTab(tenant, namespace.name, pathname));
     store.remember(namespaceTabId(tenant), pathname);
-  }, [pathname, isAdminRoute, tenant, namespace]);
+  }, [pathname, isAdminRoute, canEnterAdmin, tenant, namespace]);
 
   useEffect(() => {
     if (isLoading || error) return;

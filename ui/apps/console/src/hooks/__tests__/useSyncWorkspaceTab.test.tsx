@@ -4,6 +4,7 @@ import { http } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { seedAuthStore } from "@/tests/seedAuthStore";
+import { setEdition } from "@/tests/edition";
 import { defaultHandlers } from "@/tests/handlers";
 import {
   ACCOUNT_TAB_ID,
@@ -24,6 +25,7 @@ function syncAt(pathname: string) {
 
 beforeEach(() => {
   seedAuthStore();
+  setEdition("community");
   useWorkspaceTabsStore.setState({ tabs: [], failures: {} });
   server.use(...defaultHandlers);
   server.use(http.get("*/api/namespaces", () => jsonWithTotal([])));
@@ -31,6 +33,8 @@ beforeEach(() => {
 
 describe("useSyncWorkspaceTab", () => {
   it("opens the admin console's tab on its pages", () => {
+    setEdition("enterprise");
+    seedAuthStore({ isAdmin: true });
     syncAt("/admin/instance");
 
     expect(useWorkspaceTabsStore.getState().tabs.map((t) => t.id)).toEqual([
