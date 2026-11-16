@@ -34,7 +34,18 @@ type UserStore interface {
 	// It returns the resolved user if found and an error, if any.
 	UserResolve(ctx context.Context, resolver UserResolver, value string, opts ...QueryOption) (*models.User, error)
 
-	UserUpdate(ctx context.Context, user *models.User) error
+	// UserUpdate writes the fields changes sets to the user userID names, and its update time,
+	// leaving every other column as it is, so a change another writer commits meanwhile is kept. It
+	// joins the transaction ctx carries, if any. Returns [ErrNoDocuments] if no user is found,
+	// [ErrDuplicate] joined with a [DuplicateFieldError] naming the field when another user holds
+	// the username or email, and the database error otherwise.
+	UserUpdate(ctx context.Context, userID string, changes *models.UserChanges) error
+
+	// UserReplacePasswordHash sets the password hash of the user userID names to hash, but only
+	// while it is still current, so a password changed since current was read is kept. It does not
+	// revoke tokens. Leaving the row as it is, because the hash moved on or no user has userID, is
+	// not an error; it returns the database error when the statement fails.
+	UserReplacePasswordHash(ctx context.Context, userID, current, hash string) error
 
 	// UserUpdatePreferredNamespace sets a user's preferred namespace (empty tenantID clears it to
 	// NULL) through a targeted write, since preferred_namespace_id is skipupdate. Returns
@@ -46,13 +57,6 @@ type UserStore interface {
 	// the database error otherwise.
 	UserUpdateOnboardingSurvey(ctx context.Context, userID string, outcome models.UserOnboardingSurvey) error
 
-	// UserUpdateEmail sets a user's email, and its update time, through a targeted write that
-	// leaves every other column as it is, so a change that commits meanwhile, a new password
-	// included, is kept. Returns [ErrNoDocuments] if no user is found, [ErrDuplicate] joined with a
-	// [DuplicateFieldError] naming "email" when another user holds the address, and the database
-	// error otherwise.
-	UserUpdateEmail(ctx context.Context, userID, email string) error
-
 	// UserGetInfo retrieves the user's information, like the owned and associated namespaces.
 	// It returns an error if the user is not part of any namespace.
 	UserGetInfo(ctx context.Context, id string) (userInfo *models.UserInfo, err error)
@@ -62,13 +66,13 @@ type UserStore interface {
 	// is found, and the database error otherwise.
 	UserRevokeTokens(ctx context.Context, userID string) error
 
-	// UserUpdateRevokingTokens saves user as UserUpdate does and revokes every token the user
+	// UserUpdateRevokingTokens writes changes as UserUpdate does and revokes every token the user
 	// holds as UserRevokeTokens does, in one transaction of its own, so a changed credential never
 	// lands while the tokens issued under the old one still work. It begins that transaction under
 	// ctx and does not join one ctx already carries. It returns the error of whichever step fails:
 	// beginning the transaction (a cancelled ctx included), either write ([ErrNoDocuments] and
 	// [ErrDuplicate] included) or the commit. Neither write is kept when it fails.
-	UserUpdateRevokingTokens(ctx context.Context, user *models.User) error
+	UserUpdateRevokingTokens(ctx context.Context, userID string, changes *models.UserChanges) error
 
 	UserDelete(ctx context.Context, user *models.User) error
 }

@@ -9486,6 +9486,75 @@ func (_c *MockStore_UserMembershipInvitationList_Call) RunAndReturn(run func(ctx
 	return _c
 }
 
+// UserReplacePasswordHash provides a mock function for the type MockStore
+func (_mock *MockStore) UserReplacePasswordHash(ctx context.Context, userID string, current string, hash string) error {
+	ret := _mock.Called(ctx, userID, current, hash)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UserReplacePasswordHash")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = returnFunc(ctx, userID, current, hash)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UserReplacePasswordHash_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserReplacePasswordHash'
+type MockStore_UserReplacePasswordHash_Call struct {
+	*mock.Call
+}
+
+// UserReplacePasswordHash is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - current string
+//   - hash string
+func (_e *MockStore_Expecter) UserReplacePasswordHash(ctx any, userID any, current any, hash any) *MockStore_UserReplacePasswordHash_Call {
+	return &MockStore_UserReplacePasswordHash_Call{Call: _e.mock.On("UserReplacePasswordHash", ctx, userID, current, hash)}
+}
+
+func (_c *MockStore_UserReplacePasswordHash_Call) Run(run func(ctx context.Context, userID string, current string, hash string)) *MockStore_UserReplacePasswordHash_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UserReplacePasswordHash_Call) Return(err error) *MockStore_UserReplacePasswordHash_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UserReplacePasswordHash_Call) RunAndReturn(run func(ctx context.Context, userID string, current string, hash string) error) *MockStore_UserReplacePasswordHash_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UserResolve provides a mock function for the type MockStore
 func (_mock *MockStore) UserResolve(ctx context.Context, resolver store.UserResolver, value string, opts ...store.QueryOption) (*models.User, error) {
 	var tmpRet mock.Arguments
@@ -9633,16 +9702,16 @@ func (_c *MockStore_UserRevokeTokens_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // UserUpdate provides a mock function for the type MockStore
-func (_mock *MockStore) UserUpdate(ctx context.Context, user *models.User) error {
-	ret := _mock.Called(ctx, user)
+func (_mock *MockStore) UserUpdate(ctx context.Context, userID string, changes *models.UserChanges) error {
+	ret := _mock.Called(ctx, userID, changes)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserUpdate")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
-		r0 = returnFunc(ctx, user)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.UserChanges) error); ok {
+		r0 = returnFunc(ctx, userID, changes)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -9656,70 +9725,13 @@ type MockStore_UserUpdate_Call struct {
 
 // UserUpdate is a helper method to define mock.On call
 //   - ctx context.Context
-//   - user *models.User
-func (_e *MockStore_Expecter) UserUpdate(ctx any, user any) *MockStore_UserUpdate_Call {
-	return &MockStore_UserUpdate_Call{Call: _e.mock.On("UserUpdate", ctx, user)}
-}
-
-func (_c *MockStore_UserUpdate_Call) Run(run func(ctx context.Context, user *models.User)) *MockStore_UserUpdate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *models.User
-		if args[1] != nil {
-			arg1 = args[1].(*models.User)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStore_UserUpdate_Call) Return(err error) *MockStore_UserUpdate_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockStore_UserUpdate_Call) RunAndReturn(run func(ctx context.Context, user *models.User) error) *MockStore_UserUpdate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UserUpdateEmail provides a mock function for the type MockStore
-func (_mock *MockStore) UserUpdateEmail(ctx context.Context, userID string, email string) error {
-	ret := _mock.Called(ctx, userID, email)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UserUpdateEmail")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, userID, email)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockStore_UserUpdateEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UserUpdateEmail'
-type MockStore_UserUpdateEmail_Call struct {
-	*mock.Call
-}
-
-// UserUpdateEmail is a helper method to define mock.On call
-//   - ctx context.Context
 //   - userID string
-//   - email string
-func (_e *MockStore_Expecter) UserUpdateEmail(ctx any, userID any, email any) *MockStore_UserUpdateEmail_Call {
-	return &MockStore_UserUpdateEmail_Call{Call: _e.mock.On("UserUpdateEmail", ctx, userID, email)}
+//   - changes *models.UserChanges
+func (_e *MockStore_Expecter) UserUpdate(ctx any, userID any, changes any) *MockStore_UserUpdate_Call {
+	return &MockStore_UserUpdate_Call{Call: _e.mock.On("UserUpdate", ctx, userID, changes)}
 }
 
-func (_c *MockStore_UserUpdateEmail_Call) Run(run func(ctx context.Context, userID string, email string)) *MockStore_UserUpdateEmail_Call {
+func (_c *MockStore_UserUpdate_Call) Run(run func(ctx context.Context, userID string, changes *models.UserChanges)) *MockStore_UserUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -9729,9 +9741,9 @@ func (_c *MockStore_UserUpdateEmail_Call) Run(run func(ctx context.Context, user
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 string
+		var arg2 *models.UserChanges
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(*models.UserChanges)
 		}
 		run(
 			arg0,
@@ -9742,12 +9754,12 @@ func (_c *MockStore_UserUpdateEmail_Call) Run(run func(ctx context.Context, user
 	return _c
 }
 
-func (_c *MockStore_UserUpdateEmail_Call) Return(err error) *MockStore_UserUpdateEmail_Call {
+func (_c *MockStore_UserUpdate_Call) Return(err error) *MockStore_UserUpdate_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockStore_UserUpdateEmail_Call) RunAndReturn(run func(ctx context.Context, userID string, email string) error) *MockStore_UserUpdateEmail_Call {
+func (_c *MockStore_UserUpdate_Call) RunAndReturn(run func(ctx context.Context, userID string, changes *models.UserChanges) error) *MockStore_UserUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -9879,16 +9891,16 @@ func (_c *MockStore_UserUpdatePreferredNamespace_Call) RunAndReturn(run func(ctx
 }
 
 // UserUpdateRevokingTokens provides a mock function for the type MockStore
-func (_mock *MockStore) UserUpdateRevokingTokens(ctx context.Context, user *models.User) error {
-	ret := _mock.Called(ctx, user)
+func (_mock *MockStore) UserUpdateRevokingTokens(ctx context.Context, userID string, changes *models.UserChanges) error {
+	ret := _mock.Called(ctx, userID, changes)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserUpdateRevokingTokens")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
-		r0 = returnFunc(ctx, user)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *models.UserChanges) error); ok {
+		r0 = returnFunc(ctx, userID, changes)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -9902,24 +9914,30 @@ type MockStore_UserUpdateRevokingTokens_Call struct {
 
 // UserUpdateRevokingTokens is a helper method to define mock.On call
 //   - ctx context.Context
-//   - user *models.User
-func (_e *MockStore_Expecter) UserUpdateRevokingTokens(ctx any, user any) *MockStore_UserUpdateRevokingTokens_Call {
-	return &MockStore_UserUpdateRevokingTokens_Call{Call: _e.mock.On("UserUpdateRevokingTokens", ctx, user)}
+//   - userID string
+//   - changes *models.UserChanges
+func (_e *MockStore_Expecter) UserUpdateRevokingTokens(ctx any, userID any, changes any) *MockStore_UserUpdateRevokingTokens_Call {
+	return &MockStore_UserUpdateRevokingTokens_Call{Call: _e.mock.On("UserUpdateRevokingTokens", ctx, userID, changes)}
 }
 
-func (_c *MockStore_UserUpdateRevokingTokens_Call) Run(run func(ctx context.Context, user *models.User)) *MockStore_UserUpdateRevokingTokens_Call {
+func (_c *MockStore_UserUpdateRevokingTokens_Call) Run(run func(ctx context.Context, userID string, changes *models.UserChanges)) *MockStore_UserUpdateRevokingTokens_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 *models.User
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].(*models.User)
+			arg1 = args[1].(string)
+		}
+		var arg2 *models.UserChanges
+		if args[2] != nil {
+			arg2 = args[2].(*models.UserChanges)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -9930,7 +9948,7 @@ func (_c *MockStore_UserUpdateRevokingTokens_Call) Return(err error) *MockStore_
 	return _c
 }
 
-func (_c *MockStore_UserUpdateRevokingTokens_Call) RunAndReturn(run func(ctx context.Context, user *models.User) error) *MockStore_UserUpdateRevokingTokens_Call {
+func (_c *MockStore_UserUpdateRevokingTokens_Call) RunAndReturn(run func(ctx context.Context, userID string, changes *models.UserChanges) error) *MockStore_UserUpdateRevokingTokens_Call {
 	_c.Call.Return(run)
 	return _c
 }

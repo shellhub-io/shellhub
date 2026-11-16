@@ -110,6 +110,23 @@ type User struct {
 	TokenVersion     int  `json:"-"`
 }
 
+// UserChanges is a partial update to a user: a nil field is left alone, which is why every field
+// is a pointer. An empty RecoveryEmail or ExternalID, and a zero LastLogin, clear the column.
+type UserChanges struct {
+	Name             *string
+	Username         *string
+	Email            *string
+	RecoveryEmail    *string
+	PasswordHash     *string
+	Status           *UserStatus
+	Admin            *bool
+	AwaitingApproval *bool
+	MaxNamespaces    *int
+	AuthMethods      *[]UserAuthMethod
+	ExternalID       *string
+	LastLogin        *time.Time
+}
+
 // UserData is the identifying half of a user, split out because these are the fields the API lets
 // a user change and the fields uniqueness is enforced on.
 type UserData struct {

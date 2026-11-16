@@ -3,6 +3,7 @@ package storetest
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -208,7 +209,10 @@ func (s *Suite) TestUserCreateDuplicate(t *testing.T) {
 	})
 }
 
-// TestUserUpdate exercises UserUpdate against the store under test.
+// TestUserUpdate checks that UserUpdate writes each field changes sets and nothing else, that an
+// empty recovery email, external ID or last login clears the column, that a username or email
+// another user holds is named in the duplicate error, and that an unknown user yields
+// ErrNoDocuments.
 func (s *Suite) TestUserUpdate(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -216,62 +220,89 @@ func (s *Suite) TestUserUpdate(t *testing.T) {
 	t.Run("fails when user is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		nonExistentID := "00000000-0000-0000-0000-000000000000"
-
-		err := st.UserUpdate(ctx, &models.User{ID: nonExistentID})
+		name := "New Value"
+		err := st.UserUpdate(ctx, "00000000-0000-0000-0000-000000000000", &models.UserChanges{Name: &name})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
-	t.Run("succeeds when user is found", func(t *testing.T) {
+	t.Run("writes every field it sets", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
 
-		err := st.UserUpdate(ctx, &models.User{
-			ID: userID,
-			UserData: models.UserData{
-				Name:     "New Value",
-				Email:    "new.value@test.com",
-				Username: "john_doe",
-			},
-			Status:   models.UserStatusNotConfirmed,
-			Password: models.UserPassword{Hash: "newhash"},
-		})
-		require.NoError(t, err)
-	})
-}
+		name, username, email, recoveryEmail := "John", "johnny", "john@new.test.com", "john@recovery.test.com"
+		hash, externalID := "newhash", "saml-subject"
+		status := models.UserStatusNotConfirmed
+		admin, awaitingApproval, maxNamespaces := true, true, 7
+		methods := []models.UserAuthMethod{models.UserAuthMethodLocal, models.UserAuthMethodSAML}
+		lastLogin := s.Clock().Now().UTC().Add(time.Hour).Truncate(time.Second)
 
-// TestUserUpdateEmail checks that UserUpdateEmail writes the email alone, keeping a password saved
-// after the user was read, refuses an address another user holds, and yields ErrNoDocuments for an
-// unknown user.
-func (s *Suite) TestUserUpdateEmail(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("fails when user is not found", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		err := st.UserUpdateEmail(ctx, "00000000-0000-0000-0000-000000000000", "nobody@test.com")
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-
-	t.Run("sets the email and keeps a password saved since the user was read", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
-
-		stale, err := st.UserResolve(ctx, store.UserIDResolver, userID)
-		require.NoError(t, err)
-
-		stale.Password = models.UserPassword{Hash: "newhash"}
-		require.NoError(t, st.UserUpdate(ctx, stale))
-
-		require.NoError(t, st.UserUpdateEmail(ctx, userID, "john@new.test.com"))
+		require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{
+			Name:             &name,
+			Username:         &username,
+			Email:            &email,
+			RecoveryEmail:    &recoveryEmail,
+			PasswordHash:     &hash,
+			Status:           &status,
+			Admin:            &admin,
+			AwaitingApproval: &awaitingApproval,
+			MaxNamespaces:    &maxNamespaces,
+			AuthMethods:      &methods,
+			ExternalID:       &externalID,
+			LastLogin:        &lastLogin,
+		}))
 
 		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)
-		assert.Equal(t, "john@new.test.com", updated.Email)
-		assert.Equal(t, "newhash", updated.Password.Hash)
+		assert.Equal(t, name, updated.Name)
+		assert.Equal(t, username, updated.Username)
+		assert.Equal(t, email, updated.Email)
+		assert.Equal(t, recoveryEmail, updated.RecoveryEmail)
+		assert.Equal(t, hash, updated.Password.Hash)
+		assert.Equal(t, status, updated.Status)
+		assert.True(t, updated.Admin)
+		assert.True(t, updated.AwaitingApproval)
+		assert.Equal(t, maxNamespaces, updated.MaxNamespaces)
+		assert.Equal(t, methods, updated.Preferences.AuthMethods)
+		assert.Equal(t, externalID, updated.ExternalID)
+		assert.WithinDuration(t, lastLogin, updated.LastLogin, time.Second)
+	})
+
+	t.Run("leaves every field it does not set", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"), WithExternalID("subject"))
+
+		before, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+
+		name := "John"
+		require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{Name: &name}))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+
+		expected := *before
+		expected.Name = name
+		assert.Equal(t, &expected, updated)
+	})
+
+	t.Run("clears the recovery email, external ID and last login when empty", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t, WithExternalID("subject"))
+
+		recoveryEmail := "recovery@test.com"
+		require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{RecoveryEmail: &recoveryEmail}))
+
+		empty, zero := "", time.Time{}
+		require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{RecoveryEmail: &empty, ExternalID: &empty, LastLogin: &zero}))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Empty(t, updated.RecoveryEmail)
+		assert.Empty(t, updated.ExternalID)
+		assert.True(t, updated.LastLogin.IsZero())
 	})
 
 	t.Run("names the email when another user holds it", func(t *testing.T) {
@@ -280,12 +311,69 @@ func (s *Suite) TestUserUpdateEmail(t *testing.T) {
 		s.CreateUser(t, WithUsername("jane_doe"), WithEmail("jane.doe@test.com"))
 		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
 
-		err := st.UserUpdateEmail(ctx, userID, "jane.doe@test.com")
+		email := "jane.doe@test.com"
+		err := st.UserUpdate(ctx, userID, &models.UserChanges{Email: &email})
 		require.ErrorIs(t, err, store.ErrDuplicate)
 
 		field, ok := store.DuplicatedField(err)
 		assert.True(t, ok)
 		assert.Equal(t, "email", field)
+	})
+
+	t.Run("names the username when another user holds it", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		s.CreateUser(t, WithUsername("jane_doe"), WithEmail("jane.doe@test.com"))
+		userID := s.CreateUser(t, WithUsername("john_doe"), WithEmail("john.doe@test.com"))
+
+		username := "jane_doe"
+		err := st.UserUpdate(ctx, userID, &models.UserChanges{Username: &username})
+		require.ErrorIs(t, err, store.ErrDuplicate)
+
+		field, ok := store.DuplicatedField(err)
+		assert.True(t, ok)
+		assert.Equal(t, "username", field)
+	})
+}
+
+// TestUserReplacePasswordHash checks that the hash is replaced only while it is still the one the
+// caller read, and that neither a moved-on hash nor an unknown user is an error.
+func (s *Suite) TestUserReplacePasswordHash(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	t.Run("replaces the hash it was given", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		require.NoError(t, st.UserReplacePasswordHash(ctx, userID, "hashedpassword", "$upgraded"))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, "$upgraded", updated.Password.Hash)
+		assert.Equal(t, 0, updated.TokenVersion)
+	})
+
+	t.Run("keeps a hash that changed since it was read", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		userID := s.CreateUser(t)
+
+		reset := "$reset"
+		require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{PasswordHash: &reset}))
+
+		require.NoError(t, st.UserReplacePasswordHash(ctx, userID, "hashedpassword", "$upgraded"))
+
+		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+		require.NoError(t, err)
+		assert.Equal(t, reset, updated.Password.Hash)
+	})
+
+	t.Run("ignores an unknown user", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		assert.NoError(t, st.UserReplacePasswordHash(ctx, "00000000-0000-0000-0000-000000000000", "old", "new"))
 	})
 }
 
@@ -320,7 +408,7 @@ func (s *Suite) TestUserRevokeTokens(t *testing.T) {
 	})
 }
 
-// TestUserUpdateRevokingTokens checks that UserUpdateRevokingTokens saves the user and advances their token
+// TestUserUpdateRevokingTokens checks that UserUpdateRevokingTokens writes the changes and advances their token
 // version together, and that an unknown user yields ErrNoDocuments.
 func (s *Suite) TestUserUpdateRevokingTokens(t *testing.T) {
 	ctx := context.Background()
@@ -329,7 +417,8 @@ func (s *Suite) TestUserUpdateRevokingTokens(t *testing.T) {
 	t.Run("fails when user is not found", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
-		err := st.UserUpdateRevokingTokens(ctx, &models.User{ID: "00000000-0000-0000-0000-000000000000"})
+		hash := "newhash"
+		err := st.UserUpdateRevokingTokens(ctx, "00000000-0000-0000-0000-000000000000", &models.UserChanges{PasswordHash: &hash})
 		assert.ErrorIs(t, err, store.ErrNoDocuments)
 	})
 
@@ -338,11 +427,8 @@ func (s *Suite) TestUserUpdateRevokingTokens(t *testing.T) {
 
 		userID := s.CreateUser(t)
 
-		user, err := st.UserResolve(ctx, store.UserIDResolver, userID)
-		require.NoError(t, err)
-
-		user.Password = models.UserPassword{Hash: "newhash"}
-		require.NoError(t, st.UserUpdateRevokingTokens(ctx, user))
+		hash := "newhash"
+		require.NoError(t, st.UserUpdateRevokingTokens(ctx, userID, &models.UserChanges{PasswordHash: &hash}))
 
 		updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 		require.NoError(t, err)

@@ -133,8 +133,8 @@ func (s *Suite) TestDeviceOffline(t *testing.T) {
 	})
 }
 
-// TestUserUpdateDoesNotClobberPreferredNamespace ensures a full-model UserUpdate carrying a stale
-// preferred_namespace_id cannot restore a preference a concurrent removal just cleared.
+// TestUserUpdateDoesNotClobberPreferredNamespace ensures a UserUpdate issued by a caller that read
+// the user earlier cannot restore a preference a concurrent removal just cleared.
 func (s *Suite) TestUserUpdateDoesNotClobberPreferredNamespace(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -151,8 +151,8 @@ func (s *Suite) TestUserUpdateDoesNotClobberPreferredNamespace(t *testing.T) {
 
 	require.NoError(t, st.UserUpdatePreferredNamespace(ctx, userID, ""))
 
-	snapshot.Name = "renamed"
-	require.NoError(t, st.UserUpdate(ctx, snapshot))
+	name := "renamed"
+	require.NoError(t, st.UserUpdate(ctx, snapshot.ID, &models.UserChanges{Name: &name}))
 
 	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 	require.NoError(t, err)
@@ -160,8 +160,8 @@ func (s *Suite) TestUserUpdateDoesNotClobberPreferredNamespace(t *testing.T) {
 	assert.Empty(t, updated.Preferences.PreferredNamespace, "concurrent preferred-namespace clear must not be clobbered")
 }
 
-// TestUserUpdateDoesNotClobberTokenVersion ensures a full-model UserUpdate carrying a stale token
-// version cannot bring back the tokens a concurrent revocation just invalidated.
+// TestUserUpdateDoesNotClobberTokenVersion ensures a UserUpdate issued by a caller that read the
+// user earlier cannot bring back the tokens a concurrent revocation just invalidated.
 func (s *Suite) TestUserUpdateDoesNotClobberTokenVersion(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -175,13 +175,79 @@ func (s *Suite) TestUserUpdateDoesNotClobberTokenVersion(t *testing.T) {
 
 	require.NoError(t, st.UserRevokeTokens(ctx, userID))
 
-	snapshot.Name = "renamed"
-	require.NoError(t, st.UserUpdate(ctx, snapshot))
+	name := "renamed"
+	require.NoError(t, st.UserUpdate(ctx, snapshot.ID, &models.UserChanges{Name: &name}))
 
 	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 	require.NoError(t, err)
 	assert.Equal(t, "renamed", updated.Name, "the intended field must still be written")
 	assert.Equal(t, 1, updated.TokenVersion, "concurrent token revocation must not be clobbered")
+}
+
+// TestUserUpdateDoesNotClobberPassword ensures a UserUpdate issued by a caller that read the user
+// before a password reset, as a sign-in in flight does, cannot write the old password back.
+func (s *Suite) TestUserUpdateDoesNotClobberPassword(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	userID := s.CreateUser(t)
+
+	snapshot, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+
+	reset := "$reset"
+	require.NoError(t, st.UserUpdateRevokingTokens(ctx, userID, &models.UserChanges{PasswordHash: &reset}))
+
+	lastLogin := s.Clock().Now().UTC().Add(time.Hour).Truncate(time.Second)
+	require.NoError(t, st.UserUpdate(ctx, snapshot.ID, &models.UserChanges{LastLogin: &lastLogin}))
+
+	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+	assert.WithinDuration(t, lastLogin, updated.LastLogin, time.Second, "the intended field must still be written")
+	assert.Equal(t, reset, updated.Password.Hash, "concurrent password reset must not be clobbered")
+}
+
+// TestUserUpdateLastLoginDoesNotClobberAccount ensures that recording a sign-in for a user read
+// before an account change keeps every column that change wrote: admin, status, email, recovery
+// email, auth methods and external ID.
+func (s *Suite) TestUserUpdateLastLoginDoesNotClobberAccount(t *testing.T) {
+	ctx := context.Background()
+	st := s.provider.Store()
+
+	require.NoError(t, s.provider.CleanDatabase(t))
+
+	userID := s.CreateUser(t)
+
+	snapshot, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+
+	admin := true
+	status := models.UserStatusNotConfirmed
+	email, recoveryEmail, externalID := "changed@test.com", "recovery@test.com", "saml-subject"
+	methods := []models.UserAuthMethod{models.UserAuthMethodSAML}
+	require.NoError(t, st.UserUpdate(ctx, userID, &models.UserChanges{
+		Admin:         &admin,
+		Status:        &status,
+		Email:         &email,
+		RecoveryEmail: &recoveryEmail,
+		AuthMethods:   &methods,
+		ExternalID:    &externalID,
+	}))
+
+	lastLogin := s.Clock().Now().UTC().Add(time.Hour).Truncate(time.Second)
+	require.NoError(t, st.UserUpdate(ctx, snapshot.ID, &models.UserChanges{LastLogin: &lastLogin}))
+
+	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
+	require.NoError(t, err)
+	assert.WithinDuration(t, lastLogin, updated.LastLogin, time.Second, "the intended field must still be written")
+	assert.True(t, updated.Admin)
+	assert.Equal(t, status, updated.Status)
+	assert.Equal(t, email, updated.Email)
+	assert.Equal(t, recoveryEmail, updated.RecoveryEmail)
+	assert.Equal(t, methods, updated.Preferences.AuthMethods)
+	assert.Equal(t, externalID, updated.ExternalID)
 }
 
 // TestUserUpdatePreferredNamespace covers the targeted preferred_namespace_id write used by login.
@@ -214,9 +280,8 @@ func (s *Suite) TestUserUpdatePreferredNamespace(t *testing.T) {
 	})
 }
 
-// TestUserUpdateDoesNotClobberOnboardingSurvey ensures a full-model UserUpdate carrying a stale
-// onboarding survey outcome, as sign-in writes one, cannot put a user back to pending after they
-// answered.
+// TestUserUpdateDoesNotClobberOnboardingSurvey ensures a UserUpdate issued by a caller that read
+// the user earlier, as sign-in does, cannot put a user back to pending after they answered.
 func (s *Suite) TestUserUpdateDoesNotClobberOnboardingSurvey(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -231,8 +296,8 @@ func (s *Suite) TestUserUpdateDoesNotClobberOnboardingSurvey(t *testing.T) {
 
 	require.NoError(t, st.UserUpdateOnboardingSurvey(ctx, userID, models.UserOnboardingSurveyAnswered))
 
-	snapshot.Name = "renamed"
-	require.NoError(t, st.UserUpdate(ctx, snapshot))
+	name := "renamed"
+	require.NoError(t, st.UserUpdate(ctx, snapshot.ID, &models.UserChanges{Name: &name}))
 
 	updated, err := st.UserResolve(ctx, store.UserIDResolver, userID)
 	require.NoError(t, err)

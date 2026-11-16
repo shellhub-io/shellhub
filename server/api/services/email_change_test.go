@@ -89,7 +89,7 @@ func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
 			},
 			mocks: func(m *storemock.MockStore) {
 				m.On("UserResolve", ctx, store.UserEmailResolver, "james@example.test").Return(nil, store.ErrNoDocuments).Once()
-				m.On("UserUpdate", ctx, renamed()).Return(nil).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Name: new("James S.")}).Return(nil).Once()
 			},
 			requested: []requestedEmailChange{{user: renamed(), email: "james@example.test"}},
 			changes:   []EmailsChange{{Before: emailChangeUser(), After: requestedBy(renamed()), EmailHeld: true}},
@@ -131,7 +131,7 @@ func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
 			hookErr: hookErr,
 			mocks: func(m *storemock.MockStore) {
 				m.On("UserResolve", ctx, store.UserEmailResolver, "james@example.test").Return(nil, store.ErrNoDocuments).Once()
-				m.On("UserUpdate", ctx, renamed()).Return(nil).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Name: new("James S.")}).Return(nil).Once()
 			},
 			requested: []requestedEmailChange{{user: renamed(), email: "james@example.test"}},
 			changes:   []EmailsChange{{Before: emailChangeUser(), After: requestedBy(renamed()), EmailHeld: true}},
@@ -144,10 +144,8 @@ func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
 			},
 			hookErr: hookErr,
 			mocks: func(m *storemock.MockStore) {
-				saved := emailChangeUser()
-				saved.RecoveryEmail = "backup@example.test"
 				m.On("UserResolve", ctx, store.UserEmailResolver, "james@example.test").Return(nil, store.ErrNoDocuments).Once()
-				m.On("UserUpdate", ctx, saved).Return(nil).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{RecoveryEmail: new("backup@example.test")}).Return(nil).Once()
 			},
 			requested: func() []requestedEmailChange {
 				saved := emailChangeUser()
@@ -169,9 +167,7 @@ func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
 				UserID: "000000000000000000000000", RecoveryEmail: "backup@example.test", CurrentPassword: "secret",
 			},
 			mocks: func(m *storemock.MockStore) {
-				saved := emailChangeUser()
-				saved.RecoveryEmail = "backup@example.test"
-				m.On("UserUpdate", ctx, saved).Return(nil).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{RecoveryEmail: new("backup@example.test")}).Return(nil).Once()
 			},
 			changes: []EmailsChange{{
 				Before: emailChangeUser(),
@@ -232,7 +228,7 @@ func TestUpdateUserWritesANewEmailWithoutAConfirmationHook(t *testing.T) {
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
-	storeMock.On("UserUpdate", ctx, saved).Return(nil).Once()
+	storeMock.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test")}).Return(nil).Once()
 
 	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
 
@@ -260,7 +256,7 @@ func TestConfirmEmailChange(t *testing.T) {
 			email:       "James@Example.test",
 			mocks: func(m *storemock.MockStore) {
 				m.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
-				m.On("UserUpdateEmail", ctx, "000000000000000000000000", "james@example.test").Return(nil).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test")}).Return(nil).Once()
 			},
 		},
 		{
@@ -292,7 +288,7 @@ func TestConfirmEmailChange(t *testing.T) {
 			email:       "james@example.test",
 			mocks: func(m *storemock.MockStore) {
 				m.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
-				m.On("UserUpdateEmail", ctx, "000000000000000000000000", "james@example.test").
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test")}).
 					Return(stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})).Once()
 			},
 			expected: NewErrUserDuplicated([]string{"email"}, stderrors.Join(store.ErrDuplicate, store.DuplicateFieldError{Field: "email"})),
@@ -302,7 +298,7 @@ func TestConfirmEmailChange(t *testing.T) {
 			email:       "james@example.test",
 			mocks: func(m *storemock.MockStore) {
 				m.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
-				m.On("UserUpdateEmail", ctx, "000000000000000000000000", "james@example.test").Return(saveErr).Once()
+				m.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test")}).Return(saveErr).Once()
 			},
 			expected: NewErrUserUpdate(emailChangeUser(), saveErr),
 		},

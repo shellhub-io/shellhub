@@ -128,7 +128,7 @@ func TestService_RegisterUser(t *testing.T) {
 					}, nil).Once()
 				storeMock.On("NamespaceGetPreferred", ctx, "invitee").
 					Return(nil, store.ErrNoDocuments).Once()
-				storeMock.On("UserUpdate", ctx, mock.AnythingOfType("*models.User")).
+				storeMock.On("UserUpdate", ctx, "invitee", mock.AnythingOfType("*models.UserChanges")).
 					Return(nil).Once()
 			},
 			expected: Expected{true, 0, nil},

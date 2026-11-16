@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
 )
 
 // UserCreate implements [store.UserStore].
@@ -110,13 +111,15 @@ func (pg *Pg) UserGetInfo(ctx context.Context, userID string) (userInfo *models.
 }
 
 // UserUpdate implements [store.UserStore].
-func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
+func (pg *Pg) UserUpdate(ctx context.Context, userID string, changes *models.UserChanges) error {
 	db := pg.GetConnection(ctx)
 
-	u := entity.UserFromModel(user)
-	u.UpdatedAt = pg.clock.Now()
+	q := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("updated_at = ?", pg.clock.Now()).
+		Where("id = ?", userID)
 
-	r, err := db.NewUpdate().Model(u).WherePK().Exec(ctx)
+	r, err := setUserChanges(q, changes).Exec(ctx)
 	if err != nil {
 		return fromSQLError(err)
 	}
@@ -124,6 +127,94 @@ func (pg *Pg) UserUpdate(ctx context.Context, user *models.User) error {
 	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
 		return store.ErrNoDocuments
 	}
+
+	return nil
+}
+
+func setUserChanges(q *bun.UpdateQuery, changes *models.UserChanges) *bun.UpdateQuery {
+	setValue := func(column string, value any) {
+		q = q.Set("? = ?", bun.Ident(column), value)
+	}
+
+	setNullable := func(column, value string) {
+		if value == "" {
+			q = q.Set("? = NULL", bun.Ident(column))
+		} else {
+			setValue(column, value)
+		}
+	}
+
+	if changes.Name != nil {
+		setValue("name", *changes.Name)
+	}
+
+	if changes.Username != nil {
+		setValue("username", *changes.Username)
+	}
+
+	if changes.Email != nil {
+		setValue("email", *changes.Email)
+	}
+
+	if changes.RecoveryEmail != nil {
+		setNullable("security_email", *changes.RecoveryEmail)
+	}
+
+	if changes.PasswordHash != nil {
+		setValue("password_digest", *changes.PasswordHash)
+	}
+
+	if changes.Status != nil {
+		setValue("status", changes.Status.String())
+	}
+
+	if changes.Admin != nil {
+		setValue("admin", *changes.Admin)
+	}
+
+	if changes.AwaitingApproval != nil {
+		setValue("awaiting_approval", *changes.AwaitingApproval)
+	}
+
+	if changes.MaxNamespaces != nil {
+		setValue("namespace_ownership_limit", *changes.MaxNamespaces)
+	}
+
+	if changes.AuthMethods != nil {
+		methods := make([]string, len(*changes.AuthMethods))
+		for i, method := range *changes.AuthMethods {
+			methods[i] = method.String()
+		}
+
+		setValue("auth_methods", pgdialect.Array(methods))
+	}
+
+	if changes.ExternalID != nil {
+		setNullable("external_id", *changes.ExternalID)
+	}
+
+	if changes.LastLogin != nil {
+		if changes.LastLogin.IsZero() {
+			q = q.Set("last_login = NULL")
+		} else {
+			setValue("last_login", *changes.LastLogin)
+		}
+	}
+
+	return q
+}
+
+// UserReplacePasswordHash implements [store.UserStore].
+func (pg *Pg) UserReplacePasswordHash(ctx context.Context, userID, current, hash string) error {
+	db := pg.GetConnection(ctx)
+
+	_, err := db.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("password_digest = ?", hash).
+		Set("updated_at = ?", pg.clock.Now()).
+		Where("id = ?", userID).
+		Where("password_digest = ?", current).
+		Exec(ctx)
 
 	return fromSQLError(err)
 }
@@ -178,27 +269,6 @@ func (pg *Pg) UserUpdateOnboardingSurvey(ctx context.Context, userID string, out
 	return nil
 }
 
-// UserUpdateEmail implements [store.UserStore].
-func (pg *Pg) UserUpdateEmail(ctx context.Context, userID, email string) error {
-	db := pg.GetConnection(ctx)
-
-	r, err := db.NewUpdate().
-		Model((*entity.User)(nil)).
-		Set("email = ?", email).
-		Set("updated_at = ?", pg.clock.Now()).
-		Where("id = ?", userID).
-		Exec(ctx)
-	if err != nil {
-		return fromSQLError(err)
-	}
-
-	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
-		return store.ErrNoDocuments
-	}
-
-	return nil
-}
-
 // UserRevokeTokens implements [store.UserStore].
 func (pg *Pg) UserRevokeTokens(ctx context.Context, userID string) error {
 	db := pg.GetConnection(ctx)
@@ -220,13 +290,13 @@ func (pg *Pg) UserRevokeTokens(ctx context.Context, userID string) error {
 }
 
 // UserUpdateRevokingTokens implements [store.UserStore].
-func (pg *Pg) UserUpdateRevokingTokens(ctx context.Context, user *models.User) error {
+func (pg *Pg) UserUpdateRevokingTokens(ctx context.Context, userID string, changes *models.UserChanges) error {
 	return pg.WithTransaction(ctx, func(ctx context.Context) error {
-		if err := pg.UserUpdate(ctx, user); err != nil {
+		if err := pg.UserUpdate(ctx, userID, changes); err != nil {
 			return err
 		}
 
-		return pg.UserRevokeTokens(ctx, user.ID)
+		return pg.UserRevokeTokens(ctx, userID)
 	})
 }
 

@@ -625,11 +625,10 @@ func TestUserResetPassword(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				expectedUser := *user
-				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
+				hash := "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"
 
 				mock.
-					On("UserUpdateRevokingTokens", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, user.ID, &models.UserChanges{PasswordHash: &hash}).
 					Return(errors.New("error")).
 					Once()
 			},
@@ -649,11 +648,10 @@ func TestUserResetPassword(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				expectedUser := *user
-				expectedUser.Password = models.UserPassword{Plain: "secret", Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"}
+				hash := "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"
 
 				mock.
-					On("UserUpdateRevokingTokens", ctx, &expectedUser).
+					On("UserUpdateRevokingTokens", ctx, user.ID, &models.UserChanges{PasswordHash: &hash}).
 					Return(nil).
 					Once()
 			},
