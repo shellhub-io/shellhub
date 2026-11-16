@@ -40,9 +40,19 @@ See [How a device enrols](/manage/devices#how-a-device-enrols) for how these int
 |---|---|---|
 | `SHELLHUB_KEEPALIVE_INTERVAL` | `30` | Seconds between keepalives |
 | `SHELLHUB_TRANSPORT_VERSION` | `2` | Transport. `1` uses HTTP-based revdial; `2` uses yamux multiplexing with multistream |
+| `SHELLHUB_ALLOW_INSECURE_SERVER` | `false` | `true` lets the agent connect to a plain `http://` server address. Also read by the Docker connector |
 
 Leave the transport at its default unless you are working around something specific. Version 1
 exists for compatibility with older servers.
+
+The agent refuses a plain `http://` server address unless its host is loopback (`localhost`, a
+name under `.localhost`, or a loopback IP). It checks no credential of its own for a public-key
+login and accepts the login when the server vouches for it, so over plain `http://` anyone on the
+network path between the device and the server can impersonate the server, get a root shell on the
+device and read its device token. `SHELLHUB_ALLOW_INSECURE_SERVER=true` accepts that risk: the
+agent connects and logs a warning. To install over plain `http://`, pass it to the install command,
+as in `curl -sSf http://shellhub.example.com/install.sh | SHELLHUB_ALLOW_INSECURE_SERVER=true sh`,
+and the script hands it to the agent. The snap install method cannot carry it.
 
 ## Identification
 

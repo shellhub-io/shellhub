@@ -64,6 +64,16 @@ SHELLHUB_POSTGRES_PASSWORD=<something-that-is-not-admin>
 At minimum, set the domain and change the database password. Every variable is in
 [Environment Variables](/selfhosted/environment-variables).
 
+<Callout variant="warning">
+Devices on other machines connect over `https://`. Without `SHELLHUB_AUTO_SSL=true`, a TLS
+certificate of your own, or a proxy that terminates TLS in front of the gateway with
+`SHELLHUB_PUBLIC_URL` set to its `https://` URL, ShellHub serves plain `http://`, and both the
+install script and the agent refuse it. The agent trusts the server to authorize public-key logins,
+so over plain `http://` anyone on the network path between a device and the server could
+impersonate the server and get a root shell on the device. `SHELLHUB_ALLOW_INSECURE_SERVER=true` on
+the install command accepts that risk; see [Agent Configuration](/get-started/agent-configuration).
+</Callout>
+
 ## 4. Start
 
 ```bash
