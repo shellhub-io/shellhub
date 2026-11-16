@@ -14,13 +14,17 @@ vi.mock("../AccessPolicyModal", () => ({
     open ? <div data-testid="policy-modal" /> : null,
 }));
 
+function renderPage() {
+  return render(<AccessPolicies />, {
+    wrapper: createTestWrapper({ initialEntries: ["/"] }),
+  });
+}
+
 function renderList(policies: AccessPolicy[]) {
   server.use(
     http.get("*/api/access-policies", () => HttpResponse.json(policies)),
   );
-  return render(<AccessPolicies />, {
-    wrapper: createTestWrapper({ initialEntries: ["/"] }),
-  });
+  return renderPage();
 }
 
 beforeEach(() => {
@@ -89,5 +93,19 @@ describe("AccessPolicies", () => {
     await user.keyboard("{Escape}");
     await user.click(screen.getByText("all"));
     expect(await screen.findByTestId("policy-modal")).toBeInTheDocument();
+  });
+});
+
+describe("AccessPolicies — list error", () => {
+  it("does not show the empty-namespace splash when the list fails to load", async () => {
+    server.use(
+      http.get("*/api/access-policies", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    renderPage();
+
+    await screen.findByRole("alert");
+    expect(screen.queryByText("Subject-based")).not.toBeInTheDocument();
   });
 });

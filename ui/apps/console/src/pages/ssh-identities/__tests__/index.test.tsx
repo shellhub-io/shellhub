@@ -43,6 +43,10 @@ function renderList(identities: SshIdentity[]) {
     http.get("*/api/ssh-identities", () => HttpResponse.json(identities)),
   );
 
+  return renderPage();
+}
+
+function renderPage() {
   return render(
     <MemoryRouter>
       <SSHIdentities />
@@ -240,5 +244,21 @@ describe("SSHIdentities", () => {
       await dialog.findByRole("button", { name: "Copied" }),
     ).toBeInTheDocument();
     expect(await navigator.clipboard.readText()).toBe("ABCD2345");
+  });
+});
+
+describe("SSHIdentities — list error", () => {
+  it("does not show the first-key splash when the list fails to load", async () => {
+    server.use(
+      http.get("*/api/ssh-identities", () =>
+        HttpResponse.json({}, { status: 500 }),
+      ),
+    );
+    renderPage();
+
+    await screen.findByRole("alert");
+    expect(
+      screen.queryByText(/A key becomes an identity the first time/),
+    ).not.toBeInTheDocument();
   });
 });
