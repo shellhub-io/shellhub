@@ -2928,6 +2928,59 @@ func (_c *MockService_DepartNamespaceMember_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// DeriveKey provides a mock function for the type MockService
+func (_mock *MockService) DeriveKey(purpose string) []byte {
+	ret := _mock.Called(purpose)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeriveKey")
+	}
+
+	var r0 []byte
+	if returnFunc, ok := ret.Get(0).(func(string) []byte); ok {
+		r0 = returnFunc(purpose)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+	return r0
+}
+
+// MockService_DeriveKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeriveKey'
+type MockService_DeriveKey_Call struct {
+	*mock.Call
+}
+
+// DeriveKey is a helper method to define mock.On call
+//   - purpose string
+func (_e *MockService_Expecter) DeriveKey(purpose any) *MockService_DeriveKey_Call {
+	return &MockService_DeriveKey_Call{Call: _e.mock.On("DeriveKey", purpose)}
+}
+
+func (_c *MockService_DeriveKey_Call) Run(run func(purpose string)) *MockService_DeriveKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeriveKey_Call) Return(bytes []byte) *MockService_DeriveKey_Call {
+	_c.Call.Return(bytes)
+	return _c
+}
+
+func (_c *MockService_DeriveKey_Call) RunAndReturn(run func(purpose string) []byte) *MockService_DeriveKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EditNamespace provides a mock function for the type MockService
 func (_mock *MockService) EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error) {
 	ret := _mock.Called(ctx, sc, req)
