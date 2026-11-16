@@ -29,6 +29,7 @@ In **Add Device**, open **Fleet** and click **New key**. A key has:
 | **Expiration** | A date after which the key stops enrolling, or never |
 | **Usage limit** | Single-use, a number of devices, or unlimited |
 | **Ephemeral** | Whether devices enrolled with it are removed after a spell offline |
+| **Replace offline devices** | Whether a device enrolling with it may replace an offline device that reports the same identity. On by default |
 | **Tags** | Applied to every device enrolling with the key |
 
 The key is not copy-once. It is stored encrypted and can be read again: open a key in the Fleet
@@ -46,11 +47,19 @@ Or as an agent variable, `SHELLHUB_PROVISIONING_KEY`, which is how it goes into 
 [Yocto](/get-started/install/yocto) or [Buildroot](/get-started/install/buildroot) image.
 
 The key only matters while the server does not know the device. On first start the agent
-generates its own private key, and the server recognizes the device by that key together with its
-hostname and MAC address. The agent keeps presenting the provisioning key, so a removed or
+generates its own private key, and the server recognizes the device by that key together with the
+identity it reports, its MAC address unless `SHELLHUB_PREFERRED_IDENTITY` sets another. The agent keeps presenting the provisioning key, so a removed or
 ephemeral device can enroll again, but for a device the server already knows the key decides
-nothing. A device whose hostname or MAC address changes is a new device to the server, and
-enrolling it counts against the key's usage limit.
+nothing. A device whose key or identity changes is a new device to the server, and enrolling it
+counts against the key's usage limit.
+
+There is one case where the key decides about a device the server knows. When the key accepts a
+device that reports the same identity as an accepted device that is offline, the new device
+replaces the old one. It takes its name and session history, and the server deletes the old
+entry. That is what lets a reflashed unit come back under its old name with nobody accepting it. Turn
+off **Replace offline devices** to have the key leave such a device in **Pending** instead, for a
+member allowed to remove devices to decide. See [Replacing an offline
+device](/manage/devices#replacing-an-offline-device).
 
 ## Modes
 
@@ -201,11 +210,16 @@ pending under it.
 ## Treating a key as a secret
 
 A key in an image is a credential you shipped. Anyone with the image has it, and on `automatic`
-a leaked key puts the leaker's machine in your namespace already accepted.
+a leaked key puts the leaker's machine in your namespace already accepted. The identity a device
+reports is its own claim, so that machine can also report the identity of one of your devices
+while it is offline and replace it, taking its name. Members who connect to that name then reach
+the leaker's machine.
 
 - Scope narrowly — per product line or batch, not one key for everything.
 - Cap each batch's key with a usage limit and an expiration.
 - Rotate when a batch is done.
+- Turn off **Replace offline devices** on a key you cannot keep secret, so a leaked copy cannot
+  replace an existing device.
 - Prefer `webhook` or `allowlist` over `automatic` when the images go somewhere you do not control.
 - Check the key's page when the device list grows in a way you did not expect.
 

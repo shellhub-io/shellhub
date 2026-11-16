@@ -60,16 +60,45 @@ that stays offline has a real cause — see
 
 ## What identifies a device
 
-The agent's **private key**, at `SHELLHUB_PRIVATE_KEY`. Not the hostname, not the MAC, not the IP.
+The agent's **private key**, at `SHELLHUB_PRIVATE_KEY`, together with the identity it reports. The
+identity is the MAC address, or `SHELLHUB_PREFERRED_IDENTITY` when set. Not the hostname, not the
+IP. The identity also decides whether accepting a new device replaces an old one, covered in
+[Replacing an offline device](#replacing-an-offline-device).
 
 The consequences are worth internalizing:
 
 - Rename the machine and it is the same device.
 - Move it to another network and it is the same device.
-- Lose the key — reflash, recreate the container, wipe the volume — and it is a **new** device,
-  and the old entry stays behind.
+- Lose the key with a reflash, a recreated container or a wiped volume, and it is a **new**
+  device. The old entry stays behind, unless the new device reports the same identity and accepting it
+  replaces the old one, as described below.
 
 Most confusing device lists are the result of that last one.
+
+## Replacing an offline device
+
+A device also reports an identity, which is its MAC address, or the value of
+`SHELLHUB_PREFERRED_IDENTITY` when the agent sets it. The server does not verify it.
+
+When a pending device is accepted and an accepted device in the namespace reports the same
+identity and is offline, the new device replaces the old one. It takes the old device's name and
+session history, and the server deletes the old entry with its tags and custom fields. This is how
+a reflashed machine keeps its name and history. It also means a device that claims another device's
+identity takes over its name, and `ssh user@namespace.name` reaches the new machine from then on.
+
+Who can make that happen:
+
+- **Accepting by hand, or accepting a pairing code**, replaces a device only for a member allowed
+  to remove devices. An operator gets a refusal and the old device stays. The console names the
+  device an accept replaces before you confirm. Through the API, the accept must also send
+  `"replace": true`, or it is refused with a 409 naming the device it would replace.
+- **A provisioning key** replaces by default. Turn off **Replace offline devices** on a key you do
+  not trust with that, and its devices wait in **Pending** instead.
+- **An old device that is connected** is never replaced. The accept is refused until its agent
+  stops.
+
+The device's page shows the device it replaced and when. The provisioning key's history lists every
+replacement as an entry of its own, and keeps it after the old entry is gone.
 
 ## Names
 
