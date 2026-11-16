@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -213,8 +212,10 @@ func (s *service) updateTag(ctx context.Context, req *requests.UpdateTag) (*mode
 		return nil, NewErrTagNotFound(req.Name, err)
 	}
 
+	renamed := req.NewName != "" && req.NewName != tag.Name
+
 	conflictsAttrs := &models.TagConflicts{}
-	if req.NewName != "" && req.NewName != req.Name {
+	if renamed {
 		conflictsAttrs.Name = req.NewName
 	}
 
@@ -226,7 +227,7 @@ func (s *service) updateTag(ctx context.Context, req *requests.UpdateTag) (*mode
 		return nil, NewErrTagDuplicated(conflicts, err)
 	}
 
-	if req.NewName != "" && !strings.EqualFold(req.NewName, tag.Name) {
+	if renamed {
 		tag.Name = req.NewName
 	}
 
