@@ -24,6 +24,7 @@ func TestBuildInstallOverrides(t *testing.T) {
 	cases := []struct {
 		description string
 		reached     origin.Origin
+		publicURL   string
 		req         *requests.SystemInstallScript
 		contains    []string
 		excludes    []string
@@ -103,6 +104,41 @@ func TestBuildInstallOverrides(t *testing.T) {
 			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://[::1]:8080'"},
 		},
 		{
+			description: "uses an https public URL when TLS ends at a proxy in front of the gateway",
+			reached:     origin.Origin{Host: "shellhub.example.com", Port: "80", Scheme: "http"},
+			publicURL:   "https://shellhub.example.com",
+			req:         &requests.SystemInstallScript{},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://shellhub.example.com'"},
+		},
+		{
+			description: "keeps the port of an https public URL",
+			reached:     origin.Origin{Host: "Shellhub.example.com:8080", Scheme: "http"},
+			publicURL:   "https://shellhub.example.com:8443/",
+			req:         &requests.SystemInstallScript{},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://shellhub.example.com:8443'"},
+		},
+		{
+			description: "keeps the host reached when the https public URL names another host",
+			reached:     origin.Origin{Host: "10.0.0.5:8080", Scheme: "http"},
+			publicURL:   "https://shellhub.example.com",
+			req:         &requests.SystemInstallScript{},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://10.0.0.5:8080'"},
+		},
+		{
+			description: "keeps a non-default https port reached when the https public URL names none",
+			reached:     origin.Origin{Host: "shellhub.example.com:8443", Port: "8443", Scheme: "https"},
+			publicURL:   "https://shellhub.example.com",
+			req:         &requests.SystemInstallScript{},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='https://shellhub.example.com:8443'"},
+		},
+		{
+			description: "keeps the scheme reached when the public URL is http",
+			reached:     origin.Origin{Host: "shellhub.example.com", Port: "8080", Scheme: "http"},
+			publicURL:   "http://shellhub.example.com:8080",
+			req:         &requests.SystemInstallScript{},
+			contains:    []string{"[ -n \"${SERVER_ADDRESS:-}\" ] || SERVER_ADDRESS='http://shellhub.example.com:8080'"},
+		},
+		{
 			description: "injects the optional query overrides when present",
 			reached:     origin.Origin{Host: "cloud.example.com", Scheme: "https"},
 			req: &requests.SystemInstallScript{
@@ -124,7 +160,7 @@ func TestBuildInstallOverrides(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
-			out := buildInstallOverrides(tc.req, tc.reached)
+			out := buildInstallOverrides(tc.req, tc.reached, tc.publicURL)
 
 			assert.Equal(tt, "\n", out[:1], "the block is spliced onto install.sh's comment line, so it must open with a newline")
 
@@ -337,7 +373,7 @@ printf 'PREFERRED_IDENTITY=%s\036' "${PREFERRED_IDENTITY:-}"
 			dir := tt.TempDir()
 
 			//nolint:gosec // G204: running the generated prologue under a shell is the assertion
-			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req, tc.reached)+probe)
+			cmd := exec.CommandContext(tt.Context(), "sh", "-c", buildInstallOverrides(tc.req, tc.reached, "")+probe)
 			cmd.Dir = dir
 			cmd.Env = []string{"PATH=" + os.Getenv("PATH")} //nolint:forbidigo // the shell under test needs the runner's PATH to find its tools
 
@@ -381,7 +417,7 @@ func TestInstallScriptRendersAValidShellScript(t *testing.T) {
 		TenantID:          "x$(touch pwned)",
 		PreferredHostname: "host`touch pwned`",
 		PreferredIdentity: "a'\"\ntouch pwned\n#",
-	}, origin.Origin{Host: "cloud.example.com$(touch pwned)", Scheme: "https"})
+	}, origin.Origin{Host: "cloud.example.com$(touch pwned)", Scheme: "https"}, "")
 
 	require.NotContains(t, script, "{{.Overrides}}", "the marker must be replaced, not left in the served script")
 
