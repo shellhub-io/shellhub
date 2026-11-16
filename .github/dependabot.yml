@@ -43,6 +43,8 @@ updates:
         - "react-dom"
         - "@types/react"
         - "@types/react-dom"
+  ignore:
+    - dependency-name: "@redocly/cli"
 
 - package-ecosystem: gomod
   directories:

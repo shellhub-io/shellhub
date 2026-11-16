@@ -191,6 +191,17 @@ jobs:
             redocly bundle "${edition}-customer@v1" -o "/tmp/${edition}-customer.json"
           done
 
+      - name: Check the Redocly CLI versions match
+        if: ${{ !cancelled() }}
+        run: |
+          PINNED=$(sed -n 's/^REDOCLY_VERSION=//p' versions.env)
+          LOCKED=$(jq -r '.packages["node_modules/@redocly/cli"].version // empty' ui/package-lock.json)
+          DECLARED=$(jq -r '.devDependencies["@redocly/cli"] // empty' ui/apps/docs/package.json)
+          if [ "$PINNED" != "$LOCKED" ] || [ "$PINNED" != "$DECLARED" ]; then
+            echo "@redocly/cli differs: versions.env REDOCLY_VERSION=$PINNED, ui/apps/docs/package.json $DECLARED, ui/package-lock.json $LOCKED"
+            exit 1
+          fi
+
       - name: Install bats
         if: ${{ !cancelled() }}
         id: bats
