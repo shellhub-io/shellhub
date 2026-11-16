@@ -125,7 +125,7 @@ describe("request interceptor", () => {
 
   it.each([
     ["a token login", "?token=abc"],
-    ["an SSO code redemption", "?sso_code=abc"],
+    ["an SSO sign-in collection", "?sso=complete"],
     ["an SSO restart", "?sso=start"],
   ])("leaves an expired token to the page during %s", async (_, search) => {
     vi.useFakeTimers();
@@ -201,8 +201,8 @@ describe("response interceptor", () => {
     expect(window.location.href).toBe("");
   });
 
-  it("stays on the page on 401 from a spent SSO code, so the page can say why", async () => {
-    setLocation("?sso_code=spent");
+  it("stays on the page on 401 from a spent SSO sign-in, so the page can say why", async () => {
+    setLocation("?sso=complete");
     respondWith(401);
 
     await client.post({ url: "/api/user/saml/token" });

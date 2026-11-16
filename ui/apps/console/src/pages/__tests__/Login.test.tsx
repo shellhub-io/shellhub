@@ -11,11 +11,7 @@ import {
   setPendingDeviceCode,
 } from "@/utils/navigation";
 import { mockInfo, mockUserAuth } from "@/tests/factories";
-import {
-  EXPIRED_JWT,
-  VALID_JWT,
-  jwtExpiringAt,
-} from "@/tests/seedAuthStore";
+import { EXPIRED_JWT, VALID_JWT, jwtExpiringAt } from "@/tests/seedAuthStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import Login from "../Login";
 import { getConfig, defaultConfig } from "@/env";
@@ -168,7 +164,9 @@ describe("Login", () => {
       await waitFor(() => expect(resolveHandler).toBeTypeOf("function"));
       resolveHandler();
       await clickPromise;
-      await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/dashboard"));
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/dashboard"),
+      );
     });
   });
 
@@ -228,7 +226,9 @@ describe("Login", () => {
       renderLogin();
       await fillAndSubmit();
 
-      expect(await screen.findByText(/something went wrong\./i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/something went wrong\./i),
+      ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -287,9 +287,17 @@ describe("Login", () => {
 
       await act(() => vi.advanceTimersByTimeAsync(61_000));
 
-      expect(screen.getByText(/your timeout has finished/i)).toBeInTheDocument();
-      expect(screen.queryByText(/too many failed login attempts/i)).not.toBeInTheDocument();
-      server.use(http.post("*/api/login", () => HttpResponse.json(mockUserAuth({ token: "jwt" }))));
+      expect(
+        screen.getByText(/your timeout has finished/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/too many failed login attempts/i),
+      ).not.toBeInTheDocument();
+      server.use(
+        http.post("*/api/login", () =>
+          HttpResponse.json(mockUserAuth({ token: "jwt" })),
+        ),
+      );
       await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     });
@@ -330,7 +338,7 @@ describe("Login", () => {
   describe("a token in the URL", () => {
     it.each([
       ["a token from Login as User", `/login?token=${VALID_JWT}`],
-      ["a code from an SSO sign-in", "/login?sso_code=signin-code"],
+      ["a finished SSO sign-in", "/login?sso=complete"],
     ])(
       "signs in with %s over another live session, staying on the page until it does",
       async (_, path) => {
@@ -490,31 +498,29 @@ describe("Login", () => {
         sessionStorage.clear();
       });
 
-      it("redeems the code for the session and opens the dashboard", async () => {
+      it("collects the session the server kept for this browser and opens the dashboard", async () => {
         const redeemed = vi.fn();
         server.use(
           http.post("*/api/user/saml/token", async ({ request }) => {
-            redeemed(await request.json());
+            redeemed(await request.text());
             return HttpResponse.json(mockUserAuth({ token: VALID_JWT }));
           }),
           http.get("*/api/auth/user", () =>
             HttpResponse.json(mockUserAuth({ token: VALID_JWT })),
           ),
         );
-        renderLogin("/login?sso_code=signin-code");
+        renderLogin("/login?sso=complete");
 
         await waitFor(() =>
           expect(mockNavigate).toHaveBeenCalledWith("/dashboard", {
             replace: true,
           }),
         );
-        expect(redeemed).toHaveBeenCalledExactlyOnceWith({
-          code: "signin-code",
-        });
+        expect(redeemed).toHaveBeenCalledExactlyOnceWith("");
         expect(useAuthStore.getState().token).toBe(VALID_JWT);
       });
 
-      it("asks the server again for a code it already redeemed in this tab", async () => {
+      it("asks the server again for a sign-in it already collected in this tab", async () => {
         const redeemed = vi.fn();
         server.use(
           http.post("*/api/user/saml/token", () => {
@@ -527,12 +533,12 @@ describe("Login", () => {
             HttpResponse.json(mockUserAuth({ token: VALID_JWT })),
           ),
         );
-        const { unmount } = renderLogin("/login?sso_code=signin-code");
+        const { unmount } = renderLogin("/login?sso=complete");
         await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
         unmount();
         act(() => useAuthStore.getState().logout());
 
-        renderLogin("/login?sso_code=signin-code");
+        renderLogin("/login?sso=complete");
 
         expect(
           await screen.findByText(/failed to complete the sso sign-in/i),
@@ -558,7 +564,7 @@ describe("Login", () => {
 
         try {
           renderLogin("/login?sso=start").unmount();
-          const { unmount } = renderLogin("/login?sso_code=signin-code");
+          const { unmount } = renderLogin("/login?sso=complete");
           await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
           unmount();
           act(() => useAuthStore.getState().logout());
@@ -576,14 +582,14 @@ describe("Login", () => {
         }
       });
 
-      it("shows an error when the code cannot be redeemed", async () => {
+      it("shows an error when the sign-in cannot be collected", async () => {
         server.use(
           http.post("*/api/user/saml/token", () =>
             HttpResponse.json({}, { status: 401 }),
           ),
         );
 
-        renderLogin("/login?sso_code=spent-code");
+        renderLogin("/login?sso=complete");
 
         expect(
           await screen.findByText(/failed to complete the sso sign-in/i),
@@ -631,9 +637,7 @@ describe("Login", () => {
 
         renderLogin("/login?sso=start");
 
-        expect(
-          await screen.findByText(/did not request/i),
-        ).toBeInTheDocument();
+        expect(await screen.findByText(/did not request/i)).toBeInTheDocument();
         expect(window.location.replace).toHaveBeenCalledTimes(1);
       });
 

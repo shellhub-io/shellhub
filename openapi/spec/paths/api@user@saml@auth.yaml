@@ -20,6 +20,9 @@ get:
   responses:
     '200':
       description: Successfully retrieved the SAML authentication URL
+      headers:
+        Set-Cookie:
+          $ref: ../components/headers/SamlBrowserCookie.yaml
       content:
         application/json:
           schema:
@@ -56,9 +59,11 @@ post:
     sign-in of its own: an IdP-initiated sign-in, a request that expired or
     was already answered, a replayed assertion.
 
-    Without a `RelayState`, it signs the user in and redirects to `/login` with a
-    one-time code in `sso_code`, which the console redeems at
-    `/api/user/saml/token`, or with the attributes the assertion is missing. With a
+    Without a `RelayState`, it signs the user in and redirects to
+    `/login?sso=complete`, where the console collects the session at
+    `/api/user/saml/token` from the browser that started the request, or to
+    `/login` with the attributes the assertion is missing. A sign-in response to a
+    request no browser started redirects to `/login?sso=start`. With a
     `RelayState`, it answers a re-authentication started at
     `/api/user/saml/reauth` and redirects to `/sso-reauth` with `status=ok` and
     the confirmation code that approves the SSH login, or with `status=error`.

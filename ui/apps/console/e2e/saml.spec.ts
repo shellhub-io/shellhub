@@ -25,6 +25,7 @@ import {
   autoSubmitSignOnResponse,
   buildSamlUser,
   buildSignOnResponse,
+  collectSignIn,
   disableSaml,
   enableSaml,
   identityProvider,
@@ -417,9 +418,8 @@ test.describe("SAML", instanceWide, () => {
     });
 
     test("a replayed SAML response starts a new sign-in instead of signing in", async () => {
-      const { action, samlResponse } = await buildSignOnResponse(
-        buildSamlUser(),
-      );
+      const { action, samlResponse } =
+        await buildSignOnResponse(buildSamlUser());
       const landing = async () => {
         const response = await postSignOnResponse(action, samlResponse);
         expect(response.status).toBe(303);
@@ -431,10 +431,32 @@ test.describe("SAML", instanceWide, () => {
 
       const first = await landing();
       expect(first.pathname).toBe("/login");
-      expect(first.searchParams.has("sso_code")).toBe(true);
+      expect(first.searchParams.get("sso")).toBe("complete");
       const replayed = await landing();
       expect(replayed.pathname).toBe("/login");
       expect(replayed.searchParams.get("sso")).toBe("start");
+    });
+
+    test("a SAML response posted from another browser signs no one in there", async () => {
+      const { action, samlResponse, browserCookie } =
+        await buildSignOnResponse(buildSamlUser());
+      const response = await postSignOnResponse(action, samlResponse);
+      expect(response.status).toBe(303);
+      const location = new URL(
+        required(response.headers.get("location"), "a redirect"),
+        action,
+      );
+      expect(location.search).toBe("?sso=complete");
+
+      const otherBrowser = await buildSignOnResponse(buildSamlUser());
+      expect(
+        (await collectSignIn(otherBrowser.browserCookie)).response?.status,
+      ).toBe(401);
+      expect((await collectSignIn()).response?.status).toBe(401);
+
+      const { data } = await collectSignIn(browserCookie);
+      expect(data?.token).toBeTruthy();
+      expect((await collectSignIn(browserCookie)).response?.status).toBe(401);
     });
 
     test("a SAML sign-in with a local account's email signs in to that account", async ({
@@ -523,6 +545,27 @@ test.describe("SAML", instanceWide, () => {
 
       await signInThroughEndpoint(page, signOnURLs.redirect);
     });
+
+    for (const [name, binding, endpoint] of [
+      ["redirect", { redirect: signOnURLs.redirect }, signOnURLs.redirect],
+      ["POST", { post: signOnURLs.post }, signOnURLs.post],
+    ] as const) {
+      test(`the admin's test link signs in under the ${name} binding`, async ({
+        page,
+      }) => {
+        await enableSaml({ binding });
+        const settings = await readSamlSettings();
+        expect(settings?.auth_url).toBe("/api/user/saml/request");
+        const user = buildSamlUser();
+        const requests = await answerSignOn(page.context(), user);
+
+        const token = waitForSessionToken(page.context());
+        await page.goto(required(settings?.auth_url, "a SAML test link"));
+
+        expect((await readSessionUser(await token)).email).toBe(user.email);
+        expect(endpointOf(requests[0].url)).toBe(endpoint);
+      });
+    }
 
     test("the POST binding sends the request to the POST endpoint", async ({
       page,

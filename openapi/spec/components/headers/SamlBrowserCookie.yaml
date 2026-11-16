@@ -1,0 +1,7 @@
+description: |
+  The browser's name for this sign-in, a new random value each time:
+  `__Host-shellhub_saml_browser` (Secure, `Path=/`) when the browser
+  reached ShellHub over HTTPS, `shellhub_saml_browser` (`Path=/api/user/saml`)
+  otherwise. `/api/user/saml/token` collects the sign-in with it.
+schema:
+  type: string
