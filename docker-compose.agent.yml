@@ -19,6 +19,7 @@ services:
     network_mode: service:server
     environment:
       - SHELLHUB_SERVER_ADDRESS=http://${SHELLHUB_DOMAIN}
+      - SHELLHUB_ALLOW_INSECURE_SERVER=true
       - SHELLHUB_PRIVATE_KEY=/go/src/github.com/shellhub-io/shellhub/agent/shellhub.key
       - SHELLHUB_TENANT_ID=00000000-0000-4000-0000-000000000000
       - SHELLHUB_PREFERRED_HOSTNAME=${SHELLHUB_DEV_AGENT_NAME:-shellhub}

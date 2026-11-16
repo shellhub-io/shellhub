@@ -209,6 +209,11 @@ func main() {
 				agentd.FatalInvalidConfig[ConfigConnector](fields, err)
 			}
 
+			if err := agentd.ValidateServerAddress(cfg.ServerAddress, agentd.InsecureServerAllowed()); err != nil {
+				log.WithError(err).WithField("server_address", cfg.ServerAddress).
+					Fatal("Failed to create ShellHub Agent Connector")
+			}
+
 			logger := log.WithFields(
 				log.Fields{
 					"address":      cfg.ServerAddress,

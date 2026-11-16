@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/spf13/cobra"
 )
@@ -37,13 +38,14 @@ WantedBy=multi-user.target
 `
 
 type installerConfig struct {
-	ServerAddress     string
-	TenantID          string
-	PrivateKey        string
-	ProvisioningKey   string
-	PreferredHostname string
-	PreferredIdentity string
-	KeepaliveInterval uint
+	ServerAddress       string
+	AllowInsecureServer bool
+	TenantID            string
+	PrivateKey          string
+	ProvisioningKey     string
+	PreferredHostname   string
+	PreferredIdentity   string
+	KeepaliveInterval   uint
 }
 
 func registerInstallerCommands(rootCmd *cobra.Command) {
@@ -55,6 +57,13 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 			flags := cmd.Flags()
 
 			serverAddress, _ := flags.GetString("server-address")
+			allowInsecureServerFlag, _ := flags.GetBool("allow-insecure-server")
+
+			allowInsecureServer, err := checkInstallServerAddress(serverAddress, allowInsecureServerFlag)
+			if err != nil {
+				return err
+			}
+
 			tenantID, _ := flags.GetString("tenant-id")
 			privateKey, _ := flags.GetString("private-key")
 			preferredHostname, _ := flags.GetString("preferred-hostname")
@@ -73,13 +82,14 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 			}
 
 			if err := agentInstall(installerConfig{
-				ServerAddress:     serverAddress,
-				TenantID:          tenantID,
-				PrivateKey:        privateKey,
-				ProvisioningKey:   provisioningKey,
-				PreferredHostname: preferredHostname,
-				PreferredIdentity: preferredIdentity,
-				KeepaliveInterval: keepaliveInterval,
+				ServerAddress:       serverAddress,
+				AllowInsecureServer: allowInsecureServer,
+				TenantID:            tenantID,
+				PrivateKey:          privateKey,
+				ProvisioningKey:     provisioningKey,
+				PreferredHostname:   preferredHostname,
+				PreferredIdentity:   preferredIdentity,
+				KeepaliveInterval:   keepaliveInterval,
 			}); err != nil {
 				return fmt.Errorf("installation failed: %w", err)
 			}
@@ -93,6 +103,8 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 	}
 
 	installCmd.Flags().String("server-address", "", "ShellHub server address")
+	installCmd.Flags().Bool("allow-insecure-server", false,
+		"Accept a plain http:// server address, letting anyone on the network path impersonate the server")
 	installCmd.Flags().String("tenant-id", "", "Namespace tenant ID")
 	installCmd.Flags().String("private-key", "/etc/shellhub.key", "Path to the agent private key file")
 	installCmd.Flags().String("provisioning-key", "", "Provisioning key used to enroll the device")
@@ -118,6 +130,16 @@ func registerInstallerCommands(rootCmd *cobra.Command) {
 			return nil
 		},
 	})
+}
+
+func checkInstallServerAddress(serverAddress string, allowInsecureServerFlag bool) (bool, error) {
+	allowInsecureServer := allowInsecureServerFlag || agentd.InsecureServerAllowed()
+
+	if err := agentd.ValidateServerAddress(serverAddress, allowInsecureServer); err != nil {
+		return false, fmt.Errorf("invalid server address %q: %w", serverAddress, err)
+	}
+
+	return allowInsecureServer, nil
 }
 
 func agentInstall(cfg installerConfig) error {
@@ -161,10 +183,18 @@ func agentInstall(cfg installerConfig) error {
 }
 
 func writeAgentEnvFile(cfg installerConfig) error {
+	return os.WriteFile(agentEnvFile, agentEnvFileContents(cfg), 0o600)
+}
+
+func agentEnvFileContents(cfg installerConfig) []byte {
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "SHELLHUB_SERVER_ADDRESS=%s\n", cfg.ServerAddress)
 	fmt.Fprintf(&buf, "SHELLHUB_PRIVATE_KEY=%s\n", cfg.PrivateKey)
+
+	if cfg.AllowInsecureServer {
+		fmt.Fprintf(&buf, "%s=true\n", agentd.AllowInsecureServerEnv)
+	}
 
 	if cfg.TenantID != "" {
 		fmt.Fprintf(&buf, "SHELLHUB_TENANT_ID=%s\n", cfg.TenantID)
@@ -186,7 +216,7 @@ func writeAgentEnvFile(cfg installerConfig) error {
 		fmt.Fprintf(&buf, "SHELLHUB_KEEPALIVE_INTERVAL=%d\n", cfg.KeepaliveInterval)
 	}
 
-	return os.WriteFile(agentEnvFile, buf.Bytes(), 0o600)
+	return buf.Bytes()
 }
 
 func writeAgentServiceFile(binaryPath string) error {

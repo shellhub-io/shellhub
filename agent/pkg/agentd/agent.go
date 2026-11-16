@@ -352,8 +352,15 @@ func NewAgent(address string, tenantID string, privateKey string, mode Mode) (*A
 var (
 	ErrNewAgentWithConfigEmptyServerAddress   = errors.New("address is empty")
 	ErrNewAgentWithConfigInvalidServerAddress = errors.New("address is invalid")
-	ErrNewAgentWithConfigEmptyPrivateKey      = errors.New("private key is empty")
-	ErrNewAgentWithConfigNilMode              = errors.New("agent's mode is nil")
+
+	// ErrPlaintextServerAddress is returned for a plain http:// server address whose host is not
+	// loopback, unless the insecure server is allowed.
+	ErrPlaintextServerAddress = errors.New("the server address uses plain http://, so anyone on the network path " +
+		"can impersonate the server and get a root shell on this device: serve ShellHub over https://, " +
+		"or set " + AllowInsecureServerEnv + "=true to accept that risk")
+
+	ErrNewAgentWithConfigEmptyPrivateKey = errors.New("private key is empty")
+	ErrNewAgentWithConfigNilMode         = errors.New("agent's mode is nil")
 
 	ErrNewAgentWithConfigUnsupportedTransportVersion = errors.New("transport version is unsupported")
 
@@ -368,19 +375,72 @@ var (
 	ErrTenantFromEnvironment = errors.New("the tenant comes from the environment")
 )
 
+// AllowInsecureServerEnv names the environment variable that, set to true, lets the agent connect
+// to a plain http:// server address.
+const AllowInsecureServerEnv = "SHELLHUB_ALLOW_INSECURE_SERVER"
+
+// InsecureServerAllowed reports whether the agent's environment sets [AllowInsecureServerEnv] to
+// true, in any letter case. It is false when the variable is unset or holds anything else.
+func InsecureServerAllowed() bool {
+	return strings.EqualFold(os.Getenv(AllowInsecureServerEnv), "true")
+}
+
+// ValidateServerAddress checks the address an agent connects to. It returns
+// ErrNewAgentWithConfigEmptyServerAddress when address is empty,
+// ErrNewAgentWithConfigInvalidServerAddress when it does not parse or names no scheme or host, and
+// ErrPlaintextServerAddress when it is http:// and its host is not loopback (localhost, a name
+// under .localhost, or a loopback IP), unless allowInsecure is true. Then it logs a warning for that
+// address and returns nil.
+func ValidateServerAddress(address string, allowInsecure bool) error {
+	if address == "" {
+		return ErrNewAgentWithConfigEmptyServerAddress
+	}
+
+	server, err := url.ParseRequestURI(address)
+	if err != nil || server.Scheme == "" || server.Host == "" {
+		return ErrNewAgentWithConfigInvalidServerAddress
+	}
+
+	if !strings.EqualFold(server.Scheme, "http") || isLoopbackHost(server.Hostname()) {
+		return nil
+	}
+
+	if !allowInsecure {
+		return ErrPlaintextServerAddress
+	}
+
+	log.WithField("server_address", address).
+		Warn("The server address uses plain http://, allowed by " + AllowInsecureServerEnv + ": anyone on the " +
+			"network path can impersonate the server and get a root shell on this device")
+
+	return nil
+}
+
+func isLoopbackHost(host string) bool {
+	host = strings.ToLower(host)
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
+		return true
+	}
+
+	ip := net.ParseIP(host)
+
+	return ip != nil && ip.IsLoopback()
+}
+
 // NewAgentWithConfig creates a new agent instance with all configurations.
 //
 // The tenant may be empty at this point: a tenant-less agent can run [Agent.Setup]
 // and pair interactively, but [Agent.Authorize] requires a tenant.
 //
+// It returns [ValidateServerAddress]'s error for a server address it refuses, allowing a plain
+// http:// address when [InsecureServerAllowed], and
+// ErrNewAgentWithConfigEmptyPrivateKey, ErrNewAgentWithConfigNilMode or
+// ErrNewAgentWithConfigUnsupportedTransportVersion for the rest of the configuration.
+//
 // Check [Config] for more information.
 func NewAgentWithConfig(config *Config, mode Mode) (*Agent, error) {
-	if config.ServerAddress == "" {
-		return nil, ErrNewAgentWithConfigEmptyServerAddress
-	}
-
-	if _, err := url.ParseRequestURI(config.ServerAddress); err != nil {
-		return nil, ErrNewAgentWithConfigInvalidServerAddress
+	if err := ValidateServerAddress(config.ServerAddress, InsecureServerAllowed()); err != nil {
+		return nil, err
 	}
 
 	if config.PrivateKey == "" {
