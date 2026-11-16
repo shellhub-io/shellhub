@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
-import { createTestWrapper } from "@/tests/wrapper";
+import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { getConfig, defaultConfig } from "@/env";
@@ -64,12 +64,12 @@ async function submitBanner(
   await user.click(screen.getByRole("button", { name: "Save banner" }));
 }
 
-function renderSsh() {
+function renderSsh(queryClient = createTestQueryClient()) {
   return render(
     <MemoryRouter>
       <SshSettings />
     </MemoryRouter>,
-    { wrapper: createTestWrapper() },
+    { wrapper: createTestWrapper({ queryClient }) },
   );
 }
 
@@ -205,6 +205,35 @@ describe("SshSettings", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(
         /couldn't upgrade the namespace/i,
       );
+    });
+  });
+
+  describe("no policies warning", () => {
+    const warning = /No access policies yet/;
+
+    beforeEach(() => {
+      setNamespace({ legacy: false });
+    });
+
+    it("warns that every login is denied while the namespace has no policy", async () => {
+      renderSsh();
+
+      expect(await screen.findByText(warning)).toBeInTheDocument();
+    });
+
+    it("warns about nothing when the policies could not be read", async () => {
+      server.use(
+        http.get("*/api/access-policies", () =>
+          HttpResponse.json(null, { status: 403 }),
+        ),
+      );
+      const queryClient = createTestQueryClient();
+      renderSsh(queryClient);
+
+      await screen.findByText("New");
+      await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+
+      expect(screen.queryByText(warning)).not.toBeInTheDocument();
     });
   });
 
