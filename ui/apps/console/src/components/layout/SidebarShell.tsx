@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import LogoMark from "./LogoMark";
+import type { NavIcon } from "./navSections";
 
 const navBase =
   "flex items-center gap-3 h-[38px] px-3 rounded-md text-[13px] font-medium whitespace-nowrap [&>svg]:shrink-0 focus-visible:relative focus-visible:z-raised";
@@ -13,10 +14,7 @@ const navIdle =
  * stays in place — see Sidebar.
  */
 export const navDisabled = "text-text-muted/50 cursor-not-allowed";
-/**
- * The icon size every sidebar link uses, so the labels line up whatever icon is beside them.
- */
-export const navIcon = "w-[18px] h-[18px]";
+const navIcon = "w-[18px] h-[18px]";
 
 /**
  * The sidebar's width folded to a rail, in pixels. The sidebar draws itself at this width and the
@@ -30,7 +28,7 @@ export const SIDEBAR_RAIL_PX = 60;
 export const SIDEBAR_EXPANDED_PX = 220;
 
 interface NavItemLinkProps {
-  item: { to: string; label: string; icon: ReactNode };
+  item: { to: string; label: string; icon: NavIcon };
   expanded: boolean;
   disabled?: boolean;
   onClick?: () => void;
@@ -63,7 +61,7 @@ export function NavItemLink({
   if (disabled) {
     return (
       <span aria-disabled="true" className={cn(navBase, navDisabled)}>
-        {item.icon}
+        <item.icon className={navIcon} />
         {label}
       </span>
     );
@@ -82,7 +80,7 @@ export function NavItemLink({
         )
       }
     >
-      {item.icon}
+      <item.icon className={navIcon} />
       {label}
       {expanded && badge}
     </NavLink>

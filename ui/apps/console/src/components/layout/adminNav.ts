@@ -1,5 +1,4 @@
 import {
-  HomeIcon,
   UsersIcon,
   ServerStackIcon,
   ServerIcon,
@@ -16,18 +15,15 @@ import {
   ADMIN_INSTANCE_PATH,
   ADMIN_TELEMETRY_PATH,
 } from "@/utils/adminRoute";
-import { navSectionTitle, type NavSection } from "./navSections";
-
-type Icon = typeof HomeIcon;
+import { navSectionTitle, type NavIcon, type NavSection } from "./navSections";
 
 /**
- * One admin page. The icon is a component rather than an element, so the sidebar and the command
- * palette can each draw it at their own size.
+ * One admin page.
  */
 export interface AdminNavLink {
   to: string;
   label: string;
-  icon: Icon;
+  icon: NavIcon;
 }
 
 /**
