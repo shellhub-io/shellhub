@@ -354,24 +354,39 @@ func TestRenameDevice(t *testing.T) {
 
 func TestUpdateDeviceStatus(t *testing.T) {
 	cases := []struct {
-		title          string
-		role           authorizer.Role
-		path           string
-		expectedStatus models.DeviceStatus
-		expectedCode   int
+		title           string
+		role            authorizer.Role
+		path            string
+		body            string
+		expectedStatus  models.DeviceStatus
+		expectedPolicy  requests.DeviceReplace
+		expectedReplace bool
+		expectedCode    int
 	}{
 		{
 			title:          "accept sets the device accepted",
 			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/accept",
 			expectedStatus: models.DeviceStatusAccepted,
+			expectedPolicy: requests.DeviceReplaceUnconfirmed,
 			expectedCode:   http.StatusOK,
+		},
+		{
+			title:           "accept binds the replacement confirmation from the body",
+			role:            authorizer.RoleOwner,
+			path:            "/api/devices/uid/accept",
+			body:            `{"replace":true}`,
+			expectedStatus:  models.DeviceStatusAccepted,
+			expectedPolicy:  requests.DeviceReplaceConfirmed,
+			expectedReplace: true,
+			expectedCode:    http.StatusOK,
 		},
 		{
 			title:          "reject sets the device rejected",
 			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/reject",
 			expectedStatus: models.DeviceStatusRejected,
+			expectedPolicy: requests.DeviceReplaceUnconfirmed,
 			expectedCode:   http.StatusOK,
 		},
 		{
@@ -379,6 +394,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			role:           authorizer.RoleOwner,
 			path:           "/api/devices/uid/pending",
 			expectedStatus: models.DeviceStatusPending,
+			expectedPolicy: requests.DeviceReplaceUnconfirmed,
 			expectedCode:   http.StatusOK,
 		},
 		{
@@ -386,6 +402,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			role:           authorizer.RoleOwner,
 			path:           "/api/containers/uid/accept",
 			expectedStatus: models.DeviceStatusAccepted,
+			expectedPolicy: requests.DeviceReplaceUnconfirmed,
 			expectedCode:   http.StatusOK,
 		},
 		{
@@ -401,7 +418,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			title:          "an operator can accept",
+			title:          "an operator can accept but not replace a device",
 			role:           authorizer.RoleOperator,
 			path:           "/api/devices/uid/accept",
 			expectedStatus: models.DeviceStatusAccepted,
@@ -432,13 +449,16 @@ func TestUpdateDeviceStatus(t *testing.T) {
 			mock := mocks.NewMockService(t)
 			if tc.expectedStatus != "" {
 				mock.On("UpdateDeviceStatus", gomock.Anything, &requests.DeviceUpdateStatus{
-					TenantID: "tenant-id",
-					UID:      "uid",
-					Status:   string(tc.expectedStatus),
+					TenantID:      "tenant-id",
+					UID:           "uid",
+					Status:        string(tc.expectedStatus),
+					Replace:       tc.expectedReplace,
+					ReplacePolicy: tc.expectedPolicy,
 				}).Return(nil).Once()
 			}
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, tc.path, strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
 			req = identitytest.As(req, identity.Identity{Role: tc.role, TenantID: "tenant-id"})
 			rec := httptest.NewRecorder()
 

@@ -1,0 +1,24 @@
+description: |
+  An offline device this device replaced when it was accepted: an accepted
+  device that reported the same identity, whose name and sessions this device
+  took over and whose record was deleted. On a device, the newest one it
+  replaced, returned only when the device is read by itself. On a
+  registration history event, the event records that replacement and nothing
+  else.
+type: object
+properties:
+  uid:
+    $ref: deviceUID.yaml
+  name:
+    description: The replaced device's name, which this device took over.
+    type: string
+    example: example
+  at:
+    description: When the replacement happened.
+    type: string
+    format: date-time
+    example: 2020-05-01T00:00:00Z
+required:
+  - uid
+  - name
+  - at

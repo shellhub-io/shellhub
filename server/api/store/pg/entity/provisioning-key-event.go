@@ -45,6 +45,8 @@ type ProvisioningKeyEvent struct {
 	CreatedAt         time.Time  `bun:"created_at"`
 	DecidedStatus     string     `bun:"decided_status,nullzero"`
 	DecidedAt         *time.Time `bun:"decided_at,nullzero"`
+	ReplacedUID       string     `bun:"replaced_device_uid,nullzero"`
+	ReplacedName      string     `bun:"replaced_device_name,nullzero"`
 	Refusal           string     `bun:"refusal,nullzero"`
 	Attempts          int        `bun:"attempts,nullzero,default:1"`
 	// DeviceStatus and IsCurrent are populated by the live join / window in ProvisioningKeyEventList; they
@@ -71,6 +73,11 @@ func ProvisioningKeyEventFromModel(model *models.ProvisioningKeyEvent) *Provisio
 		DecidedAt:         model.DecidedAt,
 		Refusal:           string(model.Refusal),
 		Attempts:          model.Attempts,
+	}
+
+	if model.Replaced != nil {
+		event.ReplacedUID = model.Replaced.UID
+		event.ReplacedName = model.Replaced.Name
 	}
 
 	if model.Info != nil {
@@ -105,6 +112,10 @@ func ProvisioningKeyEventToModel(entity *ProvisioningKeyEvent) *models.Provision
 		IsCurrent:         entity.IsCurrent,
 		Refusal:           models.ProvisioningKeyEventRefusal(entity.Refusal),
 		Attempts:          entity.Attempts,
+	}
+
+	if entity.ReplacedUID != "" {
+		event.Replaced = &models.DeviceReplacement{UID: entity.ReplacedUID, Name: entity.ReplacedName, At: entity.CreatedAt}
 	}
 
 	if entity.InfoID != "" || entity.InfoPrettyName != "" || entity.InfoVersion != "" || entity.InfoArch != "" || entity.InfoPlatform != "" {

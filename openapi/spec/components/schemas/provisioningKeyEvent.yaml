@@ -91,6 +91,8 @@ properties:
     format: date-time
     nullable: true
     example: 2020-05-02T00:00:00Z
+  replaced:
+    $ref: deviceReplacement.yaml
   is_current:
     description: |
       Whether this is the device's newest registration event. A device removed and re-registered shares

@@ -81,6 +81,12 @@ properties:
       themselves, so a renamed tag keeps being applied under its new name.
     example:
       - production
+  replace_offline_devices:
+    type: boolean
+    description: |
+      Whether a device registering with the key may replace an offline accepted
+      device that reports the same identity. Omit to leave unchanged.
+    example: true
   ephemeral:
     type: boolean
     description: |

@@ -19,6 +19,18 @@ import (
 
 func (e *enrollmentE2E) accept(ctx context.Context, uid string) error {
 	return e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted), ReplacePolicy: requests.DeviceReplaceConfirmed,
+	})
+}
+
+func (e *enrollmentE2E) acceptUnconfirmed(ctx context.Context, uid string) error {
+	return e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
+		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted), ReplacePolicy: requests.DeviceReplaceUnconfirmed,
+	})
+}
+
+func (e *enrollmentE2E) acceptWithoutRemoval(ctx context.Context, uid string) error {
+	return e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 		TenantID: e.tenantID, UID: uid, Status: string(models.DeviceStatusAccepted),
 	})
 }

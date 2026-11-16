@@ -9,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
+	"github.com/uptrace/bun"
 )
 
 // ProvisioningKeyCreate implements [store.ProvisioningKeyStore].
@@ -287,6 +288,7 @@ func (pg *Pg) refreshRefusal(ctx context.Context, e *entity.ProvisioningKeyEvent
 		Column("id").
 		Where("namespace_id = ?", e.NamespaceID).
 		Where("device_uid = ?", e.DeviceUID).
+		Where("replaced_device_uid IS NULL").
 		Order("created_at DESC").
 		Limit(1)
 
@@ -314,31 +316,65 @@ func (pg *Pg) refreshRefusal(ctx context.Context, e *entity.ProvisioningKeyEvent
 func (pg *Pg) ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error {
 	db := pg.GetConnection(ctx)
 
-	newest := db.NewSelect().
+	tenantID, err := requireBounded(sc)
+	if err != nil {
+		return err
+	}
+
+	if _, err := db.NewUpdate().
 		Model((*entity.ProvisioningKeyEvent)(nil)).
-		Column("id").
-		Where("device_uid = ?", deviceUID).
-		Where("refusal IS NULL").
-		Order("created_at DESC").
-		Limit(1)
+		Set("decided_status = ?", string(status)).
+		Set("decided_at = ?", at).
+		Where("id IN (?)", pg.newestEnrollmentEvent(db, tenantID, deviceUID).Column("id")).
+		Exec(ctx); err != nil {
+		return fromSQLError(err)
+	}
+
+	return nil
+}
+
+// ProvisioningKeyEventRecordReplacement implements [store.ProvisioningKeyStore].
+func (pg *Pg) ProvisioningKeyEventRecordReplacement(ctx context.Context, sc scope.Scope, deviceUID string, replaced models.DeviceReplacement) error {
+	db := pg.GetConnection(ctx)
 
 	tenantID, err := requireBounded(sc)
 	if err != nil {
 		return err
 	}
 
-	newest = newest.Where("namespace_id = ?", tenantID)
-
-	if _, err := db.NewUpdate().
-		Model((*entity.ProvisioningKeyEvent)(nil)).
-		Set("decided_status = ?", string(status)).
-		Set("decided_at = ?", at).
-		Where("id IN (?)", newest).
-		Exec(ctx); err != nil {
+	r, err := db.NewRaw(`
+		INSERT INTO provisioning_key_events (id, created_at, replaced_device_uid, replaced_device_name,
+			provisioning_key_id, namespace_id, device_uid, hostname, identity, info_id, info_pretty_name,
+			info_version, info_arch, info_platform, source_ip, public_key, ephemeral, re_registration)
+		SELECT ?, ?, ?, ?,
+			COALESCE(d.provisioning_key_id, legacy.key_digest), d.namespace_id, d.id, d.name, NULLIF(d.mac, ''),
+			NULLIF(d.identifier, ''), NULLIF(d.pretty_name, ''), NULLIF(d.version, ''), NULLIF(d.arch, ''),
+			NULLIF(d.platform, ''), NULLIF(d.remote_addr, ''), NULLIF(d.public_key, ''), d.ephemeral, false
+		FROM devices AS d
+		LEFT JOIN provisioning_keys AS legacy ON legacy.namespace_id = d.namespace_id AND legacy.type = ?
+		WHERE d.id = ? AND d.namespace_id = ? AND COALESCE(d.provisioning_key_id, legacy.key_digest) IS NOT NULL`,
+		uuid.Generate(), replaced.At, replaced.UID, replaced.Name,
+		string(models.ProvisioningKeyTypeLegacy), deviceUID, tenantID).Exec(ctx)
+	if err != nil {
 		return fromSQLError(err)
 	}
 
+	if rowsAffected, err := r.RowsAffected(); err != nil || rowsAffected == 0 {
+		return store.ErrNoDocuments
+	}
+
 	return nil
+}
+
+func (pg *Pg) newestEnrollmentEvent(db bun.IDB, tenantID, deviceUID string) *bun.SelectQuery {
+	return db.NewSelect().
+		Model((*entity.ProvisioningKeyEvent)(nil)).
+		Where("device_uid = ?", deviceUID).
+		Where("refusal IS NULL").
+		Where("replaced_device_uid IS NULL").
+		Where("namespace_id = ?", tenantID).
+		Order("created_at DESC").
+		Limit(1)
 }
 
 // ProvisioningKeyEventList implements [store.ProvisioningKeyStore].
@@ -350,8 +386,8 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 	history := db.NewSelect().
 		TableExpr("provisioning_key_events AS e").
 		ColumnExpr("e.*").
-		ColumnExpr("CASE WHEN e.refusal IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid::text) END AS device_status").
-		ColumnExpr("(e.created_at = MAX(e.created_at) OVER (PARTITION BY e.device_uid)) AS is_current").
+		ColumnExpr("CASE WHEN e.refusal IS NULL AND e.replaced_device_uid IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid::text) END AS device_status").
+		ColumnExpr("(e.replaced_device_uid IS NULL AND e.created_at = MAX(e.created_at) FILTER (WHERE e.replaced_device_uid IS NULL) OVER (PARTITION BY e.device_uid)) AS is_current").
 		Where("e.provisioning_key_id = ?", keyDigest)
 
 	entities := make([]entity.ProvisioningKeyEvent, 0)

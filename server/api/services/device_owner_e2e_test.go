@@ -175,7 +175,7 @@ func (e *ownershipE2E) pair(t *testing.T, userID, mac, publicKey string) *models
 	pairing, err := e.svc.CreateDevicePairing(ctx, pairingRequest(mac, publicKey))
 	require.NoError(t, err)
 
-	accepted, err := e.svc.AcceptDevicePairing(ctx, userID, &requests.DevicePairingAccept{Code: pairing.Code, TenantID: e.tenantID})
+	accepted, err := e.svc.AcceptDevicePairing(ctx, userID, &requests.DevicePairingAccept{Code: pairing.Code, TenantID: e.tenantID, Replace: true})
 	require.NoError(t, err)
 
 	return accepted
@@ -205,9 +205,10 @@ func (e *ownershipE2E) accept(t *testing.T, uid string) {
 	t.Helper()
 
 	require.NoError(t, e.svc.UpdateDeviceStatus(context.Background(), &requests.DeviceUpdateStatus{
-		TenantID: e.tenantID,
-		UID:      uid,
-		Status:   string(models.DeviceStatusAccepted),
+		TenantID:      e.tenantID,
+		UID:           uid,
+		Status:        string(models.DeviceStatusAccepted),
+		ReplacePolicy: requests.DeviceReplaceConfirmed,
 	}))
 }
 
@@ -274,7 +275,7 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 	t.Run("an owned device merging into a team device stays the team's", func(t *testing.T) {
 		t.Parallel()
 		e := setupOwnershipE2E(t)
-		member := e.member(t, "member", authorizer.RoleOperator)
+		member := e.member(t, "member", authorizer.RoleAdministrator)
 
 		team := e.enrollKey(t, mac, "pk-old")
 		e.accept(t, team)
@@ -310,7 +311,7 @@ func TestMergeOnAcceptGivesTheTeamPriority(t *testing.T) {
 		t.Parallel()
 		e := setupOwnershipE2E(t)
 		first := e.member(t, "first", authorizer.RoleOperator)
-		second := e.member(t, "second", authorizer.RoleOperator)
+		second := e.member(t, "second", authorizer.RoleAdministrator)
 
 		old := e.pair(t, first, mac, "pk-old")
 		e.disconnect(t, old.UID)
@@ -330,7 +331,7 @@ func TestPairingRefusesToMergeAwayAConnectedDevice(t *testing.T) { //nolint:tpar
 	ctx := context.Background()
 	e := setupOwnershipE2E(t)
 	first := e.member(t, "first", authorizer.RoleOperator)
-	member := e.member(t, "member", authorizer.RoleOperator)
+	member := e.member(t, "member", authorizer.RoleAdministrator)
 
 	old := e.pair(t, first, mac, "pk-old").UID
 	e.connect(t, old)

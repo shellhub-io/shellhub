@@ -73,8 +73,17 @@ type DevicePairingService interface {
 	// namespace with the device status permission. A code is accepted once: an
 	// unknown, expired or already accepted code returns not found.
 	//
+	// When an offline accepted device in the namespace reports the same identity,
+	// the accept replaces it: the new device takes its name and sessions and its
+	// record is deleted. That needs the member to hold the device removal
+	// permission, or it returns ErrDeviceReplaceForbidden, and req.Replace to
+	// confirm it, or it returns ErrDeviceReplaceUnconfirmed naming the device; in
+	// both cases, and when looking up that device fails with the store's error,
+	// before the device is created. When that device is online, the device is
+	// created and the accept returns ErrDeviceMACConnected, leaving it pending.
+	//
 	// The response carries the surviving device's owner, which is empty only when
-	// the device merged into a team device. It returns ErrNamespaceLegacy when the
+	// the device replaced a team device. It returns ErrNamespaceLegacy when the
 	// chosen namespace is legacy, and an error when the accepted device cannot be
 	// read back, rather than a response that would read as one.
 	AcceptDevicePairing(ctx context.Context, userID string, req *requests.DevicePairingAccept) (*models.DevicePairingAccepted, error)
@@ -255,7 +264,12 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 		return nil, NewErrNamespaceLegacy(namespace.TenantID)
 	}
 
-	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, userID)
+	replace := requests.NewDeviceReplace(member.Role.HasPermission(authorizer.DeviceRemove), req.Replace)
+	if err := s.confirmPairingReplacement(ctx, pairing, namespace.TenantID, replace); err != nil {
+		return nil, err
+	}
+
+	auth, err := s.acceptPairingDevice(ctx, pairing, namespace.TenantID, userID, replace)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +299,26 @@ func (s *service) AcceptDevicePairing(ctx context.Context, userID string, req *r
 	return accepted, nil
 }
 
-func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairing, tenantID, ownerID string) (*models.DeviceAuthResponse, error) {
+func (s *service) confirmPairingReplacement(ctx context.Context, pairing *devicePairing, tenantID string, replace requests.DeviceReplace) error {
+	if pairing.Identity == nil {
+		return nil
+	}
+
+	sameIdentity, err := s.store.DeviceResolve(ctx, scope.MustBounded(tenantID), store.DeviceMACResolver, pairing.Identity.MAC,
+		s.store.Options().WithDeviceStatus(models.DeviceStatusAccepted))
+	switch {
+	case errors.Is(err, store.ErrNoDocuments):
+		return nil
+	case err != nil:
+		return err
+	case sameIdentity.Online, sameIdentity.PublicKey == pairing.PublicKey:
+		return nil
+	default:
+		return refuseReplacement(replace, sameIdentity)
+	}
+}
+
+func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairing, tenantID, ownerID string, replace requests.DeviceReplace) (*models.DeviceAuthResponse, error) {
 	authReq := requests.DeviceAuth{
 		Hostname:  pairing.Hostname,
 		PublicKey: pairing.PublicKey,
@@ -306,15 +339,16 @@ func (s *service) acceptPairingDevice(ctx context.Context, pairing *devicePairin
 		}
 	}
 
-	auth, err := s.authDevice(ctx, deviceAuth{DeviceAuth: authReq}, enrollmentOptions{paired: true, ownerID: ownerID, verification: keyNotAsked})
+	auth, err := s.authDevice(ctx, deviceAuth{DeviceAuth: authReq}, enrollmentOptions{paired: true, ownerID: ownerID, verification: keyNotAsked, replace: replace})
 	if err != nil {
 		return nil, err
 	}
 
 	accept := &requests.DeviceUpdateStatus{
-		TenantID: tenantID,
-		UID:      auth.UID,
-		Status:   string(models.DeviceStatusAccepted),
+		TenantID:      tenantID,
+		UID:           auth.UID,
+		Status:        string(models.DeviceStatusAccepted),
+		ReplacePolicy: replace,
 	}
 	if err := s.updateDeviceStatusOwnedBy(ctx, accept, ownerID); err != nil && !errors.Is(err, ErrDeviceStatusAccepted) {
 		return nil, err

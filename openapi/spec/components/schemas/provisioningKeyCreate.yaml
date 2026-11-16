@@ -81,6 +81,14 @@ properties:
     minimum: 1
     maximum: 10
     example: 10
+  replace_offline_devices:
+    type: boolean
+    description: |
+      Let a device registering with the key replace an offline accepted device
+      that reports the same identity. When false, such a device stays pending
+      instead.
+    default: true
+    example: true
   tags:
     type: array
     items:

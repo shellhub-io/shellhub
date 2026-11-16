@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/tests/environment"
@@ -16,7 +17,8 @@ import (
 // TestDeviceAcceptNameConflicts covers the hostname an accept would give a device being taken by
 // another accepted device. A fresh device is refused outright, and so is a device whose MAC would
 // merge it into a disconnected one, since the merge would still leave two devices answering to
-// the name. Either accept goes through once the other device lets the name go.
+// the name. Either accept goes through once the other device lets the name go, the merge only when
+// the accept confirms it.
 func TestDeviceAcceptNameConflicts(t *testing.T) {
 	t.Parallel()
 
@@ -29,7 +31,7 @@ func TestDeviceAcceptNameConflicts(t *testing.T) {
 		compose.UpdateDeviceStatus(t, holder, environment.DeviceActionAccept)
 		fresh := enrollDevice(t, compose, "freshtaken", "02:00:00:00:14:02")
 
-		requireAcceptConflict(t, compose, fresh)
+		requireAcceptConflict(t, compose, fresh, compose.PatchAccept)
 		assert.Equal(t, "freshtaken", requireDevice(t, compose, holder).Name)
 
 		renameDevice(t, compose, holder, "freshreleased")
@@ -49,12 +51,16 @@ func TestDeviceAcceptNameConflicts(t *testing.T) {
 		compose.UpdateDeviceStatus(t, holder, environment.DeviceActionAccept)
 		reinstalled := enrollDevice(t, compose, "mergetaken", merged.Identity.MAC)
 
-		requireAcceptConflict(t, compose, reinstalled)
+		unconfirmed := requireAcceptConflict(t, compose, reinstalled, compose.PatchAccept)
+		assert.Equal(t, merged.Name, unconfirmed.Fields["replace"], "an accept that does not confirm the merge names the device it replaces")
+
+		refusal := requireAcceptConflict(t, compose, reinstalled, compose.PatchAcceptReplacing)
+		assert.NotContains(t, refusal.Fields, "replace", "a confirmed merge is refused for the name, not the confirmation")
 		assert.Equal(t, merged.Name, requireDevice(t, compose, merged.UID).Name)
 		assert.Equal(t, models.DeviceStatusAccepted, requireDevice(t, compose, merged.UID).Status)
 
 		renameDevice(t, compose, holder, "mergereleased")
-		compose.UpdateDeviceStatus(t, reinstalled, environment.DeviceActionAccept)
+		compose.AcceptReplacing(t, reinstalled)
 
 		_, resp, err := compose.GetDevice(t.Context(), merged.UID)
 		require.NoError(t, err)
@@ -66,10 +72,10 @@ func TestDeviceAcceptNameConflicts(t *testing.T) {
 	})
 }
 
-func requireAcceptConflict(t *testing.T, compose *environment.DockerCompose, uid string) responses.Error {
+func requireAcceptConflict(t *testing.T, compose *environment.DockerCompose, uid string, accept func(context.Context, string) (*resty.Response, error)) responses.Error {
 	t.Helper()
 
-	resp, err := compose.PatchDeviceStatus(t.Context(), uid, environment.DeviceActionAccept)
+	resp, err := accept(t.Context(), uid)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
 	assert.Equal(t, models.DeviceStatusPending, requireDevice(t, compose, uid).Status)

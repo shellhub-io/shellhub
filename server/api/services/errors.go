@@ -102,6 +102,8 @@ var (
 	ErrDeviceLicenseLimit              = errors.New("device license limit reached", ErrLayer, ErrCodePayment)
 	ErrDeviceStatusAccepted            = errors.New("device status accepted", ErrLayer, ErrCodeInvalid)
 	ErrDeviceMACConnected              = errors.New("another device with this MAC address is connected", ErrLayer, ErrCodeDuplicated)
+	ErrDeviceReplaceForbidden          = errors.New("accepting the device replaces an offline device with the same identity, which needs permission to remove devices", ErrLayer, ErrCodeForbidden)
+	ErrDeviceReplaceUnconfirmed        = errors.New("accepting the device replaces an offline device with the same identity and deletes its record", ErrLayer, ErrCodeConflict)
 	ErrDeviceCreate                    = errors.New("device create", ErrLayer, ErrCodeStore)
 	ErrDeviceCustomFieldLimitReached   = errors.New("device custom field limit reached", ErrLayer, ErrCodeLimit)
 	ErrMaxDeviceCountReached           = errors.New("maximum number of accepted devices reached", ErrLayer, ErrCodeLimit)
@@ -517,6 +519,21 @@ func NewErrDeviceCustomFieldLimitReached(limit int, next error) error {
 // from the duplicated-name conflict, which is keyed by the name itself.
 func NewErrDeviceMACConnected(next error) error {
 	return NewErrDuplicated(ErrDeviceMACConnected, []string{"identity.mac"}, next)
+}
+
+// NewErrDeviceReplaceForbidden returns the refusal an accept gets when it would replace an offline
+// accepted device with the same identity and the accept may not: the caller lacks permission to
+// remove devices, or the provisioning key does not replace offline devices. The accept changes
+// nothing.
+func NewErrDeviceReplaceForbidden() error {
+	return NewErrForbidden(ErrDeviceReplaceForbidden, nil)
+}
+
+// NewErrDeviceReplaceUnconfirmed returns the conflict an accept gets when it would replace the
+// offline device named name and the request did not confirm the replacement. The name is carried on
+// the "replace" field, the request field that confirms it.
+func NewErrDeviceReplaceUnconfirmed(name string) error {
+	return NewErrInvalidFields(ErrDeviceReplaceUnconfirmed, map[string]string{"replace": name})
 }
 
 // NewErrDeviceStatusAccepted returns an error to be used when the device's status is accepted.

@@ -1,7 +1,17 @@
 patch:
   operationId: acceptDevice
   summary: Accept a device
-  description: Accept a pending device.
+  description: |
+    Accept a pending device.
+
+    When an offline accepted device in the namespace reports the same identity,
+    the accept replaces it: the accepted device takes its name and sessions, and
+    its record is deleted. Replacing a device needs the permission to remove
+    devices; without it the accept is refused with a 403 and changes nothing.
+    The request must also confirm the replacement with `replace`; without it
+    the accept is refused with a 409 whose `replace` field names the device.
+    An accept that would replace a device whose agent is connected is refused
+    with a 409 whose `identity.mac` field is set.
   tags:
     - community
     - devices
@@ -10,6 +20,19 @@ patch:
     - api-key: []
   parameters:
     - $ref: ../components/parameters/path/deviceUIDPath.yaml
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            replace:
+              description: |
+                Confirm that the accept replaces an offline accepted device in the
+                namespace that reports the same identity.
+              type: boolean
+              default: false
   responses:
     '200':
       description: Success to accept the device
@@ -19,5 +42,7 @@ patch:
       $ref: ../components/responses/402.yaml
     '403':
       $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml

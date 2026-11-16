@@ -125,7 +125,7 @@ func (s *service) evaluateEnrollment(ctx context.Context, key *models.Provisioni
 	}
 }
 
-func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req deviceAuth, device *models.Device, hostname, ownerID string, reRegistration, record bool) models.DeviceStatus {
+func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollmentDecision, key *models.ProvisioningKey, req deviceAuth, device *models.Device, hostname string, enrollment enrollmentOptions, reRegistration, record bool) models.DeviceStatus {
 	uid := device.UID
 
 	if record {
@@ -135,11 +135,12 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 	switch decision {
 	case enrollAccept:
 		acceptReq := &requests.DeviceUpdateStatus{
-			TenantID: req.TenantID,
-			UID:      uid,
-			Status:   string(models.DeviceStatusAccepted),
+			TenantID:      req.TenantID,
+			UID:           uid,
+			Status:        string(models.DeviceStatusAccepted),
+			ReplacePolicy: enrollment.replacePolicy(key),
 		}
-		if err := s.updateDeviceStatusOwnedBy(ctx, acceptReq, ownerID); err != nil {
+		if err := s.updateDeviceStatusOwnedBy(ctx, acceptReq, enrollment.ownerID); err != nil {
 			switch {
 			case errors.Is(err, ErrProvisioningKeyExhausted):
 				log.WithError(err).WithField("device_uid", uid).Warn("provisioning key exhausted; device remains pending")
@@ -147,6 +148,8 @@ func (s *service) applyEnrollmentDecision(ctx context.Context, decision enrollme
 				log.WithError(err).WithField("device_uid", uid).Warn("license limit reached; device remains pending")
 			case errors.Is(err, ErrDeviceMACConnected):
 				log.WithError(err).WithField("device_uid", uid).Warn("a device with the same MAC address is connected; device remains pending")
+			case errors.Is(err, ErrDeviceReplaceForbidden):
+				log.WithError(err).WithField("device_uid", uid).Warn("the accept may not replace the offline device with the same MAC address; device remains pending")
 			default:
 				log.WithError(err).WithField("device_uid", uid).Warn("auto-accept failed; device remains pending")
 			}
@@ -241,7 +244,7 @@ func (s *service) decideEnrollment(ctx context.Context, device *models.Device, k
 	now := s.clock.Now()
 	device.LastEnrollmentAttemptAt = &now
 
-	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, device, hostname, "", false, record)
+	status := s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, key, req, uid, hostname, false), key, req, device, hostname, enrollmentOptions{}, false, record)
 	if status == models.DeviceStatusPending {
 		return
 	}

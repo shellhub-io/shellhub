@@ -27,6 +27,16 @@ post:
           properties:
             tenant_id:
               $ref: ../components/schemas/namespaceTenantID.yaml
+            replace:
+              description: |
+                Confirm that the accept replaces an offline accepted device in the
+                namespace that reports the same identity: the new device takes its
+                name and sessions, and its record is deleted. Without it such an
+                accept is refused with a 409 whose `replace` field names that device.
+                Replacing a device needs the permission to remove devices, or the
+                accept is refused with a 403.
+              type: boolean
+              default: false
           required:
             - tenant_id
   responses:
@@ -45,8 +55,8 @@ post:
                 $ref: ../components/schemas/namespaceName.yaml
               owner_id:
                 description: |
-                  The member the device is tied to. Absent when the device merged
-                  into a team device with the same MAC address and stayed the team's.
+                  The member the device is tied to. Absent when the device replaced
+                  a team device with the same MAC address and stayed the team's.
                 type: string
                 format: uuid
     '400':

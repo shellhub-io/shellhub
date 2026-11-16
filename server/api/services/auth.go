@@ -423,6 +423,24 @@ type enrollmentOptions struct {
 	paired       bool
 	ownerID      string
 	verification keyVerification
+
+	replace requests.DeviceReplace
+}
+
+func (o enrollmentOptions) replacePolicy(key *models.ProvisioningKey) requests.DeviceReplace {
+	if o.paired {
+		return o.replace
+	}
+
+	return keyReplacePolicy(key)
+}
+
+func keyReplacePolicy(key *models.ProvisioningKey) requests.DeviceReplace {
+	if key != nil && key.ReplaceOfflineDevices {
+		return requests.DeviceReplaceConfirmed
+	}
+
+	return requests.DeviceReplaceRefused
 }
 
 func (s *service) enrolledByPairing(ctx context.Context, sc scope.Scope, device *models.Device) (bool, error) {
@@ -559,7 +577,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
 		}
 
-		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment.ownerID, false, true)
+		device.Status = s.applyEnrollmentDecision(ctx, s.evaluateEnrollment(ctx, provisioningKey, req, uid, hostname, enrollment.paired), provisioningKey, req, device, hostname, enrollment, false, true)
 	} else {
 		unchanged := device.Status == models.DeviceStatusAccepted && device.RemovedAt == nil
 
@@ -618,7 +636,7 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 				}
 			}
 
-			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment.ownerID, true, true)
+			status := s.applyEnrollmentDecision(ctx, decision, provisioningKey, req, device, hostname, enrollment, true, true)
 			if status != models.DeviceStatusPending {
 				device.Status = status
 				device.StatusUpdatedAt = s.clock.Now()

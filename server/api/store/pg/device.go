@@ -226,7 +226,16 @@ func (pg *Pg) DeviceResolve(ctx context.Context, sc scope.Scope, resolver store.
 		Column("device.*").
 		Relation("Namespace").
 		Relation("Tags").
-		ColumnExpr(onlineExpr, onlineThreshold)
+		ColumnExpr(onlineExpr, onlineThreshold).
+		ColumnExpr("replacement.replaced_device_uid, replacement.replaced_device_name, replacement.created_at AS replaced_at").
+		Join(`LEFT JOIN LATERAL (
+			SELECT e.replaced_device_uid, e.replaced_device_name, e.created_at
+			FROM provisioning_key_events AS e
+			WHERE e.device_uid = "device"."id"::bpchar AND e.namespace_id = "device"."namespace_id" AND e.replaced_device_uid IS NOT NULL
+				AND e.created_at >= "device"."created_at"
+			ORDER BY e.created_at DESC
+			LIMIT 1
+		) AS replacement ON true`)
 
 	ctx = context.WithValue(ctx, CtxTableAlias, "device")
 

@@ -759,9 +759,34 @@ func (dc *DockerCompose) listDevicesAt(t *testing.T, path string, params map[str
 }
 
 // PatchDeviceStatus asks for action on the device uid and returns the answer whatever its status
-// code. It returns the error only for a request that never got an answer.
+// code. An accept that would replace an offline device with the same identity is refused with a
+// 409 naming it; [DockerCompose.PatchAcceptReplacing] confirms the replacement. It returns the
+// error only for a request that never got an answer.
 func (dc *DockerCompose) PatchDeviceStatus(ctx context.Context, uid string, action DeviceStatusAction) (*resty.Response, error) {
 	return dc.R(ctx).Patch("/api/devices/" + uid + "/" + string(action))
+}
+
+// PatchAccept accepts the device uid without confirming a replacement and returns the answer
+// whatever its status code. It returns the error only for a request that never got an answer.
+func (dc *DockerCompose) PatchAccept(ctx context.Context, uid string) (*resty.Response, error) {
+	return dc.PatchDeviceStatus(ctx, uid, DeviceActionAccept)
+}
+
+// PatchAcceptReplacing accepts the device uid confirming that it replaces an offline device with
+// the same identity, as an administrator does in the console, and returns the answer whatever its
+// status code. It returns the error only for a request that never got an answer.
+func (dc *DockerCompose) PatchAcceptReplacing(ctx context.Context, uid string) (*resty.Response, error) {
+	return dc.R(ctx).SetBody(map[string]bool{"replace": true}).Patch("/api/devices/" + uid + "/" + string(DeviceActionAccept))
+}
+
+// AcceptReplacing accepts the device uid confirming the replacement of an offline device with the
+// same identity, and fails t unless the server answers 200.
+func (dc *DockerCompose) AcceptReplacing(t *testing.T, uid string) {
+	t.Helper()
+
+	resp, err := dc.PatchAcceptReplacing(t.Context(), uid)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode(), resp.String())
 }
 
 // UpdateDeviceStatus applies action to the device uid and fails t unless the server answers 200.
