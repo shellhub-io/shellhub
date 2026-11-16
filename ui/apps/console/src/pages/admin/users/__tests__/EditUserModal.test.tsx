@@ -176,9 +176,7 @@ describe("EditUserModal", () => {
     it("hides max namespaces input when disable is checked", async () => {
       const user = userEvent.setup();
       renderModal({ user: { ...mockUser, max_namespaces: 5 } });
-      await user.click(
-        screen.getByLabelText(/disable namespace creation/i),
-      );
+      await user.click(screen.getByLabelText(/disable namespace creation/i));
       expect(
         screen.queryByLabelText(/max namespaces/i),
       ).not.toBeInTheDocument();
@@ -194,9 +192,7 @@ describe("EditUserModal", () => {
       await user.clear(nameInput);
       await user.type(nameInput, "Alice Updated");
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -216,9 +212,7 @@ describe("EditUserModal", () => {
       const user = userEvent.setup();
       const { onClose } = renderModal();
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
@@ -227,9 +221,7 @@ describe("EditUserModal", () => {
       const user = userEvent.setup();
       renderModal({ user: { ...mockUser, max_namespaces: undefined } });
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -251,14 +243,44 @@ describe("EditUserModal", () => {
       );
       renderModal();
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/already exists/i)).toBeInTheDocument();
       });
     });
+
+    it.each([
+      ["disposable", "Use a permanent email address"],
+      [
+        "must be different from the recovery email",
+        "Must be different from the user's recovery email",
+      ],
+    ])(
+      "shows why the server refused the email (%s) beside it",
+      async (reason, message) => {
+        const user = userEvent.setup();
+        server.use(
+          http.put("*/admin/api/users/:id", () =>
+            HttpResponse.json(
+              { message: "bad request", fields: { email: reason } },
+              { status: 400 },
+            ),
+          ),
+        );
+        renderModal();
+
+        await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^email/i)).toHaveAccessibleDescription(
+          expect.stringContaining(message),
+        );
+        expect(
+          screen.queryByText(/failed to update user/i),
+        ).not.toBeInTheDocument();
+      },
+    );
 
     it("shows generic error for 400 responses", async () => {
       const user = userEvent.setup();
@@ -269,9 +291,7 @@ describe("EditUserModal", () => {
       );
       renderModal();
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/failed to update user/i)).toBeInTheDocument();
@@ -280,14 +300,10 @@ describe("EditUserModal", () => {
 
     it("shows generic error for unexpected failures", async () => {
       const user = userEvent.setup();
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
-      );
+      server.use(http.put("*/admin/api/users/:id", () => HttpResponse.error()));
       renderModal();
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/failed to update user/i)).toBeInTheDocument();
@@ -299,9 +315,7 @@ describe("EditUserModal", () => {
     it("allows submit with a blank password (password kept as-is)", async () => {
       const user = userEvent.setup();
       renderModal();
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
       await waitFor(() => expect(updateSpy).toHaveBeenCalled());
     });
 
@@ -310,9 +324,7 @@ describe("EditUserModal", () => {
       renderModal();
       const passwordInput = screen.getByLabelText(/^password$/i);
       await user.type(passwordInput, "abc");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       expect(updateSpy).not.toHaveBeenCalled();
       expect(passwordInput).toHaveAttribute("aria-invalid", "true");
@@ -325,9 +337,7 @@ describe("EditUserModal", () => {
       await user.clear(usernameInput);
       await user.type(usernameInput, "Invalid Username!");
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
       expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
     });
@@ -341,9 +351,7 @@ describe("EditUserModal", () => {
       const nameInput = screen.getByLabelText(/^name$/i);
       await user.clear(nameInput);
       await user.type(nameInput, "Alice Updated");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -368,9 +376,7 @@ describe("EditUserModal", () => {
       renderModal({ user: userWithoutUsername });
 
       await user.type(screen.getByLabelText(/^username$/i), "alice");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -387,9 +393,7 @@ describe("EditUserModal", () => {
       const usernameInput = screen.getByLabelText(/^username$/i);
 
       await user.type(usernameInput, "Invalid Username!");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       expect(updateSpy).not.toHaveBeenCalled();
       expect(usernameInput).toHaveAttribute("aria-invalid", "true");
@@ -400,9 +404,7 @@ describe("EditUserModal", () => {
       renderModal({ user: userWithoutUsername });
 
       await user.type(screen.getByLabelText(/^username$/i), "   ");
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
 
       await waitFor(() => {
         expect(updateSpy).toHaveBeenCalledWith(
@@ -432,31 +434,23 @@ describe("EditUserModal", () => {
       rerender(
         <EditUserModal open={false} onClose={vi.fn()} user={mockUser} />,
       );
-      rerender(
-        <EditUserModal open={true} onClose={vi.fn()} user={mockUser} />,
-      );
+      rerender(<EditUserModal open={true} onClose={vi.fn()} user={mockUser} />);
 
       expect(screen.getByLabelText(/^name$/i)).toHaveValue("Alice Smith");
     });
 
     it("clears any error when closed then reopened", async () => {
       const user = userEvent.setup();
-      server.use(
-        http.put("*/admin/api/users/:id", () => HttpResponse.error()),
-      );
+      server.use(http.put("*/admin/api/users/:id", () => HttpResponse.error()));
       const { rerender } = renderModal({ user: mockUser });
 
-      await user.click(
-        screen.getByRole("button", { name: /save changes/i }),
-      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
       await waitFor(() => screen.getByRole("alert"));
 
       rerender(
         <EditUserModal open={false} onClose={vi.fn()} user={mockUser} />,
       );
-      rerender(
-        <EditUserModal open={true} onClose={vi.fn()} user={mockUser} />,
-      );
+      rerender(<EditUserModal open={true} onClose={vi.fn()} user={mockUser} />);
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });

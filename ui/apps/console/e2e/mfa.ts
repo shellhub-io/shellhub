@@ -1,8 +1,15 @@
 import { type Page, expect } from "@playwright/test";
 import { createHmac } from "node:crypto";
-import { enableMfa, generateMfa, updateUser } from "@/client";
+import {
+  confirmEmailChange,
+  enableMfa,
+  generateMfa,
+  updateUser,
+} from "@/client";
 import { buildRequestContext } from "./api";
+import { isCloud } from "./env";
 import { signIn } from "./helpers";
+import { readLatestEmail } from "./mail";
 import { buildRandomEmail, password } from "./seed";
 
 const base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -54,11 +61,26 @@ export async function signInWithMFA(
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
+export async function confirmMailedAddress(address: string) {
+  const { params } = (await readLatestEmail(address, "/confirm-email")).link;
+  const uid = params.get("id");
+  const token = params.get("token");
+  if (!uid || !token) {
+    throw new Error(`expected an id and a token in the link to ${address}`);
+  }
+  await confirmEmailChange({
+    ...buildRequestContext(),
+    path: { uid },
+    body: { token },
+  });
+}
+
 export async function setRecoveryEmail(token: string, recoveryEmail: string) {
   await updateUser({
     ...buildRequestContext({ token }),
     body: { recovery_email: recoveryEmail, current_password: password },
   });
+  if (isCloud) await confirmMailedAddress(recoveryEmail);
 }
 
 export async function enableMFA(

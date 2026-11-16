@@ -13,6 +13,7 @@ import { buildRandomEmail, password } from "./seed";
 import { readLatestEmail } from "./mail";
 import { buildRequestContext, expectStatus, loginAs } from "./api";
 import {
+  confirmMailedAddress,
   enableMFA,
   fillDigits,
   reachCodePrompt,
@@ -25,6 +26,23 @@ async function createMFAUser() {
   const { owner } = await createTeam();
   const { recoveryEmail, recoveryCodes, secret } = await enableMFA(owner.token);
   return { ...owner, recoveryEmail, recoveryCodes, secret };
+}
+
+async function confirmHeldRecoveryEmail(page: Page, recoveryEmail: string) {
+  if (!isCloud) return;
+  await expect(
+    page.getByText(`We sent a confirmation link to ${recoveryEmail}`, {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "I opened the link" }).click();
+  await expect(
+    page.getByText(`Open the link we sent to ${recoveryEmail} first`, {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await confirmMailedAddress(recoveryEmail);
+  await page.getByRole("button", { name: "I opened the link" }).click();
 }
 
 async function openEnableMFA(page: Page, username: string) {
@@ -146,6 +164,7 @@ test.describe("MFA", () => {
       await page.getByLabel("Recovery Email").fill(recoveryEmail);
       await page.getByLabel("Current Password").fill(password);
       await page.getByRole("button", { name: "Save & Continue" }).click();
+      await confirmHeldRecoveryEmail(page, recoveryEmail);
       const { recovery_codes: shownCodes } = (await (
         await generated
       ).json()) as { recovery_codes: string[] };
@@ -194,6 +213,7 @@ test.describe("MFA", () => {
       await page.getByLabel("Recovery Email").fill(replacement);
       await page.getByLabel("Current Password").fill(password);
       await page.getByRole("button", { name: "Save & Continue" }).click();
+      await confirmHeldRecoveryEmail(page, replacement);
       await completeEnrollment(page);
 
       expect(await readMFA(owner)).toMatchObject({

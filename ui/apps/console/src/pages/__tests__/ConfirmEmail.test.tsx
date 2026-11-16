@@ -80,4 +80,22 @@ describe("ConfirmEmail", () => {
 
     expect(await screen.findByText(message)).toBeInTheDocument();
   });
+
+  it("words a recovery email link as one, sending the same user and token", async () => {
+    const sent = answer(200);
+    const user = userEvent.setup();
+    renderWithParams("?id=uid123&token=tok456&field=recovery_email");
+
+    expect(
+      screen.getByText(/confirm your new recovery email/i),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /confirm recovery email/i }),
+    );
+
+    expect(
+      await screen.findByText(/recovery email confirmed/i),
+    ).toBeInTheDocument();
+    expect(sent).toEqual([{ uid: "uid123", token: "tok456" }]);
+  });
 });

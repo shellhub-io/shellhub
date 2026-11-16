@@ -79,7 +79,9 @@ describe("EditProfileModal", () => {
       await user.click(screen.getByRole("button", { name: /^save$/i }));
 
       await waitFor(() =>
-        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({ name: "Alice" }),
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({
+          name: "Alice",
+        }),
       );
     });
 
@@ -90,12 +92,17 @@ describe("EditProfileModal", () => {
       await user.click(screen.getByRole("button", { name: /^save$/i }));
 
       await waitFor(() =>
-        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({ name: "Alice" }),
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({
+          name: "Alice",
+        }),
       );
     });
 
     it("blocks saving a blank stored name that only gains padding", async () => {
-      await changeField("Name", "    ", { ...defaultProps, currentName: "   " });
+      await changeField("Name", "    ", {
+        ...defaultProps,
+        currentName: "   ",
+      });
 
       expect(await screen.findByText("Name is required")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
@@ -172,10 +179,15 @@ describe("EditProfileModal", () => {
       render(<EditProfileModal {...defaultProps} />);
 
       await user.type(screen.getByLabelText("Name"), "x");
-      expect(screen.queryByLabelText("Current Password")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Current Password"),
+      ).not.toBeInTheDocument();
 
       await user.clear(screen.getByLabelText("Recovery Email"));
-      await user.type(screen.getByLabelText("Recovery Email"), "other@example.com");
+      await user.type(
+        screen.getByLabelText("Recovery Email"),
+        "other@example.com",
+      );
       expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
     });
@@ -231,7 +243,9 @@ describe("EditProfileModal", () => {
 
       await user.click(screen.getByRole("button", { name: /^save$/i }));
 
-      await waitFor(() => expect(onEmailPending).toHaveBeenCalledWith("new@example.com"));
+      await waitFor(() =>
+        expect(onEmailPending).toHaveBeenCalledWith("new@example.com"),
+      );
     });
 
     it("reports nothing pending when the new email took effect", async () => {
@@ -250,6 +264,127 @@ describe("EditProfileModal", () => {
 
       await waitFor(() => expect(defaultProps.onClose).toHaveBeenCalled());
       expect(onEmailPending).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("recovery email held for confirmation", () => {
+    it("reports the new recovery email pending when the account keeps the old one", async () => {
+      const onRecoveryEmailPending = vi.fn();
+      useAuthStore.setState({
+        recoveryEmail: "recovery@example.com",
+        updateProfile: vi.fn(),
+      } as Partial<ReturnType<typeof useAuthStore.getState>>);
+      const { user } = await changeField(
+        "Recovery Email",
+        "backup@example.com",
+        {
+          ...defaultProps,
+          onRecoveryEmailPending,
+        },
+      );
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(onRecoveryEmailPending).toHaveBeenCalledWith(
+          "backup@example.com",
+        ),
+      );
+    });
+  });
+
+  describe("authenticator code", () => {
+    const withMfa = { ...defaultProps, mfaEnabled: true };
+
+    it("is asked for only once an email changes on an account with MFA", async () => {
+      const user = userEvent.setup();
+      render(<EditProfileModal {...withMfa} />);
+
+      await user.type(screen.getByLabelText("Name"), "x");
+      expect(
+        screen.queryByLabelText("Authenticator or Recovery Code"),
+      ).not.toBeInTheDocument();
+
+      await user.clear(screen.getByLabelText("Email"));
+      await user.type(screen.getByLabelText("Email"), "new@example.com");
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+      expect(screen.getByLabelText("Authenticator or Recovery Code")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
+    });
+
+    it("is not asked for on an account without MFA", async () => {
+      await changeField("Email", "new@example.com");
+
+      expect(
+        screen.queryByLabelText("Authenticator or Recovery Code"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("is sent with the changed email", async () => {
+      const { user } = await changeField("Email", "new@example.com", withMfa);
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+      await user.type(screen.getByLabelText("Authenticator or Recovery Code"), "123456");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({
+          email: "new@example.com",
+          current_password: "secret",
+          mfa_code: "123456",
+        }),
+      );
+    });
+
+    it("sends a recovery code trimmed", async () => {
+      const { user } = await changeField("Email", "new@example.com", withMfa);
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+      await user.type(
+        screen.getByLabelText("Authenticator or Recovery Code"),
+        " ABCDEFGHIJKLMNOP ",
+      );
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await waitFor(() =>
+        expect(useAuthStore.getState().updateProfile).toHaveBeenCalledWith({
+          email: "new@example.com",
+          current_password: "secret",
+          mfa_code: "ABCDEFGHIJKLMNOP",
+        }),
+      );
+    });
+
+    it.each([
+      ["is invalid", "The code is incorrect."],
+      [
+        "too many invalid codes, try again later",
+        "Too many incorrect codes. Try again later.",
+      ],
+    ])("says why the server refused it (%s)", async (reason, message) => {
+      useAuthStore.setState({ updateProfile: realUpdateProfile } as Partial<
+        ReturnType<typeof useAuthStore.getState>
+      >);
+      server.use(
+        http.patch("*/api/users", () =>
+          HttpResponse.json(
+            { message: "bad request", fields: { mfa_code: reason } },
+            { status: 400 },
+          ),
+        ),
+      );
+      const { user } = await changeField("Email", "new@example.com", withMfa);
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+      const code = screen.getByLabelText("Authenticator or Recovery Code");
+      await user.type(code, "000000");
+
+      await user.click(screen.getByRole("button", { name: /^save$/i }));
+
+      await screen.findByText(message);
+      expect(code).toHaveAccessibleDescription(
+        expect.stringContaining(message),
+      );
     });
   });
 

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { MfaGenerate } from "@/client";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { mockUserAuth } from "@/tests/factories";
 import MfaEnableModal from "../MfaEnableModal";
 
 vi.mock("qrcode");
@@ -27,6 +28,11 @@ describe("MfaEnableModal", () => {
         () => new HttpResponse(null, { status: 204 }),
       ),
       http.patch("*/api/users", () => new HttpResponse(null, { status: 204 })),
+      http.get("*/api/auth/user", () =>
+        HttpResponse.json(
+          mockUserAuth({ recovery_email: "new-recovery@example.com" }),
+        ),
+      ),
     );
   });
 
@@ -98,6 +104,66 @@ describe("MfaEnableModal", () => {
           current_password: "secret",
         },
       ]);
+    });
+
+    it("waits on step 1 until the held recovery email is confirmed", async () => {
+      const user = userEvent.setup();
+      let confirmed = false;
+      server.use(
+        http.get("*/api/auth/user", () =>
+          HttpResponse.json(
+            mockUserAuth({
+              recovery_email: confirmed
+                ? "new-recovery@example.com"
+                : "old@example.com",
+            }),
+          ),
+        ),
+      );
+      render(
+        <MfaEnableModal
+          open={true}
+          onClose={onClose}
+          onSuccess={onSuccess}
+          currentRecoveryEmail="old@example.com"
+        />,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: /use a different recovery email/i }),
+      );
+      await user.type(
+        screen.getByPlaceholderText(/recovery@example\.com/i),
+        "new-recovery@example.com",
+      );
+      await user.type(screen.getByLabelText("Current Password"), "secret");
+      await user.click(screen.getByRole("button", { name: /save/i }));
+
+      expect(
+        await screen.findByText(
+          /we sent a confirmation link to new-recovery@example\.com/i,
+        ),
+      ).toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", { name: /i opened the link/i }),
+      );
+      expect(
+        await screen.findByText(
+          /open the link we sent to new-recovery@example\.com first/i,
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Save Recovery Codes/i),
+      ).not.toBeInTheDocument();
+
+      confirmed = true;
+      await user.click(
+        screen.getByRole("button", { name: /i opened the link/i }),
+      );
+      expect(
+        await screen.findByText(/Save Recovery Codes/i),
+      ).toBeInTheDocument();
     });
 
     it("keeps Save disabled until the current password is entered", async () => {

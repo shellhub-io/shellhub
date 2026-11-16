@@ -10,6 +10,8 @@ import {
   changePasswordSchema,
   type ChangePasswordFormValues,
 } from "@/pages/account/changePasswordSchema";
+import { mfaCodeRefusal } from "@/pages/account/mfaCode";
+import MfaCodeField from "@/pages/account/MfaCodeField";
 import { FormPasswordField } from "@/components/common/fields/rhf";
 import {
   CheckIcon,
@@ -27,9 +29,11 @@ import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 function ChangePasswordModal({
   open,
   onClose,
+  mfaEnabled,
 }: {
   open: boolean;
   onClose: () => void;
+  mfaEnabled: boolean;
 }) {
   const updatePw = useAuthStore((s) => s.updatePassword);
   const handOverSignOut = useHandOverSignOut();
@@ -38,23 +42,40 @@ function ChangePasswordModal({
     current: "",
     newPw: "",
     confirmPw: "",
+    mfaCode: "",
   });
   const { control, setError, clearErrors } = form;
 
-  const [watchedCurrent, watchedNewPw, watchedConfirmPw] = useWatch({
-    control,
-    name: ["current", "newPw", "confirmPw"],
-  });
-  const allFilled = !!watchedCurrent && !!watchedNewPw && !!watchedConfirmPw;
+  const [watchedCurrent, watchedNewPw, watchedConfirmPw, watchedMfaCode] =
+    useWatch({
+      control,
+      name: ["current", "newPw", "confirmPw", "mfaCode"],
+    });
+  const allFilled =
+    !!watchedCurrent &&
+    !!watchedNewPw &&
+    !!watchedConfirmPw &&
+    (!mfaEnabled || !!watchedMfaCode.trim());
 
   const onValid = async (values: ChangePasswordFormValues) => {
     clearErrors("root");
     try {
       await handOverSignOut(
-        () => updatePw(values.current, values.newPw),
+        () =>
+          updatePw(
+            values.current,
+            values.newPw,
+            mfaEnabled ? values.mfaCode.trim() : undefined,
+          ),
         "Password changed. Sign in with your new password.",
       );
     } catch (err) {
+      const mfaCodeRefused = mfaCodeRefusal(err);
+      if (mfaCodeRefused) {
+        setError("mfaCode", { type: "server", message: mfaCodeRefused });
+        return;
+      }
+
       const errorMessage =
         isSdkError(err) && err.status === 403
           ? "Current password is incorrect."
@@ -73,7 +94,11 @@ function ChangePasswordModal({
       onClose={onClose}
       icon={<LockClosedIcon />}
       title="Change password"
-      description="Enter your current password, then the one to replace it."
+      description={
+        mfaEnabled
+          ? "Enter your current password and an MFA code, then the one to replace it."
+          : "Enter your current password, then the one to replace it."
+      }
       submitLabel="Change password"
       submitDisabled={!allFilled}
       submitIcon={<CheckIcon className="w-4 h-4" strokeWidth={2} />}
@@ -100,6 +125,9 @@ function ChangePasswordModal({
         label="Confirm New Password"
         autoComplete="new-password"
       />
+      {mfaEnabled && (
+        <MfaCodeField control={control} id="change-pw-mfa-code" />
+      )}
     </FormModal>
   );
 }
@@ -194,6 +222,7 @@ export default function AccountSecurity() {
       </SettingsSection>
       <ChangePasswordModal
         open={pwModalOpen}
+        mfaEnabled={mfaEnabled}
         onClose={() => setPwModalOpen(false)}
       />
       <MfaEnableModal

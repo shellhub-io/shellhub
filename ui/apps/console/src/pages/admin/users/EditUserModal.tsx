@@ -1,11 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
-import { isSdkError } from "@/api/errors";
+import { apiErrorFields, isSdkError } from "@/api/errors";
+import { emailRefusalMessage } from "@/utils/emailRefusal";
 import FormModal from "@/components/common/FormModal";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
 import UserFormFields from "./UserFormFields";
@@ -17,6 +16,11 @@ import {
 } from "./userSchema";
 import { adminUpdateUserMutation, type UserAdminResponse } from "@/client";
 import ObjectName from "@/components/common/ObjectName";
+
+const ADMIN_EMAIL_REFUSAL_MESSAGES: Record<string, string> = {
+  "must be different from the recovery email":
+    "Must be different from the user's recovery email",
+};
 
 interface EditUserModalProps {
   open: boolean;
@@ -74,6 +78,18 @@ export default function EditUserModal({
         onClose();
       }
     } catch (err) {
+      const emailReason = apiErrorFields(err).email;
+      if (emailReason) {
+        setError("email", {
+          type: "server",
+          message:
+            emailRefusalMessage(emailReason) ??
+            ADMIN_EMAIL_REFUSAL_MESSAGES[emailReason] ??
+            "This email cannot be used.",
+        });
+        return;
+      }
+
       const message =
         isSdkError(err) && err.status === 409
           ? "A user with this email or username already exists."
@@ -93,8 +109,8 @@ export default function EditUserModal({
       title="Edit user"
       description={
         <>
-          Change <ObjectName>{user?.username || user?.email}</ObjectName>'s details, password
-          and whether they administer the instance.
+          Change <ObjectName>{user?.username || user?.email}</ObjectName>'s
+          details, password and whether they administer the instance.
         </>
       }
       submitLabel="Save changes"

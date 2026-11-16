@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   editProfileSchema,
+  type CurrentProfileValues,
   type EditProfileFormValues,
 } from "../editProfileSchema";
 
@@ -8,13 +9,14 @@ const ALL_CHANGED = { name: "\0", email: "\0", recoveryEmail: "\0" };
 
 function resolve(
   values: Partial<EditProfileFormValues>,
-  current = ALL_CHANGED,
+  current: CurrentProfileValues = ALL_CHANGED,
 ): Partial<Record<keyof EditProfileFormValues, string>> {
   const result = editProfileSchema(current).safeParse({
     name: "",
     email: "",
     recoveryEmail: "",
     currentPassword: "secret",
+    mfaCode: "",
     ...values,
   });
   if (result.success) return {};
@@ -101,10 +103,16 @@ describe("editProfileSchema", () => {
   });
 
   describe("padding", () => {
-    const blankName = { name: "   ", email: "alice@example.com", recoveryEmail: "" };
+    const blankName = {
+      name: "   ",
+      email: "alice@example.com",
+      recoveryEmail: "",
+    };
 
     it("rejects a blank stored name once it is edited, even by padding alone", () => {
-      expect(resolve({ ...blankName, name: "    " }, blankName).name).toBe("Name is required");
+      expect(resolve({ ...blankName, name: "    " }, blankName).name).toBe(
+        "Name is required",
+      );
     });
   });
 
@@ -148,11 +156,17 @@ describe("editProfileSchema", () => {
   });
 
   describe("currentPassword", () => {
-    const stored = { name: "Alice", email: "alice@example.com", recoveryEmail: "backup@example.com" };
+    const stored = {
+      name: "Alice",
+      email: "alice@example.com",
+      recoveryEmail: "backup@example.com",
+    };
     const unchanged = { ...stored, currentPassword: "" };
 
     it("is not needed when neither email changes", () => {
-      expect(resolve({ ...unchanged, name: "Bob" }, stored).currentPassword).toBeUndefined();
+      expect(
+        resolve({ ...unchanged, name: "Bob" }, stored).currentPassword,
+      ).toBeUndefined();
     });
 
     it.each([
@@ -166,9 +180,58 @@ describe("editProfileSchema", () => {
 
     it("is satisfied by any entry, which the server checks", () => {
       expect(
-        resolve({ ...unchanged, email: "alice@new.example.com", currentPassword: "x" }, stored)
-          .currentPassword,
+        resolve(
+          {
+            ...unchanged,
+            email: "alice@new.example.com",
+            currentPassword: "x",
+          },
+          stored,
+        ).currentPassword,
       ).toBeUndefined();
     });
+  });
+
+  describe("mfaCode", () => {
+    const stored = {
+      name: "Alice",
+      email: "alice@example.com",
+      recoveryEmail: "backup@example.com",
+      mfaEnabled: true,
+    };
+
+    it("is not needed when neither email changes", () => {
+      expect(
+        resolve({ ...stored, name: "Bob" }, stored).mfaCode,
+      ).toBeUndefined();
+    });
+
+    it("is not needed on an account without MFA", () => {
+      expect(
+        resolve(
+          { ...stored, email: "alice@new.example.com" },
+          { ...stored, mfaEnabled: false },
+        ).mfaCode,
+      ).toBeUndefined();
+    });
+
+    it.each([
+      ["email", { email: "alice@new.example.com" }, ""],
+      ["recovery email", { recoveryEmail: "other@example.com" }, "   "],
+    ])("needs a code to change the %s (got %j)", (_, change, mfaCode) => {
+      expect(resolve({ ...stored, ...change, mfaCode }, stored).mfaCode).toBe(
+        "Enter a code from your authenticator app or a recovery code",
+      );
+    });
+
+    it.each(["123456", "ABCDEFGHIJKLMNOP"])(
+      "is satisfied by %j, which the server checks",
+      (mfaCode) => {
+        expect(
+          resolve({ ...stored, email: "alice@new.example.com", mfaCode }, stored)
+            .mfaCode,
+        ).toBeUndefined();
+      },
+    );
   });
 });

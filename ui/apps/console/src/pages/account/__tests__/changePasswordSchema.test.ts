@@ -11,6 +11,7 @@ function resolve(
     current: "",
     newPw: "",
     confirmPw: "",
+    mfaCode: "",
     ...values,
   });
   if (result.success) return {};
