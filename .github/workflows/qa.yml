@@ -176,6 +176,11 @@ jobs:
         working-directory: agent
         run: go test -tags docker -race -timeout 25m ./...
 
+      - name: Test the agent installer
+        if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
+        working-directory: agent
+        run: go test -tags installer -race -timeout 10m .
+
       - name: Build
         if: ${{ !cancelled() && steps.versions.outcome == 'success' }}
         run: |
