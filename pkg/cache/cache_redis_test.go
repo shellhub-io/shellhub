@@ -3,6 +3,7 @@ package cache_test
 import (
 	"context"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -183,6 +184,62 @@ func TestRedisCacheCompareAndDeleteKeepsAnotherOwnersKey(t *testing.T) {
 	taken, err = c.SetNX(ctx, "guard", "next", time.Minute)
 	require.NoError(t, err)
 	assert.True(t, taken)
+}
+
+func TestRedisCacheIncrByCountsEveryConcurrentIncrement(t *testing.T) {
+	ctx := context.Background()
+
+	uri := startValkey(t)
+
+	c, err := cache.NewRedisCache(uri, 0, cache.Config{}, clock.New())
+	require.NoError(t, err)
+
+	value, err := c.IncrBy(ctx, "counter", 0, time.Minute)
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), value, "a missing key counts from zero")
+
+	var wg sync.WaitGroup
+	for range 50 {
+		wg.Go(func() {
+			_, err := c.IncrBy(ctx, "counter", 1, time.Minute)
+			assert.NoError(t, err)
+		})
+		wg.Go(func() {
+			_, err := c.IncrBy(ctx, "counter", 0, time.Minute)
+			assert.NoError(t, err)
+		})
+	}
+	wg.Wait()
+
+	value, err = c.IncrBy(ctx, "counter", 0, time.Minute)
+	require.NoError(t, err)
+	assert.Equal(t, int64(50), value, "an increment by zero raced an increment by one and lost it")
+
+	opts, err := goredis.ParseURL(uri)
+	require.NoError(t, err)
+
+	client := goredis.NewClient(opts)
+	t.Cleanup(func() { require.NoError(t, client.Close()) })
+
+	ttl, err := client.TTL(ctx, "counter").Result()
+	require.NoError(t, err)
+	assert.Greater(t, ttl, time.Duration(0))
+	assert.LessOrEqual(t, ttl, time.Minute)
+
+	for _, ttl := range []time.Duration{0, 500 * time.Microsecond, -time.Second} {
+		_, err := c.IncrBy(ctx, "counter", 1, ttl)
+		require.ErrorIs(t, err, cache.ErrTTLTooShort, "ttl %s", ttl)
+	}
+
+	value, err = c.IncrBy(ctx, "counter", 0, time.Minute)
+	require.NoError(t, err)
+	assert.Equal(t, int64(50), value, "a refused ttl touched the counter")
+
+	require.NoError(t, c.Delete(ctx, "counter"))
+
+	value, err = c.IncrBy(ctx, "counter", 1, time.Minute)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), value, "Delete left the counter in place")
 }
 
 func startValkey(t *testing.T) string {

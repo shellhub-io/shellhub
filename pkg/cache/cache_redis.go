@@ -85,6 +85,20 @@ func (c *redisCache) CompareAndDelete(ctx context.Context, key, value string) (b
 	return deleted == 1, nil
 }
 
+var incrByScript = redis.NewScript(`
+local value = redis.call("INCRBY", KEYS[1], ARGV[1])
+redis.call("PEXPIRE", KEYS[1], ARGV[2])
+return value
+`)
+
+func (c *redisCache) IncrBy(ctx context.Context, key string, delta int64, ttl time.Duration) (int64, error) {
+	if ttl < time.Millisecond {
+		return 0, ErrTTLTooShort
+	}
+
+	return incrByScript.Run(ctx, c.client, []string{key}, delta, ttl.Milliseconds()).Int64()
+}
+
 // Delete deletes cached value by given key.
 func (c *redisCache) Delete(ctx context.Context, key string) error {
 	if err := c.cache.Get(ctx, key, nil); errors.Is(err, rediscache.ErrCacheMiss) {

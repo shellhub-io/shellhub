@@ -317,6 +317,84 @@ func (_c *MockCache_HasAccountLockout_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// IncrBy provides a mock function for the type MockCache
+func (_mock *MockCache) IncrBy(ctx context.Context, key string, delta int64, ttl time.Duration) (int64, error) {
+	ret := _mock.Called(ctx, key, delta, ttl)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IncrBy")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int64, time.Duration) (int64, error)); ok {
+		return returnFunc(ctx, key, delta, ttl)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int64, time.Duration) int64); ok {
+		r0 = returnFunc(ctx, key, delta, ttl)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, int64, time.Duration) error); ok {
+		r1 = returnFunc(ctx, key, delta, ttl)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockCache_IncrBy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IncrBy'
+type MockCache_IncrBy_Call struct {
+	*mock.Call
+}
+
+// IncrBy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - key string
+//   - delta int64
+//   - ttl time.Duration
+func (_e *MockCache_Expecter) IncrBy(ctx any, key any, delta any, ttl any) *MockCache_IncrBy_Call {
+	return &MockCache_IncrBy_Call{Call: _e.mock.On("IncrBy", ctx, key, delta, ttl)}
+}
+
+func (_c *MockCache_IncrBy_Call) Run(run func(ctx context.Context, key string, delta int64, ttl time.Duration)) *MockCache_IncrBy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 int64
+		if args[2] != nil {
+			arg2 = args[2].(int64)
+		}
+		var arg3 time.Duration
+		if args[3] != nil {
+			arg3 = args[3].(time.Duration)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockCache_IncrBy_Call) Return(n int64, err error) *MockCache_IncrBy_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockCache_IncrBy_Call) RunAndReturn(run func(ctx context.Context, key string, delta int64, ttl time.Duration) (int64, error)) *MockCache_IncrBy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResetLoginAttempts provides a mock function for the type MockCache
 func (_mock *MockCache) ResetLoginAttempts(ctx context.Context, source string, userID string) error {
 	ret := _mock.Called(ctx, source, userID)

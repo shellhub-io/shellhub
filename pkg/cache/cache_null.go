@@ -35,6 +35,14 @@ func (*nullCache) CompareAndDelete(_ context.Context, _, _ string) (bool, error)
 	return true, nil
 }
 
+func (*nullCache) IncrBy(_ context.Context, _ string, delta int64, ttl time.Duration) (int64, error) {
+	if ttl < time.Millisecond {
+		return 0, ErrTTLTooShort
+	}
+
+	return delta, nil
+}
+
 func (*nullCache) HasAccountLockout(_ context.Context, _, _ string) (int64, int, error) {
 	return 0, 0, nil
 }
