@@ -87,6 +87,49 @@ func TestUpdateUser(t *testing.T) {
 			expected: Expected{http.StatusNotFound},
 		},
 		{
+			description: "fails when the new password is shorter than 5 characters",
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
+			body: requests.UpdateUser{
+				Password:        "fail",
+				CurrentPassword: "old_password",
+			},
+			requiredMocks: func() {},
+			expected:      Expected{http.StatusBadRequest},
+		},
+		{
+			description: "fails when the new password is longer than 32 characters",
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
+			body: requests.UpdateUser{ //nolint:gosec // G101: a 33-character length fixture, not a credential
+				Password:        "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
+				CurrentPassword: "old_password",
+			},
+			requiredMocks: func() {},
+			expected:      Expected{http.StatusBadRequest},
+		},
+		{
+			description: "fails when the current password does not match",
+			caller:      identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner},
+			body: requests.UpdateUser{
+				Password:        "new_password",
+				CurrentPassword: "wrong_password",
+			},
+			requiredMocks: func() {
+				svcMock.
+					On(
+						"UpdateUser",
+						gomock.Anything,
+						&requests.UpdateUser{
+							UserID:          "000000000000000000000000",
+							Password:        "new_password",
+							CurrentPassword: "wrong_password",
+						},
+					).
+					Return(svc.ErrUserPasswordNotMatch).
+					Once()
+			},
+			expected: Expected{http.StatusForbidden},
+		},
+		{
 			description: "success when try to updating an existing user",
 			body: requests.UpdateUser{
 				Name:          "John Doe",
@@ -135,6 +178,30 @@ func TestUpdateUser(t *testing.T) {
 		})
 	}
 
+	svcMock.AssertExpectations(t)
+}
+
+func TestDeprecatedUpdateUserIgnoresPathID(t *testing.T) {
+	svcMock := mocks.NewMockService(t)
+
+	const callerID = "000000000000000000000000"
+	const pathID = "111111111111111111111111"
+
+	svcMock.
+		On("UpdateUser", gomock.Anything, &requests.UpdateUser{UserID: callerID, Name: "John Doe"}).
+		Return(nil).
+		Once()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users/"+pathID+"/data", strings.NewReader(`{"name":"John Doe"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req = identitytest.As(req, identity.Identity{ID: callerID, Role: authorizer.RoleOwner})
+
+	rec := httptest.NewRecorder()
+
+	e := newTestRouter(t, svcMock)
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
 	svcMock.AssertExpectations(t)
 }
 

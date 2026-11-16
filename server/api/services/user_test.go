@@ -463,6 +463,39 @@ func TestUpdateUser(t *testing.T) {
 			},
 		},
 		{
+			description: "Fails when the new password cannot be hashed, saving nothing",
+			req: &requests.UpdateUser{
+				UserID:          "000000000000000000000000",
+				Password:        "new-secret",
+				CurrentPassword: "secret",
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").
+					Return(
+						&models.User{
+							ID: "000000000000000000000000",
+							Password: models.UserPassword{
+								Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
+							},
+						},
+						nil,
+					).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
+					Return(true).
+					Once()
+				hashMock.
+					On("Do", "new-secret").
+					Return("", errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				err: errors.New("error", "", 0),
+			},
+		},
+		{
 			description: "Fails to change the email when the current password does not match, saving nothing",
 			req: &requests.UpdateUser{
 				UserID:          "000000000000000000000000",
