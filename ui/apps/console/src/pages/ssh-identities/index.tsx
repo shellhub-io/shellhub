@@ -17,10 +17,12 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Button,
+  Callout,
   Dropdown,
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { apiErrorMessage } from "@/api/errors";
 import {
   useDeleteSSHIdentity,
   useSSHIdentities,
@@ -82,7 +84,7 @@ export default function SSHIdentities() {
   const sectionTitle = useNavSectionTitle("/ssh-identities");
   const userId = useAuthStore((s) => s.userId);
 
-  const { identities, isLoading } = useSSHIdentities();
+  const { identities, isLoading, error } = useSSHIdentities();
   const [scope, setScope] = useState<"mine" | "all">("mine");
   const browserKeyFingerprint = useBrowserKeyFingerprint();
   const isCurrentBrowser = (i: SshIdentity) =>
@@ -282,7 +284,7 @@ export default function SSHIdentities() {
 
   return (
     <>
-      {!isLoading && identities.length === 0 ? (
+      {!isLoading && !error && identities.length === 0 ? (
         <EmptyState
           icon={<FingerPrintIcon className="w-8 h-8" />}
           overline="Identity Access"
@@ -347,6 +349,12 @@ export default function SSHIdentities() {
                 label="SSH identity owner filter"
               />
             </div>
+          )}
+
+          {error && (
+            <Callout variant="error" className="mb-4">
+              {apiErrorMessage(error)}
+            </Callout>
           )}
 
           <DataTable
