@@ -7,6 +7,7 @@ import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
 import {
   PENDING_DEVICE_CODE_KEY,
+  clearPendingSsoLink,
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
@@ -596,6 +597,71 @@ describe("Login", () => {
         ).toBeInTheDocument();
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(useAuthStore.getState().token).toBeNull();
+      });
+    });
+
+    describe("when an SSO sign-in matched an existing account", () => {
+      beforeEach(() => {
+        mockGetConfig.mockReturnValue({
+          ...defaultConfig,
+          edition: "enterprise",
+        });
+      });
+
+      afterEach(() => {
+        clearPendingSsoLink();
+      });
+
+      it("ends the tab's session and sends the account's own sign-in on to confirm the link", async () => {
+        useAuthStore.setState({
+          token: jwtExpiringAt(9999999999, { sub: "someone-else" }),
+        });
+        setInfo({ local: true, saml: true });
+
+        renderLogin("/login?sso=link");
+
+        expect(
+          await screen.findByText(/sign in to it with its password/i),
+        ).toBeInTheDocument();
+        expect(useAuthStore.getState().token).toBeNull();
+
+        await waitFor(() =>
+          expect(screen.getByLabelText(/username/i)).toBeInTheDocument(),
+        );
+        await fillAndSubmit();
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith("/sso-link"),
+        );
+      });
+
+      it("drops the landing from the URL, so coming back to it later asks nothing", async () => {
+        setInfo({ local: true, saml: true });
+
+        renderLogin("/login?sso=link");
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith(
+            { search: "" },
+            { replace: true },
+          ),
+        );
+        expect(
+          screen.getByText(/sign in to it with its password/i),
+        ).toBeInTheDocument();
+      });
+
+      it("says the link needs local sign-in when the instance turned it off", async () => {
+        setInfo({ local: false, saml: true });
+
+        renderLogin("/login?sso=link");
+
+        expect(
+          await screen.findByText(
+            /ask an administrator to turn on local sign-in/i,
+          ),
+        ).toBeInTheDocument();
+        expect(screen.queryByLabelText(/username/i)).not.toBeInTheDocument();
       });
     });
 

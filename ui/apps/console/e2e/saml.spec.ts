@@ -14,6 +14,7 @@ import { buildRequestContext, loginAs } from "./api";
 import { instanceWide, isEnterprise, requireEnv } from "./env";
 import {
   createTeam,
+  fillLoginForm,
   generateKey,
   required,
   signInAndOpen,
@@ -459,7 +460,8 @@ test.describe("SAML", instanceWide, () => {
       expect((await collectSignIn(browserCookie)).response?.status).toBe(401);
     });
 
-    test("a SAML sign-in with a local account's email signs in to that account", async ({
+    test("a first SAML sign-in with a local account's email links it only after that account's own sign-in", async ({
+      browser,
       page,
     }) => {
       const { owner } = await createTeam();
@@ -469,15 +471,68 @@ test.describe("SAML", instanceWide, () => {
         name: owner.username,
       });
 
-      const token = await signInWithSso(page);
+      await page.goto("/login");
+      await page.getByRole("button", { name: "Login with SSO" }).click();
 
-      await expect(page).toHaveURL(/\/dashboard$/);
-      expect(await readSessionUser(token)).toMatchObject({
+      await expect(
+        page.getByText("Sign in to it with its password to link it"),
+      ).toBeVisible();
+      await expect(page).toHaveURL(/\/login$/);
+      const unlinked = await loginAs(owner.username, password);
+      expect(await readSessionUser(unlinked.token)).toMatchObject({
         id,
-        user: owner.username,
-        auth_methods: ["local", "saml"],
+        auth_methods: ["local"],
       });
+
+      await fillLoginForm(page, owner.username, password);
+      await expect(page).toHaveURL(/\/sso-link$/);
+      await page.getByRole("button", { name: "Link Account" }).click();
+      await expect(
+        page.getByRole("heading", { name: "Account linked" }),
+      ).toBeVisible();
+
+      const next = await browser.newContext();
+      try {
+        await answerSignOn(next, { email: owner.email, name: owner.username });
+        const token = await signInWithSso(await next.newPage());
+        expect(await readSessionUser(token)).toMatchObject({
+          id,
+          user: owner.username,
+          auth_methods: ["local", "saml"],
+        });
+      } finally {
+        await next.close();
+      }
       expect((await loginAs(owner.username, password)).id).toBe(id);
+    });
+
+    test("a first SAML sign-in cannot be linked to an account it did not match", async ({
+      page,
+    }) => {
+      const { owner: victim } = await createTeam();
+      const { owner: other } = await createTeam();
+      await answerSignOn(page.context(), {
+        email: victim.email,
+        name: victim.username,
+      });
+
+      await page.goto("/login");
+      await page.getByRole("button", { name: "Login with SSO" }).click();
+      await expect(
+        page.getByText("Sign in to it with its password to link it"),
+      ).toBeVisible();
+
+      await fillLoginForm(page, other.username, password);
+      await expect(page).toHaveURL(/\/sso-link$/);
+      await page.getByRole("button", { name: "Link Account" }).click();
+
+      await expect(
+        page.getByText("There is no single sign-on link waiting"),
+      ).toBeVisible();
+      for (const account of [victim, other]) {
+        const { token } = await loginAs(account.username, password);
+        expect((await readSessionUser(token)).auth_methods).toEqual(["local"]);
+      }
     });
   });
 

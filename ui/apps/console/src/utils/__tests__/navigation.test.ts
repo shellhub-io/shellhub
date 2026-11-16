@@ -7,6 +7,10 @@ import {
   hasPendingDeviceCode,
   resolvePostLoginRedirect,
   PENDING_DEVICE_CODE_KEY,
+  PENDING_SSO_LINK_KEY,
+  setPendingSsoLink,
+  clearPendingSsoLink,
+  landingAfterSignIn,
 } from "../navigation";
 
 function params(value?: string): URLSearchParams {
@@ -152,5 +156,34 @@ describe("resolvePostLoginRedirect", () => {
     expect(resolvePostLoginRedirect(new URLSearchParams())).toBe(
       "/accept-device?code=A%26B%3DC",
     );
+  });
+});
+
+describe("pending SSO link", () => {
+  beforeEach(() => {
+    localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
+    sessionStorage.removeItem(PENDING_SSO_LINK_KEY);
+  });
+
+  it("sends the next sign-in to confirm the link, once", () => {
+    setPendingSsoLink();
+
+    expect(landingAfterSignIn("/devices")).toBe("/sso-link");
+    expect(landingAfterSignIn("/devices")).toBe("/devices");
+  });
+
+  it("confirms the link before acting on a pending device code, keeping the code", () => {
+    setPendingSsoLink();
+    setPendingDeviceCode("WXYZ2K7Q");
+
+    expect(landingAfterSignIn("/dashboard")).toBe("/sso-link");
+    expect(hasPendingDeviceCode()).toBe(true);
+  });
+
+  it("lands where it was going once the link is forgotten", () => {
+    setPendingSsoLink();
+    clearPendingSsoLink();
+
+    expect(landingAfterSignIn("/dashboard")).toBe("/dashboard");
   });
 });

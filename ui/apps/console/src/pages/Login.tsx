@@ -9,7 +9,11 @@ import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
 import { isCloud, isEnterprise } from "../env";
-import { getSafeRedirect } from "@/utils/navigation";
+import {
+  clearPendingSsoLink,
+  getSafeRedirect,
+  setPendingSsoLink,
+} from "@/utils/navigation";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import AuthActions from "@/components/auth/AuthActions";
 import SignInForm from "@/components/auth/SignInForm";
@@ -37,6 +41,7 @@ function collectSsoSignIn() {
 }
 
 async function startSsoSignIn() {
+  clearPendingSsoLink();
   const { data } = await getSamlAuthUrl({ throwOnError: true });
   window.location.replace(data.url);
 }
@@ -50,7 +55,10 @@ async function startSsoSignIn() {
  * the last two minutes, which means the IdP keeps sending sign-ins it was not asked for. A session
  * whose token expired counts as signed out here, so it neither sends the page away nor blocks the
  * sign-in. Reached with `?sso=complete`, where the server sends a finished SSO sign-in, it
- * collects the session the server kept for this browser, once.
+ * collects the session the server kept for this browser, once. Reached with `?sso=link`, where the
+ * server sends an SSO sign-in whose email matched an existing account, it ends any session in
+ * the tab, asks for that account's own sign-in, which then confirms the link, and drops the
+ * parameter from the URL, so going back to the page later does not ask again.
  */
 export default function Login() {
   const isCloudEdition = isCloud();
@@ -64,6 +72,7 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const queryToken = searchParams.get("token");
   const ssoComplete = searchParams.get("sso") === "complete";
+  const [ssoLink] = useState(() => searchParams.get("sso") === "link");
   const missingAssertions = searchParams.get("missing_assertions");
   const token = useAuthStore((s) => s.token);
   const signedIn = token !== null && !isTokenExpired(token);
@@ -98,13 +107,21 @@ export default function Login() {
     }
   }, [signOut]);
 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (ssoLink) {
+      useAuthStore.getState().logout();
+      setPendingSsoLink();
+      void navigate({ search: "" }, { replace: true });
+    }
+  }, [ssoLink, navigate]);
+
   useEffect(() => {
     void getInfo()
       .then(({ data }) => setAuthentication(data?.authentication ?? null))
       .catch(() => setAuthentication(null));
   }, []);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!queryToken && !ssoComplete) return;
@@ -115,6 +132,7 @@ export default function Login() {
       return loginWithToken(sessionToken);
     };
 
+    if (ssoComplete) clearPendingSsoLink();
     const signedIn = ssoComplete
       ? collectSsoSignIn().then(signInWith)
       : signInWith(queryToken ?? "");
@@ -161,7 +179,7 @@ export default function Login() {
   const showLocalForm = !isEnterpriseEdition || authentication?.local === true;
   const ssoOnly = isEnterpriseEdition && authentication?.local === false;
 
-  if (signedIn && !queryToken && !ssoComplete && !signOut) {
+  if (signedIn && !queryToken && !ssoComplete && !ssoLink && !signOut) {
     return <Navigate to="/" replace />;
   }
 
@@ -194,6 +212,20 @@ export default function Login() {
           <Callout variant="error">
             Your identity provider keeps starting sign-ins ShellHub did not
             request. Use the SSO button to sign in.
+          </Callout>
+        )}
+        {ssoLink && authentication?.local === false && (
+          <Callout variant="error">
+            An account with your email already exists, and it can be linked to
+            single sign-on only by signing in to it with its password, which
+            this instance does not allow. Ask an administrator to turn on local
+            sign-in while you link it.
+          </Callout>
+        )}
+        {ssoLink && authentication?.local !== false && (
+          <Callout variant="info">
+            An account with your email already exists. Sign in to it with its
+            password to link it to single sign-on.
           </Callout>
         )}
         {error && <Callout variant="error">{error}</Callout>}

@@ -63,7 +63,10 @@ post:
     `/login?sso=complete`, where the console collects the session at
     `/api/user/saml/token` from the browser that started the request, or to
     `/login` with the attributes the assertion is missing. A sign-in response to a
-    request no browser started redirects to `/login?sso=start`. With a
+    request no browser started redirects to `/login?sso=start`. A first sign-in
+    whose email matches an account not yet bound to a subject signs nobody in
+    and redirects to `/login?sso=link`, where the user signs in to that account
+    and confirms the link at `/api/user/saml/link`. With a
     `RelayState`, it answers a re-authentication started at
     `/api/user/saml/reauth` and redirects to `/sso-reauth` with `status=ok` and
     the confirmation code that approves the SSH login, or with `status=error`.
