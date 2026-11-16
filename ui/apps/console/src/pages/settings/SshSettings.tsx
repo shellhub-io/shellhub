@@ -73,8 +73,8 @@ const UPGRADE_CHANGES = [
 ];
 
 function NoPoliciesWarning() {
-  const { policies, isLoading } = useAccessPolicies();
-  if (isLoading || policies.length > 0) return null;
+  const { policies, isLoading, error } = useAccessPolicies();
+  if (isLoading || error || policies.length > 0) return null;
   return (
     <p className="mt-2 flex items-center gap-1.5 text-xs text-accent-yellow">
       <ExclamationTriangleIcon
