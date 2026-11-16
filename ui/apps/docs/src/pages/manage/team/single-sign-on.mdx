@@ -93,23 +93,33 @@ user's first SAML sign-in no account has that subject yet, so ShellHub looks for
 the IdP asserts:
 
 - **No account has that email.** ShellHub creates one, bound to the subject, with no password.
-- **A local account has that email.** ShellHub binds it to the subject and signs the user in. From
-  then on that account signs in through SAML without asking for its ShellHub password or MFA code.
-  It keeps its password, so it can still sign in locally while local authentication is on.
+- **An account that signs in only through SAML has that email.** It has no password to prove, so
+  ShellHub binds it to the subject and signs it in.
+- **An account that signs in locally has that email.** ShellHub signs nobody in. It asks the user to sign in to
+  that account with its own password, and MFA code when the account has one, and then to confirm
+  the link. Only then is the account bound to the subject. From then on it signs in through SAML
+  without asking for its ShellHub password or MFA code. It keeps its password, so it can still sign
+  in locally while local authentication is on. The link must be confirmed within ten minutes, from
+  the browser that started the SAML sign-in.
 - **The account with that email is already bound to another subject.** ShellHub refuses the
   sign-in.
 
-This is how existing local users move to SSO without losing their namespaces. It also means that
-whoever controls the email your IdP asserts for a person controls that person's ShellHub account,
-so map the email attribute to a field your users cannot edit themselves.
+This is how existing local users move to SSO without losing their namespaces. Asking for the
+account's own password means an email alone does not hand over an account: someone who controls
+the email your IdP asserts for a person, or who set their own account's email to a colleague's
+address, cannot take over the account behind it. The user who cannot sign in to the matching
+account cannot link it either; an administrator has to sort out which account is theirs.
+
+Linking needs a local sign-in, so it works only while local authentication is on. Keep it on until
+every existing user has signed in through SAML once.
 
 ## Leaving local authentication on
 
 Keep at least one local administrator account working. If the IdP integration breaks — an expired
 certificate, a metadata change — a local account is how you get back in to fix it.
 
-Give that account an email your IdP never asserts. If the IdP sends the same address, the first
-SAML sign-in with it binds the administrator account to the IdP user, and from then on whoever the
+Give that account an email your IdP never asserts. If the IdP sends the same address, whoever signs
+in to the administrator account locally can link it to that IdP user, and from then on whoever the
 IdP signs in with that address reaches the account too, alongside the local password.
 
 ## Where to go next

@@ -18,6 +18,7 @@ describe("isSignInLanding", () => {
     ["?sso=complete", true],
     ["?sso_code=abc", false],
     ["?sso=start", true],
+    ["?sso=link", true],
     ["?sso=other", false],
     ["?redirect=%2Fdevices", false],
     ["", false],

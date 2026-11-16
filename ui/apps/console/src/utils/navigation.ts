@@ -44,6 +44,27 @@ export function consumePendingDeviceCode(): string | null {
 }
 
 /**
+ * Where a first SSO sign-in that matched an existing account waits while the user signs in to
+ * that account by its own credentials. The link it waits for belongs to this browser, so the tab
+ * that landed on it is the one that confirms it.
+ */
+export const PENDING_SSO_LINK_KEY = "shellhub:pending-sso-link";
+
+/**
+ * Remembers that the next sign-in in this tab confirms an SSO link.
+ */
+export function setPendingSsoLink(): void {
+  sessionStorage.setItem(PENDING_SSO_LINK_KEY, "1");
+}
+
+/**
+ * Forgets a pending SSO link, for a sign-in that no longer confirms one.
+ */
+export function clearPendingSsoLink(): void {
+  sessionStorage.removeItem(PENDING_SSO_LINK_KEY);
+}
+
+/**
  * Reads the redirect query parameter, returning it only if it is a path within this app.
  * Anything else — an absolute URL, a protocol-relative //host, or a backslash the browser may
  * normalize into one — falls back, because a redirect a caller controls is an open redirect.
@@ -65,19 +86,25 @@ export function getSafeRedirect(
 }
 
 /**
- * Where to land after a sign-in. An explicit redirect wins; otherwise a device enrolment code
- * left by an accept-device link is consumed and takes precedence over the dashboard, so the
- * link the user originally followed still completes.
+ * Where to land after a sign-in. A pending SSO link wins and is consumed, sending the user to
+ * /sso-link; otherwise an explicit redirect wins, and without one a device enrolment code left by
+ * an accept-device link is consumed and takes precedence over the dashboard, so the link the user
+ * originally followed still completes.
  */
 export function resolvePostLoginRedirect(params: URLSearchParams): string {
   return landingAfterSignIn(getSafeRedirect(params));
 }
 
 /**
- * Where an already validated redirect lands once the sign-in succeeded. It consumes the pending
- * device code, so call it only after the session exists, never while rendering.
+ * Where an already validated redirect lands once the sign-in succeeded. A pending SSO link wins
+ * and is consumed, sending the user to confirm it; otherwise it consumes the pending device code.
+ * Call it only after the session exists, never while rendering.
  */
 export function landingAfterSignIn(redirect: string): string {
+  if (sessionStorage.getItem(PENDING_SSO_LINK_KEY)) {
+    clearPendingSsoLink();
+    return "/sso-link";
+  }
   if (redirect === "/dashboard") {
     const pendingCode = consumePendingDeviceCode();
     if (pendingCode) {

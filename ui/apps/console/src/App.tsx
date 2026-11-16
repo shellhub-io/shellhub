@@ -33,6 +33,7 @@ import {
 
 const SignUp = lazy(() => import("./pages/SignUp"));
 const SsoReauthComplete = lazy(() => import("./pages/SsoReauthComplete"));
+const SsoLink = lazy(() => import("./pages/SsoLink"));
 const ConfirmAccount = lazy(() => import("./pages/ConfirmAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Devices = lazy(() => import("./pages/devices"));
@@ -157,6 +158,9 @@ export default function App() {
               <Route path="/install" element={<Install />} />
             </Route>
             <Route element={<ProtectedRoute />}>
+              <Route element={<AuthLayout />}>
+                <Route path="/sso-link" element={<SsoLink />} />
+              </Route>
               <Route element={<OnboardingSurveyGate />}>
                 <Route path="/profile/*" element={<LegacyProfileRedirect />} />
                 <Route
