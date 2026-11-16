@@ -176,6 +176,33 @@ describe("Account", () => {
       ).toBeInTheDocument();
     });
 
+    it("names the lockout a wrong current password starts", async () => {
+      server.use(
+        http.patch("*/api/users", () =>
+          HttpResponse.json(
+            { message: "too many wrong attempts" },
+            {
+              status: 429,
+              headers: { "X-Account-Lockout": String(Math.floor(Date.now() / 1000) + 270) },
+            },
+          ),
+        ),
+      );
+      const user = await openChangePasswordModal();
+
+      await user.type(screen.getByLabelText(/current password/i), "wrong");
+      await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
+      await user.type(
+        screen.getByLabelText(/confirm new password/i),
+        "newpass123",
+      );
+      await user.click(getModalSubmitButton());
+
+      expect(
+        await screen.findByText("Too many wrong attempts. Try again in 4 minutes."),
+      ).toBeInTheDocument();
+    });
+
     it("signs out and asks to sign in with the new password after a successful change", async () => {
       server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
       const user = await openChangePasswordModal();

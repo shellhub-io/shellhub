@@ -5,6 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { disableMfa } from "@/client";
+import { lockoutMessage } from "@/api/errors";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
@@ -113,14 +114,14 @@ export default function MfaDisableDialog({
 
       onSuccess();
       onClose();
-    } catch {
-      let errorMessage = "Invalid verification code";
-      if (mode === "recovery") {
-        errorMessage = "Invalid recovery code";
-      } else if (mode === "email-reset") {
-        errorMessage = mfaResetCodesRejectedMessage;
-      }
-      setError(errorMessage);
+    } catch (err) {
+      const refusal =
+        mode === "recovery"
+          ? "Invalid recovery code"
+          : mode === "email-reset"
+            ? mfaResetCodesRejectedMessage
+            : "Invalid verification code";
+      setError(lockoutMessage(err) ?? refusal);
 
       if (mode === "totp") {
         otp.reset();

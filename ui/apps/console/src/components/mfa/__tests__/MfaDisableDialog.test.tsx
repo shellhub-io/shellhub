@@ -192,6 +192,30 @@ describe("MfaDisableDialog", () => {
       });
       expect(onSuccess).not.toHaveBeenCalled();
     });
+
+    it("names the lockout a wrong TOTP starts", async () => {
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json(
+            { message: "too many wrong attempts" },
+            {
+              status: 429,
+              headers: { "X-Account-Lockout": String(Math.floor(Date.now() / 1000) + 270) },
+            },
+          ),
+        ),
+      );
+      const user = renderDialog();
+
+      await fillTotpCode(user, "999999");
+
+      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
+
+      expect(
+        await screen.findByText("Too many wrong attempts. Try again in 4 minutes."),
+      ).toBeInTheDocument();
+      expect(onSuccess).not.toHaveBeenCalled();
+    });
   });
 
   describe("Recovery Code Mode Validation", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { apiErrorFields, apiErrorMessage, isSdkError } from "../errors";
+import { apiErrorFields, apiErrorMessage, isSdkError, lockoutMessage } from "../errors";
 
 describe("isSdkError", () => {
   describe("returns true for valid SDK errors", () => {
@@ -103,5 +103,40 @@ describe("apiErrorFields", () => {
 
   it("returns an empty map when fields is not an object", () => {
     expect(apiErrorFields({ status: 400, fields: "username" })).toEqual({});
+  });
+});
+
+describe("lockoutMessage", () => {
+  const now = 1_711_510_000_000;
+  const lockedUntil = (until: string) => ({
+    status: 429,
+    headers: new Headers({ "X-Account-Lockout": until }),
+  });
+
+  it.each([
+    [String(now / 1000 + 4 * 60), "Too many wrong attempts. Try again in 4 minutes."],
+    [String(now / 1000 + 60), "Too many wrong attempts. Try again in 1 minute."],
+    [String(now / 1000 + 90), "Too many wrong attempts. Try again in 1 minute."],
+    [String(now / 1000 + 59.5), "Too many wrong attempts. Try again in 59 seconds."],
+    [String(now / 1000 + 30), "Too many wrong attempts. Try again in 30 seconds."],
+    [String(now / 1000 + 1), "Too many wrong attempts. Try again in 1 second."],
+  ])("names the time left until the lockout at %s ends", (until, expected) => {
+    expect(lockoutMessage(lockedUntil(until), now)).toBe(expected);
+  });
+
+  it.each(["0", "", "soon", String(now / 1000 + 0.5), String(now / 1000 - 5)])(
+    "asks to wait a moment when the header %j gives no end ahead",
+    (until) => {
+      expect(lockoutMessage(lockedUntil(until), now)).toBe(
+        "Too many wrong attempts. Wait a moment and try again.",
+      );
+    },
+  );
+
+  it.each([
+    ["a value that is not an API error", new Error("boom")],
+    ["an API error other than 429", { status: 403, headers: new Headers() }],
+  ])("gives nothing for %s", (_, err) => {
+    expect(lockoutMessage(err, now)).toBeUndefined();
   });
 });
