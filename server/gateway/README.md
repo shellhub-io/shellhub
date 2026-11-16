@@ -18,9 +18,9 @@ adding a DNS provider is a line of Go here rather than a rebuild step with `xcad
 `server.go` adds one module of its own, the `shellhub_server` handler. It ends a route by calling
 the `http.Handler` passed to `Start(cfg, handler)`, the server's router, in the same process. No
 connection to the server is opened per request or per tunnel, so a device costs one socket and no
-copy buffers. The client's address reaches the router on the request itself: `X-Real-IP`,
-`X-Forwarded-For`, `X-Forwarded-Host` and `X-Forwarded-Proto` are set from the connection, never
-taken from the client.
+copy buffers. The client's address reaches the router on the request itself: `X-Real-IP` and
+`X-Forwarded-For` carry Caddy's `{client_ip}`, and `X-Forwarded-Host` and `X-Forwarded-Proto` are
+set from the connection. None of them is taken from the client.
 
 At start-up the server builds a Caddyfile from the environment, adapts it to Caddy's JSON
 configuration and loads it. Nothing is written to disk and nothing reloads it afterwards: a
@@ -57,14 +57,15 @@ without the other stops the server from starting, checked even with automatic HT
 half-set pair is a typo in every case, and the alternative to refusing it is quietly asking a
 public CA for a name the operator meant to serve themselves.
 
-### Behind a load balancer
+### Behind a load balancer or reverse proxy
 
-`SHELLHUB_PROXY` enables the PROXY protocol, and `SHELLHUB_PROXY_TRUSTED_IPS` names the peers
-allowed to use it. This list matters: a peer that may send the preamble is a peer that chooses
-the client's address, and that address is what the login lockout and the GeoIP rules are keyed
-on. It has no default: `LoadGatewayConfig` refuses `SHELLHUB_PROXY=true` without it. The router
-reads the same list, through `server/api/pkg/origin`, to decide which peers of `:8080` may name
-the client in `X-Real-IP` and `X-Forwarded-*`.
+`SHELLHUB_PROXY_TRUSTED_IPS` names the peers allowed to choose the client's address, and that
+address is what the login lockout and the GeoIP rules are keyed on. Whenever the list is set, it
+becomes Caddy's `trusted_proxies` with `trusted_proxies_strict`: `{client_ip}` is the right-most
+`X-Forwarded-For` hop outside the list, or the peer when there is none. `SHELLHUB_PROXY` only adds
+the PROXY protocol listener for the same peers, and `LoadGatewayConfig` refuses it without the
+list. The router reads the same list, through `server/api/pkg/origin`, and applies the same rule
+to the peers of `:8080`, which also include loopback. Neither reads a client's `X-Real-IP`.
 
 ## Development
 

@@ -66,7 +66,7 @@ install command or the agent, accepting that risk. See
 | Variable | Default | Meaning |
 |---|---|---|
 | `SHELLHUB_PROXY` | `false` | Accept the PROXY protocol from a Layer 4 balancer |
-| `SHELLHUB_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs allowed to declare a client address, besides loopback. Required when `SHELLHUB_PROXY=true` |
+| `SHELLHUB_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs of the proxies and balancers allowed to declare a client address. Required when `SHELLHUB_PROXY=true` |
 | `SHELLHUB_SSH_PROXY_TRUSTED_IPS` | *(empty)* | Space-separated CIDRs allowed to send a PROXY protocol header to the SSH port, besides loopback |
 | `SHELLHUB_PUBLIC_URL` | built from `SHELLHUB_DOMAIN` and `SHELLHUB_AUTO_SSL` | URL users reach ShellHub at, such as `https://shellhub.example.com`. An `http` or `https` origin with no path |
 | `SHELLHUB_TUNNEL_PING_INTERVAL` | *(empty)* | How often the server pings each device's tunnel, as a duration such as `15s`. Empty keeps each transport's default, 30s on v1 tunnels and 35s on v2 tunnels |
@@ -81,12 +81,12 @@ Set it too when users reach ShellHub on a port `SHELLHUB_DOMAIN` does not name, 
 
 `SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in, device enrollment and web
 terminal sessions, so their lockout, firewall rules and access policy source IPs depend on it. A
-peer in those ranges, or on loopback, may name the client: in a PROXY protocol header when
-`SHELLHUB_PROXY=true`, or in `X-Real-IP` and `X-Forwarded-*` when it reaches port `8080`. Any other
-peer is taken to be the client. Empty, the default, trusts loopback alone. With
-`SHELLHUB_GATEWAY=false`, list your ingress or load balancer here, or every client appears to come
-from it. The server refuses to start with `SHELLHUB_PROXY=true` and no ranges, or with an entry that
-is not a CIDR range.
+peer in those ranges may name the client in a PROXY protocol header when `SHELLHUB_PROXY=true`, and
+in `X-Forwarded-For`. The client is the right-most `X-Forwarded-For` address outside the ranges.
+ShellHub does not read `X-Real-IP`. Any other peer is taken to be the client. Port `8080`, which
+`SHELLHUB_GATEWAY=false` exposes, also trusts loopback. List your ingress, load balancer or reverse
+proxy here, or every client appears to come from it. The server refuses to start with
+`SHELLHUB_PROXY=true` and no ranges, or with an entry that is not a CIDR range.
 
 The SSH port reads only `SHELLHUB_SSH_PROXY_TRUSTED_IPS`, which decides the client address of SSH
 clients that connect to it. It closes a connection whose PROXY header comes from a peer outside

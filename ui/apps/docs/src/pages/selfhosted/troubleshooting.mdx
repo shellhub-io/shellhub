@@ -68,11 +68,13 @@ SSH is not HTTP and will not survive an HTTP proxy — it needs its own path thr
 
 ## Every client appears to come from the same address
 
-You are behind a proxy or load balancer and ShellHub is not reading the client address from its
-PROXY protocol header. For web traffic, `SHELLHUB_PROXY` is not set on the gateway, or
-`SHELLHUB_PROXY_TRUSTED_IPS` does not include the balancer. For SSH, the header does not reach the
-server: the balancer sends none, or decodes it itself. Enable PROXY protocol on the SSH path, pass
-the header through unread, and list the balancer in `SHELLHUB_SSH_PROXY_TRUSTED_IPS`.
+You are behind a proxy or load balancer and ShellHub is not reading the client address it passes.
+For web traffic, `SHELLHUB_PROXY_TRUSTED_IPS` does not include the proxy or balancer. A Layer 4
+balancer also needs `SHELLHUB_PROXY` set on the gateway. An HTTP reverse proxy must append the
+client to `X-Forwarded-For`, because ShellHub does not read `X-Real-IP`. For SSH, the header does
+not reach the server: the balancer sends none, or decodes it itself. Enable PROXY protocol on the
+SSH path, pass the header through unread, and list the balancer in
+`SHELLHUB_SSH_PROXY_TRUSTED_IPS`.
 
 This is worth fixing even if it looks cosmetic: access policy source IPs, firewall rules and the
 session audit trail read the client address of SSH and web terminal sessions, and password lockout

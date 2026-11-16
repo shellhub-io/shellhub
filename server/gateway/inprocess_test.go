@@ -3,6 +3,7 @@ package gateway
 import (
 	"bufio"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"strconv"
@@ -52,27 +53,24 @@ func TestTheServerReceivesTheClientAndItsConnection(t *testing.T) {
 	})
 
 	cfg := configurations()["community"]
+	cfg.ProxyTrustedIPs = "127.0.0.0/8"
 	address := startServing(t, cfg, handler)
 
-	t.Run("the client address is the peer's, not the one it claims", func(t *testing.T) {
-		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://"+address+"/api/info", nil)
-		require.NoError(t, err)
-		req.Host = cfg.Domain + ":8443"
-		req.Header.Set("X-Real-IP", "203.0.113.9")
-		req.Header.Set("X-Forwarded-For", "203.0.113.9")
-		req.Header.Set("X-Forwarded-Host", "attacker.example")
-		req.Header.Set("X-Forwarded-Proto", "https")
+	claims := http.Header{
+		"X-Real-Ip":         {"192.0.2.99"},
+		"X-Forwarded-For":   {"198.51.100.66, 203.0.113.9"},
+		"X-Forwarded-Host":  {"attacker.example"},
+		"X-Forwarded-Proto": {"https"},
+	}
 
-		res, err := http.DefaultClient.Do(req)
-		require.NoError(t, err)
-		require.NoError(t, res.Body.Close())
+	t.Run("a trusted peer names the client by its right-most untrusted hop", func(t *testing.T) {
+		seen := probe(t, address, cfg.Domain+":8443", claims)
 
-		require.Equal(t, http.StatusNoContent, res.StatusCode)
-		assert.Equal(t, "127.0.0.1", res.Header.Get("X-Seen-Real-IP"))
-		assert.NotEmpty(t, res.Header.Get("X-Seen-Request-ID"))
-		assert.Equal(t, "127.0.0.1", res.Header.Get("X-Seen-Forwarded-For"))
-		assert.Equal(t, cfg.Domain+":8443", res.Header.Get("X-Seen-Forwarded-Host"))
-		assert.Equal(t, "http", res.Header.Get("X-Seen-Forwarded-Proto"))
+		assert.Equal(t, "203.0.113.9", seen.Get("X-Seen-Real-IP"))
+		assert.Equal(t, "203.0.113.9", seen.Get("X-Seen-Forwarded-For"))
+		assert.NotEmpty(t, seen.Get("X-Seen-Request-ID"))
+		assert.Equal(t, cfg.Domain+":8443", seen.Get("X-Seen-Forwarded-Host"))
+		assert.Equal(t, "http", seen.Get("X-Seen-Forwarded-Proto"))
 	})
 
 	t.Run("a tunnel takes over the connection", func(t *testing.T) {
@@ -108,6 +106,26 @@ func TestTheServerReceivesTheClientAndItsConnection(t *testing.T) {
 	})
 }
 
+func TestAPeerOutsideTheListIsTheClientWhateverItClaims(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Seen-Real-IP", r.Header.Get("X-Real-IP"))
+		w.Header().Set("X-Seen-Forwarded-For", r.Header.Get("X-Forwarded-For"))
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	cfg := configurations()["community"]
+	cfg.ProxyTrustedIPs = "10.0.0.0/8"
+	address := startServing(t, cfg, handler)
+
+	seen := probe(t, address, cfg.Domain, http.Header{
+		"X-Real-Ip":       {"192.0.2.99"},
+		"X-Forwarded-For": {"198.51.100.66, 203.0.113.9"},
+	})
+
+	assert.Equal(t, "127.0.0.1", seen.Get("X-Seen-Real-IP"))
+	assert.Equal(t, "127.0.0.1", seen.Get("X-Seen-Forwarded-For"))
+}
+
 func TestTheServerReceivesTheClientNamedByTheLoadBalancer(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Seen-Real-IP", r.Header.Get("X-Real-IP"))
@@ -133,6 +151,22 @@ func TestTheServerReceivesTheClientNamedByTheLoadBalancer(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, res.StatusCode)
 	assert.Equal(t, "198.51.100.7", res.Header.Get("X-Seen-Real-IP"))
 	assert.True(t, strings.HasPrefix(res.Header.Get("X-Seen-Remote-Addr"), "198.51.100.7:"), res.Header.Get("X-Seen-Remote-Addr"))
+}
+
+func probe(t *testing.T, address, host string, header http.Header) http.Header {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://"+address+"/api/info", nil)
+	require.NoError(t, err)
+	req.Host = host
+	maps.Copy(req.Header, header)
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	require.NoError(t, res.Body.Close())
+	require.Equal(t, http.StatusNoContent, res.StatusCode)
+
+	return res.Header
 }
 
 func startServing(t *testing.T, cfg *GatewayConfig, handler http.Handler) string {

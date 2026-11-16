@@ -14,7 +14,8 @@ var loading sync.Mutex
 
 // Start builds the Caddyfile for cfg and runs it in this process, serving the server's routes
 // with handler, and replaces whatever an earlier Start loaded. It returns once the listeners are
-// up: ErrNoServerHandler for a nil handler, the template's or the adapter's error for a
+// up: ErrNoServerHandler for a nil handler, an error wrapping [origin.ErrInvalidTrust] for a
+// SHELLHUB_PROXY_TRUSTED_IPS that is not CIDR prefixes, the template's or the adapter's error for a
 // configuration that does not build, and Caddy's for one it cannot load, such as a port already
 // taken.
 func Start(cfg *GatewayConfig, handler http.Handler) error {

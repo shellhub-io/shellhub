@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,12 +76,37 @@ func TestParseTrust(t *testing.T) {
 	})
 }
 
+func TestParsePrefixes(t *testing.T) {
+	t.Run("the list's own prefixes, masked and with IPv4 mapped into IPv6 written as IPv4", func(t *testing.T) {
+		prefixes, err := ParsePrefixes(" ::ffff:10.0.0.0/104\n192.168.1.7/16\t2001:db8::/32 ")
+		require.NoError(t, err)
+
+		assert.Equal(t, []netip.Prefix{
+			netip.MustParsePrefix("10.0.0.0/8"),
+			netip.MustParsePrefix("192.168.0.0/16"),
+			netip.MustParsePrefix("2001:db8::/32"),
+		}, prefixes)
+	})
+
+	t.Run("an empty list has no prefixes, not even loopback", func(t *testing.T) {
+		prefixes, err := ParsePrefixes("")
+		require.NoError(t, err)
+
+		assert.Empty(t, prefixes)
+	})
+
+	t.Run("an entry that is not a CIDR prefix is refused", func(t *testing.T) {
+		_, err := ParsePrefixes("10.0.0.0/8 10.0.0.1")
+		require.ErrorIs(t, err, ErrInvalidTrust)
+	})
+}
+
 func TestResolve(t *testing.T) {
 	proxied, err := ParseTrust("10.0.0.0/8")
 	require.NoError(t, err)
 
 	forwarded := http.Header{
-		"X-Real-Ip":         {"203.0.113.7"},
+		"X-Forwarded-For":   {"203.0.113.7"},
 		"X-Forwarded-Host":  {"shellhub.example.com"},
 		"X-Forwarded-Proto": {"https"},
 		"X-Forwarded-Port":  {"443"},
@@ -143,18 +169,74 @@ func TestResolve(t *testing.T) {
 			expected:    Origin{IP: "10.0.0.5", Host: "shellhub.example.com", Scheme: "http"},
 		},
 		{
-			description: "a bracketed IPv6 client address is unwrapped",
+			description: "the client is the right-most hop outside the list, whatever the client prepended",
 			remoteAddr:  "10.0.0.5:54321",
 			host:        "shellhub.example.com",
-			header:      http.Header{"X-Real-Ip": {"[2001:db8::1]"}},
+			header:      http.Header{"X-Forwarded-For": {"198.51.100.66, 203.0.113.7, 10.0.0.9"}},
+			expected:    Origin{IP: "203.0.113.7", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "hops spread over several X-Forwarded-For fields are read in order",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"198.51.100.66", "203.0.113.7", "10.0.0.9"}},
+			expected:    Origin{IP: "203.0.113.7", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "a chain of trusted hops alone leaves the peer as the client",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"10.0.0.8, 127.0.0.1"}},
+			expected:    Origin{IP: "10.0.0.5", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "X-Real-IP does not name the client, even from a peer in the list",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Real-Ip": {"203.0.113.7"}},
+			expected:    Origin{IP: "10.0.0.5", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "a hop with a port and brackets is reduced to its address",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"[2001:db8::1]:443, 10.0.0.9:80"}},
 			expected:    Origin{IP: "2001:db8::1", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "a hop with a zone is reduced to its address",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"fe80::1%eth0, 10.0.0.9"}},
+			expected:    Origin{IP: "fe80::1", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "a bracketed IPv6 hop without a port is unwrapped",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"[2001:db8::1]"}},
+			expected:    Origin{IP: "2001:db8::1", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "an IPv4 hop mapped into IPv6 is the IPv4 client",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"::ffff:203.0.113.7"}},
+			expected:    Origin{IP: "203.0.113.7", Host: "shellhub.example.com", Scheme: "http"},
+		},
+		{
+			description: "a hop that does not parse ends the walk at the peer, so no hop to its left counts",
+			remoteAddr:  "10.0.0.5:54321",
+			host:        "shellhub.example.com",
+			header:      http.Header{"X-Forwarded-For": {"203.0.113.66, unknown, 10.0.0.9"}},
+			expected:    Origin{IP: "10.0.0.5", Host: "shellhub.example.com", Scheme: "http"},
 		},
 		{
 			description: "values that do not parse are ignored",
 			remoteAddr:  "10.0.0.5:54321",
 			host:        "shellhub.example.com",
 			header: http.Header{
-				"X-Real-Ip":         {"not-an-ip"},
+				"X-Forwarded-For":   {"not-an-ip, 10.0.0.9"},
 				"X-Forwarded-Proto": {"gopher"},
 				"X-Forwarded-Port":  {"http"},
 			},

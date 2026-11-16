@@ -122,8 +122,8 @@ func WithEdition(edition envs.Edition) Option {
 	}
 }
 
-// WithTrustedProxies lets the peers trust lists speak for a client through X-Real-IP and
-// X-Forwarded-*. Without it only loopback may.
+// WithTrustedProxies lets the peers trust lists speak for a client through X-Forwarded-*, as
+// [origin.Trust.Resolve] reads them. Without it only loopback may.
 func WithTrustedProxies(trust *origin.Trust) Option {
 	return func(_ *echo.Echo, handler *Handler) error {
 		handler.trust = trust

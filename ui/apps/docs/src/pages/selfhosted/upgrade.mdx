@@ -79,6 +79,20 @@ $ make start
 Once HTTPS answers on the new release, remove the old gateway container with
 `./bin/docker-compose up -d --remove-orphans`.
 
+## Behind a reverse proxy
+
+From the release that stops reading `X-Real-IP`, ShellHub takes the client address only from
+`X-Forwarded-For`, and only through a proxy listed in `SHELLHUB_PROXY_TRUSTED_IPS`. Before you
+upgrade a deployment behind nginx, Caddy, Traefik or a load balancer that speaks HTTP:
+
+- List the proxy's ranges in `SHELLHUB_PROXY_TRUSTED_IPS`. This now applies with the gateway on,
+  not only on port `8080`.
+- Make the proxy append the client to `X-Forwarded-For`. One that sets only `X-Real-IP` makes every
+  client appear at the proxy's address, so lockout, firewall rules and access policies all see
+  that one address.
+
+See [Behind a load balancer or reverse proxy](/about/ports-and-connectivity#behind-a-load-balancer-or-reverse-proxy).
+
 ## Afterwards
 
 Check the services are up and the logs are clean:

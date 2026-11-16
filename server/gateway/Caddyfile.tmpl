@@ -29,9 +29,12 @@
 
 	servers {
 		protocols h1 h2
-{{- if $cfg.EnableProxyProtocol }}
+{{- if .TrustedProxies }}
 
 		trusted_proxies static {{ .TrustedProxies }}
+		trusted_proxies_strict
+{{- end }}
+{{- if $cfg.EnableProxyProtocol }}
 
 		listener_wrappers {
 			proxy_protocol {
@@ -49,7 +52,7 @@
 	header_up Host {host}
 	header_up X-Forwarded-Port {x_forwarded_port}
 	header_up X-Request-ID {http.request.uuid}
-	header_up X-Real-IP {remote_host}
+	header_up X-Real-IP {client_ip}
 }
 
 {{ .SiteAddress }} {
@@ -222,8 +225,8 @@ request_header X-Forwarded-Port {x_forwarded_port}
 
 {{- define "endpoint" }}
 request_header X-Request-ID {http.request.uuid}
-request_header X-Real-IP {remote_host}
-request_header X-Forwarded-For {remote_host}
+request_header X-Real-IP {client_ip}
+request_header X-Forwarded-For {client_ip}
 request_header X-Forwarded-Host {hostport}
 request_header X-Forwarded-Proto {scheme}
 shellhub_server

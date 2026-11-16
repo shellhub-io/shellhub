@@ -3191,8 +3191,8 @@ func TestAuthAPIKey_UsingAKeyDoesNotExtendItsCacheEntry(t *testing.T) {
 	require.Equal(t, apiKeyCacheTTL, cache.ttls[testKeyCacheEntry])
 }
 
-// TestAuthDevice_RemoteAddr verifies that RemoteAddr is persisted from the client-supplied
-// X-Real-IP only when it parses as an IP: an unparseable value (which is attacker-controlled
+// TestAuthDevice_RemoteAddr verifies that RemoteAddr is persisted from the client address the
+// caller passes only when it parses as an IP: an unparseable value (which is attacker-controlled
 // and could overflow the bounded remote_addr column) is stored as empty on create and leaves
 // the previously stored address untouched on reconnect, while a valid IP refreshes it.
 func TestAuthDevice_RemoteAddr(t *testing.T) {

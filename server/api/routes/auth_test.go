@@ -150,7 +150,6 @@ func TestAuthDevice(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/api/devices/auth", strings.NewReader(string(jsonData)))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-Real-IP", "198.51.100.1")
 			rec := httptest.NewRecorder()
 
 			e := newTestRouter(t, mock)

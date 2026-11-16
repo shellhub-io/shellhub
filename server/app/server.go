@@ -87,10 +87,11 @@ type Env struct {
 	// public URL's scheme when PublicURL is empty and Domain carries none.
 	AutoSSL bool `env:"SHELLHUB_AUTO_SSL,default=false"`
 
-	// HTTPTrustedProxies lists the CIDR prefixes, besides loopback, whose X-Real-IP and
-	// X-Forwarded-* headers name the client of an HTTP request: the load balancer or ingress in
-	// front of :8080, and the PROXY protocol peers when the gateway runs. Empty trusts loopback
-	// alone, so every other peer is its own client.
+	// HTTPTrustedProxies lists the CIDR prefixes whose X-Forwarded-* headers name the client of
+	// an HTTP request: the reverse proxy, load balancer or ingress in front of the gateway or of
+	// :8080, and the PROXY protocol peers when the gateway runs. The client is the right-most
+	// X-Forwarded-For hop outside the list. :8080 also trusts loopback; empty leaves every other
+	// peer its own client.
 	HTTPTrustedProxies string `env:"SHELLHUB_PROXY_TRUSTED_IPS"`
 
 	// PublicURL is the URL users reach the console at, set when TLS ends before the gateway so
