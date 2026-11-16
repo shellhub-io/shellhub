@@ -10,6 +10,7 @@ import {
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { useReplacedDevice } from "@/hooks/useReplacedDevice";
 import BaseDialog from "@/components/common/BaseDialog";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
@@ -52,8 +53,8 @@ const OPERATION: Record<
     icon: <TrashIcon />,
     outcome: (name) => (
       <>
-        {name} is removed from the namespace. While its agent keeps running,
-        it can enroll again.
+        {name} is removed from the namespace. While its agent keeps running, it
+        can enroll again.
       </>
     ),
   },
@@ -61,7 +62,11 @@ const OPERATION: Record<
 
 /**
  * The confirmation for an accept, reject or remove. It takes the action rather than a flag, so
- * the wording, the icon, the button and the danger all follow from one value and cannot disagree.
+ * the wording, the icon, the button and the danger follow from one value and cannot disagree,
+ * except an accept that would replace an offline device or container with the same identity: that
+ * one confirms the replacement as a danger, disabled without DeviceRemove. Every accept is held
+ * while that lookup runs, refused once it fails, and refused while the device with the same
+ * identity is online.
  */
 export default function ActionDialog({
   action,
@@ -74,7 +79,11 @@ export default function ActionDialog({
   onClose: () => void;
   onSuccess: (operation: EntityOperation) => void;
   entityType: "device" | "container";
-  runAction: (entity: EntityBase, operation: EntityOperation) => Promise<void>;
+  runAction: (
+    entity: EntityBase,
+    operation: EntityOperation,
+    replace: boolean,
+  ) => Promise<void>;
 }) {
   const navigate = useNavigate();
   const { namespace } = useCurrentNamespace();
@@ -85,13 +94,17 @@ export default function ActionDialog({
   const [billingError, setBillingError] = useState<unknown>(null);
 
   const { entity, operation } = action;
+  const { replaced, acceptBlocked, blockedMessage } = useReplacedDevice(
+    operation === "accept" ? entity.uid : "",
+  );
+  const canRemove = useHasPermission("DeviceRemove");
   const operationLabel = capitalize(operation);
   const entityLabel = capitalize(entityType);
 
   const handleConfirm = async () => {
     setError(null);
     try {
-      await runAction(entity, operation);
+      await runAction(entity, operation, !!replaced);
     } catch (err: unknown) {
       if (
         operation === "accept" &&
@@ -171,6 +184,40 @@ export default function ActionDialog({
 
   const { variant, icon, outcome } = OPERATION[operation];
 
+  if (replaced) {
+    const replacedName = <ObjectName>{replaced.name}</ObjectName>;
+
+    return (
+      <ConfirmDialog
+        open
+        onClose={onClose}
+        onConfirm={handleConfirm}
+        icon={<ExclamationTriangleIcon />}
+        title={`${operationLabel} ${entityType}`}
+        description={
+          canRemove ? (
+            <>
+              {replacedName} is offline and reports the same identity. Accepting
+              replaces it. <ObjectName>{entity.name}</ObjectName> takes its name
+              and session history, and ShellHub deletes the record of{" "}
+              {replacedName}.
+            </>
+          ) : (
+            <>
+              {replacedName} is offline and reports the same identity. Accepting{" "}
+              <ObjectName>{entity.name}</ObjectName> would replace it and delete
+              its record, which only a member allowed to remove devices can do.
+            </>
+          )
+        }
+        confirmLabel={`Replace ${replaced.name}`}
+        confirmDisabled={!canRemove}
+        variant="danger"
+        errorMessage={error}
+      />
+    );
+  }
+
   return (
     <ConfirmDialog
       open
@@ -180,8 +227,9 @@ export default function ActionDialog({
       title={`${operationLabel} ${entityType}`}
       description={outcome(<ObjectName>{entity.name}</ObjectName>)}
       confirmLabel={`${operationLabel} ${entityType}`}
+      confirmDisabled={acceptBlocked}
       variant={variant}
-      errorMessage={error}
+      errorMessage={error ?? blockedMessage}
     />
   );
 }

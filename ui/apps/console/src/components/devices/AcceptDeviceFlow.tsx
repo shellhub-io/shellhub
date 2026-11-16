@@ -22,6 +22,7 @@ import { features } from "@/edition";
 import { CommunityInstructions } from "@/components/common/CreateNamespace";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { useAcceptDevice } from "@/hooks/useDeviceRequests";
+import { useReplacedDevice } from "@/hooks/useReplacedDevice";
 import {
   useResolveDeviceCode,
   useAcceptDevicePairing,
@@ -44,7 +45,11 @@ import PairingCodeForm from "@/components/common/PairingCodeForm";
 import { LABEL } from "@/utils/styles";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { isSubscriptionBlocked } from "@/utils/billing";
-import { getAcceptErrorMessage } from "@/utils/acceptErrors";
+import {
+  getAcceptErrorMessage,
+  isReplaceForbidden,
+  replacementToConfirm,
+} from "@/utils/acceptErrors";
 import {
   NAMESPACE_NAME_MIN_LENGTH,
   suggestNamespaceName,
@@ -106,6 +111,8 @@ export default function AcceptDeviceFlow({
   const [actionBranch, setActionBranch] = useState<Branch | null>(null);
   const [actionError, setActionError] = useState("");
   const [selectedTenant, setSelectedTenant] = useState("");
+  const [replacing, setReplacing] = useState("");
+  const [replaceForbidden, setReplaceForbidden] = useState(false);
   const [pairingInFirstNamespace, setPairingInFirstNamespace] =
     useState<DevicePreview | null>(null);
   const { namespace: targetNamespace } = useNamespace(
@@ -113,6 +120,7 @@ export default function AcceptDeviceFlow({
   );
   const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
   const canSubscribeInAuth = useHasPermission("BillingCreateSubscription");
+  const canRemove = useHasPermission("DeviceRemove");
   const canSubscribe =
     canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 
@@ -137,6 +145,14 @@ export default function AcceptDeviceFlow({
       return { kind: "switching" };
     return { kind: "ready", device };
   })();
+
+  const {
+    replaced: readyReplaced,
+    acceptBlocked: readyAcceptBlocked,
+    blockedMessage: readyBlockedMessage,
+  } = useReplacedDevice(
+    branch.kind === "ready" ? (branch.device.uid ?? "") : "",
+  );
 
   const {
     namespaces,
@@ -172,8 +188,16 @@ export default function AcceptDeviceFlow({
     setActionError("");
     try {
       if (!device.uid) return;
-      await acceptDevice.mutateAsync({ path: { uid: device.uid } });
-      finish({ kind: "success", device });
+      await acceptDevice.mutateAsync({
+        path: { uid: device.uid },
+        ...(readyReplaced ? { body: { replace: true } } : {}),
+      });
+      finish({
+        kind: "success",
+        device: readyReplaced
+          ? { ...device, name: readyReplaced.name }
+          : device,
+      });
     } catch (err) {
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
@@ -184,19 +208,32 @@ export default function AcceptDeviceFlow({
     try {
       const data = await acceptPairing.mutateAsync({
         path: { code },
-        body: { tenant_id: tenantId },
+        body: { tenant_id: tenantId, ...(replacing ? { replace: true } : {}) },
       });
       finish({
         kind: "pairing-success",
-        device,
+        device: replacing ? { ...device, name: replacing } : device,
         uid: data.uid ?? "",
         tenantId: data.tenant_id ?? "",
         namespace: data.namespace ?? "",
         teamDevice: !data.owner_id,
       });
     } catch (err) {
+      const replaced = replacementToConfirm(err);
+      if (replaced) {
+        setReplacing(replaced);
+        return;
+      }
+      setReplaceForbidden(isReplaceForbidden(err));
       setActionError(getAcceptErrorMessage(err, hasSubscription, canSubscribe));
     }
+  };
+
+  const pickNamespace = (tenantId: string) => {
+    setReplacing("");
+    setReplaceForbidden(false);
+    setActionError("");
+    setSelectedTenant(tenantId);
   };
 
   const handleAcceptPairing = (device: DevicePreview) =>
@@ -482,19 +519,26 @@ export default function AcceptDeviceFlow({
             </div>
           </dl>
 
-          <ActionError message={actionError} />
+          <ReplaceWarning
+            name={readyReplaced?.name ?? ""}
+            canRemove={canRemove}
+          />
+          <ActionError message={actionError || (readyBlockedMessage ?? "")} />
 
           <AuthActions
             primary={
               <Button
-                variant="primary"
+                variant={readyReplaced ? "destructive" : "primary"}
                 size={buttonSize}
                 fullWidth
                 loading={acceptDevice.isPending}
+                disabled={readyAcceptBlocked || (!!readyReplaced && !canRemove)}
                 icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
                 onClick={() => void handleAccept(branch.device)}
               >
-                Accept device
+                {readyReplaced
+                  ? `Replace ${readyReplaced.name}`
+                  : "Accept device"}
               </Button>
             }
             links={codeExit}
@@ -545,12 +589,13 @@ export default function AcceptDeviceFlow({
             ) : (
               <NamespacePicker
                 value={selectedTenant}
-                onChange={setSelectedTenant}
+                onChange={pickNamespace}
                 preferredTenant={authTenant ?? ""}
               />
             )}
           </div>
 
+          <ReplaceWarning name={replacing} canRemove />
           <ActionError message={actionError} />
 
           <AuthActions
@@ -558,15 +603,15 @@ export default function AcceptDeviceFlow({
               namespacesRead &&
               !firstNamespace && (
                 <Button
-                  variant="primary"
+                  variant={replacing ? "destructive" : "primary"}
                   size={buttonSize}
                   fullWidth
                   loading={acceptPairing.isPending}
-                  disabled={!selectedTenant}
+                  disabled={!selectedTenant || replaceForbidden}
                   icon={<CheckCircleIcon className="w-4 h-4" strokeWidth={2} />}
                   onClick={() => void handleAcceptPairing(branch.device)}
                 >
-                  Accept device
+                  {replacing ? `Replace ${replacing}` : "Accept device"}
                 </Button>
               )
             }
@@ -591,7 +636,7 @@ export default function AcceptDeviceFlow({
           device: branch.device,
           namespace: branch.namespace,
           note: branch.teamDevice
-            ? "It took the place of a team device with the same MAC address, so it stays the team's rather than being tied to you."
+            ? "It replaced a team device with the same identity, so it stays the team's rather than being tied to you."
             : undefined,
           viewing: switchNamespace.isPending,
           onViewDevice: branch.uid
@@ -599,6 +644,25 @@ export default function AcceptDeviceFlow({
             : undefined,
         })}
     </>
+  );
+}
+
+function ReplaceWarning({
+  name,
+  canRemove,
+}: {
+  name: string;
+  canRemove: boolean;
+}) {
+  if (!name) return null;
+  return (
+    <p className="text-sm text-accent-yellow mb-4" role="alert">
+      <span className="font-mono">{name}</span> is offline in this namespace and
+      reports the same identity.{" "}
+      {canRemove
+        ? "Accepting replaces it. This device takes its name and session history, and ShellHub deletes its record."
+        : "Accepting would replace it and delete its record, which only a member allowed to remove devices can do."}
+    </p>
   );
 }
 

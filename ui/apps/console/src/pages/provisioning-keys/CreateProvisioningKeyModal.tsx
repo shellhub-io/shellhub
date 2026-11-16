@@ -20,6 +20,7 @@ import {
 } from "@/utils/validation";
 import { keyExpiryPayload } from "@/utils/date";
 import EphemeralField from "./EphemeralField";
+import ReplaceOfflineDevicesField from "./ReplaceOfflineDevicesField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
@@ -53,6 +54,7 @@ function CreateProvisioningKeyModal({
   const [usageLimit, setUsageLimit] = useState(0);
   const [ephemeral, setEphemeral] = useState(false);
   const [ephemeralTimeout, setEphemeralTimeout] = useState(10);
+  const [replaceOfflineDevices, setReplaceOfflineDevices] = useState(true);
   const [tags, setTags] = useState<string[]>([]);
   const [expiresIn, setExpiresIn] = useState("30");
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +82,7 @@ function CreateProvisioningKeyModal({
     setUsageLimit(0);
     setEphemeral(false);
     setEphemeralTimeout(10);
+    setReplaceOfflineDevices(true);
     setTags([]);
     setExpiresIn("30");
     setNameError(null);
@@ -128,6 +131,7 @@ function CreateProvisioningKeyModal({
           usage_limit: usageLimit,
           ephemeral,
           ...(ephemeral ? { ephemeral_timeout: ephemeralTimeout } : {}),
+          replace_offline_devices: replaceOfflineDevices,
           tags,
         },
       });
@@ -245,6 +249,11 @@ function CreateProvisioningKeyModal({
             onEnabledChange={setEphemeral}
             timeout={ephemeralTimeout}
             onTimeoutChange={setEphemeralTimeout}
+          />
+          <ReplaceOfflineDevicesField
+            id="create-provisioning-key-replace-offline-devices"
+            checked={replaceOfflineDevices}
+            onChange={setReplaceOfflineDevices}
           />
           <TagsSelector
             id="create-provisioning-key-tags"

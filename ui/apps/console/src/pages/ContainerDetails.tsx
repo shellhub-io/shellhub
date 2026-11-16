@@ -38,9 +38,11 @@ export default function ContainerDetails() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
 
-  const { data: container, isLoading, error } = useQuery(
-    getContainerOptions({ path: { uid: uid! } }),
-  );
+  const {
+    data: container,
+    isLoading,
+    error,
+  } = useQuery(getContainerOptions({ path: { uid: uid! } }));
 
   const connect = useTerminalStore((s) => s.connect);
 
@@ -237,6 +239,7 @@ export default function ContainerDetails() {
           uid={container.uid}
           mac={container.identity?.mac ?? ""}
           remoteAddr={container.remote_addr ?? ""}
+          replaced={container.replaced}
         />
 
         <Card className="p-5 space-y-4">
@@ -245,16 +248,8 @@ export default function ContainerDetails() {
             Container
           </h3>
           <dl className="space-y-3">
-            <InfoItem
-              label="Image"
-              value={container.info?.pretty_name}
-              mono
-            />
-            <InfoItem
-              label="Architecture"
-              value={container.info?.arch}
-              mono
-            />
+            <InfoItem label="Image" value={container.info?.pretty_name} mono />
+            <InfoItem label="Architecture" value={container.info?.arch} mono />
             <InfoItem
               label="Agent Version"
               value={container.info?.version}

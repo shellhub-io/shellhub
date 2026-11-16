@@ -8,6 +8,7 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import {
+  mockDevice as mockListedDevice,
   mockNamespace,
   mockPairingAccepted,
   mockUserAuth,
@@ -26,6 +27,7 @@ import {
 } from "@/utils/navigation";
 import AcceptDevice from "../AcceptDevice";
 import AcceptDeviceFlow from "@/components/devices/AcceptDeviceFlow";
+import { clickOnceEnabled, noReplacedDevice } from "@/tests/replacement";
 
 function mockDevice(overrides = {}) {
   return {
@@ -72,6 +74,16 @@ beforeEach(() => {
       HttpResponse.json({ token: VALID_JWT, role: "owner" }),
     ),
     http.get("*/api/vault", () => new HttpResponse(null, { status: 404 })),
+    http.get("*/api/devices/:uid", () =>
+      HttpResponse.json(
+        mockListedDevice({
+          uid: "uid-1",
+          status: "pending",
+          identity: { mac: "00:11:22:33:44:55" },
+        }),
+      ),
+    ),
+    ...noReplacedDevice,
   );
 });
 
@@ -159,14 +171,93 @@ describe("AcceptDeviceFlow standalone", () => {
     ).toBeInTheDocument();
   });
 
+  function withFieldBox({ online }: { online: boolean }) {
+    server.use(
+      http.get("*/api/devices", () =>
+        jsonWithTotal([
+          mockListedDevice({
+            uid: "uid-old",
+            name: "field-box",
+            status: "accepted",
+            online,
+            identity: { mac: "00:11:22:33:44:55" },
+          }),
+        ]),
+      ),
+    );
+  }
+
   it("transitions to success after accepting a device", async () => {
     renderFlow();
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: /accept device/i }),
-    );
+    await clickOnceEnabled(/accept device/i);
 
     await screen.findByRole("heading", { name: /device accepted/i });
+  });
+
+  it("names the offline device an accept replaces before accepting it", async () => {
+    withFieldBox({ online: false });
+    let body: unknown;
+    server.use(
+      http.patch("*/api/devices/:uid/accept", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    renderFlow();
+
+    expect(
+      await screen.findByText(/is offline in this namespace/i),
+    ).toHaveTextContent("field-box");
+    await clickOnceEnabled("Replace field-box");
+
+    await screen.findByRole("heading", { name: /device accepted/i });
+    expect(body).toEqual({ replace: true });
+    expect(screen.getByText("field-box")).toBeInTheDocument();
+    expect(screen.queryByText("dev1")).not.toBeInTheDocument();
+  });
+
+  it("does not offer a replacement to a member who cannot remove devices", async () => {
+    useAuthStore.setState({ role: "operator" });
+    withFieldBox({ online: false });
+    renderFlow();
+
+    expect(
+      await screen.findByText(/only a member allowed to remove devices/i),
+    ).toHaveTextContent("field-box");
+    expect(
+      screen.getByRole("button", { name: "Replace field-box" }),
+    ).toBeDisabled();
+  });
+
+  it("refuses to accept while the device with the same identity is online", async () => {
+    withFieldBox({ online: true });
+    renderFlow();
+
+    expect(
+      await screen.findByText(
+        /field-box reports the same identity and is online/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /accept device/i }),
+    ).toBeDisabled();
+  });
+
+  it("refuses to accept when it cannot check for a device the accept replaces", async () => {
+    server.use(
+      http.get("*/api/devices", () =>
+        HttpResponse.json({ message: "boom" }, { status: 500 }),
+      ),
+    );
+    renderFlow();
+
+    expect(
+      await screen.findByText(/could not check whether accepting replaces/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /accept device/i }),
+    ).toBeDisabled();
   });
 
   it("shows accept error without leaving ready state", async () => {
@@ -177,9 +268,7 @@ describe("AcceptDeviceFlow standalone", () => {
     );
     renderFlow();
 
-    fireEvent.click(
-      await screen.findByRole("button", { name: /accept device/i }),
-    );
+    await clickOnceEnabled(/accept device/i);
 
     await screen.findByRole("alert");
     expect(
@@ -386,12 +475,9 @@ describe("AcceptDeviceFlow standalone", () => {
     );
     setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
     renderFlow();
-    const user = userEvent.setup();
 
     await screen.findByText("my-ns");
-    const accept = screen.getByRole("button", { name: /accept device/i });
-    await waitFor(() => expect(accept).toBeEnabled());
-    await user.click(accept);
+    await clickOnceEnabled(/accept device/i);
 
     await screen.findByRole("heading", { name: /device accepted/i });
   }
@@ -402,10 +488,72 @@ describe("AcceptDeviceFlow standalone", () => {
     expect(screen.queryByText(/stays the team's/i)).not.toBeInTheDocument();
   });
 
-  it("says the device stayed the team's when it merged into a team device", async () => {
+  it("says the device stayed the team's when it replaced a team device", async () => {
     await acceptPairingAnsweredWith(undefined);
 
     expect(screen.getByText(/stays the team's/i)).toBeInTheDocument();
+  });
+
+  it("names the offline device a pairing replaces and confirms the replacement", async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      http.post("*/api/devices/pairing/:code/accept", async ({ request }) => {
+        const body = await request.json();
+        bodies.push(body);
+        if (bodies.length === 1)
+          return HttpResponse.json(
+            { message: "replaces", fields: { replace: "field-box" } },
+            { status: 409 },
+          );
+        return HttpResponse.json(mockPairingAccepted({ owner_id: "user-1" }));
+      }),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+
+    await screen.findByText("my-ns");
+    await clickOnceEnabled(/accept device/i);
+
+    expect(
+      await screen.findByText(/is offline in this namespace/i),
+    ).toHaveTextContent("field-box");
+    await clickOnceEnabled("Replace field-box");
+
+    await screen.findByRole("heading", { name: /device accepted/i });
+    expect(bodies).toHaveLength(2);
+    expect(bodies[0]).not.toHaveProperty("replace");
+    expect(bodies[1]).toHaveProperty("replace", true);
+    expect(screen.getByText("field-box")).toBeInTheDocument();
+    expect(screen.queryByText("dev1")).not.toBeInTheDocument();
+  });
+
+  it("holds back a pairing that only a member allowed to remove devices may accept", async () => {
+    let attempts = 0;
+    server.use(
+      http.post("*/api/devices/pairing/:code/accept", () => {
+        attempts += 1;
+        return HttpResponse.json(
+          {
+            message:
+              "accepting the device replaces an offline device with the same identity, which needs permission to remove devices",
+          },
+          { status: 403 },
+        );
+      }),
+    );
+    setResolveCode(mockDevice({ kind: "pairing", tenant_id: null }));
+    renderFlow();
+
+    await screen.findByText("my-ns");
+    await clickOnceEnabled(/accept device/i);
+
+    expect(
+      await screen.findByText(/only a member allowed to remove devices/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /accept device/i }),
+    ).toBeDisabled();
+    expect(attempts).toBe(1);
   });
 
   it("clears pending device code on error", async () => {

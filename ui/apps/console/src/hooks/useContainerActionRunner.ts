@@ -24,12 +24,19 @@ export function useContainerActionRunner() {
     onSuccess: invalidateContainers,
   });
 
-  return async (entity: EntityBase, operation: EntityOperation) => {
+  return async (
+    entity: EntityBase,
+    operation: EntityOperation,
+    replace = false,
+  ) => {
     if (operation === "remove") {
       await remove.mutateAsync({ path: { uid: entity.uid } });
       return;
     }
 
-    await status.mutateAsync({ path: { uid: entity.uid, status: operation } });
+    await status.mutateAsync({
+      path: { uid: entity.uid, status: operation },
+      ...(replace && operation === "accept" ? { body: { replace: true } } : {}),
+    });
   };
 }

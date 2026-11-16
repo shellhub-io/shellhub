@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import userEvent from "@testing-library/user-event";
 import { useAuthStore } from "@/stores/authStore";
 import type { SdkHttpError } from "@/api/errors";
 import { createTestWrapper } from "@/tests/wrapper";
 import { setEdition } from "@/tests/edition";
+import { mockDevice } from "@/tests/factories";
+import { jsonWithTotal, server } from "@/tests/msw";
 import ActionDialog from "../ActionDialog";
 import type { Action } from "@/hooks/useActionDialog";
+import { clickOnceEnabled, noReplacedDevice } from "@/tests/replacement";
 
 function makeSdkError(status: number): Error & SdkHttpError {
   return Object.assign(new Error("Request failed"), {
@@ -37,13 +41,11 @@ const acceptAction: Action = { entity, operation: "accept" };
 const rejectAction: Action = { entity, operation: "reject" };
 const removeAction: Action = { entity, operation: "remove" };
 
-const Wrapper = createTestWrapper({ initialEntries: ["/"] });
-
 function renderDialog(
   overrides: Partial<{
     action: Action;
     entityType: "device" | "container";
-    runAction: () => Promise<void>;
+    runAction: (...args: unknown[]) => Promise<void>;
     onClose: () => void;
     onSuccess: () => void;
   }> = {},
@@ -56,6 +58,7 @@ function renderDialog(
     onSuccess: vi.fn(),
     ...overrides,
   };
+  const Wrapper = createTestWrapper({ initialEntries: ["/"] });
   render(
     <Wrapper>
       <ActionDialog {...props} />
@@ -68,6 +71,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   setEdition("community");
   useAuthStore.setState({ role: "owner" });
+  server.use(
+    http.get("*/api/devices/uid-1", () =>
+      HttpResponse.json(mockDevice({ uid: "uid-1", status: "pending" })),
+    ),
+    ...noReplacedDevice,
+  );
 });
 
 describe("ActionDialog", () => {
@@ -91,6 +100,189 @@ describe("ActionDialog", () => {
     );
   });
 
+  describe("accepting a device that replaces an offline one", () => {
+    function withSameIdentityDevice({ online }: { online: boolean }) {
+      server.use(
+        http.get("*/api/devices/uid-1", () =>
+          HttpResponse.json(
+            mockDevice({
+              uid: "uid-1",
+              name: "my-device",
+              status: "pending",
+              identity: { mac: "aa:bb:cc:dd:ee:ff" },
+            }),
+          ),
+        ),
+        http.get("*/api/devices", () =>
+          jsonWithTotal([
+            mockDevice({
+              uid: "uid-old",
+              name: "field-box",
+              status: "accepted",
+              online,
+              identity: { mac: "aa:bb:cc:dd:ee:ff" },
+            }),
+          ]),
+        ),
+      );
+    }
+
+    it("names the device it replaces before the confirmation", async () => {
+      withSameIdentityDevice({ online: false });
+      renderDialog();
+
+      expect(
+        await screen.findByRole("button", { name: "Replace field-box" }),
+      ).toBeEnabled();
+      expect(screen.getByRole("dialog")).toHaveTextContent(
+        /field-box is offline and reports the same identity/,
+      );
+    });
+
+    it("confirms the replacement to the action it runs", async () => {
+      withSameIdentityDevice({ online: false });
+      const runAction = vi.fn().mockResolvedValue(undefined);
+      renderDialog({ runAction });
+
+      await userEvent.click(
+        await screen.findByRole("button", { name: "Replace field-box" }),
+      );
+
+      expect(runAction).toHaveBeenCalledWith(
+        acceptAction.entity,
+        "accept",
+        true,
+      );
+    });
+
+    it("refuses to confirm when it cannot check for a device the accept replaces", async () => {
+      withSameIdentityDevice({ online: false });
+      server.use(
+        http.get("*/api/devices", () =>
+          HttpResponse.json({ message: "boom" }, { status: 500 }),
+        ),
+      );
+      renderDialog();
+
+      expect(
+        await screen.findByText(/could not check whether accepting replaces/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Accept device" }),
+      ).toBeDisabled();
+    });
+
+    it("names an offline container with the same identity that a container accept replaces", async () => {
+      server.use(
+        http.get("*/api/containers", () =>
+          jsonWithTotal([
+            mockDevice({
+              uid: "uid-old-container",
+              name: "old-container",
+              status: "accepted",
+              online: false,
+              identity: { mac: "aa:bb:cc:dd:ee:ff" },
+            }),
+          ]),
+        ),
+      );
+      server.use(
+        http.get("*/api/devices/uid-1", () =>
+          HttpResponse.json(
+            mockDevice({
+              uid: "uid-1",
+              status: "pending",
+              identity: { mac: "aa:bb:cc:dd:ee:ff" },
+            }),
+          ),
+        ),
+      );
+      renderDialog({ entityType: "container" });
+
+      expect(
+        await screen.findByRole("button", { name: "Replace old-container" }),
+      ).toBeEnabled();
+    });
+
+    it("does not let a member who cannot remove devices confirm it", async () => {
+      useAuthStore.setState({ role: "operator" });
+      withSameIdentityDevice({ online: false });
+      renderDialog();
+
+      expect(
+        await screen.findByRole("button", { name: "Replace field-box" }),
+      ).toBeDisabled();
+      expect(screen.getByRole("dialog")).toHaveTextContent(
+        /only a member allowed to remove devices/,
+      );
+    });
+
+    it("names an offline device that reports the same empty identity", async () => {
+      server.use(
+        http.get("*/api/devices/uid-1", () =>
+          HttpResponse.json(
+            mockDevice({
+              uid: "uid-1",
+              status: "pending",
+              identity: { mac: "" },
+            }),
+          ),
+        ),
+        http.get("*/api/devices", () =>
+          jsonWithTotal([
+            mockDevice({
+              uid: "uid-old",
+              name: "no-mac-box",
+              status: "accepted",
+              online: false,
+              identity: { mac: "" },
+            }),
+          ]),
+        ),
+      );
+      renderDialog();
+
+      expect(
+        await screen.findByRole("button", { name: "Replace no-mac-box" }),
+      ).toBeEnabled();
+    });
+
+    it("refuses the accept while the device with that identity is online", async () => {
+      withSameIdentityDevice({ online: true });
+      renderDialog();
+
+      expect(
+        await screen.findByText(
+          /field-box reports the same identity and is online/,
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Accept device" }),
+      ).toBeDisabled();
+      expect(
+        screen.queryByRole("button", { name: /^Replace/ }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("switches to the replacement once the device with that identity goes offline", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      try {
+        withSameIdentityDevice({ online: true });
+        renderDialog();
+        await screen.findByText(/is online/);
+
+        withSameIdentityDevice({ online: false });
+        await vi.advanceTimersByTimeAsync(5_000);
+
+        expect(
+          await screen.findByRole("button", { name: "Replace field-box" }),
+        ).toBeEnabled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe("error handling — accept", () => {
     it.each([
       [402, /license/i],
@@ -100,9 +292,7 @@ describe("ActionDialog", () => {
       setEdition("enterprise");
       const runAction = vi.fn().mockRejectedValue(makeSdkError(status));
       renderDialog({ runAction });
-      await userEvent.click(
-        screen.getByRole("button", { name: /^accept (device|container)$/i }),
-      );
+      await clickOnceEnabled(/^accept (device|container)$/i);
       await waitFor(() =>
         expect(screen.getByRole("alert")).toHaveTextContent(message),
       );
@@ -148,9 +338,7 @@ describe("ActionDialog", () => {
         useAuthStore.setState({ role: "owner" });
         const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
         renderDialog({ entityType, runAction });
-        await userEvent.click(
-          screen.getByRole("button", { name: /^accept (device|container)$/i }),
-        );
+        await clickOnceEnabled(/^accept (device|container)$/i);
         await waitFor(() =>
           expect(screen.getByText(title)).toBeInTheDocument(),
         );
@@ -167,9 +355,7 @@ describe("ActionDialog", () => {
       useAuthStore.setState({ role: "observer" });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
       renderDialog({ runAction });
-      await userEvent.click(
-        screen.getByRole("button", { name: /^accept (device|container)$/i }),
-      );
+      await clickOnceEnabled(/^accept (device|container)$/i);
       await waitFor(() =>
         expect(screen.getByText("Device limit reached")).toBeInTheDocument(),
       );
@@ -185,9 +371,7 @@ describe("ActionDialog", () => {
       useAuthStore.setState({ role: "owner" });
       const runAction = vi.fn().mockRejectedValue(makeSdkError(402));
       renderDialog({ runAction });
-      await userEvent.click(
-        screen.getByRole("button", { name: /^accept (device|container)$/i }),
-      );
+      await clickOnceEnabled(/^accept (device|container)$/i);
       await waitFor(() => screen.getByText("Device limit reached"));
       await userEvent.click(
         screen.getByRole("button", { name: "Go to billing" }),

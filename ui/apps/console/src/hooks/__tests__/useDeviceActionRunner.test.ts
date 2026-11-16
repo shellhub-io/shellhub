@@ -39,6 +39,19 @@ describe("useDeviceActionRunner", () => {
     expect(called).toBe(true);
   });
 
+  it("confirms a replacement in the accept body", async () => {
+    let body: unknown;
+    server.use(
+      http.patch("*/api/devices/:uid/accept", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 200 });
+      }),
+    );
+    const { result } = renderHook(() => useDeviceActionRunner(), { wrapper });
+    await result.current(entity, "accept", true);
+    expect(body).toEqual({ replace: true });
+  });
+
   it("calls updateDeviceStatus with reject for reject", async () => {
     let capturedStatus: string | undefined;
     server.use(

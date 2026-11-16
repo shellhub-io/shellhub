@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Card } from "@shellhub/design-system/primitives";
 import InfoItem from "@/components/common/InfoItem";
+import type { DeviceReplacement } from "@/client";
+import { formatDateFull } from "@/utils/date";
 
 interface IdentityCardProps {
   uid: string;
@@ -9,11 +11,13 @@ interface IdentityCardProps {
   remoteAddr: string;
   registeredVia?: ReactNode;
   pairedBy?: ReactNode;
+  replaced?: DeviceReplacement;
 }
 
 /**
  * The identifying facts about a device — UID, MAC, address — as a copyable block, since these
- * are values people paste into a terminal rather than read.
+ * are values people paste into a terminal rather than read. replaced, when the device replaced an
+ * offline one with the same identity on accept, names that device in full and says when.
  */
 export default function IdentityCard({
   uid,
@@ -21,6 +25,7 @@ export default function IdentityCard({
   remoteAddr,
   registeredVia,
   pairedBy,
+  replaced,
 }: IdentityCardProps) {
   return (
     <Card className="p-5 space-y-4">
@@ -36,6 +41,17 @@ export default function IdentityCard({
           <InfoItem label="Registered via">{registeredVia}</InfoItem>
         )}
         {pairedBy && <InfoItem label="Paired by">{pairedBy}</InfoItem>}
+        {replaced && (
+          <InfoItem label="Replaced">
+            <span className="text-sm text-text-primary">
+              <span className="font-mono">{replaced.name}</span>{" "}
+              <span className="font-mono text-text-muted break-all">
+                ({replaced.uid})
+              </span>{" "}
+              on {formatDateFull(replaced.at)}
+            </span>
+          </InfoItem>
+        )}
       </dl>
     </Card>
   );

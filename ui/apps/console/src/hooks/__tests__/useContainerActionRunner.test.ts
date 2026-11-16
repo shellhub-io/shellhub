@@ -41,6 +41,21 @@ describe("useContainerActionRunner", () => {
     },
   );
 
+  it("confirms a replacement in the accept body", async () => {
+    let body: unknown;
+    server.use(
+      http.patch("*/api/containers/:uid/:status", async ({ request }) => {
+        body = await request.json();
+        return new HttpResponse(null, { status: 200 });
+      }),
+    );
+    const { result } = renderHook(() => useContainerActionRunner(), {
+      wrapper,
+    });
+    await result.current(entity, "accept", true);
+    expect(body).toEqual({ replace: true });
+  });
+
   it("calls deleteContainer for remove", async () => {
     let called = false;
     server.use(
