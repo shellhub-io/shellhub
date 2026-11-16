@@ -165,6 +165,79 @@ discover_version() {
     assert_output_contains "skipping podman-restart.service check"
 }
 
+@test "require_secure_server_address refuses an http:// server address" {
+    export SERVER_ADDRESS="http://shellhub.example.com:8080"
+
+    call_install require_secure_server_address
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "plain http://"
+    assert_output_contains "root shell on this device"
+    assert_output_contains "SHELLHUB_ALLOW_INSECURE_SERVER=true"
+}
+
+@test "require_secure_server_address accepts an http:// server address the operator allows, with a warning" {
+    for allow in true TRUE; do
+        export SERVER_ADDRESS="http://shellhub.example.com" SHELLHUB_ALLOW_INSECURE_SERVER="$allow"
+
+        call_install require_secure_server_address
+
+        [ "$status" -eq 0 ]
+        assert_output_contains "WARNING"
+        assert_output_contains "root shell on this device"
+    done
+}
+
+@test "require_secure_server_address refuses an http:// server address for an opt-in other than true" {
+    export SERVER_ADDRESS="http://shellhub.example.com" SHELLHUB_ALLOW_INSECURE_SERVER=1
+
+    call_install require_secure_server_address
+
+    [ "$status" -eq 1 ]
+}
+
+@test "require_secure_server_address refuses a host name that starts like a loopback address" {
+    export SERVER_ADDRESS="http://127.example.com"
+
+    call_install require_secure_server_address
+
+    [ "$status" -eq 1 ]
+}
+
+@test "require_secure_server_address accepts an https:// server address" {
+    export SERVER_ADDRESS="https://shellhub.example.com"
+
+    call_install require_secure_server_address
+
+    [ "$status" -eq 0 ]
+    [ -z "$output" ]
+}
+
+@test "require_secure_server_address accepts a loopback http:// server address" {
+    for address in http://localhost http://LOCALHOST:8080/ http://shellhub.localhost http://127.0.0.1:8080 http://[::1]:8080; do
+        export SERVER_ADDRESS="$address"
+
+        call_install require_secure_server_address
+
+        [ "$status" -eq 0 ]
+        [ -z "$output" ]
+    done
+}
+
+@test "the installer stops before it contacts an http:// server" {
+    export SERVER_ADDRESS="http://shellhub.example.com"
+    unset AGENT_VERSION
+    stub_bin curl 'echo "curl $*" >> "$CALLS"'
+    stub_bin wget 'echo "wget $*" >> "$CALLS"'
+
+    run_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "plain http://"
+    refute_called "curl"
+    refute_called "wget"
+}
+
 @test "enrollment_summary reports a provisioning key ahead of a tenant" {
     with_tenant
     export PROVISIONING_KEY=key-1
@@ -739,15 +812,35 @@ LOG
     assert_called "-e SHELLHUB_SERVER_ADDRESS=$SERVER_ADDRESS"
 }
 
+@test "docker_install forwards the operator's insecure server opt-in to the agent environment" {
+    export SHELLHUB_ALLOW_INSECURE_SERVER=true
+
+    container_install
+
+    [ "$status" -eq 0 ]
+    assert_called "-e SHELLHUB_ALLOW_INSECURE_SERVER=true"
+}
+
 @test "docker_install omits environment variables for options left unset" {
     container_install
 
     [ "$status" -eq 0 ]
+    refute_called "SHELLHUB_ALLOW_INSECURE_SERVER"
     refute_called "SHELLHUB_TENANT_ID"
     refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
     refute_called "SHELLHUB_PREFERRED_"
     assert_called "-e SHELLHUB_PRIVATE_KEY=$PRIVATE_KEY"
+}
+
+@test "podman_install forwards the operator's insecure server opt-in to the agent environment" {
+    use_podman
+    export SHELLHUB_ALLOW_INSECURE_SERVER=true
+
+    container_install
+
+    [ "$status" -eq 0 ]
+    assert_called "-e SHELLHUB_ALLOW_INSECURE_SERVER=true"
 }
 
 @test "podman_install omits environment variables for options left unset" {
@@ -756,6 +849,7 @@ LOG
     container_install
 
     [ "$status" -eq 0 ]
+    refute_called "SHELLHUB_ALLOW_INSECURE_SERVER"
     refute_called "SHELLHUB_TENANT_ID"
     refute_called "SHELLHUB_PROVISIONING_KEY"
     refute_called "SHELLHUB_KEEPALIVE_INTERVAL"
@@ -922,6 +1016,18 @@ LOG
     refute_called "snap install"
 }
 
+@test "snap_install refuses an insecure server opt-in it cannot honour" {
+    with_tenant
+    export SHELLHUB_ALLOW_INSECURE_SERVER=true
+    stub_bin snap
+
+    call_install snap_install
+
+    [ "$status" -eq 1 ]
+    assert_output_contains "SHELLHUB_ALLOW_INSECURE_SERVER is not supported by the snap install method"
+    refute_called "snap install"
+}
+
 @test "snap_install aborts when snap is not available" {
     with_tenant
 
@@ -958,6 +1064,30 @@ LOG
     [ "$status" -eq 0 ]
     assert_called "agent install --server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID --provisioning-key=key-1 --keepalive-interval=45"
     [ -x "$INSTALL_DIR/shellhub-agent" ]
+}
+
+@test "standalone_install forwards the operator's insecure server opt-in to the agent service" {
+    with_tenant
+    as_non_root
+    export SHELLHUB_ALLOW_INSECURE_SERVER=true
+    fake_agent_binary
+
+    call_install standalone_install
+
+    [ "$status" -eq 0 ]
+    assert_called "sudo env SHELLHUB_ALLOW_INSECURE_SERVER=true $INSTALL_DIR/shellhub-agent install --server-address=$SERVER_ADDRESS --tenant-id=$TENANT_ID"
+    refute_called "--allow-insecure-server"
+}
+
+@test "standalone_install leaves the insecure server opt-in off unless the operator sets it" {
+    with_tenant
+    as_non_root
+    fake_agent_binary
+
+    call_install standalone_install
+
+    [ "$status" -eq 0 ]
+    refute_called "SHELLHUB_ALLOW_INSECURE_SERVER"
 }
 
 @test "standalone_install reads only the journal of the service it started" {

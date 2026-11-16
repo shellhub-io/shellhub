@@ -95,6 +95,53 @@ enrollment_summary() {
   fi
 }
 
+server_host() {
+  _AUTHORITY=$(echo "$1" | sed -e 's|^[^:]*://||' -e 's|[/?#].*$||' -e 's|^.*@||')
+
+  case "$_AUTHORITY" in
+  \[*) echo "$_AUTHORITY" | sed -e 's|^\[\([^]]*\)\].*$|\1|' ;;
+  *) echo "${_AUTHORITY%%:*}" ;;
+  esac
+}
+
+insecure_server_allowed() {
+  case "${SHELLHUB_ALLOW_INSECURE_SERVER:-}" in
+  [Tt][Rr][Uu][Ee]) return 0 ;;
+  esac
+
+  return 1
+}
+
+require_secure_server_address() {
+  case "$SERVER_ADDRESS" in
+  [Hh][Tt][Tt][Pp]://*) ;;
+  *) return 0 ;;
+  esac
+
+  _HOST=$(server_host "$SERVER_ADDRESS" | tr '[:upper:]' '[:lower:]')
+
+  case "$_HOST" in
+  localhost | *.localhost | ::1) return 0 ;;
+  esac
+
+  echo "$_HOST" | grep -Eq '^127(\.[0-9]{1,3}){3}$' && return 0
+
+  if insecure_server_allowed; then
+    echo "⚠️ WARNING: the server address $SERVER_ADDRESS uses plain http://, allowed by"
+    echo "SHELLHUB_ALLOW_INSECURE_SERVER=true. Anyone on the network path between this device and the"
+    echo "server can impersonate the server and get a root shell on this device."
+
+    return 0
+  fi
+
+  echo "❌ ERROR: the server address $SERVER_ADDRESS uses plain http://."
+  echo "The agent refuses it: anyone on the network path between this device and the server could"
+  echo "impersonate the server and get a root shell on this device. Serve ShellHub over https://,"
+  echo "or set SHELLHUB_ALLOW_INSECURE_SERVER=true on the install command to accept that risk."
+
+  return 1
+}
+
 refusal_reason() {
   _LOG_LINE="$1"
 
@@ -269,6 +316,7 @@ check_podman_boot_restart() {
 podman_install() {
   check_podman_boot_restart
 
+  insecure_server_allowed && ARGS="$ARGS -e SHELLHUB_ALLOW_INSECURE_SERVER=true"
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
@@ -357,6 +405,7 @@ podman_install() {
 }
 
 docker_install() {
+  insecure_server_allowed && ARGS="$ARGS -e SHELLHUB_ALLOW_INSECURE_SERVER=true"
   [ -n "${KEEPALIVE_INTERVAL}" ] && ARGS="$ARGS -e SHELLHUB_KEEPALIVE_INTERVAL=$KEEPALIVE_INTERVAL"
   [ -n "${PREFERRED_HOSTNAME}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_HOSTNAME=$PREFERRED_HOSTNAME"
   [ -n "${PREFERRED_IDENTITY}" ] && ARGS="$ARGS -e SHELLHUB_PREFERRED_IDENTITY=$PREFERRED_IDENTITY"
@@ -450,6 +499,12 @@ snap_install() {
   if [ -n "$PROVISIONING_KEY" ]; then
     echo "❌ ERROR: PROVISIONING_KEY is not supported by the snap install method."
     echo "Use the docker, podman or standalone method to enroll with a provisioning key."
+    exit 1
+  fi
+
+  if insecure_server_allowed; then
+    echo "❌ ERROR: SHELLHUB_ALLOW_INSECURE_SERVER is not supported by the snap install method."
+    echo "Use the docker, podman or standalone method to connect to a plain http:// server."
     exit 1
   fi
 
@@ -553,6 +608,9 @@ standalone_install() {
   [ -n "${PREFERRED_IDENTITY}" ] && INSTALL_ARGS="$INSTALL_ARGS --preferred-identity=$PREFERRED_IDENTITY"
   [ -n "${KEEPALIVE_INTERVAL}" ] && INSTALL_ARGS="$INSTALL_ARGS --keepalive-interval=$KEEPALIVE_INTERVAL"
 
+  INSTALL_ENV=""
+  insecure_server_allowed && INSTALL_ENV="env SHELLHUB_ALLOW_INSECURE_SERVER=true"
+
   replace_agent_service
 
   echo "✅ ShellHub agent installed and started."
@@ -591,7 +649,7 @@ replace_agent_service() {
   sleep 1
   _SERVICE_STARTED=$(date +%s)
 
-  $SUDO "$INSTALL_BIN" install $INSTALL_ARGS || {
+  $SUDO $INSTALL_ENV "$INSTALL_BIN" install $INSTALL_ARGS || {
     echo "❌ Failed to install ShellHub agent service."
 
     if [ -n "$_AGENT_WAS_RUNNING" ]; then
@@ -909,6 +967,7 @@ main() {
   fi
 
   SERVER_ADDRESS="${SERVER_ADDRESS:-https://cloud.shellhub.io}"
+  require_secure_server_address || exit 1
   TENANT_ID="${TENANT_ID}"
   INSTALL_METHOD="$INSTALL_METHOD"
   AGENT_VERSION="${AGENT_VERSION:-$(http_get "$SERVER_ADDRESS/info" | sed -E 's/.*"version":\s?"?([^,"]*)"?.*/\1/')}"
