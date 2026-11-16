@@ -123,6 +123,12 @@ username, every client understands it with no plugin: OpenSSH, PuTTY, `scp`, `sf
 Step 5 happens before the server mints anything for the agent, so a refused connection never
 reaches the device at all.
 
+The agent checks no credential of its own for a public-key login. It accepts the login when the
+server vouches for it. That makes the connection between agent and server as sensitive as root on
+the device, so the agent refuses a plain `http://` server address unless it is loopback: over plain
+`http://`, anyone on the network path between a device and the server could impersonate the server.
+An operator who accepts that risk sets `SHELLHUB_ALLOW_INSECURE_SERVER=true` on the agent.
+
 The web terminal takes a different route in — your browser opens a WebSocket to the server
 instead of an SSH connection — and exactly the same route out.
 

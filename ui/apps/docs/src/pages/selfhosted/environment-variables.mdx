@@ -51,6 +51,16 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_TLS_KEY_FILE` | *(empty)* | Its key. **Set both or the gateway will not start** |
 | `SHELLHUB_ACME_CA_SERVER` | *(empty)* | Alternative ACME directory. Empty means Let's Encrypt production |
 
+With none of these set, and no TLS-terminating proxy in front of the gateway with
+`SHELLHUB_PUBLIC_URL` set to its `https://` URL, ShellHub serves plain `http://`. The agent trusts
+the server to authorize public-key logins, so over plain `http://` anyone on the network path
+between a device and the server could impersonate the server and get a root shell on the device.
+The agent refuses an `http://` server address unless its host is loopback (`localhost`, a name
+under `.localhost`, or a loopback IP), and the install script stops before installing anything.
+A device connects anyway only when its operator sets `SHELLHUB_ALLOW_INSECURE_SERVER=true` on the
+install command or the agent, accepting that risk. See
+[Agent Configuration](/get-started/agent-configuration).
+
 ## Behind a proxy
 
 | Variable | Default | Meaning |
