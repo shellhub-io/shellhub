@@ -139,8 +139,8 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		save = s.store.UserUpdateRevokingTokens
 	}
 
-	if err := s.saveUser(ctx, user, updatedUser, save); err != nil {
-		return err
+	if err := save(ctx, user.ID, profileChanges(user, updatedUser)); err != nil {
+		return userSaveError(user, err)
 	}
 
 	requested := *updatedUser
@@ -174,14 +174,11 @@ func (s *service) ConfirmEmailChange(ctx context.Context, userID, email string) 
 		return NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
 	}
 
-	save := func(ctx context.Context, updated *models.User) error {
-		return s.store.UserUpdateEmail(ctx, updated.ID, updated.Email)
+	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{Email: &email}); err != nil {
+		return userSaveError(user, err)
 	}
 
-	updatedUser := *user
-	updatedUser.Email = email
-
-	return s.saveUser(ctx, user, &updatedUser, save)
+	return nil
 }
 
 func refuseRecoveryEmailAsEmail(email, recoveryEmail string) error {
@@ -206,20 +203,34 @@ func (s *service) emailAvailable(ctx context.Context, user *models.User, email s
 	}
 }
 
-func (s *service) saveUser(ctx context.Context, user, updatedUser *models.User, save func(context.Context, *models.User) error) error {
-	if err := save(ctx, updatedUser); err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(err); ok {
-				return NewErrUserDuplicated([]string{field}, err)
-			}
-
-			return NewErrUserUnhandledDuplicate()
+func userSaveError(user *models.User, err error) error {
+	if errors.Is(err, store.ErrDuplicate) {
+		if field, ok := store.DuplicatedField(err); ok {
+			return NewErrUserDuplicated([]string{field}, err)
 		}
 
-		return NewErrUserUpdate(user, err)
+		return NewErrUserUnhandledDuplicate()
 	}
 
-	return nil
+	return NewErrUserUpdate(user, err)
+}
+
+func profileChanges(currentUser, updatedUser *models.User) *models.UserChanges {
+	changed := func(current, updated string) *string {
+		if current == updated {
+			return nil
+		}
+
+		return &updated
+	}
+
+	return &models.UserChanges{
+		Name:          changed(currentUser.Name, updatedUser.Name),
+		Username:      changed(currentUser.Username, updatedUser.Username),
+		Email:         changed(currentUser.Email, updatedUser.Email),
+		RecoveryEmail: changed(currentUser.RecoveryEmail, updatedUser.RecoveryEmail),
+		PasswordHash:  changed(currentUser.Password.Hash, updatedUser.Password.Hash),
+	}
 }
 
 func refusedEmails(ctx context.Context, currentUser, updatedUser *models.User) map[string]string {

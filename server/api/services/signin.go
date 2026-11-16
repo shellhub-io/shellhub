@@ -37,7 +37,8 @@ type SignInService interface {
 	// lockout or a wrong password, [ErrUserNotConfirmed] for an unconfirmed user and
 	// [ErrUserAwaitingApproval] for a user an admin has not approved yet, both only once the
 	// password matched. It returns [ErrTokenSigned] when the token cannot be signed, and
-	// [ErrUserUpdate] when the user's last login or preferred namespace cannot be saved.
+	// [ErrUserUpdate] when the upgrade of a legacy password hash, the user's last login or
+	// preferred namespace cannot be saved.
 	AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (res *models.UserAuthResponse, lockout int64, mfaToken string, err error)
 	// SignIn signs in the user userID names, whom the caller has authenticated by method, under
 	// the same rules as [SignInService.AuthLocalUser]: the instance must have method on, the user
@@ -164,7 +165,9 @@ func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser
 
 	if !strings.HasPrefix(user.Password.Hash, "$") {
 		if neo, _ := models.HashUserPassword(req.Password); neo.Hash != "" {
-			user.Password = neo
+			if err := s.store.UserReplacePasswordHash(ctx, user.ID, user.Password.Hash, neo.Hash); err != nil {
+				return nil, 0, "", NewErrUserUpdate(user, err)
+			}
 		}
 	}
 
@@ -301,7 +304,7 @@ func (s *service) issueSignIn(ctx context.Context, user *models.User, tokenVersi
 	}
 
 	user.LastLogin = s.clock.Now()
-	if err := s.store.UserUpdate(ctx, user); err != nil {
+	if err := s.store.UserUpdate(ctx, user.ID, &models.UserChanges{LastLogin: &user.LastLogin}); err != nil {
 		return nil, NewErrUserUpdate(user, err)
 	}
 

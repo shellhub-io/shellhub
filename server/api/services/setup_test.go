@@ -479,7 +479,7 @@ func TestSetup(t *testing.T) {
 							{ID: "000000000000000000000000", Role: authorizer.RoleOwner, AddedAt: now},
 						},
 					}, nil).Once()
-				storeMock.On("UserUpdate", ctx, mock.AnythingOfType("*models.User")).Return(nil).Once()
+				storeMock.On("UserUpdate", ctx, "000000000000000000000000", mock.AnythingOfType("*models.UserChanges")).Return(nil).Once()
 				storeMock.On("UserUpdatePreferredNamespace", ctx, "000000000000000000000000", tenant).Return(nil).Once()
 			},
 			expected: nil,

@@ -230,7 +230,7 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(tc.user, nil).Once()
 			if tc.saves {
-				storeMock.On("UserUpdate", ctx, mock.AnythingOfType("*models.User")).Return(nil).Once()
+				storeMock.On("UserUpdate", ctx, "000000000000000000000000", mock.AnythingOfType("*models.UserChanges")).Return(nil).Once()
 			}
 
 			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())

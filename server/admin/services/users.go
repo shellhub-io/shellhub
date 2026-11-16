@@ -126,9 +126,7 @@ func (s *service) UserUpdate(ctx context.Context, input *inputs.UserUpdate) erro
 		return ErrUserPasswordInvalid
 	}
 
-	user.Password = password
-
-	if err := s.store.UserUpdateRevokingTokens(ctx, user); err != nil {
+	if err := s.store.UserUpdateRevokingTokens(ctx, user.ID, &models.UserChanges{PasswordHash: &password.Hash}); err != nil {
 		return ErrFailedUpdateUser
 	}
 

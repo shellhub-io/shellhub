@@ -1673,26 +1673,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-				updatedUser := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
 
 				mock.
 					On("SystemGet", ctx).
@@ -1729,7 +1709,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdate", ctx, updatedUser).
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(errors.New("error", "", 0)).
 					Once()
 			},
@@ -1787,27 +1767,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-				updatedUser := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
 
 				mock.
 					On("SystemGet", ctx).
@@ -1849,7 +1808,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdate", ctx, updatedUser).
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(nil).
 					Once()
 			},
@@ -1897,7 +1856,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-				updatedUser := *user
 
 				mock.
 					On("SystemGet", ctx).
@@ -1943,7 +1901,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdate", ctx, &updatedUser).
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(nil).
 					Once()
 			},
@@ -1971,27 +1929,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 			},
 			requiredMocks: func() {
 				user := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "00000000-0000-4000-0000-000000000000",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
-				updatedUser := &models.User{
 					ID:        "65fdd16b5f62f93184ec8a39",
 					Origin:    models.UserOriginLocal,
 					Status:    models.UserStatusConfirmed,
@@ -2064,7 +2001,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdate", ctx, updatedUser).
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(nil).
 					Once()
 			},
@@ -2114,27 +2051,6 @@ func TestService_AuthLocalUser(t *testing.T) {
 						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
 					},
 				}
-				updatedUser := &models.User{
-					ID:        "65fdd16b5f62f93184ec8a39",
-					Origin:    models.UserOriginLocal,
-					Status:    models.UserStatusConfirmed,
-					LastLogin: now,
-					MFA: models.UserMFA{
-						Enabled: false,
-					},
-					UserData: models.UserData{
-						Username: "john_doe",
-						Email:    "john.doe@test.com",
-						Name:     "john doe",
-					},
-					Password: models.UserPassword{
-						Hash: "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi",
-					},
-					Preferences: models.UserPreferences{
-						PreferredNamespace: "",
-						AuthMethods:        []models.UserAuthMethod{models.UserAuthMethodLocal},
-					},
-				}
 
 				mock.
 					On("SystemGet", ctx).
@@ -2187,7 +2103,7 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Once()
 
 				mock.
-					On("UserUpdate", ctx, updatedUser).
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(nil).
 					Once()
 				mock.
@@ -2210,6 +2126,65 @@ func TestService_AuthLocalUser(t *testing.T) {
 				lockout:  0,
 				mfaToken: "",
 				err:      nil,
+			},
+		},
+		{
+			description: "fails when a non-bcrypt hash cannot be upgraded",
+			sourceIP:    "127.0.0.1",
+			req: &requests.AuthLocalUser{
+				Identifier: "john_doe",
+				Password:   "secret",
+			},
+			requiredMocks: func() {
+				mock.
+					On("SystemGet", ctx).
+					Return(localSignInOn(), nil).
+					Once()
+				mock.
+					On("UserResolve", ctx, store.UserUsernameResolver, "john_doe").
+					Return(&models.User{
+						ID:       "65fdd16b5f62f93184ec8a39",
+						Status:   models.UserStatusConfirmed,
+						UserData: models.UserData{Username: "john_doe"},
+						Password: models.UserPassword{Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b"},
+						Preferences: models.UserPreferences{
+							AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+						},
+					}, nil).
+					Once()
+				cacheMock.
+					On("HasAccountLockout", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(int64(0), 0, nil).
+					Once()
+				hashMock.
+					On("CompareWith", "secret", "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b").
+					Return(true).
+					Once()
+				cacheMock.
+					On("ResetLoginAttempts", ctx, "127.0.0.1", "65fdd16b5f62f93184ec8a39").
+					Return(nil).
+					Once()
+				hashMock.
+					On("Do", "secret").
+					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
+					Once()
+				mock.
+					On("UserReplacePasswordHash", ctx, "65fdd16b5f62f93184ec8a39",
+						"2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						"$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi").
+					Return(errors.New("error", "", 0)).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrUserUpdate(&models.User{
+					ID:       "65fdd16b5f62f93184ec8a39",
+					Status:   models.UserStatusConfirmed,
+					UserData: models.UserData{Username: "john_doe"},
+					Password: models.UserPassword{Hash: "2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b"},
+					Preferences: models.UserPreferences{
+						AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
+					},
+				}, errors.New("error", "", 0)),
 			},
 		},
 		{
@@ -2285,13 +2260,14 @@ func TestService_AuthLocalUser(t *testing.T) {
 					Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil).
 					Once()
 
-				expectedUser := *user
-				expectedUser.LastLogin = now
-				expectedUser.Password.Plain = "secret"
-				expectedUser.Password.Hash = "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi"
-
 				mock.
-					On("UserUpdate", ctx, &expectedUser).
+					On("UserReplacePasswordHash", ctx, "65fdd16b5f62f93184ec8a39",
+						"2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b",
+						"$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi").
+					Return(nil).
+					Once()
+				mock.
+					On("UserUpdate", ctx, "65fdd16b5f62f93184ec8a39", &models.UserChanges{LastLogin: &now}).
 					Return(nil).
 					Once()
 			},

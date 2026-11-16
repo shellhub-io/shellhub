@@ -31,8 +31,6 @@ type User struct {
 // UserPreferences is embedded into the users row, so a user and their preferences are read in
 // one query.
 type UserPreferences struct {
-	// skipupdate: written only through UserUpdatePreferredNamespace and the membership/namespace
-	// removal clears, so a full-model UserUpdate can't restore a preference a concurrent removal cleared.
 	PreferredNamespace string   `bun:"preferred_namespace_id,nullzero,skipupdate"`
 	AuthMethods        []string `bun:"auth_methods,array"`
 	SecurityEmail      string   `bun:"security_email,nullzero"`
