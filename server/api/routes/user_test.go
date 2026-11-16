@@ -205,163 +205,20 @@ func TestDeprecatedUpdateUserIgnoresPathID(t *testing.T) {
 	svcMock.AssertExpectations(t)
 }
 
-func TestUpdateUserPassword(t *testing.T) {
-	mock := mocks.NewMockService(t)
+func TestRemovedUpdateUserPasswordRouteIsNotFound(t *testing.T) {
+	svcMock := mocks.NewMockService(t)
 
-	cases := []struct {
-		title             string
-		updatePayloadMock requests.UserPasswordUpdate
-		requiredMocks     func(updatePayloadMock requests.UserPasswordUpdate)
-		expectedStatus    int
-	}{
-		{
-			title: "fails when validate because the password fields are missing",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID: "123",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when validate because the tag does not have a min of 5 characters",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				CurrentPassword: "fail",
-				NewPassword:     "new_password",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when validate because the tag does not have a max of 32 characters",
-			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
-				UserID:          "123",
-				CurrentPassword: "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
-				NewPassword:     "new_password",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when validate because the tag does not have a min of 5 characters",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				CurrentPassword: "new_password",
-				NewPassword:     "fail",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when validate because the tag does not have a max of 32 characters",
-			updatePayloadMock: requests.UserPasswordUpdate{ //nolint:gosec // G101: test fixture
-				UserID:          "123",
-				CurrentPassword: "new_password",
-				NewPassword:     "1a3b8f0c2e5d7g9i4k6m8o2q5s7u9w1v7",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when validate because have a duplicate password",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				NewPassword:     "duplicate",
-				CurrentPassword: "duplicate",
-			},
-			requiredMocks:  func(_ requests.UserPasswordUpdate) {},
-			expectedStatus: http.StatusBadRequest,
-		},
-		{
-			title: "fails when current password does not match",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				CurrentPassword: "wrong_password",
-				NewPassword:     "new_password",
-			},
-			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
-				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(svc.ErrUserPasswordNotMatch).Once()
-			},
-			expectedStatus: http.StatusForbidden,
-		},
-		{
-			title: "fails when try to updating a password an existing user",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				CurrentPassword: "old_password",
-				NewPassword:     "new_password",
-			},
-			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
-				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(svc.ErrUserNotFound).Once()
-			},
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			title: "success when try to updating a password an existing user",
-			updatePayloadMock: requests.UserPasswordUpdate{
-				UserID:          "123",
-				CurrentPassword: "old_password",
-				NewPassword:     "new_password",
-			},
-			requiredMocks: func(updatePayloadMock requests.UserPasswordUpdate) {
-				mock.On("UpdatePasswordUser", gomock.Anything, "123", updatePayloadMock.CurrentPassword, updatePayloadMock.NewPassword).Return(nil).Once()
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.updatePayloadMock)
-
-			jsonData, err := json.Marshal(tc.updatePayloadMock)
-			if err != nil {
-				require.NoError(t, err)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users/path-id-ignored/password", strings.NewReader(string(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
-			req = identitytest.As(req, identity.Identity{ID: tc.updatePayloadMock.UserID, Role: authorizer.RoleOwner})
-			rec := httptest.NewRecorder()
-
-			e := newTestRouter(t, mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
-		})
-	}
-
-	mock.AssertExpectations(t)
-}
-
-func TestUpdateUserPasswordIgnoresPathID(t *testing.T) {
-	mock := mocks.NewMockService(t)
-
-	const sessionID = "session-user-id"
-	const attackerTargetID = "victim-user-id"
-
-	mock.On("UpdatePasswordUser", gomock.Anything, sessionID, "old_password", "new_password").
-		Return(nil).Once()
-
-	payload := requests.UserPasswordUpdate{
-		CurrentPassword: "old_password",
-		NewPassword:     "new_password",
-	}
-
-	jsonData, err := json.Marshal(payload)
-	require.NoError(t, err)
-
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, fmt.Sprintf("/api/users/%s/password", attackerTargetID), strings.NewReader(string(jsonData)))
+	body := `{"current_password":"old_password","new_password":"new_password"}`
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/users/000000000000000000000000/password", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	req = identitytest.As(req, identity.Identity{ID: sessionID, Role: authorizer.RoleObserver})
+	req = identitytest.As(req, identity.Identity{ID: "000000000000000000000000", Role: authorizer.RoleOwner})
 
 	rec := httptest.NewRecorder()
 
-	e := newTestRouter(t, mock)
+	e := newTestRouter(t, svcMock)
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusOK, rec.Result().StatusCode)
-	mock.AssertExpectations(t)
+	assert.Equal(t, http.StatusNotFound, rec.Result().StatusCode)
 }
 
 func TestRevokeUserTokens(t *testing.T) {

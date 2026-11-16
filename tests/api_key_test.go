@@ -74,11 +74,6 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 			path:        "/api/users/" + auth.ID + "/data",
 		},
 		{
-			description: "changing the password through the deprecated route",
-			method:      http.MethodPatch,
-			path:        "/api/users/" + auth.ID + "/password",
-		},
-		{
 			description: "listing the API keys",
 			method:      http.MethodGet,
 			path:        "/api/namespaces/api-key",

@@ -34,19 +34,6 @@ func TestPasswordChangeRevokesTokens(t *testing.T) {
 			},
 		},
 		{
-			description: "through the deprecated password route",
-			next:        "changed-by-deprecated-route",
-			change: func(t *testing.T, before *models.UserAuthResponse, next string) {
-				t.Helper()
-
-				resp, err := asBearer(t, compose, before.Token).
-					SetBody(map[string]string{"current_password": ShellHubPassword, "new_password": next}).
-					Patch("/api/users/" + before.ID + "/password")
-				require.NoError(t, err)
-				require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-			},
-		},
-		{
 			description: "through the admin CLI",
 			next:        "changed-by-admin",
 			change: func(t *testing.T, _ *models.UserAuthResponse, next string) {
