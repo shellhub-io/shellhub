@@ -31,6 +31,11 @@ type AuthService interface {
 	AuthCacheToken(ctx context.Context, tenant, id, token string) error
 	AuthUncacheToken(ctx context.Context, tenant, id string) error
 
+	// DeriveKey returns a 32-byte key for purpose, derived from the server's signing key, so every
+	// replica that shares the signing key derives the same one and no two purposes share a key. An
+	// edition MACs what it hands a client with it, to check later without storing anything.
+	DeriveKey(purpose string) []byte
+
 	// CreateDeviceAuthChallenge issues a challenge, valid for a minute, that an agent signs to show
 	// it holds its device key. The challenge carries a MAC keyed from the server's signing key, so any
 	// replica that shares the key accepts it and nothing is stored. It stays usable for its whole

@@ -228,16 +228,20 @@ func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKe
 		mustSetApart(source)
 	}
 
-	service.challengeKey = deviceAuthChallengeKey(privKey)
+	service.challengeKey = deriveKey(privKey, "device-auth-challenge")
 
 	return service
 }
 
-func deviceAuthChallengeKey(privKey *rsa.PrivateKey) []byte {
-	key, err := hkdf.Key(sha256.New, x509.MarshalPKCS1PrivateKey(privKey), nil, "shellhub-device-auth-challenge-v1", sha256.Size)
+func deriveKey(privKey *rsa.PrivateKey, purpose string) []byte {
+	key, err := hkdf.Key(sha256.New, x509.MarshalPKCS1PrivateKey(privKey), nil, "shellhub-"+purpose+"-v1", sha256.Size)
 	if err != nil {
 		panic(err)
 	}
 
 	return key
+}
+
+func (s *service) DeriveKey(purpose string) []byte {
+	return deriveKey(s.privKey, purpose)
 }
