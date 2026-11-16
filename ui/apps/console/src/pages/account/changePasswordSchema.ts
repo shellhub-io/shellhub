@@ -12,6 +12,7 @@ export const changePasswordSchema = z
     current: z.string(),
     newPw: z.string(),
     confirmPw: z.string(),
+    mfaCode: z.string(),
   })
   .superRefine((values, ctx) => {
     if (values.newPw) {

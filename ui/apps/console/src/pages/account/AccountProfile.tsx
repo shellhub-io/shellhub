@@ -11,6 +11,8 @@ import {
   type EditProfileFormValues,
   type CurrentProfileValues,
 } from "@/pages/account/editProfileSchema";
+import { mfaCodeRefusal } from "@/pages/account/mfaCode";
+import MfaCodeField from "@/pages/account/MfaCodeField";
 
 import {
   FormInputField,
@@ -28,10 +30,11 @@ import SettingsField from "@/components/settings/SettingsField";
 
 /**
  * Edits the signed-in user's own name and emails. Changing either email asks for the current
- * password. Where the instance confirms a new email by mail (Cloud), the account keeps the old one
- * until the link sent to the new one is opened, and onEmailPending receives the new address; on
- * other editions the change applies at once. An account whose emails its identity provider
- * manages edits only its name.
+ * password, and with mfaEnabled a code from the authenticator app or a recovery code. Where the instance confirms a
+ * new address by mail (Cloud), the account keeps the old one until the link sent to the new one is
+ * opened, and onEmailPending or onRecoveryEmailPending receives the new address; on other editions
+ * the change applies at once. An account whose emails its identity provider manages edits only
+ * its name.
  */
 export function EditProfileModal({
   open,
@@ -40,7 +43,9 @@ export function EditProfileModal({
   currentEmail,
   currentRecoveryEmail,
   emailsManagedExternally = false,
+  mfaEnabled = false,
   onEmailPending,
+  onRecoveryEmailPending,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,7 +53,9 @@ export function EditProfileModal({
   currentEmail: string;
   currentRecoveryEmail: string;
   emailsManagedExternally?: boolean;
+  mfaEnabled?: boolean;
   onEmailPending?: (email: string) => void;
+  onRecoveryEmailPending?: (email: string) => void;
 }) {
   const updateProfile = useAuthStore((s) => s.updateProfile);
 
@@ -56,6 +63,7 @@ export function EditProfileModal({
     name: currentName,
     email: currentEmail,
     recoveryEmail: currentRecoveryEmail,
+    mfaEnabled,
   };
   const schema = editProfileSchema(current);
 
@@ -64,6 +72,7 @@ export function EditProfileModal({
     email: currentEmail,
     recoveryEmail: currentRecoveryEmail,
     currentPassword: "",
+    mfaCode: "",
   });
   const { control, trigger, setError, clearErrors, formState } = form;
 
@@ -85,22 +94,27 @@ export function EditProfileModal({
       email?: string;
       recovery_email?: string;
       current_password?: string;
+      mfa_code?: string;
     } = {};
     if (dirty.name) data.name = values.name.trim();
     if (dirty.email) data.email = values.email;
     if (dirty.recoveryEmail) data.recovery_email = values.recoveryEmail;
     if (changesAnAddress(values, current)) {
       data.current_password = values.currentPassword;
+      if (mfaEnabled) data.mfa_code = values.mfaCode.trim();
     }
 
     try {
       await updateProfile(data);
-      const savedEmail = useAuthStore.getState().email ?? "";
-      const held =
-        data.email !== undefined &&
-        savedEmail.toLowerCase() !== data.email.toLowerCase();
+      const saved = useAuthStore.getState();
+      const heldEmail = heldAddress(data.email, saved.email);
+      const heldRecoveryEmail = heldAddress(
+        data.recovery_email,
+        saved.recoveryEmail,
+      );
       onClose();
-      if (held && data.email) onEmailPending?.(data.email);
+      if (heldEmail) onEmailPending?.(heldEmail);
+      if (heldRecoveryEmail) onRecoveryEmailPending?.(heldRecoveryEmail);
     } catch (err) {
       if (isSdkError(err) && err.status === 403) {
         setError("currentPassword", {
@@ -110,12 +124,23 @@ export function EditProfileModal({
         return;
       }
 
+      const mfaCodeRefused = mfaCodeRefusal(err);
+      if (mfaCodeRefused) {
+        setError("mfaCode", { type: "server", message: mfaCodeRefused });
+        return;
+      }
+
       const fields = apiErrorFields(err);
+
       const emailRefusal = emailRefusalMessage(fields.email);
       const recoveryEmailRefusal = emailRefusalMessage(fields.recovery_email);
-      if (emailRefusal) setError("email", { type: "server", message: emailRefusal });
+      if (emailRefusal)
+        setError("email", { type: "server", message: emailRefusal });
       if (recoveryEmailRefusal) {
-        setError("recoveryEmail", { type: "server", message: recoveryEmailRefusal });
+        setError("recoveryEmail", {
+          type: "server",
+          message: recoveryEmailRefusal,
+        });
       }
       if (emailRefusal || recoveryEmailRefusal) return;
 
@@ -198,8 +223,25 @@ export function EditProfileModal({
           onValueChange={() => clearErrors("root")}
         />
       )}
+      {needsPassword && mfaEnabled && (
+        <MfaCodeField
+          control={control}
+          id="profile-mfa-code"
+          onValueChange={() => clearErrors("root")}
+        />
+      )}
     </FormModal>
   );
+}
+
+function heldAddress(
+  requested: string | undefined,
+  saved: string | null,
+): string | undefined {
+  if (requested === undefined) return undefined;
+  return (saved ?? "").toLowerCase() === requested.toLowerCase()
+    ? undefined
+    : requested;
 }
 
 /**
@@ -207,9 +249,10 @@ export function EditProfileModal({
  * them.
  */
 export default function AccountProfile() {
-  const { name, email, recoveryEmail, origin } = useAuthStore();
+  const { name, email, recoveryEmail, origin, mfaEnabled } = useAuthStore();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingRecoveryEmail, setPendingRecoveryEmail] = useState("");
 
   if (!name && !email) {
     return <PageLoader label="Loading profile" padding="lg" />;
@@ -242,7 +285,8 @@ export default function AccountProfile() {
           <span className="text-sm font-mono text-text-secondary">{email}</span>
           {pendingEmail && (
             <Callout variant="info" className="mt-2">
-              We sent a confirmation link to {pendingEmail}. Your email changes once you open it.
+              We sent a confirmation link to {pendingEmail}. Your email changes
+              once you open it.
             </Callout>
           )}
         </SettingsField>
@@ -256,6 +300,12 @@ export default function AccountProfile() {
               <span className="text-text-muted italic font-sans">Not set</span>
             )}
           </span>
+          {pendingRecoveryEmail && (
+            <Callout variant="info" className="mt-2">
+              We sent a confirmation link to {pendingRecoveryEmail}. Your
+              recovery email changes once you open it.
+            </Callout>
+          )}
         </SettingsField>
       </SettingsSection>
       <EditProfileModal
@@ -265,7 +315,9 @@ export default function AccountProfile() {
         currentEmail={email ?? ""}
         currentRecoveryEmail={recoveryEmail ?? ""}
         emailsManagedExternally={origin === "saml"}
+        mfaEnabled={mfaEnabled}
         onEmailPending={setPendingEmail}
+        onRecoveryEmailPending={setPendingRecoveryEmail}
       />
     </>
   );

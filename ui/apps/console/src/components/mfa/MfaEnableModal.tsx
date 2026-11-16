@@ -14,6 +14,8 @@ import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import OtpCells from "@/components/mfa/OtpCells";
 import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
+import { useAuthStore } from "@/stores/authStore";
+
 interface MfaEnableModalProps {
   open: boolean;
   onClose: () => void;
@@ -26,6 +28,8 @@ type Step = 1 | 2 | 3 | 4;
 /**
  * Sets MFA up: the secret, the QR code, a verifying code, and the recovery codes. The recovery
  * codes are shown once, at the end, and the flow must not be completable without passing them.
+ * Where the instance holds a new recovery email until its owner opens the link mailed to it
+ * (Cloud), the flow waits on step 1 until the account carries the new address.
  */
 export default function MfaEnableModal({
   open,
@@ -40,6 +44,7 @@ export default function MfaEnableModal({
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [userWantsNewEmail, setUserWantsNewEmail] = useState(false);
+  const [pendingRecoveryEmail, setPendingRecoveryEmail] = useState("");
   const showRecoveryEmailInput = !currentRecoveryEmail || userWantsNewEmail;
 
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
@@ -76,6 +81,10 @@ export default function MfaEnableModal({
         },
         throwOnError: true,
       });
+      if (!(await recoveryEmailSaved(recoveryEmail))) {
+        setPendingRecoveryEmail(recoveryEmail);
+        return;
+      }
       await handleGenerateMfa();
       setStep(2);
     } catch (err) {
@@ -87,6 +96,25 @@ export default function MfaEnableModal({
             ? "Current password is incorrect."
             : "Failed to save recovery email",
       );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckRecoveryEmailConfirmed = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      if (!(await recoveryEmailSaved(pendingRecoveryEmail))) {
+        setError(
+          `Open the link we sent to ${pendingRecoveryEmail} first, then continue.`,
+        );
+        return;
+      }
+      await handleGenerateMfa();
+      setStep(2);
+    } catch {
+      setError("Failed to generate MFA codes");
     } finally {
       setLoading(false);
     }
@@ -161,6 +189,7 @@ export default function MfaEnableModal({
       setRecoveryEmail("");
       setCurrentPassword("");
       setUserWantsNewEmail(false);
+      setPendingRecoveryEmail("");
       setRecoveryCodes([]);
       setCodesSaved(false);
       setQrLink("");
@@ -191,7 +220,14 @@ export default function MfaEnableModal({
             <Button variant="ghost" onClick={handleClose}>
               Cancel
             </Button>
-            {showRecoveryEmailInput ? (
+            {pendingRecoveryEmail ? (
+              <Button
+                onClick={() => void handleCheckRecoveryEmailConfirmed()}
+                loading={loading}
+              >
+                I opened the link
+              </Button>
+            ) : showRecoveryEmailInput ? (
               <Button
                 onClick={() => void handleSaveRecoveryEmail()}
                 disabled={!recoveryEmail.trim() || !currentPassword}
@@ -242,7 +278,20 @@ export default function MfaEnableModal({
       <div className="space-y-5">
         {error && <Callout variant="error">{error}</Callout>}
 
-        {step === 1 && (
+        {step === 1 && pendingRecoveryEmail && (
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-text-primary">
+              Step 1: Confirm Recovery Email
+            </h3>
+            <Callout variant="info">
+              We sent a confirmation link to {pendingRecoveryEmail}. Open it,
+              then come back and continue. MFA needs a recovery email you have
+              confirmed.
+            </Callout>
+          </div>
+        )}
+
+        {step === 1 && !pendingRecoveryEmail && (
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold text-text-primary mb-2">
@@ -488,4 +537,10 @@ export default function MfaEnableModal({
       </div>
     </Modal>
   );
+}
+
+async function recoveryEmailSaved(requested: string): Promise<boolean> {
+  await useAuthStore.getState().fetchUser();
+  const saved = useAuthStore.getState().recoveryEmail ?? "";
+  return saved.toLowerCase() === requested.trim().toLowerCase();
 }

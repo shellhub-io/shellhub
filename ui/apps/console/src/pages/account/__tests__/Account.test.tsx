@@ -196,6 +196,84 @@ describe("Account", () => {
       expect(useAuthStore.getState().token).toBeNull();
     });
 
+    describe("on an account with MFA", () => {
+      async function fillPasswords() {
+        seedAuthStore({ mfaEnabled: true });
+        const user = await openChangePasswordModal();
+        await user.type(screen.getByLabelText(/current password/i), "oldpass1");
+        await user.type(screen.getByLabelText(/^new password$/i), "newpass123");
+        await user.type(
+          screen.getByLabelText(/confirm new password/i),
+          "newpass123",
+        );
+        return user;
+      }
+
+      it("keeps the submit button disabled until a code is entered", async () => {
+        const user = await fillPasswords();
+        expect(getModalSubmitButton()).toBeDisabled();
+
+        await user.type(
+          screen.getByLabelText("Authenticator or Recovery Code"),
+          "123456",
+        );
+        expect(getModalSubmitButton()).toBeEnabled();
+      });
+
+      it("sends the code, a recovery code included, with the new password", async () => {
+        let body: unknown;
+        server.use(
+          http.get("*/info", () => HttpResponse.json(mockInfo())),
+          http.patch("*/api/users", async ({ request }) => {
+            body = await request.json();
+            return HttpResponse.json({});
+          }),
+        );
+        const user = await fillPasswords();
+        await user.type(
+          screen.getByLabelText("Authenticator or Recovery Code"),
+          "ABCDEFGHIJKLMNOP",
+        );
+        await user.click(getModalSubmitButton());
+
+        await waitFor(() =>
+          expect(body).toEqual({
+            current_password: "oldpass1",
+            password: "newpass123",
+            mfa_code: "ABCDEFGHIJKLMNOP",
+          }),
+        );
+      });
+
+      it("says why the server refused the code", async () => {
+        server.use(
+          http.patch("*/api/users", () =>
+            HttpResponse.json(
+              { message: "bad request", fields: { mfa_code: "is invalid" } },
+              { status: 400 },
+            ),
+          ),
+        );
+        const user = await fillPasswords();
+        await user.type(
+          screen.getByLabelText("Authenticator or Recovery Code"),
+          "000000",
+        );
+        await user.click(getModalSubmitButton());
+
+        expect(
+          await screen.findByText("The code is incorrect."),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("asks no code from an account without MFA", async () => {
+      await openChangePasswordModal();
+      expect(
+        screen.queryByLabelText("Authenticator or Recovery Code"),
+      ).not.toBeInTheDocument();
+    });
+
     it("resets the form when the modal is reopened", async () => {
       const user = await openChangePasswordModal();
 

@@ -60,10 +60,13 @@ interface AuthState {
     username?: string;
     email?: string;
     recovery_email?: string;
+    current_password?: string;
+    mfa_code?: string;
   }) => Promise<void>;
   updatePassword: (
     currentPassword: string,
     newPassword: string,
+    mfaCode?: string,
   ) => Promise<void>;
   deleteUser: () => Promise<void>;
   loginWithMfa: (code: string) => Promise<void>;
@@ -203,9 +206,13 @@ export const useAuthStore = create<AuthState>()(
         await get().fetchUser();
       },
 
-      updatePassword: async (currentPassword, newPassword) => {
+      updatePassword: async (currentPassword, newPassword, mfaCode) => {
         await updateUserSdk({
-          body: { current_password: currentPassword, password: newPassword },
+          body: {
+            current_password: currentPassword,
+            password: newPassword,
+            ...(mfaCode ? { mfa_code: mfaCode } : {}),
+          },
           throwOnError: true,
         });
       },

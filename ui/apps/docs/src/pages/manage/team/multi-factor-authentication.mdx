@@ -24,9 +24,12 @@ reset path — a reset sends one code to your sign-in address and another to the
 needs both — and it cannot be set from a locked-out account, which is the moment you would think
 of it.
 
-Changing either address asks for your current password, so an open session alone cannot point the
-reset path somewhere else. On Cloud a new sign-in address takes effect only once you open the link
-mailed to it, and your previous addresses are told about every change. An account created through
+Changing your password or either address asks for your current password, and once MFA is on, for
+a code from your authenticator as well, so an open session alone cannot point the reset path
+somewhere else. A recovery code works in place of the authenticator code and is used up. On
+Cloud a new address, sign-in or recovery, takes effect only once you open the link mailed to it,
+and your previous addresses are told about every change. A recovery email set while enabling MFA is
+no exception: setup waits on its first step until you open that link. An account created through
 SSO cannot change either address from the console: its email comes from the identity provider,
 which sets it again at every SSO sign-in.
 
