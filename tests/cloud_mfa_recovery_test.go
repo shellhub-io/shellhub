@@ -221,6 +221,7 @@ type mfaUser struct {
 	recoveryEmail string
 	username      string
 	recoveryCodes []string
+	totpKey       []byte
 }
 
 func newMFAUser(t *testing.T, compose *environment.DockerCompose, edition environment.Edition, username string) mfaUser {
@@ -258,6 +259,7 @@ func newMFAUser(t *testing.T, compose *environment.DockerCompose, edition enviro
 
 	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(generated.Secret)
 	require.NoError(t, err)
+	user.totpKey = key
 
 	require.EventuallyWithT(t, func(tt *assert.CollectT) {
 		resp, err := asBearer(t, compose, user.token).
