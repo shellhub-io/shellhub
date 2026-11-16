@@ -168,7 +168,8 @@ func TestTagDeleteDetachesItEverywhere(t *testing.T) {
 }
 
 // TestTagNamesAreUniqueInNamespace covers a tag name already taken in the namespace: creating a tag
-// or renaming another to it answers 409 naming the field, and leaves both tags as they were.
+// or renaming another to it answers 409 naming the field, and leaves both tags as they were. Names
+// are unique by exact case, so renaming a tag to its own name in another letter case renames it.
 func TestTagNamesAreUniqueInNamespace(t *testing.T) {
 	t.Parallel()
 
@@ -198,6 +199,37 @@ func TestTagNamesAreUniqueInNamespace(t *testing.T) {
 			assert.ElementsMatch(t, []string{"taken", "other"}, listedTags(t, compose.R(t.Context())))
 		})
 	}
+
+	t.Run("renaming a tag to its own name in another letter case renames it", func(t *testing.T) {
+		createTag(t, compose, "Prod")
+
+		renamed := new(models.Tag)
+
+		resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": "prod"}).SetResult(renamed).Patch("/api/tags/Prod")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.Equal(t, "prod", renamed.Name)
+
+		tags := listedTags(t, compose.R(t.Context()))
+		assert.Contains(t, tags, "prod")
+		assert.NotContains(t, tags, "Prod")
+	})
+
+	t.Run("renaming a tag to a taken name in another letter case answers 409", func(t *testing.T) {
+		createTag(t, compose, "stage")
+		createTag(t, compose, "Stage")
+
+		refusal := new(responses.Error)
+
+		resp, err := compose.R(t.Context()).SetBody(map[string]string{"name": "stage"}).SetError(refusal).Patch("/api/tags/Stage")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusConflict, resp.StatusCode(), resp.String())
+		assert.Equal(t, map[string]string{"name": "duplicated"}, refusal.Fields)
+
+		tags := listedTags(t, compose.R(t.Context()))
+		assert.Contains(t, tags, "stage")
+		assert.Contains(t, tags, "Stage")
+	})
 }
 
 // TestTagsAppliedByProvisioningKey covers a tag a provisioning key applies to the devices it enrolls.
