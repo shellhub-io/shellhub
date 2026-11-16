@@ -47,6 +47,9 @@ const (
 	// ErrCodeInternal is the error code for a failure on the server's side that the caller can't
 	// fix, such as billing failing to answer (mapped to HTTP 500).
 	ErrCodeInternal
+	// ErrCodeTooManyRequests is the error code for a caller who must wait before trying again, such
+	// as one locked out after wrong passwords (mapped to HTTP 429).
+	ErrCodeTooManyRequests
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -88,6 +91,8 @@ var (
 	ErrUserUnhandledDuplicate          = errors.New("unhandled duplicated field for the user", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeForbidden)
+	ErrFactorLockedOut                 = errors.New("too many wrong attempts", ErrLayer, ErrCodeTooManyRequests)
+	ErrFactorCheckUnavailable          = errors.New("unable to check the factor", ErrLayer, ErrCodeInternal)
 	ErrUserNotConfirmed                = errors.New("user not confirmed", ErrLayer, ErrCodeForbidden)
 	ErrUserAwaitingApproval            = errors.New("user awaiting approval", ErrLayer, ErrCodeLocked)
 	ErrUserUpdate                      = errors.New("user update", ErrLayer, ErrCodeStore)
@@ -273,6 +278,24 @@ func NewErrProvisioningKeyForbidden() error {
 // shape the UI already consumes from the user/invitation endpoints.
 type ErrDataInvalidFields struct {
 	Fields map[string]string `json:"fields"`
+}
+
+// ErrDataLockout carries when a lockout ends, as a Unix timestamp in seconds, or 0 when the attempt
+// was refused for running alongside another one rather than for a lockout.
+type ErrDataLockout struct {
+	Until int64 `json:"until"`
+}
+
+// NewErrFactorLockedOut reports [ErrFactorLockedOut] for a password or code refused unchecked, or
+// whose wrong guess started a lockout, ending at until.
+func NewErrFactorLockedOut(until int64) error {
+	return errors.WithData(ErrFactorLockedOut, ErrDataLockout{Until: until})
+}
+
+// NewErrFactorCheckUnavailable reports [ErrFactorCheckUnavailable], wrapping the failure that kept
+// a password or code from being checked.
+func NewErrFactorCheckUnavailable(next error) error {
+	return errors.Wrap(ErrFactorCheckUnavailable, next)
 }
 
 // NewErrInvalidFields tags an error with the offending request field(s) and why each was rejected,

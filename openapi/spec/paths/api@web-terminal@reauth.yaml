@@ -15,10 +15,14 @@ post:
     The key must belong to the caller: owning the identity is the authorization
     for releasing its login.
 
-    A wrong password or code returns 403. A key that is not one of the caller's
-    identities returns 404, as does an approval code that is unknown, expired,
-    already used, or not a re-auth approval for this key in the caller's
-    namespace.
+    The key is checked before the factor: a key that is not one of the caller's
+    identities returns 404 whatever the password or code. A wrong password or
+    code then returns 403, and the third wrong one in a row starts a lockout
+    keyed on the account, during which the factor is refused unchecked with 429.
+    A code shares the lockout of the MFA step at sign-in; a password has its own,
+    which leaves password sign-in open. An approval code that is unknown,
+    expired, already used, or not a re-auth approval for this key in the
+    caller's namespace returns 404.
   tags:
     - community
     - ssh-identities
@@ -83,5 +87,7 @@ post:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '429':
+      $ref: ../components/responses/429.yaml
     '500':
       $ref: ../components/responses/500.yaml

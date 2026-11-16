@@ -45,7 +45,10 @@ patch:
               description: |
                 The user's current password. It's required when changing the
                 password, the email or the recovery email, so an account that
-                signs in only through SSO cannot change them here.
+                signs in only through SSO cannot change them here. A wrong one
+                answers 403, and the third wrong one in a row starts a lockout
+                keyed on the account, separate from the sign-in one, during
+                which it is refused unchecked with 429.
               type: string
             mfa_code:
               description: |
@@ -82,5 +85,7 @@ patch:
       $ref: ../components/responses/404.yaml
     '409':
       $ref: ../components/responses/409.yaml
+    '429':
+      $ref: ../components/responses/429.yaml
     '500':
       $ref: ../components/responses/500.yaml

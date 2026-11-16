@@ -503,10 +503,6 @@ func TestUpdateUser(t *testing.T) {
 						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 					}, nil).
 					Once()
-				hashMock.
-					On("CompareWith", "", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
-					Return(false).
-					Once()
 			},
 			expected: Expected{
 				err: NewErrUserPasswordNotMatch(nil),
@@ -526,10 +522,6 @@ func TestUpdateUser(t *testing.T) {
 						UserData: models.UserData{Email: "james.smith@shellhub.io", RecoveryEmail: "recover@test.com"},
 						Password: models.UserPassword{Hash: "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi"},
 					}, nil).
-					Once()
-				hashMock.
-					On("CompareWith", "", "$2a$10$V/6N1wsjheBVvWosVVVV2uf4WAOb9lmp8YWQCIa2UYuFV4OJby7Yi").
-					Return(false).
 					Once()
 			},
 			expected: Expected{
