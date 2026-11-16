@@ -119,11 +119,14 @@ type DeviceService interface {
 	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 	// UpdateDeviceStatus updates a device's status. Devices that are already accepted cannot change their status.
 	//
-	// When accepting, if a device with the same MAC address is already accepted within the same namespace, it
-	// merges these devices unless a third device with the same hostname already exists and has a different MAC
-	// address. The merge transfers all sessions from the old device to the new one, renames the new device to
-	// preserve the old device's identity, and deletes the old device. Also, if another accepted device already
-	// uses the same hostname but has a different MAC address, the operation fails.
+	// When accepting, if a device with the same MAC address is already accepted within the same namespace, the
+	// accept replaces it: it moves the old device's sessions to the new one, gives the new device the old
+	// device's name, appends the replacement to the new device's enrollment history and deletes the old
+	// device, all in one transaction. It returns ErrDeviceMACConnected when the old device is online,
+	// ErrDeviceReplaceForbidden when req.ReplacePolicy is DeviceReplaceRefused and ErrDeviceReplaceUnconfirmed
+	// naming the old device when it is DeviceReplaceUnconfirmed, changing nothing in any of these cases. It
+	// returns ErrDeviceDuplicated when another accepted device with a different MAC address uses the new
+	// device's name. A store error and an error from a registered merge hook are returned unchanged.
 	//
 	// Environment-specific Acceptance Rules:
 	//   - Community: Only checks the namespace's device limit
@@ -645,6 +648,13 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 					return NewErrDeviceMACConnected(nil)
 				}
 
+				if err := refuseReplacement(req.ReplacePolicy, existingMacDevice); err != nil {
+					log.WithError(err).WithFields(log.Fields{"device_uid": device.UID, "existing_device_uid": existingMacDevice.UID, "device_mac": device.Identity.MAC}).
+						Warn("device replacement refused")
+
+					return err
+				}
+
 				existingNameDevice, err := s.store.DeviceResolve(ctx, sc, store.DeviceHostnameResolver, device.Name, opts...)
 				if err != nil && !errors.Is(err, store.ErrNoDocuments) {
 					log.WithError(err).
@@ -779,6 +789,17 @@ func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.Dev
 	return nil
 }
 
+func refuseReplacement(policy requests.DeviceReplace, replaced *models.Device) error {
+	switch policy {
+	case requests.DeviceReplaceConfirmed:
+		return nil
+	case requests.DeviceReplaceUnconfirmed:
+		return NewErrDeviceReplaceUnconfirmed(replaced.Name)
+	default:
+		return NewErrDeviceReplaceForbidden()
+	}
+}
+
 func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *models.Device, newDevice *models.Device) error {
 	logFields := log.Fields{"tenant_id": tenantID, "old_device_uid": oldDevice.UID, "new_device_uid": newDevice.UID}
 	sc := scope.MustBounded(tenantID)
@@ -793,6 +814,13 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	log.WithFields(logFields).Debug("transferring sessions from old device to new device")
 	if err := s.store.SessionUpdateDeviceUID(ctx, models.UID(oldDevice.UID), models.UID(newDevice.UID)); err != nil && !errors.Is(err, store.ErrNoDocuments) {
 		log.WithError(err).WithFields(logFields).Error("failed to transfer sessions")
+
+		return err
+	}
+
+	replacement := models.DeviceReplacement{UID: oldDevice.UID, Name: oldDevice.Name, At: s.clock.Now()}
+	if err := s.store.ProvisioningKeyEventRecordReplacement(ctx, sc, newDevice.UID, replacement); err != nil {
+		log.WithError(err).WithFields(logFields).Error("failed to record the replaced device")
 
 		return err
 	}
@@ -812,7 +840,8 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 		return err
 	}
 
-	log.WithFields(logFields).Info("device merge operation completed successfully")
+	log.WithFields(logFields).WithField("old_device_name", oldDevice.Name).
+		Info("an accepted device replaced an offline device with the same MAC address and deleted its record")
 
 	return nil
 }

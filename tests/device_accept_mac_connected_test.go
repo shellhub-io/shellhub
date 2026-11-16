@@ -28,7 +28,7 @@ func TestDeviceAcceptMACTwinConnected(t *testing.T) {
 		_, twin := startNamedAcceptedAgent(t, compose, "connected-twin")
 		newcomer := enrollDevice(t, compose, "connected-newcomer", twin.Identity.MAC)
 
-		refusal := requireAcceptConflict(t, compose, newcomer)
+		refusal := requireAcceptConflict(t, compose, newcomer, compose.PatchAcceptReplacing)
 		assert.Contains(t, refusal.Fields, "identity.mac")
 
 		kept := requireDevice(t, compose, twin.UID)

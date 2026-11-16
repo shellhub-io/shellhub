@@ -74,6 +74,8 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			Mode:     models.ProvisioningKeyModeManual,
 			Reusable: true,
 			Type:     models.ProvisioningKeyTypeLegacy,
+
+			ReplaceOfflineDevices: true,
 		}); err != nil {
 			return err
 		}
@@ -86,6 +88,8 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 			Mode:     models.ProvisioningKeyModeAutomatic,
 			Reusable: true,
 			Type:     models.ProvisioningKeyTypePairing,
+
+			ReplaceOfflineDevices: true,
 		}); err != nil {
 			return err
 		}

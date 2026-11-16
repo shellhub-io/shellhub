@@ -82,16 +82,27 @@ type ProvisioningKeyStore interface {
 	ProvisioningKeyEventCreate(ctx context.Context, event *models.ProvisioningKeyEvent) (err error)
 
 	// ProvisioningKeyEventStampDecision freezes the enrollment outcome (accepted/rejected + when) on the
-	// device's newest enrollment event, so the audit survives the device being removed; a refusal is
-	// never stamped, even when it is newer. Best-effort: a device with no enrollment event stamps
+	// device's newest enrollment event, so the audit survives the device being removed; a refusal or
+	// a replacement is never stamped, even when it is newer. Best-effort: a device with no enrollment event stamps
 	// nothing. It returns [ErrInvalidScope] for a scope not bounded to a namespace, ctx's error when
 	// it is cancelled or its deadline passes and [ErrInternal] for any other failure.
 	ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) (err error)
 
+	// ProvisioningKeyEventRecordReplacement appends to the history of the key that deviceUID enrolled
+	// with, or of the namespace's legacy key when it has none, an event recording that it replaced
+	// the offline device replaced, with the device facts as the device row holds them. Each call
+	// appends a row, so a device that replaces several keeps every one. It returns [ErrInvalidScope]
+	// for a scope not bounded to a namespace, [ErrNoDocuments] when sc holds no device deviceUID or
+	// there is no key to record it on, ctx's error when it is cancelled or its deadline passes and
+	// [ErrInternal] for any other failure.
+	ProvisioningKeyEventRecordReplacement(ctx context.Context, sc scope.Scope, deviceUID string, replaced models.DeviceReplacement) (err error)
+
 	// ProvisioningKeyEventList retrieves the enrollment history of the provisioning key identified by
-	// its digest within the given namespace scope, in the order and page opts set. A filter among opts
-	// narrows the events and the count, but each event's IsCurrent still compares it with the
-	// device's newest event in the whole history. It returns the events and their count,
+	// its digest within the given namespace scope, in the order and page opts set, replacements
+	// included as events of their own. A filter among opts narrows the events and the count, but
+	// each event's IsCurrent still compares it with the device's newest enrollment in the whole
+	// history; a replacement is never current and carries no DeviceStatus. It returns the events and
+	// their count,
 	// [ErrInvalidScope] for a scope that is neither bounded nor unbounded, ctx's error when it is
 	// cancelled or its deadline passes, and [ErrInternal] for any other failure.
 	ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyDigest string, opts ...QueryOption) (events []models.ProvisioningKeyEvent, count int64, err error)

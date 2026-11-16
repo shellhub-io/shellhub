@@ -86,6 +86,14 @@ properties:
     type: integer
     description: Minutes an ephemeral device may stay offline before removal (1-10).
     example: 10
+  replace_offline_devices:
+    type: boolean
+    description: |
+      Whether a device registering with the key may replace an offline accepted
+      device that reports the same identity: accepting it through the key gives
+      it the offline device's name and sessions and deletes the offline
+      device's record. When false, such a device stays pending instead.
+    example: false
   tags:
     type: array
     items:
@@ -149,6 +157,7 @@ required:
   - usage_limit
   - used_times
   - ephemeral
+  - replace_offline_devices
   - tags
   - revoked
   - disabled

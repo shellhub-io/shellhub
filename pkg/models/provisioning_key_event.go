@@ -57,6 +57,10 @@ type ProvisioningKeyEvent struct {
 	// the enrollment is still pending.
 	DecidedStatus DeviceStatus `json:"decided_status,omitempty"`
 	DecidedAt     *time.Time   `json:"decided_at,omitempty"`
+	// Replaced is the offline device an accept replaced. An event that carries it records that
+	// replacement and nothing else: it is never stamped with a decision, never current and never a
+	// refusal. Nil on every other event.
+	Replaced *DeviceReplacement `json:"replaced,omitempty"`
 	// IsCurrent reports whether this is the device's newest enrollment event. A device removed and
 	// re-registered shares one device row across several events, so the live status/action belongs to
 	// the newest one alone; older events are historical. Computed at read time; drives the accept/reject

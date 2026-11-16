@@ -106,6 +106,8 @@ func (e *enrollmentE2E) provisioningKey(t *testing.T, digest, name string, mode 
 		Type:     keyType,
 		Reusable: true,
 		Tags:     []string{},
+
+		ReplaceOfflineDevices: true,
 	}
 	if opts != nil {
 		opts(key)

@@ -99,6 +99,8 @@ properties:
       namespace's legacy key). Attributes the device to its registration source.
     type: string
     example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  replaced:
+    $ref: deviceReplacement.yaml
   owner_id:
     description: |
       The member who paired the device. The device is removed from the namespace

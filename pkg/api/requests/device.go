@@ -86,6 +86,40 @@ type DeviceUpdateStatus struct {
 	TenantID string `identity:"tenant" json:"-"`
 	UID      string `param:"uid" json:"-" validate:"required"`
 	Status   string `param:"status" json:"-" validate:"required"`
+	// Replace confirms that the accept replaces an offline accepted device that reports the same
+	// identity. The handler folds it into ReplacePolicy.
+	Replace bool `json:"replace"`
+	// ReplacePolicy is set by the server, never bound from the request: what the accept does when an
+	// offline accepted device reports the same identity.
+	ReplacePolicy DeviceReplace `json:"-"`
+}
+
+// DeviceReplace is what an accept does when an offline accepted device in the namespace reports the
+// same identity as the device being accepted. The zero value refuses.
+type DeviceReplace int
+
+const (
+	// DeviceReplaceRefused refuses the accept, because the caller may not delete the offline device
+	// or the key the device enrolled with does not replace offline devices, or there is no key.
+	DeviceReplaceRefused DeviceReplace = iota
+	// DeviceReplaceUnconfirmed refuses the accept naming the offline device, so the caller can
+	// confirm the replacement.
+	DeviceReplaceUnconfirmed
+	// DeviceReplaceConfirmed replaces the offline device.
+	DeviceReplaceConfirmed
+)
+
+// NewDeviceReplace is the policy of a caller that may delete devices when mayRemove is true and
+// confirmed the replacement when confirmed is true.
+func NewDeviceReplace(mayRemove, confirmed bool) DeviceReplace {
+	switch {
+	case !mayRemove:
+		return DeviceReplaceRefused
+	case !confirmed:
+		return DeviceReplaceUnconfirmed
+	default:
+		return DeviceReplaceConfirmed
+	}
 }
 
 // DeviceLoginCodeResolve is the structure to represent the request data for the device login code resolve endpoint.
@@ -108,6 +142,9 @@ type DevicePairingCreate struct {
 type DevicePairingAccept struct {
 	Code     string `param:"code" json:"-" validate:"required"`
 	TenantID string `json:"tenant_id" validate:"required,uuid"`
+	// Replace confirms that the accept replaces an offline accepted device that reports the same
+	// identity, which the server otherwise refuses to do.
+	Replace bool `json:"replace"`
 }
 
 // DevicePairingStatus is the structure to represent the request data for the device pairing status endpoint.

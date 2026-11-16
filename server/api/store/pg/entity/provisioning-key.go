@@ -12,29 +12,30 @@ import (
 type ProvisioningKey struct {
 	bun.BaseModel `bun:"table:provisioning_keys"`
 
-	KeyDigest          string     `bun:"key_digest,pk"`
-	NamespaceID        string     `bun:"namespace_id,pk"`
-	Name               string     `bun:"name"`
-	Mode               string     `bun:"mode"`
-	WebhookURL         string     `bun:"webhook_url,nullzero"`
-	WebhookSecret      string     `bun:"webhook_secret,nullzero"`
-	AllowedIdentities  []string   `bun:"allowed_identities,array"`
-	WebhookTimeout     int        `bun:"webhook_timeout"`
-	WebhookCallbackTTL int        `bun:"webhook_callback_ttl"`
-	Reusable           bool       `bun:"reusable"`
-	UsageLimit         int        `bun:"usage_limit"`
-	UsedTimes          int        `bun:"used_times,skipupdate"`
-	LastUsedAt         *time.Time `bun:"last_used_at,nullzero,skipupdate"`
-	Ephemeral          bool       `bun:"ephemeral"`
-	EphemeralTimeout   int        `bun:"ephemeral_timeout"`
-	Revoked            bool       `bun:"revoked"`
-	Disabled           bool       `bun:"disabled"`
-	Type               string     `bun:"type"`
-	KeyEncrypted       string     `bun:"key_encrypted,nullzero"`
-	KeyHint            string     `bun:"key_hint,nullzero"`
-	CreatedAt          time.Time  `bun:"created_at"`
-	UpdatedAt          time.Time  `bun:"updated_at"`
-	ExpiresAt          *time.Time `bun:"expires_at,nullzero"`
+	KeyDigest             string     `bun:"key_digest,pk"`
+	NamespaceID           string     `bun:"namespace_id,pk"`
+	Name                  string     `bun:"name"`
+	Mode                  string     `bun:"mode"`
+	WebhookURL            string     `bun:"webhook_url,nullzero"`
+	WebhookSecret         string     `bun:"webhook_secret,nullzero"`
+	AllowedIdentities     []string   `bun:"allowed_identities,array"`
+	WebhookTimeout        int        `bun:"webhook_timeout"`
+	WebhookCallbackTTL    int        `bun:"webhook_callback_ttl"`
+	Reusable              bool       `bun:"reusable"`
+	UsageLimit            int        `bun:"usage_limit"`
+	UsedTimes             int        `bun:"used_times,skipupdate"`
+	LastUsedAt            *time.Time `bun:"last_used_at,nullzero,skipupdate"`
+	Ephemeral             bool       `bun:"ephemeral"`
+	EphemeralTimeout      int        `bun:"ephemeral_timeout"`
+	ReplaceOfflineDevices bool       `bun:"replace_offline_devices"`
+	Revoked               bool       `bun:"revoked"`
+	Disabled              bool       `bun:"disabled"`
+	Type                  string     `bun:"type"`
+	KeyEncrypted          string     `bun:"key_encrypted,nullzero"`
+	KeyHint               string     `bun:"key_hint,nullzero"`
+	CreatedAt             time.Time  `bun:"created_at"`
+	UpdatedAt             time.Time  `bun:"updated_at"`
+	ExpiresAt             *time.Time `bun:"expires_at,nullzero"`
 	// PendingDevices is counted by ProvisioningKeyList; it is not a stored column.
 	PendingDevices int `bun:"pending_devices,scanonly"`
 
@@ -71,30 +72,31 @@ func ProvisioningKeyFromModel(model *models.ProvisioningKey) *ProvisioningKey {
 	}
 
 	return &ProvisioningKey{
-		KeyDigest:          model.ID,
-		NamespaceID:        model.TenantID,
-		Name:               model.Name,
-		Mode:               string(model.Mode),
-		WebhookURL:         model.WebhookURL,
-		WebhookSecret:      model.WebhookSecret,
-		AllowedIdentities:  allowedIdentities,
-		WebhookTimeout:     model.WebhookTimeout,
-		WebhookCallbackTTL: model.WebhookCallbackTTL,
-		Reusable:           model.Reusable,
-		UsageLimit:         model.UsageLimit,
-		UsedTimes:          model.UsedTimes,
-		LastUsedAt:         model.LastUsedAt,
-		Ephemeral:          model.Ephemeral,
-		EphemeralTimeout:   model.EphemeralTimeout,
-		Revoked:            model.Revoked,
-		Disabled:           model.Disabled,
-		Type:               string(keyType),
-		KeyEncrypted:       model.KeyEncrypted,
-		KeyHint:            model.KeyHint,
-		CreatedAt:          model.CreatedAt,
-		UpdatedAt:          model.UpdatedAt,
-		ExpiresAt:          model.ExpiresAt,
-		Tags:               tags,
+		KeyDigest:             model.ID,
+		NamespaceID:           model.TenantID,
+		Name:                  model.Name,
+		Mode:                  string(model.Mode),
+		WebhookURL:            model.WebhookURL,
+		WebhookSecret:         model.WebhookSecret,
+		AllowedIdentities:     allowedIdentities,
+		WebhookTimeout:        model.WebhookTimeout,
+		WebhookCallbackTTL:    model.WebhookCallbackTTL,
+		Reusable:              model.Reusable,
+		UsageLimit:            model.UsageLimit,
+		UsedTimes:             model.UsedTimes,
+		LastUsedAt:            model.LastUsedAt,
+		Ephemeral:             model.Ephemeral,
+		EphemeralTimeout:      model.EphemeralTimeout,
+		ReplaceOfflineDevices: model.ReplaceOfflineDevices,
+		Revoked:               model.Revoked,
+		Disabled:              model.Disabled,
+		Type:                  string(keyType),
+		KeyEncrypted:          model.KeyEncrypted,
+		KeyHint:               model.KeyHint,
+		CreatedAt:             model.CreatedAt,
+		UpdatedAt:             model.UpdatedAt,
+		ExpiresAt:             model.ExpiresAt,
+		Tags:                  tags,
 	}
 }
 
@@ -108,31 +110,32 @@ func ProvisioningKeyToModel(entity *ProvisioningKey) *models.ProvisioningKey {
 	}
 
 	return &models.ProvisioningKey{
-		ID:                 entity.KeyDigest,
-		Name:               entity.Name,
-		TenantID:           entity.NamespaceID,
-		Mode:               models.ProvisioningKeyMode(entity.Mode),
-		WebhookURL:         entity.WebhookURL,
-		WebhookSecret:      entity.WebhookSecret,
-		AllowedIdentities:  entity.AllowedIdentities,
-		WebhookTimeout:     entity.WebhookTimeout,
-		WebhookCallbackTTL: entity.WebhookCallbackTTL,
-		Reusable:           entity.Reusable,
-		UsageLimit:         entity.UsageLimit,
-		UsedTimes:          entity.UsedTimes,
-		PendingDevices:     entity.PendingDevices,
-		LastUsedAt:         entity.LastUsedAt,
-		Ephemeral:          entity.Ephemeral,
-		EphemeralTimeout:   entity.EphemeralTimeout,
-		Tags:               tags,
-		TagIDs:             tagIDs,
-		Revoked:            entity.Revoked,
-		Disabled:           entity.Disabled,
-		Type:               models.ProvisioningKeyType(entity.Type),
-		KeyEncrypted:       entity.KeyEncrypted,
-		KeyHint:            entity.KeyHint,
-		CreatedAt:          entity.CreatedAt,
-		UpdatedAt:          entity.UpdatedAt,
-		ExpiresAt:          entity.ExpiresAt,
+		ID:                    entity.KeyDigest,
+		Name:                  entity.Name,
+		TenantID:              entity.NamespaceID,
+		Mode:                  models.ProvisioningKeyMode(entity.Mode),
+		WebhookURL:            entity.WebhookURL,
+		WebhookSecret:         entity.WebhookSecret,
+		AllowedIdentities:     entity.AllowedIdentities,
+		WebhookTimeout:        entity.WebhookTimeout,
+		WebhookCallbackTTL:    entity.WebhookCallbackTTL,
+		Reusable:              entity.Reusable,
+		UsageLimit:            entity.UsageLimit,
+		UsedTimes:             entity.UsedTimes,
+		PendingDevices:        entity.PendingDevices,
+		LastUsedAt:            entity.LastUsedAt,
+		Ephemeral:             entity.Ephemeral,
+		EphemeralTimeout:      entity.EphemeralTimeout,
+		ReplaceOfflineDevices: entity.ReplaceOfflineDevices,
+		Tags:                  tags,
+		TagIDs:                tagIDs,
+		Revoked:               entity.Revoked,
+		Disabled:              entity.Disabled,
+		Type:                  models.ProvisioningKeyType(entity.Type),
+		KeyEncrypted:          entity.KeyEncrypted,
+		KeyHint:               entity.KeyHint,
+		CreatedAt:             entity.CreatedAt,
+		UpdatedAt:             entity.UpdatedAt,
+		ExpiresAt:             entity.ExpiresAt,
 	}
 }

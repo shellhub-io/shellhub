@@ -53,6 +53,9 @@ type CreateProvisioningKey struct {
 	// (1-10). Only honored when Ephemeral is true; defaults to the maximum when omitted.
 	EphemeralTimeout int      `json:"ephemeral_timeout" validate:"omitempty,min=1,max=10"`
 	Tags             []string `json:"tags" validate:"omitempty,dive,required"`
+	// ReplaceOfflineDevices lets a device enrolling with the key replace an offline accepted device
+	// that reports the same identity. Omitted, it does.
+	ReplaceOfflineDevices *bool `json:"replace_offline_devices"`
 }
 
 // ListProvisioningKey is the request to page through a namespace's provisioning keys. It never returns key
@@ -101,6 +104,9 @@ type UpdateProvisioningKey struct {
 	// Ephemeral is true.
 	Ephemeral        *bool `json:"ephemeral"`
 	EphemeralTimeout *int  `json:"ephemeral_timeout" validate:"omitempty,min=1,max=10"`
+	// ReplaceOfflineDevices sets whether a device enrolling with the key may replace an offline
+	// accepted device that reports the same identity; nil leaves it unchanged.
+	ReplaceOfflineDevices *bool `json:"replace_offline_devices"`
 }
 
 // RevealProvisioningKey is the request to read back a provisioning key's secret. It is the only route that

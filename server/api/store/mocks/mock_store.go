@@ -5369,6 +5369,75 @@ func (_c *MockStore_ProvisioningKeyEventList_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// ProvisioningKeyEventRecordReplacement provides a mock function for the type MockStore
+func (_mock *MockStore) ProvisioningKeyEventRecordReplacement(ctx context.Context, sc scope.Scope, deviceUID string, replaced models.DeviceReplacement) error {
+	ret := _mock.Called(ctx, sc, deviceUID, replaced)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ProvisioningKeyEventRecordReplacement")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, string, models.DeviceReplacement) error); ok {
+		r0 = returnFunc(ctx, sc, deviceUID, replaced)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_ProvisioningKeyEventRecordReplacement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ProvisioningKeyEventRecordReplacement'
+type MockStore_ProvisioningKeyEventRecordReplacement_Call struct {
+	*mock.Call
+}
+
+// ProvisioningKeyEventRecordReplacement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - sc scope.Scope
+//   - deviceUID string
+//   - replaced models.DeviceReplacement
+func (_e *MockStore_Expecter) ProvisioningKeyEventRecordReplacement(ctx any, sc any, deviceUID any, replaced any) *MockStore_ProvisioningKeyEventRecordReplacement_Call {
+	return &MockStore_ProvisioningKeyEventRecordReplacement_Call{Call: _e.mock.On("ProvisioningKeyEventRecordReplacement", ctx, sc, deviceUID, replaced)}
+}
+
+func (_c *MockStore_ProvisioningKeyEventRecordReplacement_Call) Run(run func(ctx context.Context, sc scope.Scope, deviceUID string, replaced models.DeviceReplacement)) *MockStore_ProvisioningKeyEventRecordReplacement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 scope.Scope
+		if args[1] != nil {
+			arg1 = args[1].(scope.Scope)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 models.DeviceReplacement
+		if args[3] != nil {
+			arg3 = args[3].(models.DeviceReplacement)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ProvisioningKeyEventRecordReplacement_Call) Return(err error) *MockStore_ProvisioningKeyEventRecordReplacement_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_ProvisioningKeyEventRecordReplacement_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, deviceUID string, replaced models.DeviceReplacement) error) *MockStore_ProvisioningKeyEventRecordReplacement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ProvisioningKeyEventStampDecision provides a mock function for the type MockStore
 func (_mock *MockStore) ProvisioningKeyEventStampDecision(ctx context.Context, sc scope.Scope, deviceUID string, status models.DeviceStatus, at time.Time) error {
 	ret := _mock.Called(ctx, sc, deviceUID, status, at)

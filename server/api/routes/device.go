@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
@@ -315,6 +316,7 @@ func (h *Handler) UpdateDeviceStatus(c *gateway.Context) error {
 	}
 
 	req.Status = status[req.Status]
+	req.ReplacePolicy = requests.NewDeviceReplace(c.Role().HasPermission(authorizer.DeviceRemove), req.Replace)
 
 	if err := c.Validate(req); err != nil {
 		return err

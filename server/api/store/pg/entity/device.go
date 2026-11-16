@@ -47,6 +47,10 @@ type Device struct {
 	LastEnrollmentAttemptAt *time.Time `bun:"last_enrollment_attempt_at,nullzero"`
 	KeyVerifiedAt           *time.Time `bun:"key_verified_at,nullzero,skipupdate"`
 
+	ReplacedDeviceUID  string     `bun:"replaced_device_uid,scanonly"`
+	ReplacedDeviceName string     `bun:"replaced_device_name,scanonly"`
+	ReplacedAt         *time.Time `bun:"replaced_at,scanonly"`
+
 	Namespace *Namespace `bun:"rel:belongs-to,join:namespace_id=id"`
 	Tags      []*Tag     `bun:"m2m:device_tags,join:Device=Tag"`
 }
@@ -179,6 +183,14 @@ func DeviceToModel(entity *Device) *models.Device {
 		for i, t := range entity.Tags {
 			device.Tags[i] = *TagToModel(t)
 			device.TagIDs[i] = t.ID
+		}
+	}
+
+	if entity.ReplacedAt != nil {
+		device.Replaced = &models.DeviceReplacement{
+			UID:  entity.ReplacedDeviceUID,
+			Name: entity.ReplacedDeviceName,
+			At:   *entity.ReplacedAt,
 		}
 	}
 

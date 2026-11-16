@@ -54,7 +54,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 				return false
 			}
 
-			if got.Mode != models.ProvisioningKeyModeAutomatic || len(got.AllowedIdentities) != 0 {
+			if got.Mode != models.ProvisioningKeyModeAutomatic || len(got.AllowedIdentities) != 0 || !got.ReplaceOfflineDevices {
 				return false
 			}
 
@@ -62,6 +62,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 			c.KeyEncrypted = ""
 			c.KeyHint = ""
 			c.Mode = ""
+			c.ReplaceOfflineDevices = false
 			c.AllowedIdentities = nil
 
 			if !slices.Equal(got.TagIDs, want.TagIDs) {

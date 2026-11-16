@@ -560,7 +560,10 @@ func testWebEndpointDeviceMerge(t *testing.T, ctx context.Context, compose *envi
 	require.NoError(t, oldAgent.Stop(ctx, nil))
 	compose.AwaitDeviceOffline(t, old.UID)
 
-	_, merged := startAcceptedAgent(t, ctx, compose, same...)
+	startAgent(t, ctx, compose, same...)
+	pending := compose.AwaitDeviceWithStatus(t, models.DeviceStatusPending)
+	compose.AcceptReplacing(t, pending.UID)
+	merged := compose.AwaitDeviceOnline(t, pending.UID)
 	require.NotEqual(t, old.UID, merged.UID)
 
 	assert.Equal(t, merged.UID, listedWebEndpoint(t, compose, endpoint.Address).DeviceUID)

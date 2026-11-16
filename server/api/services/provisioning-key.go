@@ -225,7 +225,12 @@ type ProvisioningKeyService interface {
 	ListTenantRegistrations(ctx context.Context, req *requests.ListTenantRegistrations) (events []models.ProvisioningKeyEvent, count int64, err error)
 
 	// ResolveEnrollmentCallback applies a webhook integrator's deferred decision, authenticated solely
-	// by the signed callback token. It returns an error, if any.
+	// by the signed callback token. It returns ErrAuthUnathorized for a token that does not verify or
+	// was already redeemed, the store's error when redeeming it fails, ErrDeviceNotFound when the
+	// device is gone, and ErrProvisioningKeyForbidden when the device is not the key's or the key is
+	// no longer valid. Otherwise it returns what UpdateDeviceStatus does, including
+	// ErrDeviceReplaceForbidden when the key does not replace offline devices and an offline device
+	// reports the same identity, leaving the device pending.
 	ResolveEnrollmentCallback(ctx context.Context, req *requests.EnrollmentCallback) (err error)
 }
 
@@ -295,23 +300,24 @@ func (s *service) CreateProvisioningKey(ctx context.Context, req *requests.Creat
 	}
 
 	data := &models.ProvisioningKey{
-		ID:                 hashedKey,
-		Name:               req.Name,
-		TenantID:           req.TenantID,
-		Mode:               mode,
-		WebhookURL:         req.WebhookURL,
-		WebhookSecret:      req.WebhookSecret,
-		AllowedIdentities:  allowedIdentities,
-		WebhookTimeout:     req.WebhookTimeout,
-		WebhookCallbackTTL: req.WebhookCallbackTTL,
-		Reusable:           reusable,
-		UsageLimit:         req.UsageLimit,
-		Ephemeral:          req.Ephemeral,
-		EphemeralTimeout:   ephemeralTimeout,
-		Tags:               req.Tags,
-		ExpiresAt:          provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn),
-		KeyEncrypted:       encryptedKey,
-		KeyHint:            provisioningKeyHint(key),
+		ID:                    hashedKey,
+		Name:                  req.Name,
+		TenantID:              req.TenantID,
+		Mode:                  mode,
+		WebhookURL:            req.WebhookURL,
+		WebhookSecret:         req.WebhookSecret,
+		AllowedIdentities:     allowedIdentities,
+		WebhookTimeout:        req.WebhookTimeout,
+		WebhookCallbackTTL:    req.WebhookCallbackTTL,
+		Reusable:              reusable,
+		UsageLimit:            req.UsageLimit,
+		Ephemeral:             req.Ephemeral,
+		EphemeralTimeout:      ephemeralTimeout,
+		ReplaceOfflineDevices: req.ReplaceOfflineDevices == nil || *req.ReplaceOfflineDevices,
+		Tags:                  req.Tags,
+		ExpiresAt:             provisioningKeyExpiry(s.clock.Now(), req.ExpiresIn),
+		KeyEncrypted:          encryptedKey,
+		KeyHint:               provisioningKeyHint(key),
 	}
 
 	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
@@ -469,6 +475,10 @@ func (s *service) updateProvisioningKey(ctx context.Context, sc scope.Scope, req
 
 	if req.EphemeralTimeout != nil {
 		provisioningKey.EphemeralTimeout = *req.EphemeralTimeout
+	}
+
+	if req.ReplaceOfflineDevices != nil {
+		provisioningKey.ReplaceOfflineDevices = *req.ReplaceOfflineDevices
 	}
 
 	if !provisioningKey.Ephemeral {
@@ -642,8 +652,9 @@ func (s *service) ResolveEnrollmentCallback(ctx context.Context, req *requests.E
 	}
 
 	return s.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
-		TenantID: claims.TenantID,
-		UID:      claims.DeviceUID,
-		Status:   string(models.DeviceStatusAccepted),
+		TenantID:      claims.TenantID,
+		UID:           claims.DeviceUID,
+		Status:        string(models.DeviceStatusAccepted),
+		ReplacePolicy: keyReplacePolicy(key),
 	})
 }

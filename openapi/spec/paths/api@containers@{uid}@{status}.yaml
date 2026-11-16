@@ -16,6 +16,22 @@ patch:
         $ref: ../components/schemas/deviceStatusAction.yaml
       required: true
       in: path
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            replace:
+              description: |
+                Confirm that accepting the container replaces an offline accepted
+                container in the namespace that reports the same identity: it takes
+                that container's name and sessions, and its record is deleted.
+                Without it such an accept is refused with a 409 whose `replace`
+                field names that container.
+              type: boolean
+              default: false
   responses:
     '200':
       description: Success to update container status.
@@ -27,5 +43,7 @@ patch:
       $ref: ../components/responses/402.yaml
     '403':
       $ref: ../components/responses/403.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml

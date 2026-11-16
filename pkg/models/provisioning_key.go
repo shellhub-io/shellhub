@@ -116,6 +116,11 @@ type ProvisioningKey struct {
 	// EphemeralTimeout is how many minutes an ephemeral device may stay offline before removal
 	// (1-10). Only meaningful when Ephemeral is true.
 	EphemeralTimeout int `json:"ephemeral_timeout"`
+	// ReplaceOfflineDevices lets an accept through the key replace an offline accepted device that
+	// reports the same identity: the newcomer takes its name and sessions and its record is deleted,
+	// which is how a reflashed device gets its place back. It is set by default. Unset, such a device
+	// stays pending instead.
+	ReplaceOfflineDevices bool `json:"replace_offline_devices"`
 	// Tags are the names of the namespace tags applied to devices enrolled with the key, as of the
 	// last read. The store writes the tags through TagIDs only.
 	Tags []string `json:"tags"`

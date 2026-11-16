@@ -242,7 +242,7 @@ func (pg *Pg) countAccess(ctx context.Context, db bun.IDB, since time.Time, usag
 			(SELECT count(*) FROM api_keys),
 			(SELECT count(*) FROM instance_api_keys),
 			(SELECT count(*) FROM tags),
-			(SELECT coalesce(sum(attempts), 0) FROM provisioning_key_events WHERE created_at >= ?),
+			(SELECT coalesce(sum(attempts), 0) FROM provisioning_key_events WHERE created_at >= ? AND replaced_device_uid IS NULL),
 			(SELECT count(*) FROM membership_invitations WHERE status = 'pending')`, since).Scan(ctx,
 		&access.AccessPolicies,
 		&access.PublicKeys,

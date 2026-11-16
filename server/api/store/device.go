@@ -77,6 +77,8 @@ type DeviceStore interface {
 	DeviceListAfter(ctx context.Context, sc scope.Scope, acceptable DeviceAcceptable, after *query.Cursor, size int64, opts ...QueryOption) (devices []models.Device, next *query.Cursor, err error)
 
 	// DeviceResolve fetches a device using a specific resolver within the given namespace scope.
+	// The device carries Replaced, the newest replacement in its enrollment history, which the
+	// list methods leave nil.
 	//
 	// It returns the resolved device if found and an error, if any.
 	DeviceResolve(ctx context.Context, sc scope.Scope, resolver DeviceResolver, value string, opts ...QueryOption) (*models.Device, error)

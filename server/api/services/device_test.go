@@ -1618,9 +1618,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		{
 			description: "failure (accepted) (same MAC) - hostname conflict",
 			req: &requests.DeviceUpdateStatus{
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				UID:      "conflicting-device",
-				Status:   "accepted",
+				TenantID:      "00000000-0000-0000-0000-000000000000",
+				UID:           "conflicting-device",
+				Status:        "accepted",
+				ReplacePolicy: requests.DeviceReplaceConfirmed,
 			},
 			requiredMocks: func() {
 				storeMock.
@@ -1676,9 +1677,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 		{
 			description: "success (accepted) (same MAC) - device merge",
 			req: &requests.DeviceUpdateStatus{
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				UID:      "new-device",
-				Status:   "accepted",
+				TenantID:      "00000000-0000-0000-0000-000000000000",
+				UID:           "new-device",
+				Status:        "accepted",
+				ReplacePolicy: requests.DeviceReplaceConfirmed,
 			},
 			requiredMocks: func() {
 				newDevice := &models.Device{
@@ -1702,6 +1704,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Status:   models.DeviceStatusPending,
 					Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 				}
+				replacement := models.DeviceReplacement{UID: "old-device", Name: "device-name", At: now}
 				finalDevice := &models.Device{
 					UID:             "new-device",
 					Name:            "device-name",
@@ -1737,6 +1740,10 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), mergedDevice).
+					Return(nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyEventRecordReplacement", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "new-device", replacement).
 					Return(nil).
 					Once()
 				storeMock.
@@ -2331,9 +2338,10 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 		{
 			description: "success (accepted) (same MAC) - merge path bypasses license limit",
 			req: &requests.DeviceUpdateStatus{
-				TenantID: "00000000-0000-0000-0000-000000000000",
-				UID:      "new-device",
-				Status:   "accepted",
+				TenantID:      "00000000-0000-0000-0000-000000000000",
+				UID:           "new-device",
+				Status:        "accepted",
+				ReplacePolicy: requests.DeviceReplaceConfirmed,
 			},
 			requiredMocks: func() {
 				licenseEvaluator.
@@ -2363,6 +2371,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Status:   models.DeviceStatusPending,
 					Identity: &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 				}
+				replacement := models.DeviceReplacement{UID: "old-device", Name: "device-name", At: now}
 				finalDevice := &models.Device{
 					UID:             "new-device",
 					Name:            "device-name",
@@ -2398,6 +2407,10 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), mergedDevice).
+					Return(nil).
+					Once()
+				storeMock.
+					On("ProvisioningKeyEventRecordReplacement", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), "new-device", replacement).
 					Return(nil).
 					Once()
 				storeMock.

@@ -84,10 +84,21 @@ type Device struct { //nolint:recvcheck // MarshalJSON takes a value so a Device
 	// LastEnrollmentAttemptAt is when the enrollment policy was last (re-)evaluated for the device. It
 	// throttles reconciliation of a still-pending enrollment on the agent's periodic AuthDevice. Nil
 	// until the first re-evaluation.
-	LastEnrollmentAttemptAt *time.Time `json:"last_enrollment_attempt_at,omitempty"`
-	KeyVerifiedAt           *time.Time `json:"-"`
+	LastEnrollmentAttemptAt *time.Time         `json:"last_enrollment_attempt_at,omitempty"`
+	KeyVerifiedAt           *time.Time         `json:"-"`
+	Replaced                *DeviceReplacement `json:"replaced,omitempty"`
 
 	Taggable `json:",inline"`
+}
+
+// DeviceReplacement names the offline accepted device that an accepted device replaced, and when:
+// the one that reported the same identity, whose name and sessions it took over. It outlives the
+// replaced device, whose record the replacement deletes.
+type DeviceReplacement struct {
+	UID string `json:"uid"`
+	// Name is the replaced device's name, which the replacing device took over.
+	Name string    `json:"name"`
+	At   time.Time `json:"at"`
 }
 
 // MarshalJSON encodes the device with key_verified derived from KeyVerifiedAt, so the flag cannot
