@@ -108,11 +108,14 @@ Set `SHELLHUB_PREFERRED_HOSTNAME` to something meaningful.
 If a device you expected to be new appears as an existing entry — or vice versa — the private key
 is the reason.
 
-`SHELLHUB_PRIVATE_KEY` **is** the device's identity. The consequences:
+`SHELLHUB_PRIVATE_KEY`, together with the identity the agent reports, **is** the device. The
+consequences:
 
-- **Same key, new machine** → it is the same device to ShellHub.
+- **Same key and identity, new machine** → it is the same device to ShellHub.
 - **Key lost** — reflashed, container recreated, volume wiped — → a **new** device, with the old
-  entry left behind.
+  entry left behind. If the new device reports the same identity and the old one is offline,
+  accepting it replaces the old entry instead. See [Replacing an offline
+  device](/manage/devices#replacing-an-offline-device).
 
 The second is by far the most common cause of a device list that does not match reality. Put the
 key on persistent storage.
