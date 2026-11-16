@@ -20,6 +20,8 @@ import (
 
 const mfaResetCodeLifetime = 24 * time.Hour
 
+const mfaResetGuessLimit = 3
+
 // TestCloudMFARecovery runs a cloud instance, the only edition that sends email, for a user who
 // lost their authenticator. A recovery code stands in for the TOTP code after the password, never
 // for the password. The reset of a user's MFA by the two codes it emails to their main and
@@ -107,6 +109,108 @@ func TestCloudMFARecovery(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
 		assert.True(t, auth.MFA, "expired codes turned MFA off")
+	})
+
+	t.Run("three wrong recovery codes cancel the reset and the right pair is refused after them", func(t *testing.T) {
+		user := newMFAUser(t, compose, "mfa-reset-guess")
+		codes := requestMFAReset(t, compose, user)
+
+		wrong := map[string]string{"main_email_code": codes["main_email_code"], "recovery_email_code": "ZZZZZ"}
+		if codes["recovery_email_code"] == wrong["recovery_email_code"] {
+			wrong["recovery_email_code"] = "YYYYY"
+		}
+
+		for i := range mfaResetGuessLimit {
+			resp, err := compose.Anonymous(t.Context()).SetBody(wrong).Put("/api/user/mfa/reset/" + user.id)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+			if i == mfaResetGuessLimit-2 {
+				for _, address := range []string{"main", "recovery"} {
+					require.True(t, compose.HoldsCacheEntry(t, mfaResetCodeCacheKey(address, user.id)), "the %s code was cancelled before the third wrong pair", address)
+				}
+			}
+		}
+
+		for _, address := range []string{"main", "recovery"} {
+			assert.False(t, compose.HoldsCacheEntry(t, mfaResetCodeCacheKey(address, user.id)), "the %s code outlived three wrong pairs", address)
+		}
+
+		resp, err := compose.Anonymous(t.Context()).SetBody(codes).Put("/api/user/mfa/reset/" + user.id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		auth := new(models.UserAuthResponse)
+		resp, err = asBearer(t, compose, user.token).SetResult(auth).Get("/api/auth/user")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+		assert.True(t, auth.MFA, "a guessed pair turned MFA off")
+	})
+
+	t.Run("pairs with both codes wrong do not cancel the reset", func(t *testing.T) {
+		user := newMFAUser(t, compose, "mfa-reset-outsider")
+		codes := requestMFAReset(t, compose, user)
+
+		wrong := map[string]string{"main_email_code": "ZZZZZ", "recovery_email_code": "ZZZZZ"}
+		if codes["main_email_code"] == "ZZZZZ" || codes["recovery_email_code"] == "ZZZZZ" {
+			wrong = map[string]string{"main_email_code": "YYYYY", "recovery_email_code": "YYYYY"}
+		}
+
+		for range mfaResetGuessLimit {
+			resp, err := compose.Anonymous(t.Context()).SetBody(wrong).Put("/api/user/mfa/reset/" + user.id)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+		}
+
+		resp, err := compose.Anonymous(t.Context()).SetBody(codes).Put("/api/user/mfa/reset/" + user.id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+	})
+
+	t.Run("a reset request answers alike for an unknown account and is throttled per identifier", func(t *testing.T) {
+		user := newMFAUser(t, compose, "mfa-reset-ask")
+
+		requestReset := func(identifier string) string {
+			var answer struct {
+				Token string `json:"token"`
+			}
+
+			resp, err := compose.Anonymous(t.Context()).
+				SetBody(map[string]string{"identifier": identifier}).
+				SetResult(&answer).
+				Post("/api/user/mfa/reset")
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+			require.NotEmpty(t, answer.Token, identifier)
+
+			return answer.Token
+		}
+
+		userToken := requestReset(user.username)
+		nobodyToken := requestReset("mfa-reset-nobody")
+
+		resp, err := compose.Anonymous(t.Context()).
+			SetBody(map[string]string{"main_email_code": "AAAAA", "recovery_email_code": "AAAAA"}).
+			Put("/api/user/mfa/reset/" + nobodyToken)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		resp, err = compose.Anonymous(t.Context()).
+			SetBody(map[string]string{
+				"main_email_code":     emailedMFAResetCode(t, compose, user.email),
+				"recovery_email_code": emailedMFAResetCode(t, compose, user.recoveryEmail),
+			}).
+			Put("/api/user/mfa/reset/" + userToken)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode(), "the token a real request answers names the account: %s", resp.String())
+
+		for _, identifier := range []string{user.username, "mfa-reset-nobody"} {
+			resp, err := compose.Anonymous(t.Context()).
+				SetBody(map[string]string{"identifier": identifier}).
+				Post("/api/user/mfa/reset")
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode(), resp.String())
+		}
 	})
 }
 
