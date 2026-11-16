@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   HomeIcon,
   KeyIcon,
@@ -16,7 +15,12 @@ import {
 import { getConfig, isEnterpriseOrCloud } from "@/env";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { navIcon } from "./SidebarShell";
+
+/**
+ * A navigation icon as a component, so the sidebar and the command palette can each draw it at
+ * their own size.
+ */
+export type NavIcon = typeof HomeIcon;
 
 /**
  * One sidebar link. premium marks a page that needs a paid edition, beta one still in preview.
@@ -24,7 +28,7 @@ import { navIcon } from "./SidebarShell";
 export interface NavItem {
   to: string;
   label: string;
-  icon: ReactNode;
+  icon: NavIcon;
   premium?: boolean;
   beta?: boolean;
 }
@@ -62,12 +66,12 @@ function buildSections(
     {
       to: "/devices",
       label: "Devices",
-      icon: <CpuChipIcon className={navIcon} />,
+      icon: CpuChipIcon,
     },
     {
       to: "/containers",
       label: "Containers",
-      icon: <CubeIcon className={navIcon} />,
+      icon: CubeIcon,
     },
   ];
 
@@ -75,7 +79,7 @@ function buildSections(
     resources.push({
       to: "/sessions",
       label: "Sessions",
-      icon: <CommandLineIcon className={navIcon} />,
+      icon: CommandLineIcon,
     });
   }
 
@@ -83,7 +87,7 @@ function buildSections(
     resources.push({
       to: "/web-endpoints",
       label: "Web Endpoints",
-      icon: <GlobeAltIcon className={navIcon} />,
+      icon: GlobeAltIcon,
       beta: true,
     });
   }
@@ -93,35 +97,35 @@ function buildSections(
         {
           to: "/sessions",
           label: "Sessions",
-          icon: <CommandLineIcon className={navIcon} />,
+          icon: CommandLineIcon,
         },
         {
           to: "/access-policies",
           label: "Access Policies",
-          icon: <ShieldCheckIcon className={navIcon} />,
+          icon: ShieldCheckIcon,
         },
         {
           to: "/ssh-identities",
           label: "SSH Identities",
-          icon: <FingerPrintIcon className={navIcon} />,
+          icon: FingerPrintIcon,
         },
       ]
     : [
         {
           to: "/sshkeys/public-keys",
           label: "Public Keys",
-          icon: <KeyIcon className={navIcon} />,
+          icon: KeyIcon,
         },
         {
           to: "/firewall-rules",
           label: "Firewall Rules",
-          icon: <ShieldExclamationIcon className={navIcon} />,
+          icon: ShieldExclamationIcon,
           premium: true,
         },
         {
           to: "/secure-vault",
           label: "Secure Vault",
-          icon: <LockClosedIcon className={navIcon} />,
+          icon: LockClosedIcon,
         },
       ];
 
@@ -131,7 +135,7 @@ function buildSections(
         {
           to: "/dashboard",
           label: "Dashboard",
-          icon: <HomeIcon className={navIcon} />,
+          icon: HomeIcon,
         },
       ],
     },
@@ -149,12 +153,12 @@ function buildSections(
         {
           to: "/team",
           label: "Team",
-          icon: <UsersIcon className={navIcon} />,
+          icon: UsersIcon,
         },
         {
           to: "/settings",
           label: "Settings",
-          icon: <Cog6ToothIcon className={navIcon} />,
+          icon: Cog6ToothIcon,
         },
       ],
     },

@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { NavItemLink } from "./SidebarShell";
-import type { NavSection } from "./navSections";
+import type { NavIcon, NavSection } from "./navSections";
 
 interface NavSectionLink {
   to: string;
   label: string;
-  icon: ReactNode;
+  icon: NavIcon;
 }
 
 /**
