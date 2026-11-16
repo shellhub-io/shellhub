@@ -8,6 +8,7 @@ import { cn } from "@shellhub/design-system/cn";
 import PageHeader from "@/components/common/PageHeader";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
+import PlaintextServerError from "./PlaintextServerError";
 
 const TABS = [
   {
@@ -28,7 +29,8 @@ const TABS = [
  * Where devices come in from: interactively, with someone at the machine to accept it, or as a
  * fleet provisioned with one of the namespace's provisioning keys. Each tab has its own URL, and
  * Interactive is the default. A legacy namespace cannot create provisioning keys, so it has no
- * Fleet tab.
+ * Fleet tab. An origin served over plain http:// carries an error, since the agent refuses such a
+ * server address unless its operator opts in.
  */
 export default function AddDevice() {
   const overline = useNavSectionTitle("/devices");
@@ -43,6 +45,8 @@ export default function AddDevice() {
         title="Add Device"
         description="Install the ShellHub agent to connect a device to your namespace"
       />
+
+      <PlaintextServerError origin={window.location.origin} />
 
       <nav
         aria-label="How to add"
