@@ -34,6 +34,8 @@ func FromErrServiceToHTTPStatus(code int) int {
 		return http.StatusConflict
 	case services.ErrCodeNotImplemented:
 		return http.StatusNotImplemented
+	case services.ErrCodeTooManyRequests:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}

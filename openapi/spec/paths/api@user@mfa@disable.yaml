@@ -7,6 +7,10 @@ put:
     (`main_email_code` and `recovery_email_code`, which must be sent together). If a recovery
     code is used, it will be invalidated for future use.
 
+    A wrong MFA code counts toward the lockout of the MFA step at sign-in: the third wrong one in
+    a row starts it, and a code sent while it holds, or while another code for the account is
+    being checked, is refused unchecked with 429.
+
     The recovery code used to regain access to the account can be used within a 10-minute window on this
     endpoint.
 
@@ -35,6 +39,8 @@ put:
       $ref: ../components/responses/403.yaml
     '404':
       $ref: ../components/responses/404.yaml
+    '429':
+      $ref: ../components/responses/429.yaml
     '500':
       $ref: ../components/responses/500.yaml
     '503':

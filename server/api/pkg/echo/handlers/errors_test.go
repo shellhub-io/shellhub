@@ -116,6 +116,7 @@ func TestNewErrors(t *testing.T) {
 		wantStatus   int
 		wantBody     responses.Error
 		wantNoBody   bool
+		wantHeaders  map[string]string
 		wantReported bool
 	}{
 		{
@@ -301,6 +302,14 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
+			description:  "a service lockout yields 429 and the lockout's end in X-Account-Lockout",
+			err:          services.NewErrFactorLockedOut(1711510000),
+			wantStatus:   http.StatusTooManyRequests,
+			wantBody:     responses.Error{Message: "too many wrong attempts"},
+			wantHeaders:  map[string]string{"X-Account-Lockout": "1711510000"},
+			wantReported: false,
+		},
+		{
 			description:  "a route payment-required error yields 402 and its message",
 			err:          routes.NewErrPaymentRequired(nil),
 			wantStatus:   http.StatusPaymentRequired,
@@ -332,6 +341,10 @@ func TestNewErrors(t *testing.T) {
 			handler(ctx, tc.err)
 
 			assert.Equal(t, tc.wantStatus, rec.Code, "unexpected HTTP status code")
+
+			for name, value := range tc.wantHeaders {
+				assert.Equal(t, value, rec.Header().Get(name), "unexpected %s header", name)
+			}
 
 			if tc.wantNoBody {
 				assert.Empty(t, rec.Body.Bytes(), "expected no response body")

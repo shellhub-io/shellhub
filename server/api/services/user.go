@@ -48,7 +48,8 @@ type UserService interface {
 	// It returns [ErrUserNotFound] when the user cannot be resolved, [ErrBadRequest] when the
 	// recovery email equals the current or the new email or a new email equals the recovery email,
 	// [ErrUserPasswordNotMatch] when a change that needs the current password carries a wrong one,
-	// [ErrBadRequest] whose fields map "mfa_code" to the reason when the MFA code is missing or an
+	// the errors of [VerifySignedInPassword], which checks it, for a lockout or an unavailable
+	// check, [ErrBadRequest] whose fields map "mfa_code" to the reason when the MFA code is missing or an
 	// [OnMFACodeCheck] hook refuses it, and the hashing error when the new password cannot be
 	// hashed. When an [OnEmailCheck] hook refuses a changed email or recovery email it returns
 	// [ErrBadRequest] whose fields map "email" or "recovery_email" to the hook's reason. Since some
@@ -143,13 +144,25 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		})
 	}
 
-	updatedUser, err := applyUserChanges(user, req)
-	if err != nil {
-		return err
+	updatedUser := applyUserChanges(user, req)
+	credentialsChange := changesCredentials(user, updatedUser, req)
+
+	if credentialsChange {
+		if err := VerifySignedInPassword(ctx, s.cache, user, req.CurrentPassword); err != nil {
+			return err
+		}
 	}
 
-	needsMFACode := req.Password != "" || updatedUser.Email != user.Email || updatedUser.RecoveryEmail != user.RecoveryEmail
-	spendsMFACode := needsMFACode && mfaCodeRequired(user)
+	if req.Password != "" {
+		hashedPassword, err := models.HashUserPassword(req.Password)
+		if err != nil {
+			return err
+		}
+
+		updatedUser.Password = hashedPassword
+	}
+
+	spendsMFACode := credentialsChange && mfaCodeRequired(user)
 
 	if updatedUser.Email != user.Email {
 		if err := refuseRecoveryEmailAsEmail(updatedUser.Email, updatedUser.RecoveryEmail); err != nil {
@@ -186,7 +199,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		}
 	}
 
-	if needsMFACode {
+	if credentialsChange {
 		if err := checkMFACode(ctx, user, req.MFACode); err != nil {
 			return err
 		}
@@ -342,7 +355,7 @@ func refusedEmails(ctx context.Context, currentUser, updatedUser *models.User) m
 	return refused
 }
 
-func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) (*models.User, error) {
+func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) *models.User {
 	isDifferentAndNotEmpty := func(currentValue, newValue string) bool {
 		return newValue != "" && !strings.EqualFold(currentValue, newValue)
 	}
@@ -365,18 +378,11 @@ func applyUserChanges(currentUser *models.User, req *requests.UpdateUser) (*mode
 		newUser.RecoveryEmail = strings.ToLower(req.RecoveryEmail)
 	}
 
-	addressChanged := newUser.Email != currentUser.Email || newUser.RecoveryEmail != currentUser.RecoveryEmail
-	if (req.Password != "" || addressChanged) && !currentUser.Password.Compare(req.CurrentPassword) {
-		return nil, NewErrUserPasswordNotMatch(nil)
-	}
+	return &newUser
+}
 
-	if req.Password != "" {
-		hashedPassword, err := models.HashUserPassword(req.Password)
-		if err != nil {
-			return nil, err
-		}
-		newUser.Password = hashedPassword
-	}
+func changesCredentials(currentUser, updatedUser *models.User, req *requests.UpdateUser) bool {
+	addressChanged := updatedUser.Email != currentUser.Email || updatedUser.RecoveryEmail != currentUser.RecoveryEmail
 
-	return &newUser, nil
+	return req.Password != "" || addressChanged
 }

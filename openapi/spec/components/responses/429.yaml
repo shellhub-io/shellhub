@@ -1,0 +1,14 @@
+description: |
+  Too many wrong attempts. The password or code was refused without being checked, or this wrong
+  guess started a lockout. `X-Account-Lockout` carries when the lockout ends, or 0 when the
+  request was refused for running alongside another guess for the same account.
+headers:
+  X-Account-Lockout:
+    schema:
+      type: integer
+      description: The Unix timestamp in seconds at which the lockout ends, or 0.
+      example: 1711575401
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/apiError.yaml

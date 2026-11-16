@@ -87,7 +87,7 @@ starts a lockout. Attempts sent during it are refused without being checked and 
 failure shortly after a lockout ends makes the next one four times longer. The first lasts
 `SHELLHUB_ACCOUNT_LOCKOUT_BASE`, so by default they run 1, 4, 16 and then 60 minutes, the cap set
 by `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT`. After a lockout at the cap the count
-starts over. Setting `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` to 0 disables both lockouts.
+starts over. Setting `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` to 0 disables every lockout below.
 
 Password lockout is keyed on the account and the client address, resolved through
 `SHELLHUB_PROXY_TRUSTED_IPS`. A self-hosted deployment behind a load balancer or reverse proxy that
@@ -100,6 +100,12 @@ every sign-in add to it, and a correct password does not reset it. Someone who k
 can therefore keep you out of the MFA step by sending wrong codes. A recovery code still signs you
 in during the MFA lockout, and clears it. Change your password once you are in, so nobody can
 start a new sign-in with the old one.
+
+Signed-in pages that ask for the password or a code again count too: re-authenticating a held SSH
+login, changing your password, email or recovery email, and turning MFA off. Wrong codes there add
+to the MFA lockout. Wrong passwords there have a counter of their own, keyed on the account alone,
+so a stolen session cannot guess the password from many addresses, and it never locks password
+sign-in. These pages show how long a lockout has left.
 
 A sign-in already past the password step can still send wrong codes for 30 minutes after it
 started. The last of those can start one more lockout, so with the default cap the MFA lockout

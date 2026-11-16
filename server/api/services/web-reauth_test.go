@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	mockcache "github.com/shellhub-io/shellhub/pkg/cache/mocks"
+	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
@@ -45,9 +45,9 @@ func TestWebReauthVerify(t *testing.T) {
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
-				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
+				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 				storeMock.On("WithTransaction", mock.Anything, mock.AnythingOfType("store.TransactionCb")).
 					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).Once()
 				storeMock.On("SSHIdentityTouchReauth", mock.Anything, tenantID, fingerprint).Return(nil).Once()
@@ -58,6 +58,8 @@ func TestWebReauthVerify(t *testing.T) {
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "wrong", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
+					Return(&models.SSHIdentity{PrincipalID: userID, Fingerprint: fingerprint}, nil).Once()
 				hashMock.On("CompareWith", "wrong", hash).Return(false).Once()
 			},
 			wantErr: ErrUserPasswordNotMatch,
@@ -75,7 +77,6 @@ func TestWebReauthVerify(t *testing.T) {
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
-				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(&models.SSHIdentity{PrincipalID: otherUserID, Fingerprint: fingerprint}, nil).Once()
 			},
@@ -86,7 +87,6 @@ func TestWebReauthVerify(t *testing.T) {
 			req:         &requests.WebReauthVerify{TenantID: tenantID, UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
-				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityFingerprintResolver, fingerprint).
 					Return(nil, store.ErrNoDocuments).Once()
 			},
@@ -97,7 +97,6 @@ func TestWebReauthVerify(t *testing.T) {
 			req:         &requests.WebReauthVerify{UserID: userID, Password: "correct-horse", Fingerprint: fingerprint},
 			requireMocks: func(storeMock *storemock.MockStore, _ *storemock.MockQueryOptions) {
 				storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
-				hashMock.On("CompareWith", "correct-horse", hash).Return(true).Once()
 			},
 			wantErr: ErrSSHIdentityNotFound,
 		},
@@ -110,7 +109,7 @@ func TestWebReauthVerify(t *testing.T) {
 			storeMock.On("Options").Return(queryOptionsMock).Maybe()
 			tc.requireMocks(storeMock, queryOptionsMock)
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, new(mockcache.MockCache), WithClock(clock.NewFixed(now)))
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cache.NewNullCache(), WithClock(clock.NewFixed(now)))
 
 			_, err := service.WebReauthVerify(ctx, tc.req)
 			if tc.wantErr == nil {

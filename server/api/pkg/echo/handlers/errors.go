@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/labstack/echo/v5"
@@ -84,6 +85,7 @@ func fieldsOf(e errors.Error) map[string]string {
 // NewErrors returns a custom echo's error handler. An internal store error is reported to reporter,
 // when it is not nil, with the request's query passed through [middleware.RedactQuery] and without
 // its Referer header, as the page URL it names can carry the same secrets.
+// A service error carrying [services.ErrDataLockout] also sets X-Account-Lockout to the lockout's end.
 func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 	return func(ctx *echo.Context, err error) {
 		if errors.Is(err, store.ErrInternal) {
@@ -116,6 +118,10 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 			status = http.StatusInternalServerError
 		default:
 			status = http.StatusInternalServerError
+		}
+
+		if lockout, ok := e.Data.(services.ErrDataLockout); ok {
+			ctx.Response().Header().Set("X-Account-Lockout", strconv.FormatInt(lockout.Until, 10))
 		}
 
 		respond(ctx, status, e.Message, fieldsOf(e))
