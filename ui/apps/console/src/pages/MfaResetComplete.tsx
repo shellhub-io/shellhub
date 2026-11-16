@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { resetMfa } from "../client";
 import { useAuthStore } from "../stores/authStore";
-import { mfaResetNotice } from "../stores/mfaResetStore";
+import { mfaResetCodesRejectedMessage, mfaResetNotice } from "../stores/mfaResetStore";
 import { useOtpInput } from "../hooks/useOtpInput";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
@@ -47,7 +47,7 @@ export default function MfaResetComplete() {
         state: { notice: mfaResetNotice, signOut: true },
       });
     } catch {
-      setError("Invalid verification codes. Please check and try again.");
+      setError(mfaResetCodesRejectedMessage);
       otpMain.reset();
       otpRecovery.reset();
     } finally {

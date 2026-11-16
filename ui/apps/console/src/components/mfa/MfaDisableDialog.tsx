@@ -8,7 +8,11 @@ import { disableMfa } from "@/client";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useAuthStore } from "@/stores/authStore";
-import { useMfaResetStore } from "@/stores/mfaResetStore";
+import {
+  mfaResetCodesRejectedMessage,
+  mfaResetRequestFailedMessage,
+  useMfaResetStore,
+} from "@/stores/mfaResetStore";
 import BaseDialog from "@/components/common/BaseDialog";
 import DialogHeader from "@/components/common/DialogHeader";
 import OtpCells from "@/components/mfa/OtpCells";
@@ -59,7 +63,7 @@ export default function MfaDisableDialog({
       await requestMfaReset(identifier);
       setEmailRequested(true);
     } catch {
-      setError("Failed to send verification codes. Please try again.");
+      setError(useMfaResetStore.getState().error ?? mfaResetRequestFailedMessage);
     } finally {
       setRequestingEmail(false);
     }
@@ -115,7 +119,7 @@ export default function MfaDisableDialog({
       if (mode === "recovery") {
         errorMessage = "Invalid recovery code";
       } else if (mode === "email-reset") {
-        errorMessage = "Invalid email verification codes";
+        errorMessage = mfaResetCodesRejectedMessage;
       }
       setError(errorMessage);
 

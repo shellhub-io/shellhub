@@ -58,7 +58,7 @@ describe("MfaResetComplete", () => {
 
     expect(
       await screen.findByText(
-        "Invalid verification codes. Please check and try again.",
+        "Invalid verification codes. Three wrong attempts cancel the codes, so request a new reset if this keeps failing.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/^Login/)).not.toBeInTheDocument();
