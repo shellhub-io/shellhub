@@ -3,7 +3,8 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
-import { adminNavLinks, useAdminNav, type AdminNavSection } from "./adminNav";
+import { useAdminNav } from "./adminNav";
+import { sectionLinks, type NavSection } from "./navSections";
 import { navDisabled } from "./SidebarShell";
 
 const barClass =
@@ -19,7 +20,7 @@ function PagePicker({
   sections,
   disabled,
 }: {
-  sections: AdminNavSection[];
+  sections: NavSection[];
   disabled: boolean;
 }) {
   const { pathname } = useLocation();
@@ -27,7 +28,7 @@ function PagePicker({
   const [open, setOpen] = useState(false);
   const isCurrent = (to: string) =>
     pathname === to || pathname.startsWith(`${to}/`);
-  const current = adminNavLinks(sections).find((link) => isCurrent(link.to));
+  const current = sectionLinks(sections).find((link) => isCurrent(link.to));
   const CurrentIcon = current?.icon;
 
   return (
