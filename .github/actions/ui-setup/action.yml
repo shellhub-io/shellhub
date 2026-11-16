@@ -14,9 +14,7 @@ runs:
   using: composite
   steps:
     - name: Set up Node.js
-      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-      with:
-        node-version: "24.22.1"
+      uses: ./.github/actions/node-setup
 
     - name: Install Node dependencies
       uses: ./.github/actions/ui-deps

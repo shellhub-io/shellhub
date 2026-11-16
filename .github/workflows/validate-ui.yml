@@ -48,6 +48,8 @@ jobs:
               - 'openapi/spec/**'
               - '.github/workflows/validate-ui.yml'
               - '.github/actions/ui-setup/**'
+              - '.github/actions/node-setup/**'
+              - 'versions.env'
             docs:
               - 'ui/apps/docs/**'
               - 'ui/packages/**'
@@ -57,6 +59,8 @@ jobs:
               - 'ui/scripts/install-vale.sh'
               - '.github/workflows/validate-ui.yml'
               - '.github/actions/ui-setup/**'
+              - '.github/actions/node-setup/**'
+              - 'versions.env'
             website:
               - 'ui/apps/website/**'
               - 'ui/packages/**'
@@ -65,15 +69,21 @@ jobs:
               - 'ui/eslint.config.js'
               - '.github/workflows/validate-ui.yml'
               - '.github/actions/ui-setup/**'
+              - '.github/actions/node-setup/**'
+              - 'versions.env'
             design-system:
               - 'ui/packages/design-system/**'
               - '.github/workflows/validate-ui.yml'
               - '.github/actions/ui-setup/**'
+              - '.github/actions/node-setup/**'
+              - 'versions.env'
             ui:
               - 'ui/**'
               - 'openapi/spec/**'
               - '.github/workflows/validate-ui.yml'
               - '.github/actions/ui-setup/**'
+              - '.github/actions/node-setup/**'
+              - 'versions.env'
 
   console-test:
     name: console test (${{ matrix.shard }}/${{ strategy.job-total }})

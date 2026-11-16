@@ -1,0 +1,31 @@
+name: Node.js setup
+description: >-
+  Set up the Node.js version versions.env pins in NODE_VERSION, the same release the Docker images
+  build from, with the image tag's -alpine suffix dropped. Fails when NODE_VERSION is missing.
+
+inputs:
+  versions-file:
+    description: Path to versions.env.
+    required: false
+    default: versions.env
+
+runs:
+  using: composite
+  steps:
+    - name: Read the Node.js version from versions.env
+      id: version
+      shell: bash
+      env:
+        VERSIONS_FILE: ${{ inputs.versions-file }}
+      run: |
+        VERSION=$(sed -n 's/^NODE_VERSION=\([^-]*\).*/\1/p' "$VERSIONS_FILE")
+        if [ -z "$VERSION" ]; then
+            echo "could not read NODE_VERSION from $VERSIONS_FILE"
+            exit 1
+        fi
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Node.js
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: ${{ steps.version.outputs.version }}
