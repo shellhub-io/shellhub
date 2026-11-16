@@ -536,6 +536,23 @@ func (s *Suite) CreateAPIKey(t *testing.T, opts ...APIKeyOption) string {
 	return keyID
 }
 
+// CreateAPIKeyID creates an API key in the existing namespace tenantID and returns its ID, the
+// value an access policy subject or an SSH identity names the key by, rather than the digest
+// [Suite.CreateAPIKey] returns. It fails the test on an empty tenantID before creating anything,
+// rather than creating a namespace, and when the key cannot be created or resolved.
+func (s *Suite) CreateAPIKeyID(t *testing.T, tenantID string) string {
+	t.Helper()
+	require.NotEmpty(t, tenantID)
+
+	digest := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID))
+	key, err := s.provider.Store().APIKeyResolve(
+		context.Background(), scope.MustBounded(tenantID), store.APIKeyDigestResolver, digest,
+	)
+	require.NoError(t, err)
+
+	return key.ID
+}
+
 // PublicKeyOption allows customization of test public keys
 type PublicKeyOption func(*models.PublicKey)
 
