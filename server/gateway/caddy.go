@@ -5,11 +5,13 @@ import (
 	_ "embed"
 	"fmt"
 	"maps"
+	"strings"
 	"text/template"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/certmagic"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 )
 
 //go:embed Caddyfile.tmpl
@@ -69,7 +71,17 @@ func dnsProvider(cfg *GatewayConfig) string {
 	}
 }
 
-func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
+func newCaddyfileData(cfg *GatewayConfig) (*caddyfileData, error) {
+	trustedProxies, err := origin.ParsePrefixes(cfg.ProxyTrustedIPs)
+	if err != nil {
+		return nil, err
+	}
+
+	trustedList := make([]string, 0, len(trustedProxies))
+	for _, prefix := range trustedProxies {
+		trustedList = append(trustedList, prefix.String())
+	}
+
 	development := cfg.Env == "development"
 
 	scheme := "http://"
@@ -112,19 +124,24 @@ func newCaddyfileData(cfg *GatewayConfig) *caddyfileData {
 		DNSProvider:         dnsProvider(cfg),
 
 		ACMECAServer:   cfg.ACMECAServer,
-		TrustedProxies: cfg.ProxyTrustedIPs,
+		TrustedProxies: strings.Join(trustedList, " "),
 
 		TLSCertFile: cfg.TLSCertFile,
 		TLSKeyFile:  cfg.TLSKeyFile,
 
 		WebEndpointsInternalTLS: !certmagic.SubjectQualifiesForPublicCert("*." + domain),
-	}
+	}, nil
 }
 
 // Caddyfile renders the Caddyfile for cfg. It returns an error when the template does not parse
-// or does not execute against cfg; it does not check that Caddy can adapt the result.
+// or does not execute against cfg, and one wrapping [origin.ErrInvalidTrust] for a
+// SHELLHUB_PROXY_TRUSTED_IPS that is not CIDR prefixes; it does not check that Caddy can adapt the
+// result.
 func Caddyfile(cfg *GatewayConfig) ([]byte, error) {
-	data := newCaddyfileData(cfg)
+	data, err := newCaddyfileData(cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	tmpl, err := template.New("Caddyfile").Parse(caddyfileTemplate)
 	if err != nil {

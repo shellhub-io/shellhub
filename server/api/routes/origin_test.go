@@ -61,7 +61,7 @@ func TestRouterResolvesTheClientThroughTheTrustedProxies(t *testing.T) {
 
 			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/probe", nil)
 			req.RemoteAddr = tc.peer
-			req.Header.Set("X-Real-IP", "203.0.113.7")
+			req.Header.Set("X-Forwarded-For", "203.0.113.7")
 
 			rec := httptest.NewRecorder()
 			router.ServeHTTP(rec, req)

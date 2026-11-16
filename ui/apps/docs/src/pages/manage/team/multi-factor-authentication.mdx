@@ -87,8 +87,8 @@ by `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT`. After a lockout at the cap the count
 starts over. Setting `SHELLHUB_MAXIMUM_ACCOUNT_LOCKOUT` to 0 disables both lockouts.
 
 Password lockout is keyed on the account and the client address, resolved through
-`SHELLHUB_PROXY_TRUSTED_IPS`. A self-hosted deployment behind a load balancer without that set
-correctly will lock out on the balancer's address, so a lockout on an account applies to everyone
+`SHELLHUB_PROXY_TRUSTED_IPS`. A self-hosted deployment behind a load balancer or reverse proxy that
+is not listed there locks out on the proxy's address, so a lockout on an account applies to everyone
 signing in to it, wherever they are. See
 [Ports and Connectivity](/about/ports-and-connectivity).
 

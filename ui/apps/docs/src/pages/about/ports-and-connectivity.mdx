@@ -46,25 +46,38 @@ Two details that surprise people:
 
 **The HTTPS port is not bound unless auto-SSL is on.** The port mapping lives in an overlay that
 is only applied when `SHELLHUB_AUTO_SSL=true`. If you terminate TLS somewhere else, you are
-publishing HTTP and your proxy is doing the rest.
+publishing HTTP and your proxy is doing the rest. List that proxy in `SHELLHUB_PROXY_TRUSTED_IPS`,
+as [Behind a load balancer or reverse proxy](/about/ports-and-connectivity#behind-a-load-balancer-or-reverse-proxy) explains, or
+every client appears at its address.
 
 **SSH does not go through the gateway.** The SSH port is published by the server process
 directly. The gateway handles web traffic only. If you are putting a load balancer in front of
 ShellHub, the SSH port needs its own path — it is not HTTP and it will not survive an HTTP proxy.
 
-## Behind a load balancer
+## Behind a load balancer or reverse proxy
 
 A Layer 4 load balancer can pass the client address in a PROXY protocol header. The gateway and
 the SSH port read that header under separate settings.
 
 For web traffic, set `SHELLHUB_PROXY=true` on the gateway and list your balancer's ranges in
 `SHELLHUB_PROXY_TRUSTED_IPS`. The server refuses to start with one and not the other. Only those
-ranges and loopback may declare a client address.
+ranges may declare a client address.
 
-Without the gateway (`SHELLHUB_GATEWAY=false`), the same `SHELLHUB_PROXY_TRUSTED_IPS` decides which
-peers of port `8080` may name the client in `X-Real-IP` and `X-Forwarded-*`. List your ingress or
-load balancer there. Every other peer, and every peer when the list is empty, is taken to be the
-client.
+An HTTP reverse proxy such as nginx, Caddy or Traefik names the client in `X-Forwarded-For`
+instead. Leave `SHELLHUB_PROXY` off and list the proxy's ranges in `SHELLHUB_PROXY_TRUSTED_IPS`.
+ShellHub reads `X-Forwarded-For` from right to left, skips every address in those ranges, and takes
+the first address outside them as the client. A client outside the ranges can add entries on the
+left, but it cannot change the ones your proxies append. A peer outside the ranges is its own client, whatever its
+headers say. ShellHub does not read `X-Real-IP`, so a proxy that sets only `X-Real-IP` makes every
+client appear at the proxy's address. Configure it to append to `X-Forwarded-For`.
+
+List only your proxies. ShellHub treats every address in a listed range as a proxy, so a host inside
+one can name any client address it likes in `X-Forwarded-For`. A broad range such as `10.0.0.0/8`
+that also holds your users lets each of them choose the address that lockout, firewall rules and
+access policies see.
+
+Without the gateway (`SHELLHUB_GATEWAY=false`), port `8080` applies the same rule with the same
+`SHELLHUB_PROXY_TRUSTED_IPS`, and also trusts loopback. List your ingress or load balancer there.
 
 For SSH, set `SHELLHUB_SSH_PROXY_TRUSTED_IPS` to the space-separated ranges the header arrives
 from, such as your balancer's or your ingress pods'. The SSH port always trusts loopback and
@@ -75,9 +88,6 @@ every external client appears to come from it.
 This matters beyond cosmetics: access policy source IPs, firewall rules and the session audit trail
 read the client address of SSH and web terminal sessions, and password lockout reads it at web
 sign-in. Get it wrong and all of them operate on the balancer's address.
-
-If you terminate TLS at a reverse proxy that speaks HTTP — nginx, Caddy, Traefik — you do not
-need `SHELLHUB_PROXY`.
 
 ## TLS
 
@@ -91,7 +101,8 @@ server to be reachable for the challenge.
 inside the server container. Set **both**: with only one, the server will not start.
 
 **Terminate elsewhere.** Leave auto-SSL off, publish HTTP, and let your existing proxy or load
-balancer hold the certificate.
+balancer hold the certificate. List it in `SHELLHUB_PROXY_TRUSTED_IPS` as
+[Behind a load balancer or reverse proxy](/about/ports-and-connectivity#behind-a-load-balancer-or-reverse-proxy) explains.
 
 `SHELLHUB_ACME_CA_SERVER` points at a different ACME directory if you are using an internal CA.
 Empty means Let's Encrypt production.

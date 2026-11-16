@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/caddyserver/caddy/v2/caddyconfig"
+	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -183,6 +184,47 @@ func TestCaddyfileTrustsOnlyTheConfiguredProxies(t *testing.T) {
 
 	assert.NotContains(t, string(without), "proxy_protocol",
 		"the listener wrapper has no business being there when the feature is off")
+}
+
+func TestCaddyfileTrustsTheListedProxiesToNameTheClientWithoutThePROXYProtocol(t *testing.T) {
+	cfg := configurations()["community"]
+	cfg.ProxyTrustedIPs = "10.0.0.0/8"
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "trusted_proxies static 10.0.0.0/8")
+	assert.Contains(t, string(rendered), "trusted_proxies_strict")
+	assert.NotContains(t, string(rendered), "{remote_host}")
+	assert.NotContains(t, string(rendered), "proxy_protocol")
+
+	cfg.ProxyTrustedIPs = ""
+	unlisted, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	assert.NotContains(t, string(unlisted), "trusted_proxies",
+		"loopback names no client to the gateway unless the operator lists it")
+}
+
+func TestCaddyfileWritesTheProxyListAsTheRouterReadsIt(t *testing.T) {
+	cfg := configurations()["community"]
+	cfg.ProxyTrustedIPs = " ::ffff:10.0.0.0/104\n\t192.168.1.7/16 "
+
+	rendered, err := Caddyfile(cfg)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "trusted_proxies static 10.0.0.0/8 192.168.0.0/16\n")
+
+	_, _, err = caddyconfig.GetAdapter("caddyfile").Adapt(rendered, nil)
+	require.NoError(t, err, "the generated Caddyfile does not adapt:\n%s", rendered)
+}
+
+func TestCaddyfileRefusesAProxyListThatIsNotCIDRPrefixes(t *testing.T) {
+	cfg := configurations()["community"]
+	cfg.ProxyTrustedIPs = "10.0.0.1"
+
+	_, err := Caddyfile(cfg)
+	require.ErrorIs(t, err, origin.ErrInvalidTrust)
 }
 
 func collect(node any, matches func(map[string]any) bool) []map[string]any {
