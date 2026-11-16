@@ -61,14 +61,6 @@ type UserService interface {
 	// under ctx.
 	ConfirmEmailChange(ctx context.Context, userID, email string) error
 
-	// UpdatePasswordUser changes the user's password and revokes every token the user holds. It
-	// returns [ErrUserNotFound], [ErrUserPasswordNotMatch] when currentPassword is wrong,
-	// [ErrUserPasswordInvalid] when newPassword cannot be hashed, and [ErrUserUpdate] when the
-	// password cannot be saved or the tokens cannot be revoked, leaving the password unchanged.
-	// Every store call runs under ctx, so a cancelled ctx surfaces as [ErrUserNotFound] or
-	// [ErrUserUpdate], depending on the call it interrupts.
-	UpdatePasswordUser(ctx context.Context, id string, currentPassword, newPassword string) error
-
 	// RevokeUserTokens revokes every token the user holds, the caller's own included, in one write
 	// bounded by ctx. It returns [ErrUserNotFound] when the user does not exist and [ErrUserUpdate]
 	// when the tokens cannot be revoked, a cancelled ctx included.
@@ -224,33 +216,6 @@ func (s *service) saveUser(ctx context.Context, user, updatedUser *models.User, 
 			return NewErrUserUnhandledDuplicate()
 		}
 
-		return NewErrUserUpdate(user, err)
-	}
-
-	return nil
-}
-
-// UpdatePasswordUser updates a user's password.
-//
-// Deprecated: use [Service.UpdateUser] instead.
-func (s *service) UpdatePasswordUser(ctx context.Context, id, currentPassword, newPassword string) error {
-	user, err := s.store.UserResolve(ctx, store.UserIDResolver, id)
-	if user == nil {
-		return NewErrUserNotFound(id, err)
-	}
-
-	if !user.Password.Compare(currentPassword) {
-		return NewErrUserPasswordNotMatch(nil)
-	}
-
-	neo, err := models.HashUserPassword(newPassword)
-	if err != nil {
-		return NewErrUserPasswordInvalid(err)
-	}
-
-	user.Password = neo
-
-	if err := s.store.UserUpdateRevokingTokens(ctx, user); err != nil {
 		return NewErrUserUpdate(user, err)
 	}
 

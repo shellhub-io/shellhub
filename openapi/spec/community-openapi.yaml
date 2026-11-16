@@ -98,8 +98,6 @@ paths:
     $ref: paths/api@users.yaml
   /api/users/{id}/data:
     $ref: paths/api@users@{id}@data.yaml
-  /api/users/{id}/password:
-    $ref: paths/api@users@{id}@password.yaml
   /api/users/tokens:
     $ref: paths/api@users@tokens.yaml
   /api/users/onboarding-survey:

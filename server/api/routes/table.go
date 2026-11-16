@@ -39,7 +39,6 @@ func (h *Handler) publicRoutes() []routetable.Route {
 
 		{Method: http.MethodPatch, Path: URLUpdateUser, Endpoint: gateway.Legacy(h.UpdateUser), Access: routetable.OwnAccount},
 		{Method: http.MethodPatch, Path: URLDeprecatedUpdateUser, Endpoint: gateway.Legacy(h.UpdateUser), Access: routetable.OwnAccount},
-		{Method: http.MethodPatch, Path: URLDeprecatedUpdateUserPassword, Endpoint: gateway.Legacy(h.UpdateUserPassword), Access: routetable.OwnAccount},
 		{Method: http.MethodDelete, Path: URLRevokeUserTokens, Endpoint: gateway.Legacy(h.RevokeUserTokens), Access: routetable.OwnAccount},
 		{Method: http.MethodPut, Path: URLRecordOnboardingSurvey, Endpoint: gateway.Legacy(h.RecordOnboardingSurvey), Access: routetable.OwnAccount},
 

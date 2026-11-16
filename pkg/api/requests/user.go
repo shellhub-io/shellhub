@@ -27,13 +27,6 @@ type RecordOnboardingSurvey struct {
 	Outcome models.UserOnboardingSurvey `json:"outcome" validate:"required,oneof=answered skipped"`
 }
 
-// UserPasswordUpdate is the structure to represent the request body for the update user password endpoint.
-type UserPasswordUpdate struct {
-	UserID          string `identity:"id" json:"-" validate:"required"`
-	CurrentPassword string `json:"current_password" validate:"required,min=5,max=32,nefield=NewPassword"`
-	NewPassword     string `json:"new_password" validate:"required,password,nefield=CurrentPassword"`
-}
-
 // AuthLocalUser is the structure to represent the request body for the user auth endpoint.
 type AuthLocalUser struct {
 	// Identifier represents an username or email.
