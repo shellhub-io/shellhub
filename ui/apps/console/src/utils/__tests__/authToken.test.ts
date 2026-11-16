@@ -15,7 +15,8 @@ describe("isTokenExpired", () => {
 describe("isSignInLanding", () => {
   it.each([
     ["?token=abc", true],
-    ["?sso_code=abc", true],
+    ["?sso=complete", true],
+    ["?sso_code=abc", false],
     ["?sso=start", true],
     ["?sso=other", false],
     ["?redirect=%2Fdevices", false],

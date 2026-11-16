@@ -204,7 +204,10 @@ function buildSignOnRequest(
   xml: string,
   relayState: string | null,
 ): SignOnRequest {
-  const document = new DOMParser().parseFromString(xml, "text/xml").documentElement;
+  const document = new DOMParser().parseFromString(
+    xml,
+    "text/xml",
+  ).documentElement;
   if (!document) throw new Error("expected a root element in the SAML request");
   return {
     url,
@@ -282,6 +285,21 @@ export async function answerSignOn(
   { attributes, replaceRelayState }: AnswerOptions = {},
 ) {
   const requests: SignOnRequest[] = [];
+  await context.route("**/api/user/saml/request**", async (route) => {
+    const response = await route.fetch({ maxRedirects: 0 });
+    const location = response.headers().location;
+    if (response.status() !== 303 || !location) {
+      await route.fulfill({ response });
+      return;
+    }
+    const { location: _, ...headers } = response.headers();
+    await route.fulfill({
+      response,
+      status: 200,
+      headers: { ...headers, "content-type": "text/html" },
+      body: `<script>location.replace(${JSON.stringify(location)})</script>`,
+    });
+  });
   await context.route(`${identityProvider}/sso/**`, async (route) => {
     const request = readSignOnRequest(route.request());
     if (!request) {
@@ -327,13 +345,28 @@ export async function buildSignOnResponse(
   user: SamlUser,
   { unsolicited = false } = {},
 ) {
-  const { data } = await getSamlAuthUrl(buildRequestContext());
-  return answerSignOnRequest(
-    parseRedirectRequest(new URL(data.url)),
-    user,
-    defaultAttributes,
-    unsolicited,
+  const { data, response } = await getSamlAuthUrl(buildRequestContext());
+  const browserCookie = required(
+    response.headers.get("set-cookie")?.split(";")[0],
+    "the browser cookie from the sign-in request",
   );
+  return {
+    ...answerSignOnRequest(
+      parseRedirectRequest(new URL(data.url)),
+      user,
+      defaultAttributes,
+      unsolicited,
+    ),
+    browserCookie,
+  };
+}
+
+export function collectSignIn(browserCookie?: string) {
+  return redeemSamlSignIn({
+    ...buildRequestContext(),
+    throwOnError: false,
+    headers: browserCookie ? { Cookie: browserCookie } : {},
+  });
 }
 
 export function postSignOnResponse(action: URL, samlResponse: string) {
@@ -345,21 +378,20 @@ export function postSignOnResponse(action: URL, samlResponse: string) {
 }
 
 export async function signInThroughApi(user: SamlUser) {
-  const { action, samlResponse } = await buildSignOnResponse(user);
+  const { action, samlResponse, browserCookie } =
+    await buildSignOnResponse(user);
   const response = await postSignOnResponse(action, samlResponse);
   const location = required(
     response.headers.get("location"),
     `a redirect from the assertion consumer, got ${response.status}`,
   );
-  const code = required(
-    new URL(location, action).searchParams.get("sso_code"),
-    `a sign-in code in ${location}`,
-  );
-  const { data } = await redeemSamlSignIn({
-    ...buildRequestContext(),
-    body: { code },
-  });
-  return required(data.token, `a session token for the code in ${location}`);
+  if (new URL(location, action).searchParams.get("sso") !== "complete") {
+    throw new Error(
+      `expected a finished sign-in, got a redirect to ${location}`,
+    );
+  }
+  const { data } = await collectSignIn(browserCookie);
+  return required(data?.token, `a session token after ${location}`);
 }
 
 export async function waitForSessionToken(context: BrowserContext) {
@@ -372,18 +404,18 @@ export async function waitForSessionToken(context: BrowserContext) {
     const url = new URL(request.url());
     return (
       url.pathname === "/login" &&
-      (url.searchParams.has("sso_code") ||
+      (url.searchParams.get("sso") === "complete" ||
         url.searchParams.has("missing_assertions"))
     );
   });
   const missing = new URL(landing.url()).searchParams.get("missing_assertions");
   if (missing !== null) {
     throw new Error(
-      `expected a sign-in code from the assertion consumer, got missing assertions "${missing}"`,
+      `expected a finished sign-in from the assertion consumer, got missing assertions "${missing}"`,
     );
   }
   const { token } = (await (await redeemed).json()) as { token?: string };
-  return required(token, "a session token from the sign-in code");
+  return required(token, "a session token from the finished sign-in");
 }
 
 export async function signInWithSso(page: Page) {

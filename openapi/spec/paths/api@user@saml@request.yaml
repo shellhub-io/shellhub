@@ -1,12 +1,14 @@
 get:
   operationId: getSamlAuthRequest
-  summary: Send a SAML authentication request over the HTTP-POST binding
+  summary: Start a SAML authentication request from the browser
   description: |
-    Returns an HTML page that posts a SAML authentication request to the
-    Identity Provider as soon as the browser loads it. When the Identity
-    Provider is configured for the HTTP-POST binding, `/api/user/saml/auth`
-    and `/api/user/saml/reauth` return this endpoint's URL instead of the
-    Identity Provider's.
+    Starts a SAML authentication request for the browser that opens it. When
+    the Identity Provider is configured for the HTTP-POST binding, it returns
+    an HTML page that posts the request as soon as the browser loads it, and
+    `/api/user/saml/auth` and `/api/user/saml/reauth` return this endpoint's
+    URL instead of the Identity Provider's. When it is configured for the
+    HTTP-Redirect binding, a sign-in redirects to the Identity Provider
+    instead. The admin's SAML test link is this endpoint under either binding.
 
     Without `relay_state`, the request signs the user in. With it, the request
     is the re-authentication started at `/api/user/saml/reauth` under that
@@ -25,8 +27,23 @@ get:
   responses:
     '200':
       description: The page that posts the authentication request to the Identity Provider
+      headers:
+        Set-Cookie:
+          $ref: ../components/headers/SamlBrowserCookie.yaml
       content:
         text/html: {}
+    '303':
+      description: |
+        A sign-in under the HTTP-Redirect binding: the `Location` is the
+        Identity Provider's URL carrying the request
+      headers:
+        Location:
+          schema:
+            type: string
+        Set-Cookie:
+          $ref: ../components/headers/SamlBrowserCookie.yaml
+    '404':
+      $ref: '../components/responses/404.yaml'
     '403':
       $ref: '../components/responses/403.yaml'
     '500':

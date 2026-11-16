@@ -2,9 +2,15 @@ post:
   operationId: redeemSamlSignIn
   summary: Redeem a SAML sign-in
   description: |
-    Trades the one-time code the assertion consumer service sent the browser to
-    `/login` with for the session it signed in, so the session token never
-    travels in a URL. A code is redeemed once, within a minute of the sign-in.
+    Collects the session the assertion consumer service signed in for this
+    browser. The browser is named by the cookie `/api/user/saml/auth` and
+    `/api/user/saml/request` set when they start a sign-in request,
+    `__Host-shellhub_saml_browser` over HTTPS and `shellhub_saml_browser` over
+    plain HTTP, so only the browser that started the request collects the
+    session, and neither the session token nor anything that collects it
+    travels in a URL. A sign-in is
+    collected once, within a minute of the sign-in, and collecting it expires
+    the cookie.
 
     To access this endpoint, SAML authentication must be enabled and the
     instance must be running the Enterprise edition. If not, the endpoint
@@ -13,19 +19,6 @@ post:
     - cloud
     - users
   security: []
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          type: object
-          required:
-            - code
-          properties:
-            code:
-              type: string
-              description: The code from the `sso_code` query parameter of the `/login` redirect
-              example: 3dd0d1f8-8246-4519-b11a-a3dd33717f65
   responses:
     '200':
       description: The signed-in session
@@ -33,8 +26,6 @@ post:
         application/json:
           schema:
             $ref: ../components/schemas/userAuth.yaml
-    '400':
-      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '500':
