@@ -1091,17 +1091,74 @@ func (_c *MockService_CancelMembershipInvitation_Call) RunAndReturn(run func(ctx
 	return _c
 }
 
+// CheckEmail provides a mock function for the type MockService
+func (_mock *MockService) CheckEmail(ctx context.Context, email string) string {
+	ret := _mock.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckEmail")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = returnFunc(ctx, email)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockService_CheckEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckEmail'
+type MockService_CheckEmail_Call struct {
+	*mock.Call
+}
+
+// CheckEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *MockService_Expecter) CheckEmail(ctx any, email any) *MockService_CheckEmail_Call {
+	return &MockService_CheckEmail_Call{Call: _e.mock.On("CheckEmail", ctx, email)}
+}
+
+func (_c *MockService_CheckEmail_Call) Run(run func(ctx context.Context, email string)) *MockService_CheckEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_CheckEmail_Call) Return(s string) *MockService_CheckEmail_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockService_CheckEmail_Call) RunAndReturn(run func(ctx context.Context, email string) string) *MockService_CheckEmail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ConfirmEmailChange provides a mock function for the type MockService
-func (_mock *MockService) ConfirmEmailChange(ctx context.Context, userID string, email string) error {
-	ret := _mock.Called(ctx, userID, email)
+func (_mock *MockService) ConfirmEmailChange(ctx context.Context, userID string, field services.EmailField, email string) error {
+	ret := _mock.Called(ctx, userID, field, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ConfirmEmailChange")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, userID, email)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, services.EmailField, string) error); ok {
+		r0 = returnFunc(ctx, userID, field, email)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1116,12 +1173,13 @@ type MockService_ConfirmEmailChange_Call struct {
 // ConfirmEmailChange is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
+//   - field services.EmailField
 //   - email string
-func (_e *MockService_Expecter) ConfirmEmailChange(ctx any, userID any, email any) *MockService_ConfirmEmailChange_Call {
-	return &MockService_ConfirmEmailChange_Call{Call: _e.mock.On("ConfirmEmailChange", ctx, userID, email)}
+func (_e *MockService_Expecter) ConfirmEmailChange(ctx any, userID any, field any, email any) *MockService_ConfirmEmailChange_Call {
+	return &MockService_ConfirmEmailChange_Call{Call: _e.mock.On("ConfirmEmailChange", ctx, userID, field, email)}
 }
 
-func (_c *MockService_ConfirmEmailChange_Call) Run(run func(ctx context.Context, userID string, email string)) *MockService_ConfirmEmailChange_Call {
+func (_c *MockService_ConfirmEmailChange_Call) Run(run func(ctx context.Context, userID string, field services.EmailField, email string)) *MockService_ConfirmEmailChange_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1131,14 +1189,19 @@ func (_c *MockService_ConfirmEmailChange_Call) Run(run func(ctx context.Context,
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 string
+		var arg2 services.EmailField
 		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg2 = args[2].(services.EmailField)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -1149,7 +1212,7 @@ func (_c *MockService_ConfirmEmailChange_Call) Return(err error) *MockService_Co
 	return _c
 }
 
-func (_c *MockService_ConfirmEmailChange_Call) RunAndReturn(run func(ctx context.Context, userID string, email string) error) *MockService_ConfirmEmailChange_Call {
+func (_c *MockService_ConfirmEmailChange_Call) RunAndReturn(run func(ctx context.Context, userID string, field services.EmailField, email string) error) *MockService_ConfirmEmailChange_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -6036,6 +6099,52 @@ func (_c *MockService_NamespaceMembershipInvitationList_Call) Return(membershipI
 
 func (_c *MockService_NamespaceMembershipInvitationList_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req *requests.NamespaceMembershipInvitationList) ([]responses0.MembershipInvitation, int64, error)) *MockService_NamespaceMembershipInvitationList_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// NotifyEmailsChanged provides a mock function for the type MockService
+func (_mock *MockService) NotifyEmailsChanged(ctx context.Context, change services.EmailsChange) {
+	_mock.Called(ctx, change)
+	return
+}
+
+// MockService_NotifyEmailsChanged_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NotifyEmailsChanged'
+type MockService_NotifyEmailsChanged_Call struct {
+	*mock.Call
+}
+
+// NotifyEmailsChanged is a helper method to define mock.On call
+//   - ctx context.Context
+//   - change services.EmailsChange
+func (_e *MockService_Expecter) NotifyEmailsChanged(ctx any, change any) *MockService_NotifyEmailsChanged_Call {
+	return &MockService_NotifyEmailsChanged_Call{Call: _e.mock.On("NotifyEmailsChanged", ctx, change)}
+}
+
+func (_c *MockService_NotifyEmailsChanged_Call) Run(run func(ctx context.Context, change services.EmailsChange)) *MockService_NotifyEmailsChanged_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 services.EmailsChange
+		if args[1] != nil {
+			arg1 = args[1].(services.EmailsChange)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_NotifyEmailsChanged_Call) Return() *MockService_NotifyEmailsChanged_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockService_NotifyEmailsChanged_Call) RunAndReturn(run func(ctx context.Context, change services.EmailsChange)) *MockService_NotifyEmailsChanged_Call {
+	_c.Run(run)
 	return _c
 }
 

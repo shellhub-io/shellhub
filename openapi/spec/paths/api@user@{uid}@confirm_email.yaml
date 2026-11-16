@@ -1,11 +1,11 @@
 post:
   operationId: confirmEmailChange
-  summary: Confirm an email change
+  summary: Confirm an email or recovery email change
   description: |
-    Makes the address a user asked to change their email to the account's
-    email, with the token mailed to that address. The token works once and
-    for a day. The account's previous email and recovery email are then
-    told of the change.
+    Makes the address a user asked to change their email or recovery email
+    to the account's address, with the token mailed to that address. The
+    token works once and for a day. The account's previous email and
+    recovery email were told of the change when it was requested.
   tags:
     - cloud
     - users
@@ -33,7 +33,7 @@ post:
             - token
   responses:
     '200':
-      description: The new email is set.
+      description: The new address is set.
     '400':
       $ref: ../components/responses/400.yaml
     '401':

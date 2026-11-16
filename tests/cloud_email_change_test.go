@@ -69,3 +69,16 @@ func TestCloudEmailChange(t *testing.T) {
 		assert.Len(t, compose.Emails(t, oldEmail, "/forgot-password"), 1, "confirming sends no second notice")
 	})
 }
+
+func confirmMailedAddress(t *testing.T, compose *environment.DockerCompose, address string) {
+	t.Helper()
+
+	link, ok := compose.AwaitEmail(t, address, "/confirm-email").Link("/confirm-email")
+	require.True(t, ok, "no confirmation link in the email to %s", address)
+
+	resp, err := compose.Anonymous(t.Context()).
+		SetBody(map[string]string{"token": link.Query().Get("token")}).
+		Post("/api/user/" + link.Query().Get("id") + "/confirm_email")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+}

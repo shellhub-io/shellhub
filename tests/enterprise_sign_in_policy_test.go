@@ -19,7 +19,7 @@ func TestEnterpriseSignInPolicy(t *testing.T) {
 
 	compose := newEnterpriseEnvironment(t, context.Background(), environment.New(t, run))
 
-	user := newMFAUser(t, compose, "policy-recover")
+	user := newMFAUser(t, compose, environment.EditionEnterprise, "policy-recover")
 	mfaToken := passwordStep(t, compose, user)
 
 	enableSAMLPostBinding(t, compose)
