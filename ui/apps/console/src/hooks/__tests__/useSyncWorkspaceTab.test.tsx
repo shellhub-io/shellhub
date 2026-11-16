@@ -61,7 +61,23 @@ describe("useSyncWorkspaceTab", () => {
     ]);
   });
 
+  it.each([
+    { who: "a member who is not an instance admin", edition: "enterprise", isAdmin: false },
+    { who: "an admin on an edition with no admin console", edition: "community", isAdmin: true },
+  ] as const)(
+    "opens no tab on an admin page for $who",
+    ({ edition, isAdmin }) => {
+      setEdition(edition);
+      seedAuthStore({ isAdmin });
+      syncAt("/admin");
+
+      expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
+    },
+  );
+
   it("opens no tab for someone the admin console turned away", () => {
+    setEdition("enterprise");
+    seedAuthStore({ isAdmin: true });
     syncAt(ADMIN_UNAUTHORIZED_PATH);
 
     expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
