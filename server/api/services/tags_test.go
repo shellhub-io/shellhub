@@ -751,6 +751,43 @@ func TestService_UpdateTag(t *testing.T) {
 				err: nil,
 			},
 		},
+		{
+			description: "succeeds renaming a tag to its own name in another letter case",
+			req: &requests.UpdateTag{
+				Name:     "Prod",
+				NewName:  "prod",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "Prod"}
+				updatedTag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "prod"}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "Prod").
+					Return(tag, nil).
+					Once()
+				storeMock.
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "prod"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("TagUpdate", ctx, updatedTag).
+					Return(nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, scope.MustBounded("tenant1"), store.TagIDResolver, "tag_00000000-0000-4000-0000-000000000000").
+					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", TenantID: "tenant1", Name: "prod"}, nil).
+					Once()
+			},
+			expected: Expected{
+				tag: &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", TenantID: "tenant1", Name: "prod"},
+				err: nil,
+			},
+		},
 	}
 
 	service := NewService(storeMock, privateKey, publicKey, nil)
