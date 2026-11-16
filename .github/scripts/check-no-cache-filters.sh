@@ -6,9 +6,13 @@ root=${1:-.}
 status=0
 
 for workflow in "$root"/.github/workflows/*.yml; do
-  rows=$(yq -r '.jobs[].steps[]? | select(.with."no-cache-filters") | [.with.file // ((.with.context // ".") + "/Dockerfile"), (.with."no-cache-filters" | sub("\n", ","))] | @tsv' "$workflow")
-  while IFS=$'\t' read -r file filters; do
+  rows=$(yq -r '.jobs[] | ([.steps[]? | select((.uses // "") | test("^actions/checkout@")) | select(.with.repository == null) | .with.path // ""] | .[0] // "") as $checkout | .steps[]? | select(.with."no-cache-filters") | [.with.file // ((.with.context // ".") + "/Dockerfile"), (.with."no-cache-filters" | sub("\n", ",")), $checkout] | @tsv' "$workflow")
+  while IFS=$'\t' read -r file filters checkout; do
     [[ -n "$file" ]] || continue
+    checkout=${checkout#./}
+    checkout=${checkout%/}
+    file=${file#./}
+    [[ -z "$checkout" ]] || file=${file#"$checkout"/}
     dockerfile="$root/$file"
     if [[ ! -f "$dockerfile" ]]; then
       echo "check-no-cache-filters.sh: ${workflow#"$root"/} builds $file, which does not exist" >&2

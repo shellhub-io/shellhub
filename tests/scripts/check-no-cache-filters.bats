@@ -144,3 +144,119 @@ YAML
     check
     [ "$status" -ne 0 ] || { echo "expected the check to fail, got:" >&2; echo "$output" >&2; return 1; }
 }
+
+checkout_path_job() {
+    cat > "$REPO/.github/workflows/publish.yml" <<YAML
+jobs:
+  publish:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: $1
+      - uses: actions/checkout@v4
+        with:
+          repository: example/other
+          path: other
+      - uses: docker/build-push-action@v6
+        with:
+          file: $2
+          context: $1
+          no-cache-filters: $3
+YAML
+}
+
+@test "a step in a job that checks the repository out under a path resolves the file inside it" {
+    checkout_path_job src src/app/Dockerfile production
+    check
+    assert_passes
+}
+
+@test "a missing stage under a checkout path names the file inside the repository" {
+    checkout_path_job src src/app/Dockerfile prod
+    check
+    assert_fails_with "stage prod, which app/Dockerfile does not define"
+}
+
+@test "a step without file under a checkout path checks the Dockerfile in its context" {
+    cat > "$REPO/.github/workflows/publish.yml" <<'YAML'
+jobs:
+  publish:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - uses: docker/build-push-action@v6
+        with:
+          context: src/app
+          no-cache-filters: production
+YAML
+    check
+    assert_passes
+}
+
+@test "another repository's checkout path does not resolve the file" {
+    cat > "$REPO/.github/workflows/publish.yml" <<'YAML'
+jobs:
+  publish:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: example/other
+          path: other
+      - uses: docker/build-push-action@v6
+        with:
+          file: other/app/Dockerfile
+          no-cache-filters: production
+YAML
+    check
+    assert_fails_with "builds other/app/Dockerfile, which does not exist"
+}
+
+@test "the checkout path of another job does not resolve the file" {
+    cat > "$REPO/.github/workflows/build.yml" <<'YAML'
+jobs:
+  publish:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+  build:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/build-push-action@v6
+        with:
+          file: src/app/Dockerfile
+          no-cache-filters: production
+YAML
+    check
+    assert_fails_with "builds src/app/Dockerfile, which does not exist"
+}
+
+@test "a file that starts with ./ resolves inside the checkout path" {
+    checkout_path_job ./src ./src/app/Dockerfile production
+    check
+    assert_passes
+}
+
+@test "a context that starts with ./ resolves inside the checkout path" {
+    cat > "$REPO/.github/workflows/publish.yml" <<'YAML'
+jobs:
+  publish:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ./src
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./src/app
+          no-cache-filters: production
+YAML
+    check
+    assert_passes
+}
+
+@test "a checkout path with a trailing slash resolves the file inside it" {
+    checkout_path_job src/ src/app/Dockerfile production
+    check
+    assert_passes
+}
