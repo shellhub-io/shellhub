@@ -19,10 +19,12 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   Button,
+  Callout,
   Dropdown,
   IconButton,
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
+import { apiErrorMessage } from "@/api/errors";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useEditModal } from "@/hooks/useEditModal";
@@ -233,7 +235,7 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
  */
 export default function AccessPolicies() {
   const sectionTitle = useNavSectionTitle("/access-policies");
-  const { policies, isLoading } = useAccessPolicies();
+  const { policies, isLoading, error } = useAccessPolicies();
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
   const isNewNamespace = useNamespaceLegacy() !== true;
@@ -351,7 +353,7 @@ export default function AccessPolicies() {
     },
   ];
 
-  if (!isLoading && policies.length === 0) {
+  if (!isLoading && !error && policies.length === 0) {
     return (
       <>
         <EmptyState
@@ -437,6 +439,12 @@ export default function AccessPolicies() {
         placeholder="Search policies by name…"
         aria-label="Search access policies by name"
       />
+
+      {error && (
+        <Callout variant="error" className="mb-4">
+          {apiErrorMessage(error)}
+        </Callout>
+      )}
 
       <DataTable
         columns={columns}
