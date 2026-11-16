@@ -26,6 +26,10 @@ func Get[T any](ctx context.Context, cache Cache, key string) (*T, error) {
 	return t, nil
 }
 
+// ErrTTLTooShort is returned by [Cache.IncrBy] for a ttl under one millisecond, which Redis would
+// take as an order to delete the key it just counted.
+var ErrTTLTooShort = errors.New("cache: ttl must be at least one millisecond")
+
 // Cache is the key/value store the services cache in. Implementations must be safe for concurrent
 // use; NewNullCache is the no-op one, which is what an instance without Redis runs.
 type Cache interface {
@@ -43,6 +47,15 @@ type Cache interface {
 	// it did. It releases a reservation taken with SetNX under a value unique to its owner, so an
 	// owner whose reservation expired cannot delete the one another caller took after it.
 	CompareAndDelete(ctx context.Context, key, value string) (bool, error)
+
+	// IncrBy atomically adds delta to the integer at key, counting from 0 when the key is missing,
+	// sets the key to expire after ttl, and returns the new value. A delta of 0 reads the value
+	// through the same call that changes it, so a caller that must not show which it did makes the
+	// same round trip either way. It returns ErrTTLTooShort, touching nothing, for a ttl under one
+	// millisecond, and the cache's error, leaving the key and its expiry unchanged, when the key
+	// holds something other than an integer or the sum would overflow int64. Keep the key out of
+	// Get and Set, which store values encoded.
+	IncrBy(ctx context.Context, key string, delta int64, ttl time.Duration) (int64, error)
 
 	// HasAccountLockout reports whether the source is currently blocked from attempting to
 	// log in to a user with the specified userID. It returns the absolute Unix timestamp
