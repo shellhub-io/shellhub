@@ -5,7 +5,8 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 import { useOrderedWindows, useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCommandPaletteStore } from "@/stores/commandPaletteStore";
-import { adminNavLinks, useAdminNav } from "@/components/layout/adminNav";
+import { useAdminNav } from "@/components/layout/adminNav";
+import { sectionLinks, useNavSections } from "@/components/layout/navSections";
 import {
   useRecentDevicesStore,
   type RecentDevice,
@@ -18,7 +19,7 @@ import { useCopy } from "@/hooks/useCopy";
 import { isAdminPath } from "@/utils/adminRoute";
 import {
   buildConnectionItems,
-  buildAdminItems,
+  buildPageItems,
   buildCommandItems,
   buildDeviceActionItems,
   fuzzyMatch,
@@ -103,6 +104,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const legacy = useNamespaceLegacy();
   const workspace = useWorkspaceTabs();
   const adminNav = useAdminNav({ active: adminContext });
+  const navSections = useNavSections();
   const nsName = namespace?.name ?? "";
   const copy = useCopy();
   const recentEntries = useRecentDevicesStore(
@@ -246,10 +248,12 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const commandItems = buildCommandItems({
     go,
     onLogout,
-    isNewNamespace: legacy !== true,
-    pages: adminContext
-      ? buildAdminItems({ links: adminNavLinks(adminNav.sections), go })
-      : undefined,
+    pages: buildPageItems({
+      links: sectionLinks(adminContext ? adminNav.sections : navSections),
+      go,
+    }),
+    canAddDevice: !adminContext,
+    canClaimDevice: !adminContext && legacy !== true,
   });
 
   const hasOpenSession = drillDevice

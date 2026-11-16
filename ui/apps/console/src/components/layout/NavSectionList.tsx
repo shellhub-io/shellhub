@@ -1,19 +1,13 @@
 import type { ReactNode } from "react";
 import { cn } from "@shellhub/design-system/cn";
 import { NavItemLink } from "./SidebarShell";
-import type { NavIcon, NavSection } from "./navSections";
-
-interface NavSectionLink {
-  to: string;
-  label: string;
-  icon: NavIcon;
-}
+import type { NavItem, NavSection } from "./navSections";
 
 /**
  * The sidebar's link groups, each under its title when it has one and named by it for assistive
  * technology. Collapsed, a title turns into a divider. disabled greys out every link; badge adds a marker after a link's label.
  */
-export default function NavSectionList<T extends NavSectionLink>({
+export default function NavSectionList<T extends NavItem>({
   sections,
   expanded,
   disabled,

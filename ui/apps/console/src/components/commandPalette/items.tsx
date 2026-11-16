@@ -1,16 +1,10 @@
 import {
   MagnifyingGlassIcon,
-  HomeIcon,
-  KeyIcon,
-  Cog6ToothIcon,
   ArrowRightStartOnRectangleIcon,
-  UsersIcon,
   CpuChipIcon,
-  CommandLineIcon,
   PlusIcon,
   ChevronDoubleRightIcon,
   ChevronRightIcon,
-  LockClosedIcon,
   DocumentDuplicateIcon,
   InformationCircleIcon,
   ClockIcon,
@@ -23,8 +17,8 @@ import type { NormalizedDevice } from "@/hooks/useDevices";
 import type { TerminalSession } from "@/stores/terminalStore";
 
 import { useEffect } from "react";
-import type { Dispatch, JSX, RefObject, SetStateAction } from "react";
-import type { AdminNavLink } from "@/components/layout/adminNav";
+import type { Dispatch, RefObject, SetStateAction } from "react";
+import type { NavItem } from "@/components/layout/navSections";
 
 /**
  * The tone of a badge on a palette row — device status, mostly, where green is online and yellow
@@ -77,11 +71,7 @@ export const NO_CONNECT_PERMISSION =
 export const icons = {
   search: <MagnifyingGlassIcon className="w-5 h-5" />,
   command: <ChevronRightIcon className="w-5 h-5" />,
-  dashboard: <HomeIcon className="w-4 h-4" />,
   devices: <CpuChipIcon className="w-4 h-4" />,
-  sessions: <CommandLineIcon className="w-4 h-4" />,
-  keys: <KeyIcon className="w-4 h-4" />,
-  settings: <Cog6ToothIcon className="w-4 h-4" />,
   add: <PlusIcon className="w-4 h-4" />,
   terminal: <ChevronDoubleRightIcon className="w-4 h-4" />,
   connect: <ChevronDoubleRightIcon className="w-4 h-4" />,
@@ -89,8 +79,6 @@ export const icons = {
   copy: <DocumentDuplicateIcon className="w-4 h-4" />,
   details: <InformationCircleIcon className="w-4 h-4" />,
   logout: <ArrowRightStartOnRectangleIcon className="w-4 h-4" />,
-  team: <UsersIcon className="w-4 h-4" />,
-  vault: <LockClosedIcon className="w-4 h-4" />,
   namespace: <Squares2X2Icon className="w-4 h-4" />,
   admin: <ShieldCheckIcon className="w-4 h-4" />,
 };
@@ -317,15 +305,15 @@ export function buildNewTabItems(deps: {
 }
 
 /**
- * The admin console's pages, which stand in for the namespace's pages in command mode while the
- * palette is opened from the admin area.
+ * The pages command mode offers, one row per link: the namespace's sidebar, or the admin console's
+ * while the palette is opened from the admin area.
  */
-export function buildAdminItems(deps: {
-  links: AdminNavLink[];
+export function buildPageItems(deps: {
+  links: NavItem[];
   go: (path: string) => void;
 }): CommandItem[] {
   return deps.links.map((link) => ({
-    id: `admin-${link.to}`,
+    id: `page-${link.to}`,
     label: link.label,
     sublabel: link.to,
     section: "Navigation",
@@ -335,44 +323,41 @@ export function buildAdminItems(deps: {
 }
 
 /**
- * Command mode, entered with a ">" prefix: page navigation and account actions rather than
- * devices. pages replaces the namespace's pages, as the admin console does with its own.
+ * Command mode, entered with a ">" prefix: the pages, then the actions, rather than devices.
+ * canAddDevice offers adding a device, which the admin console has no use for; canClaimDevice
+ * offers claiming one, which only a new namespace has.
  */
 export function buildCommandItems(deps: {
   go: (path: string) => void;
   onLogout: () => void;
-  isNewNamespace?: boolean;
-  pages?: CommandItem[];
+  pages: CommandItem[];
+  canAddDevice: boolean;
+  canClaimDevice: boolean;
 }): CommandItem[] {
-  const { go, onLogout, isNewNamespace, pages } = deps;
-  const legacyPaths = ["/sshkeys/public-keys", "/secure-vault"];
-  const newNamespacePaths = ["/accept-device"];
-  const nav: Array<{ label: string; path: string; icon: JSX.Element }> = [
-    { label: "Dashboard", path: "/dashboard", icon: icons.dashboard },
-    { label: "Devices", path: "/devices", icon: icons.devices },
-    { label: "Sessions", path: "/sessions", icon: icons.sessions },
-    { label: "Public Keys", path: "/sshkeys/public-keys", icon: icons.keys },
-    { label: "Secure Vault", path: "/secure-vault", icon: icons.vault },
-    { label: "Team", path: "/team", icon: icons.team },
-    { label: "Settings", path: "/settings", icon: icons.settings },
-    { label: "Add Device", path: "/devices/add", icon: icons.add },
-    { label: "Claim a Device", path: "/accept-device", icon: icons.add },
-  ].filter((n) =>
-    isNewNamespace
-      ? !legacyPaths.includes(n.path)
-      : !newNamespacePaths.includes(n.path),
-  );
+  const { go, onLogout, pages, canAddDevice, canClaimDevice } = deps;
+  const list: CommandItem[] = [...pages];
 
-  const list: CommandItem[] = pages
-    ? [...pages]
-    : nav.map((n) => ({
-        id: `nav-${n.path}`,
-        label: n.label,
-        sublabel: n.path,
-        section: "Navigation",
-        icon: n.icon,
-        onSelect: () => go(n.path),
-      }));
+  if (canAddDevice) {
+    list.push({
+      id: "action-add-device",
+      label: "Add Device",
+      sublabel: "/devices/add",
+      section: "Actions",
+      icon: icons.add,
+      onSelect: () => go("/devices/add"),
+    });
+  }
+
+  if (canClaimDevice) {
+    list.push({
+      id: "action-claim-device",
+      label: "Claim a Device",
+      sublabel: "/accept-device",
+      section: "Actions",
+      icon: icons.add,
+      onSelect: () => go("/accept-device"),
+    });
+  }
 
   list.push({
     id: "action-logout",

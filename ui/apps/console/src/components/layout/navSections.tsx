@@ -23,7 +23,8 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 export type NavIcon = typeof HomeIcon;
 
 /**
- * One sidebar link. premium marks a page that needs a paid edition, beta one still in preview.
+ * One navigation link, as the sidebar, the admin page picker and the command palette list it.
+ * premium marks a page that needs a paid edition, beta one still in preview.
  */
 export interface NavItem {
   to: string;
@@ -54,6 +55,13 @@ export function navSectionTitle(
   return sections.find((section) =>
     section.items.some((item) => item.to === route),
   )?.title;
+}
+
+/**
+ * Every page the sections lead to, in sidebar order.
+ */
+export function sectionLinks(sections: NavSection[]): NavItem[] {
+  return sections.flatMap((section) => section.items);
 }
 
 function buildSections(

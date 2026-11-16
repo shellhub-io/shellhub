@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import LogoMark from "./LogoMark";
-import type { NavIcon } from "./navSections";
+import type { NavItem } from "./navSections";
 
 const navBase =
   "flex items-center gap-3 h-[38px] px-3 rounded-md text-[13px] font-medium whitespace-nowrap [&>svg]:shrink-0 focus-visible:relative focus-visible:z-raised";
@@ -28,7 +28,7 @@ export const SIDEBAR_RAIL_PX = 60;
 export const SIDEBAR_EXPANDED_PX = 220;
 
 interface NavItemLinkProps {
-  item: { to: string; label: string; icon: NavIcon };
+  item: NavItem;
   expanded: boolean;
   disabled?: boolean;
   onClick?: () => void;

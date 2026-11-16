@@ -15,49 +15,35 @@ import {
   ADMIN_INSTANCE_PATH,
   ADMIN_TELEMETRY_PATH,
 } from "@/utils/adminRoute";
-import { navSectionTitle, type NavIcon, type NavSection } from "./navSections";
+import { navSectionTitle, type NavItem, type NavSection } from "./navSections";
 
-/**
- * One admin page.
- */
-export interface AdminNavLink {
-  to: string;
-  label: string;
-  icon: NavIcon;
-}
-
-/**
- * A group of admin pages, following the console sidebar's rules for headings and keys.
- */
-export type AdminNavSection = NavSection<AdminNavLink>;
-
-const licenseLink: AdminNavLink = {
+const licenseLink: NavItem = {
   to: "/admin/license",
   label: "License",
   icon: DocumentCheckIcon,
 };
 
-const authenticationLink: AdminNavLink = {
+const authenticationLink: NavItem = {
   to: ADMIN_AUTHENTICATION_PATH,
   label: "Authentication",
   icon: KeyIcon,
 };
 
-const instanceApiKeysLink: AdminNavLink = {
+const instanceApiKeysLink: NavItem = {
   to: "/admin/instance-api-keys",
   label: "Instance API Keys",
   icon: LockClosedIcon,
 };
 
-const telemetryLink: AdminNavLink = {
+const telemetryLink: NavItem = {
   to: ADMIN_TELEMETRY_PATH,
   label: "Telemetry",
   icon: ChartBarIcon,
 };
 
-const licenseOnlySections: AdminNavSection[] = [{ items: [licenseLink] }];
+const licenseOnlySections: NavSection[] = [{ items: [licenseLink] }];
 
-function buildFullSections(): AdminNavSection[] {
+function buildFullSections(): NavSection[] {
   const instance = isEnterprise()
     ? [authenticationLink, instanceApiKeysLink, telemetryLink, licenseLink]
     : [instanceApiKeysLink, telemetryLink];
@@ -91,13 +77,6 @@ export function useAdminNav({ active = true }: { active?: boolean } = {}) {
     sections: restricted ? licenseOnlySections : buildFullSections(),
     disabled: !isAdmin,
   };
-}
-
-/**
- * Every page the sections lead to, in sidebar order, for the command palette.
- */
-export function adminNavLinks(sections: AdminNavSection[]): AdminNavLink[] {
-  return sections.flatMap((section) => section.items);
 }
 
 /**
