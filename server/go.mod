@@ -8,7 +8,7 @@ require (
 	github.com/caddy-dns/acmedns v0.7.0
 	github.com/caddy-dns/cloudflare v0.2.4
 	github.com/caddy-dns/digitalocean v0.0.0-20250606074528-04bde2867106
-	github.com/caddyserver/caddy/v2 v2.11.7
+	github.com/caddyserver/caddy/v2 v2.11.9
 	github.com/caddyserver/certmagic v0.25.6
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/getkin/kin-openapi v0.152.0
@@ -239,7 +239,7 @@ require (
 	go.uber.org/zap/exp v0.3.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto/x509roots/fallback v0.0.0-20260929172509-b39ff6d641ec // indirect
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20261030153154-30a33513ff6d // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
