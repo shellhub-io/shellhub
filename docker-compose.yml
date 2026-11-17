@@ -55,8 +55,8 @@ services:
     links:
       - redis
     ports:
-      - "${SHELLHUB_SSH_PORT}:2222"
-      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_HTTP_PORT}:80
+      - ${SHELLHUB_BIND_ADDRESS:+${SHELLHUB_BIND_ADDRESS}:}${SHELLHUB_SSH_PORT}:2222
+      - ${SHELLHUB_BIND_ADDRESS:+${SHELLHUB_BIND_ADDRESS}:}${SHELLHUB_HTTP_PORT}:80
     volumes:
       - gateway_data:/data
     extra_hosts:

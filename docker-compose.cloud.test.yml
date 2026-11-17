@@ -26,7 +26,7 @@ services:
     image: ${DOCKERHUB_MIRROR:-}axllent/mailpit:v1.30.7
     labels: *e2e-labels
     ports:
-      - ${SHELLHUB_BIND_ADDRESS}:${SHELLHUB_TEST_MAILPIT_PORT:-0}:8025
+      - ${SHELLHUB_BIND_ADDRESS:+${SHELLHUB_BIND_ADDRESS}:}${SHELLHUB_TEST_MAILPIT_PORT:-0}:8025
     networks:
       - shellhub
     healthcheck:
