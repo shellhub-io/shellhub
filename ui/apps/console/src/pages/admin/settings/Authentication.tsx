@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   KeyIcon,
   ArrowTopRightOnSquareIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
 import {
-  getAuthenticationSettings,
-  configureLocalAuthentication,
-  configureSamlAuthentication,
+  configureLocalAuthenticationMutation,
+  configureSamlAuthenticationMutation,
+  getAuthenticationSettingsOptions,
 } from "@/client";
-import type { GetAuthenticationSettingsResponse } from "@/client";
 import { isSdkError } from "@/api/errors";
+import { adminQueryDefaults } from "@/hooks/useAdminRequests";
+import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import SettingsField from "@/components/settings/SettingsField";
 import PageHeader from "@/components/common/PageHeader";
@@ -21,97 +23,66 @@ import SamlConfigModal from "./SamlConfigModal";
 import PageLoader from "@/components/common/PageLoader";
 import { Button, Callout, Toggle } from "@shellhub/design-system/primitives";
 
-type AuthSettings = GetAuthenticationSettingsResponse;
+function toggleErrorMessage(err: unknown, method: string): string {
+  return isSdkError(err) && err.status === 400
+    ? "You cannot disable all authentication methods."
+    : `Failed to update ${method} authentication.`;
+}
 
 /**
- * The instance authentication settings: local sign-in and SAML. Turning local sign-in off with
- * no working SSO would lock everyone out, so the page guards that rather than the API alone.
+ * The instance authentication settings: local sign-in and SAML. The API refuses to turn off the
+ * last enabled method, and the page shows that refusal beside the toggles.
  */
 export default function AdminAuthentication() {
-  const [settings, setSettings] = useState<AuthSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [togglingLocal, setTogglingLocal] = useState(false);
-  const [togglingSaml, setTogglingSaml] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const settingsQuery = useQuery({
+    ...getAuthenticationSettingsOptions(),
+    ...adminQueryDefaults,
+  });
+  const settings = settingsQuery.data;
+  const [toggleError, setToggleError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  const refresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-  }, []);
+  const invalidate = useInvalidateByIds("getAuthenticationSettings", "getInfo");
+  const localMutation = useMutation({
+    ...configureLocalAuthenticationMutation(),
+    onSuccess: invalidate,
+  });
+  const samlMutation = useMutation({
+    ...configureSamlAuthenticationMutation(),
+    onSuccess: invalidate,
+  });
 
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        const { data } = await getAuthenticationSettings({
-          throwOnError: true,
-        });
-        if (!cancelled) setSettings(data);
-      } catch {
-        if (!cancelled) setError("Failed to load authentication settings.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
+  const error =
+    toggleError ??
+    (settingsQuery.isError ? "Failed to load authentication settings." : null);
 
-  const handleLocalToggle = async () => {
-    setTogglingLocal(true);
-    setError(null);
-    try {
-      await configureLocalAuthentication({
-        body: { enable: !settings?.local?.enabled },
-        throwOnError: true,
-      });
-      refresh();
-    } catch (err) {
-      setError(
-        isSdkError(err) && err.status === 400
-          ? "You cannot disable all authentication methods."
-          : "Failed to update local authentication.",
-      );
-    } finally {
-      setTogglingLocal(false);
-    }
+  const handleLocalToggle = () => {
+    setToggleError(null);
+    localMutation.mutate(
+      { body: { enable: !settings?.local?.enabled } },
+      { onError: (err) => setToggleError(toggleErrorMessage(err, "local")) },
+    );
   };
 
-  const handleSamlToggle = async () => {
+  const handleSamlToggle = () => {
     if (!settings?.saml?.enabled) {
       setModalOpen(true);
       return;
     }
-    setTogglingSaml(true);
-    setError(null);
-    try {
-      await configureSamlAuthentication({
+    setToggleError(null);
+    samlMutation.mutate(
+      {
         body: {
           enable: false,
           idp: { entity_id: "", binding: {}, certificate: "" },
           sp: {},
         },
-        throwOnError: true,
-      });
-      refresh();
-    } catch (err) {
-      setError(
-        isSdkError(err) && err.status === 400
-          ? "You cannot disable all authentication methods."
-          : "Failed to update SAML authentication.",
-      );
-    } finally {
-      setTogglingSaml(false);
-    }
+      },
+      { onError: (err) => setToggleError(toggleErrorMessage(err, "SAML")) },
+    );
   };
 
-  const handleSamlSaved = () => {
-    refresh();
-  };
-
-  if (loading) {
+  if (settingsQuery.isLoading) {
     return (
       <div>
         <PageHeader
@@ -154,8 +125,8 @@ export default function AdminAuthentication() {
           control={
             <Toggle
               enabled={localEnabled}
-              disabled={togglingLocal}
-              onChange={() => void handleLocalToggle()}
+              disabled={localMutation.isPending}
+              onChange={handleLocalToggle}
               aria-label="Toggle local authentication"
             />
           }
@@ -172,8 +143,8 @@ export default function AdminAuthentication() {
           control={
             <Toggle
               enabled={samlEnabled}
-              disabled={togglingSaml}
-              onChange={() => void handleSamlToggle()}
+              disabled={samlMutation.isPending}
+              onChange={handleSamlToggle}
               aria-label="Toggle SAML authentication"
             />
           }
@@ -264,7 +235,10 @@ export default function AdminAuthentication() {
       <SamlConfigModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSaved={() => void handleSamlSaved()}
+        onSaved={() => {
+          setToggleError(null);
+          void invalidate();
+        }}
         existingConfig={saml}
       />
     </div>
