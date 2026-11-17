@@ -7,6 +7,7 @@ import {
 import { Button, Callout, IconBadge } from "@shellhub/design-system/primitives";
 import Modal from "../common/Modal";
 import CheckboxField from "@/components/common/fields/CheckboxField";
+import CopyButton from "@/components/common/CopyButton";
 import PasswordField from "@/components/common/fields/PasswordField";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "@/client";
@@ -14,7 +15,7 @@ import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import OtpCells from "@/components/mfa/OtpCells";
-import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
+import { downloadRecoveryCodes } from "@/utils/recoveryCodes";
 import { useAuthStore } from "@/stores/authStore";
 
 interface MfaEnableModalProps {
@@ -54,7 +55,6 @@ export default function MfaEnableModal({
   const [qrLink, setQrLink] = useState("");
   const [secret, setSecret] = useState("");
   const otp = useOtpInput(6);
-  const { handleDownload, handleCopy } = useRecoveryCodeActions();
 
   const handleConfirmExistingEmail = async () => {
     setError("");
@@ -384,18 +384,17 @@ export default function MfaEnableModal({
                   <div className="flex gap-2">
                     <Button
                       variant="secondary"
-                      onClick={() => void handleDownload(recoveryCodes)}
+                      size="sm"
+                      onClick={() => downloadRecoveryCodes(recoveryCodes)}
                       className="flex-1"
                     >
                       Download
                     </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => void handleCopy(recoveryCodes)}
+                    <CopyButton
+                      text={recoveryCodes.join("\n")}
+                      showLabel
                       className="flex-1"
-                    >
-                      Copy
-                    </Button>
+                    />
                   </div>
                 </>
               ) : (
