@@ -46,6 +46,12 @@ A session's own page adds the flow of the connection, the device it reached, and
 recording — the button that replays it. Active sessions can be inspected while they are still
 running.
 
+Administrators and owners also see the session's timeline: the command an exec ran, the subsystem
+a client opened and the terminal it asked for. The server shows it only to the roles that can
+replay a recording. It keeps no replay of a command run without a terminal, so the timeline is the
+only record of that command. Observers and operators see the session itself and its flow, not the
+timeline.
+
 ## Sessions and authorization
 
 Worth understanding together, because it explains something that otherwise looks like a bug.
@@ -113,8 +119,15 @@ A recording is a replay of a terminal, so it holds whatever that terminal showed
 decide how much of that exists and who reaches it.
 
 **Recording is a namespace setting, and a new namespace starts with it on.** Turn it off in
-[Settings](/manage/settings) and the server records nothing from then on. Nothing obliges a
-namespace to record, and a namespace that does not need an audit trail should not.
+[Settings](/manage/settings) and the server keeps no terminal replay from then on. Nothing obliges
+a namespace to record, and a namespace that does not need an audit trail should not.
+
+**Some things are kept either way.** With recording off, the server still keeps each session's
+metadata: who connected, to which device, when and from which address. It also keeps the commands
+exec ran and the subsystems such as SFTP a client opened, as the audit trail of what ran on a device.
+It does not keep what
+happened inside an SFTP transfer. It keeps nothing about the environment variables a client
+sends, and no body of a request it does not recognize.
 
 **Playback is administrator and owner only.** An operator can open a session and read the session
 list, and still cannot replay one. A recording is not something everybody in the namespace can
