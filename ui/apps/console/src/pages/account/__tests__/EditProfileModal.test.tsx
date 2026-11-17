@@ -207,6 +207,24 @@ describe("EditProfileModal", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("is gone after the modal closes and opens again", async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(<EditProfileModal {...defaultProps} />);
+      await user.clear(screen.getByLabelText("Email"));
+      await user.type(screen.getByLabelText("Email"), "new@example.com");
+      expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
+
+      rerender(<EditProfileModal {...defaultProps} open={false} />);
+      rerender(<EditProfileModal {...defaultProps} />);
+
+      expect(await screen.findByLabelText("Email")).toHaveValue(
+        "user@example.com",
+      );
+      expect(
+        screen.queryByLabelText("Current Password"),
+      ).not.toBeInTheDocument();
+    });
+
     it("is sent with the changed email", async () => {
       const { user } = await changeField("Email", "new@example.com");
       await user.type(screen.getByLabelText("Current Password"), "secret");
