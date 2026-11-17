@@ -107,10 +107,10 @@ func TestMigratorApply(t *testing.T) { //nolint:tparallel // the subtests run in
 		tables := testTables("history")
 
 		files := fstest.MapFS{
-			"001_transactional.tx.up.sql":    {Data: []byte("CREATE TABLE history_tx (id int);")},
-			"001_transactional.tx.down.sql":  {Data: []byte("DROP TABLE history_tx;")},
-			"002_non_transactional.up.sql":   {Data: []byte("CREATE TABLE history_conn (id int);\n--bun:split\nCREATE INDEX CONCURRENTLY history_conn_id ON history_conn (id);")},
-			"002_non_transactional.down.sql": {Data: []byte("DROP TABLE history_conn;")},
+			"001_transactional.tx.up.sql":       {Data: []byte("CREATE TABLE history_tx (id int);")},
+			"001_transactional.tx.down.sql":     {Data: []byte("DROP TABLE history_tx;")},
+			"002_non_transactional.up.sql":      {Data: []byte("CREATE TABLE history_conn (id int);\n--bun:split\nCREATE INDEX CONCURRENTLY history_conn_id ON history_conn (id);")},
+			"002_non_transactional.tx.down.sql": {Data: []byte("DROP TABLE history_conn;")},
 		}
 
 		migrations := loadTestMigrations(t, files, migrator.Go("003", "go", func(ctx context.Context, db *bun.DB) error {
@@ -164,6 +164,29 @@ func TestMigratorLoad(t *testing.T) {
 			files:        fstest.MapFS{"001_a.tx.up.sql": {Data: []byte("SELECT 1;")}},
 			goMigrations: []migrator.Migration{migrator.Go("001", "b", noop)},
 			err:          "share a name",
+		},
+		{
+			name:  "transactional file holding a statement a transaction refuses",
+			files: fstest.MapFS{"001_a.tx.up.sql": {Data: []byte("CREATE INDEX CONCURRENTLY a_idx ON a (id);")}},
+			err:   "must not carry the .tx. suffix",
+		},
+		{
+			name:  "plain file holding only transactional statements",
+			files: fstest.MapFS{"001_a.up.sql": {Data: []byte("DELETE FROM a;\n--bun:split\nUPDATE a SET b = 1;")}},
+			err:   "must carry the .tx. suffix",
+		},
+		{
+			name: "plain down file holding only transactional statements",
+			files: fstest.MapFS{
+				"001_a.up.sql":   {Data: []byte("CREATE INDEX CONCURRENTLY a_idx ON a (id);")},
+				"001_a.down.sql": {Data: []byte("DROP TABLE a;")},
+			},
+			err: "001_a.down.sql: no statement in it needs to run outside a transaction",
+		},
+		{
+			name:  "statement a transaction refuses sharing its chunk",
+			files: fstest.MapFS{"001_a.up.sql": {Data: []byte("SET lock_timeout = '60s';\nCREATE INDEX CONCURRENTLY a_idx ON a (id);")}},
+			err:   "shares its --bun:split chunk with 1 other statement(s)",
 		},
 		{
 			name:         "go migration without a function",
