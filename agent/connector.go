@@ -105,6 +105,11 @@ func (d *DockerConnector) events(ctx context.Context) (<-chan events.Message, <-
 	})
 }
 
+// List returns the running containers that carry the connector's label, or every running
+// container when no label is set. A container that cannot be inspected, usually because it was
+// removed after the daemon listed it, is logged and left out. List returns the error the daemon
+// gives when it cannot list containers, and ctx's error once ctx is cancelled, without logging
+// the containers it did not reach.
 func (d *DockerConnector) List(ctx context.Context) ([]connector.Container, error) {
 	filters := filters.NewArgs()
 	if d.Label != "" {
@@ -118,16 +123,21 @@ func (d *DockerConnector) List(ctx context.Context) ([]connector.Container, erro
 		return nil, err
 	}
 
-	list := make([]connector.Container, len(containers))
-	for i, container := range containers {
-		list[i].ID = container.ID
-
+	list := make([]connector.Container, 0, len(containers))
+	for _, container := range containers {
 		name, err := d.getContainerNameFromID(ctx, container.ID)
 		if err != nil {
-			return nil, err
+			if cancelled(ctx) {
+				return nil, ctx.Err()
+			}
+
+			log.WithError(err).WithField("id", container.ID).
+				Warn("Skipping a listed container the connector could not inspect")
+
+			continue
 		}
 
-		list[i].Name = name
+		list = append(list, connector.Container{ID: container.ID, Name: name})
 	}
 
 	return list, nil
@@ -166,6 +176,10 @@ func (d *DockerConnector) Stop(_ context.Context, id string) {
 	}
 }
 
+func cancelled(ctx context.Context) bool {
+	return ctx.Err() != nil
+}
+
 func (d *DockerConnector) getContainerNameFromID(ctx context.Context, id string) (string, error) {
 	container, err := d.cli.ContainerInspect(ctx, id)
 	if err != nil {
@@ -182,9 +196,17 @@ func (d *DockerConnector) getContainerNameFromID(ctx context.Context, id string)
 	return name, nil
 }
 
-// Listen listens for events and starts or stops the agent for the containers.
+// Listen starts an agent for each container [DockerConnector.List] returns, then follows the
+// daemon's events, starting an agent when a container starts and stopping it when the container
+// dies. A started container that cannot be inspected is logged and skipped. Listen returns nil
+// once ctx is cancelled, even when the daemon reports the cancellation as an error. Otherwise it
+// returns the error from [DockerConnector.List] or the error the events stream reports.
 func (d *DockerConnector) Listen(ctx context.Context) error {
 	containers, err := d.List(ctx)
+	if cancelled(ctx) {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -199,13 +221,24 @@ func (d *DockerConnector) Listen(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case err := <-errs:
+			if cancelled(ctx) {
+				return nil
+			}
+
 			return err
 		case container := <-events:
 			switch container.Action {
 			case "start":
 				name, err := d.getContainerNameFromID(ctx, container.Actor.ID)
+				if cancelled(ctx) {
+					return nil
+				}
+
 				if err != nil {
-					return err
+					log.WithError(err).WithField("id", container.Actor.ID).
+						Warn("Skipping a started container the connector could not inspect")
+
+					continue
 				}
 
 				d.Start(ctx, container.Actor.ID, name)
