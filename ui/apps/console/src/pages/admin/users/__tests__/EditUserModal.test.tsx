@@ -217,7 +217,7 @@ describe("EditUserModal", () => {
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
 
-    it("sends max_namespaces as undefined when limit is not enabled", async () => {
+    it("sends max_namespaces as -1 when the limit is not enabled", async () => {
       const user = userEvent.setup();
       renderModal({ user: { ...mockUser, max_namespaces: undefined } });
 
@@ -227,6 +227,28 @@ describe("EditUserModal", () => {
         expect(updateSpy).toHaveBeenCalledWith(
           expect.objectContaining({
             path: { id: "u1" },
+            body: expect.objectContaining({ max_namespaces: -1 }),
+          }),
+        );
+      });
+    });
+
+    it.each([
+      ["a limit of 5", 5],
+      ["namespace creation disabled", 0],
+    ])("sends max_namespaces as -1 when the admin unticks %s", async (_, maxNamespaces) => {
+      const user = userEvent.setup();
+      renderModal({ user: { ...mockUser, max_namespaces: maxNamespaces } });
+
+      await user.click(
+        screen.getByLabelText(/set namespace creation limit/i),
+      );
+      await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+      await waitFor(() => {
+        expect(updateSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            body: expect.objectContaining({ max_namespaces: -1 }),
           }),
         );
       });
