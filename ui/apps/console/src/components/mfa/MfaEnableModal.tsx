@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect, useRef } from "react";
+import { useState, FormEvent } from "react";
 import {
   ShieldCheckIcon,
   CheckCircleIcon,
@@ -12,6 +12,7 @@ import { QRCodeDisplay } from "./QRCodeDisplay";
 import { generateMfa, enableMfa, updateUser } from "@/client";
 import { isSdkError } from "@/api/errors";
 import { useOtpInput } from "@/hooks/useOtpInput";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import OtpCells from "@/components/mfa/OtpCells";
 import { useRecoveryCodeActions } from "@/hooks/useRecoveryCodeActions";
 import { useAuthStore } from "@/stores/authStore";
@@ -172,36 +173,23 @@ export default function MfaEnableModal({
     }
   };
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleClose = (): void => {
-    onClose();
-    timeoutRef.current = setTimeout(() => {
-      setStep(1);
-      setRecoveryEmail("");
-      setCurrentPassword("");
-      setUserWantsNewEmail(false);
-      setPendingRecoveryEmail("");
-      setRecoveryCodes([]);
-      setCodesSaved(false);
-      setQrLink("");
-      setSecret("");
-      otp.reset();
-      setError("");
-    }, 300);
-  };
+  useResetOnOpen(open, () => {
+    setStep(1);
+    setRecoveryEmail("");
+    setCurrentPassword("");
+    setUserWantsNewEmail(false);
+    setPendingRecoveryEmail("");
+    setRecoveryCodes([]);
+    setCodesSaved(false);
+    setQrLink("");
+    setSecret("");
+    otp.reset();
+    setError("");
+  });
 
   const handleDone = (): void => {
     onSuccess();
-    handleClose();
+    onClose();
   };
 
   const isCodeComplete = otp.isComplete;
@@ -210,14 +198,14 @@ export default function MfaEnableModal({
     <Modal
       size="lg"
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       icon={<ShieldCheckIcon />}
       title="Enable MFA"
       description="Sign in with a code from your authenticator app on top of your password."
       footer={
         step === 1 ? (
           <>
-            <Button variant="ghost" onClick={handleClose}>
+            <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
             {pendingRecoveryEmail ? (
@@ -246,7 +234,7 @@ export default function MfaEnableModal({
           </>
         ) : step === 2 ? (
           <>
-            <Button variant="ghost" onClick={handleClose}>
+            <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
             <Button

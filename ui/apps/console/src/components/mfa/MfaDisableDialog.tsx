@@ -7,6 +7,7 @@ import { Button, Callout } from "@shellhub/design-system/primitives";
 import { disableMfa } from "@/client";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useOtpInput } from "@/hooks/useOtpInput";
+import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import {
   mfaResetCodesRejectedMessage,
@@ -49,6 +50,13 @@ export default function MfaDisableDialog({
   const { user, username } = useAuthStore();
   const { requestMfaReset } = useMfaResetStore();
   const handOverSignOut = useHandOverSignOut();
+
+  useResetOnOpen(open, () => {
+    if (!emailRequested) setMode("totp");
+    otp.reset();
+    setRecoveryCode("");
+    setError("");
+  });
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
@@ -105,15 +113,6 @@ export default function MfaDisableDialog({
 
       onSuccess();
       onClose();
-      setTimeout(() => {
-        setMode("totp");
-        otp.reset();
-        setRecoveryCode("");
-        setEmailRequested(false);
-        otpMainEmail.reset();
-        otpRecoveryEmail.reset();
-        setError("");
-      }, 300);
     } catch {
       let errorMessage = "Invalid verification code";
       if (mode === "recovery") {
