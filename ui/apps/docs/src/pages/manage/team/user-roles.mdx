@@ -13,8 +13,8 @@ itself.
 
 | Role | Can |
 |---|---|
-| **Observer** | View device and session details. Nothing else. An observer cannot connect to a device, except by native SSH in a legacy namespace |
-| **Operator** | Device-related operations — connecting, viewing details, managing devices — but **not** removing a device. Also has session details. Sees provisioning keys and their registrations and accepts or rejects the devices waiting under them, but cannot reveal a key |
+| **Observer** | View devices, and sessions with their metadata, but not the commands they ran or their recordings. Nothing else. An observer cannot connect to a device, except by native SSH in a legacy namespace |
+| **Operator** | Connects to devices, views their details and manages them, but cannot remove one. Sees sessions and their metadata, but not the commands they ran or their recordings. Sees provisioning keys and their registrations and accepts or rejects the devices waiting under them, but cannot reveal a key |
 | **Administrator** | Nearly everything the owner can, but cannot delete the namespace, and has no billing actions |
 | **Owner** | Everything |
 
@@ -60,8 +60,9 @@ membership at all. Grant those deliberately, by naming the API key. See
 
 ## Choosing
 
-**Observer** for people who need to look — support staff triaging, someone reviewing a session
-recording.
+**Observer** for people who need to look, such as support staff triaging. Someone reviewing a
+session recording needs **Administrator**: only administrators and owners can replay one or read
+the commands a session ran.
 
 **Operator** for the people doing the work. The inability to remove a device is the point: they
 can operate the fleet without being able to erase parts of it.
