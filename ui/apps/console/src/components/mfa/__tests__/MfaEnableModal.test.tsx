@@ -1,11 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  render as rtlRender,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import type { ReactElement } from "react";
 import userEvent from "@testing-library/user-event";
 import type { MfaGenerate } from "@/client";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { mockUserAuth } from "@/tests/factories";
 import MfaEnableModal from "../MfaEnableModal";
+import { createTestWrapper } from "@/tests/wrapper";
+
+const render = (ui: ReactElement) =>
+  rtlRender(ui, { wrapper: createTestWrapper() });
 
 vi.mock("qrcode");
 
