@@ -63,6 +63,13 @@ const (
 	//
 	// https://www.rfc-editor.org/rfc/rfc4254#section-6.9
 	SignalRequestType = "signal"
+	// EnvRequestType passes an environment variable to the device. Its value is often a secret, so
+	// the gateway forwards it and records nothing about it.
+	//
+	//  Environment variables may be passed to the shell/command to be started later.
+	//
+	// https://www.rfc-editor.org/rfc/rfc4254#section-6.4
+	EnvRequestType = "env"
 	// ExitStatusRequest carries the command's exit code back to the client.
 	//
 	//  When the command running at the other end terminates, the following message can be sent to return the exit
@@ -252,7 +259,7 @@ func (r *sessionRelay) recordAgentRequest(req *gossh.Request) (exited bool) {
 
 		return true
 	default:
-		r.sess.Event(req.Type, req.Payload, r.seat)
+		r.sess.Event(req.Type, nil, r.seat)
 
 		return false
 	}
@@ -318,8 +325,9 @@ func (r *sessionRelay) handleClientRequest(req *gossh.Request) {
 		return
 	case AuthRequestOpenSSHRequest:
 		r.startAgentForwarding(req)
+	case EnvRequestType:
 	default:
-		r.sess.Event(req.Type, req.Payload, r.seat)
+		r.sess.Event(req.Type, nil, r.seat)
 	}
 
 	r.logger.Debugf("request from client to agent: %s", req.Type)

@@ -180,16 +180,24 @@ func (f *fakeSession) Announce(gossh.Channel) error { return nil }
 
 type recordedEvent struct {
 	Type models.SessionEventType
+	Data any
 	Seat int
 }
 
-func (f *fakeSession) Event(t string, _ any, seat int) {
+func (f *fakeSession) Event(t string, data any, seat int) {
 	f.record("Event")
 
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	f.events = append(f.events, recordedEvent{Type: models.SessionEventType(t), Seat: seat})
+	f.events = append(f.events, recordedEvent{Type: models.SessionEventType(t), Data: data, Seat: seat})
+}
+
+func (f *fakeSession) recordedEvents() []recordedEvent {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	return slices.Clone(f.events)
 }
 
 func (f *fakeSession) Seat(int) (session.Seat, bool) { return session.Seat{}, true }
@@ -440,7 +448,7 @@ func TestDirectTCPIPChannelRecordsAnOpenedForwardOnSeatZeroWithoutTakingASeat(t 
 	newChan := openForward(t, sess, forwardPayload(t))
 
 	assert.True(t, newChan.accepted, "the client channel must be accepted")
-	assert.Equal(t, []recordedEvent{{Type: models.SessionEventTypeDirectTCPIP, Seat: 0}}, sess.events)
+	assert.Equal(t, []recordedEvent{{Type: models.SessionEventTypeDirectTCPIP, Data: &forwardData{DestAddr: "10.0.0.1", DestPort: 8080, OriginAddr: "127.0.0.1", OriginPort: 1234}, Seat: 0}}, sess.recordedEvents())
 	assert.False(t, sess.called("NewSeat"), "a forward must leave the seats to the shell and exec channels")
 }
 
@@ -452,9 +460,9 @@ func TestDirectTCPIPChannelRecordsOnlyTheFirstForwardToEachDestination(t *testin
 	openForward(t, sess, gossh.Marshal(&forwardData{DestAddr: "10.0.0.2", DestPort: 8080, OriginAddr: "127.0.0.1", OriginPort: 1235}))
 
 	assert.Equal(t, []recordedEvent{
-		{Type: models.SessionEventTypeDirectTCPIP, Seat: 0},
-		{Type: models.SessionEventTypeDirectTCPIP, Seat: 0},
-	}, sess.events)
+		{Type: models.SessionEventTypeDirectTCPIP, Data: &forwardData{DestAddr: "10.0.0.1", DestPort: 8080, OriginAddr: "127.0.0.1", OriginPort: 1234}, Seat: 0},
+		{Type: models.SessionEventTypeDirectTCPIP, Data: &forwardData{DestAddr: "10.0.0.2", DestPort: 8080, OriginAddr: "127.0.0.1", OriginPort: 1235}, Seat: 0},
+	}, sess.recordedEvents())
 	assert.Equal(t, []string{"10.0.0.1:8080", "10.0.0.2:8080"}, sess.forwarded)
 }
 
@@ -966,4 +974,121 @@ func TestSessionChannelForwardsEveryAgentRequestToTheDeviceAndStartsForwarding(t
 	}
 
 	assert.True(t, sess.called("ForwardAgent"), "an agent request must reach the session")
+}
+
+func relayToRefusingDevice(t *testing.T) (*gossh.Session, *fakeSession, <-chan string) {
+	t.Helper()
+
+	received := make(chan string, 1)
+
+	client, sess := relayToDevice(t, func(chans <-chan gossh.NewChannel) { serveDeviceRefusingRequests(chans, received) })
+
+	return client, sess, received
+}
+
+func relayToDevice(t *testing.T, serveDevice func(<-chan gossh.NewChannel)) (*gossh.Session, *fakeSession) {
+	t.Helper()
+
+	sshClient, gatewayChannels := sshClientOverLoopback(t)
+	agentClient, deviceChannels := sshClientOverLoopback(t)
+
+	go serveDevice(deviceChannels)
+
+	type opened struct {
+		session *gossh.Session
+		err     error
+	}
+
+	sessions := make(chan opened, 1)
+
+	go func() {
+		sess, err := sshClient.NewSession()
+		sessions <- opened{session: sess, err: err}
+	}()
+
+	accepted, clientRequests, err := (<-gatewayChannels).Accept()
+	require.NoError(t, err)
+
+	opening := <-sessions
+	require.NoError(t, opening.err)
+
+	agentChannel, agentRequests, err := agentClient.OpenChannel(SessionChannel, nil)
+	require.NoError(t, err)
+
+	sess := &fakeSession{ //nolint:exhaustruct // only the agent and client channels matter here
+		agent:  &session.AgentChannel{Channel: agentChannel, Requests: agentRequests},
+		client: &session.ClientChannel{Channel: accepted, Requests: clientRequests},
+	}
+
+	go sessionChannel(newStubContext(), sess, new(rejectingNewChannel))
+
+	return opening.session, sess
+}
+
+type envRequest struct {
+	Name  string
+	Value string
+}
+
+func TestSessionChannelForwardsAnEnvRequestToTheDeviceAndRecordsNothing(t *testing.T) {
+	client, sess, received := relayToRefusingDevice(t)
+
+	_, err := client.SendRequest(EnvRequestType, true, gossh.Marshal(envRequest{Name: "TOKEN", Value: "secret"}))
+	require.NoError(t, err)
+
+	assert.Equal(t, EnvRequestType, <-received, "the env request must still reach the device")
+
+	assert.Empty(t, sess.recordedEvents(), "an env request must leave no event")
+}
+
+func TestSessionChannelRecordsAnUnknownRequestByItsTypeAlone(t *testing.T) {
+	const unknown = "unknown@client"
+
+	client, sess, received := relayToRefusingDevice(t)
+
+	_, err := client.SendRequest(unknown, true, []byte("client payload"))
+	require.NoError(t, err)
+
+	assert.Equal(t, unknown, <-received, "the unknown request must still reach the device")
+
+	assert.Equal(t, []recordedEvent{{Type: unknown, Data: nil, Seat: 0}}, sess.recordedEvents(), "an unknown request must be recorded with no payload")
+}
+
+func TestSessionChannelRecordsTheCommandAnExecRuns(t *testing.T) {
+	client, sess, received := relayToRefusingDevice(t)
+
+	_, err := client.SendRequest(ExecRequestType, true, gossh.Marshal(models.SSHCommand{Command: "uptime"}))
+	require.NoError(t, err)
+
+	assert.Equal(t, ExecRequestType, <-received)
+
+	assert.Equal(t, []recordedEvent{{Type: models.SessionEventTypeExec, Data: &models.SSHCommand{Command: "uptime"}, Seat: 0}}, sess.recordedEvents())
+}
+
+func serveDeviceSendingARequest(chans <-chan gossh.NewChannel, requestType string, payload []byte) {
+	newChannel, ok := <-chans
+	if !ok {
+		return
+	}
+
+	channel, requests, err := newChannel.Accept()
+	if err != nil {
+		return
+	}
+
+	go gossh.DiscardRequests(requests)
+
+	_, _ = channel.SendRequest(requestType, false, payload)
+}
+
+func TestSessionChannelRecordsAnUnknownDeviceRequestByItsTypeAlone(t *testing.T) {
+	const unknown = "unknown@device"
+
+	_, sess := relayToDevice(t, func(chans <-chan gossh.NewChannel) {
+		serveDeviceSendingARequest(chans, unknown, []byte("device payload"))
+	})
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		assert.Equal(tt, []recordedEvent{{Type: unknown, Data: nil, Seat: 0}}, sess.recordedEvents(), "an unknown device request must be recorded with no payload")
+	}, 5*time.Second, 10*time.Millisecond)
 }
