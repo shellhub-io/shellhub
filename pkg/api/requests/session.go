@@ -15,9 +15,13 @@ type ListSessions struct {
 	query.Filters
 }
 
-// SessionGet is the structure to represent the request data for get session endpoint.
+// SessionGet is the request data for the get session endpoint. Timeline asks for the session's
+// event timeline; the handler sets it when the caller may replay recordings or is on the instance
+// admin console, so it is never read from the request and a client cannot ask for a timeline it may
+// not read.
 type SessionGet struct {
 	SessionIDParam
+	Timeline bool `json:"-" query:"-"`
 }
 
 // SessionCreate is the structure to represent the request data for create session endpoint.

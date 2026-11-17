@@ -4132,8 +4132,8 @@ func (_c *MockService_GetSSHApprovalStatus_Call) RunAndReturn(run func(ctx conte
 }
 
 // GetSession provides a mock function for the type MockService
-func (_mock *MockService) GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error) {
-	ret := _mock.Called(ctx, sc, uid)
+func (_mock *MockService) GetSession(ctx context.Context, sc scope.Scope, req requests.SessionGet) (*models.Session, error) {
+	ret := _mock.Called(ctx, sc, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSession")
@@ -4141,18 +4141,18 @@ func (_mock *MockService) GetSession(ctx context.Context, sc scope.Scope, uid mo
 
 	var r0 *models.Session
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) (*models.Session, error)); ok {
-		return returnFunc(ctx, sc, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, requests.SessionGet) (*models.Session, error)); ok {
+		return returnFunc(ctx, sc, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.UID) *models.Session); ok {
-		r0 = returnFunc(ctx, sc, uid)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, requests.SessionGet) *models.Session); ok {
+		r0 = returnFunc(ctx, sc, req)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Session)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, models.UID) error); ok {
-		r1 = returnFunc(ctx, sc, uid)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, requests.SessionGet) error); ok {
+		r1 = returnFunc(ctx, sc, req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4167,12 +4167,12 @@ type MockService_GetSession_Call struct {
 // GetSession is a helper method to define mock.On call
 //   - ctx context.Context
 //   - sc scope.Scope
-//   - uid models.UID
-func (_e *MockService_Expecter) GetSession(ctx any, sc any, uid any) *MockService_GetSession_Call {
-	return &MockService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, sc, uid)}
+//   - req requests.SessionGet
+func (_e *MockService_Expecter) GetSession(ctx any, sc any, req any) *MockService_GetSession_Call {
+	return &MockService_GetSession_Call{Call: _e.mock.On("GetSession", ctx, sc, req)}
 }
 
-func (_c *MockService_GetSession_Call) Run(run func(ctx context.Context, sc scope.Scope, uid models.UID)) *MockService_GetSession_Call {
+func (_c *MockService_GetSession_Call) Run(run func(ctx context.Context, sc scope.Scope, req requests.SessionGet)) *MockService_GetSession_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -4182,9 +4182,9 @@ func (_c *MockService_GetSession_Call) Run(run func(ctx context.Context, sc scop
 		if args[1] != nil {
 			arg1 = args[1].(scope.Scope)
 		}
-		var arg2 models.UID
+		var arg2 requests.SessionGet
 		if args[2] != nil {
-			arg2 = args[2].(models.UID)
+			arg2 = args[2].(requests.SessionGet)
 		}
 		run(
 			arg0,
@@ -4200,7 +4200,7 @@ func (_c *MockService_GetSession_Call) Return(session *models.Session, err error
 	return _c
 }
 
-func (_c *MockService_GetSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error)) *MockService_GetSession_Call {
+func (_c *MockService_GetSession_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, req requests.SessionGet) (*models.Session, error)) *MockService_GetSession_Call {
 	_c.Call.Return(run)
 	return _c
 }

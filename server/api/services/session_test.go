@@ -298,6 +298,7 @@ func TestGetSession(t *testing.T) {
 		name          string
 		scope         scope.Scope
 		uid           models.UID
+		timeline      bool
 		requiredMocks func(storeMock *storemock.MockStore)
 		expected      Expected
 	}{
@@ -315,9 +316,10 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			name:  "passes the caller's bounded scope straight to the store",
-			scope: boundedScope,
-			uid:   models.UID("uid"),
+			name:     "passes the caller's bounded scope straight to the store",
+			scope:    boundedScope,
+			uid:      models.UID("uid"),
+			timeline: true,
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				session := &models.Session{UID: "uid", TenantID: "00000000-0000-4000-0000-000000000000"}
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
@@ -335,9 +337,10 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			name:  "assigns the timeline to the session it resolved",
-			scope: boundedScope,
-			uid:   models.UID("uid"),
+			name:     "assigns the timeline to the session it resolved",
+			scope:    boundedScope,
+			uid:      models.UID("uid"),
+			timeline: true,
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(&models.Session{UID: "uid"}, nil).Once()
@@ -355,14 +358,28 @@ func TestGetSession(t *testing.T) {
 			},
 		},
 		{
-			name:  "returns the session without a timeline when the events query fails",
-			scope: boundedScope,
-			uid:   models.UID("uid"),
+			name:     "returns the session without a timeline when the events query fails",
+			scope:    boundedScope,
+			uid:      models.UID("uid"),
+			timeline: true,
 			requiredMocks: func(storeMock *storemock.MockStore) {
 				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
 					Return(&models.Session{UID: "uid"}, nil).Once()
 				storeMock.On("SessionEventsTimeline", ctx, models.UID("uid"), int64(sessionTimelineMaxEvents)).
 					Return(nil, goerrors.New("error")).Once()
+			},
+			expected: Expected{
+				session: &models.Session{UID: "uid"},
+				err:     nil,
+			},
+		},
+		{
+			name:  "leaves the timeline unread for a caller who may not replay",
+			scope: boundedScope,
+			uid:   models.UID("uid"),
+			requiredMocks: func(storeMock *storemock.MockStore) {
+				storeMock.On("SessionResolve", ctx, boundedScope, store.SessionUIDResolver, "uid").
+					Return(&models.Session{UID: "uid"}, nil).Once()
 			},
 			expected: Expected{
 				session: &models.Session{UID: "uid"},
@@ -390,7 +407,7 @@ func TestGetSession(t *testing.T) {
 			tc.requiredMocks(storeMock)
 
 			service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
-			returnedSession, err := service.GetSession(ctx, tc.scope, tc.uid)
+			returnedSession, err := service.GetSession(ctx, tc.scope, requests.SessionGet{SessionIDParam: requests.SessionIDParam{UID: string(tc.uid)}, Timeline: tc.timeline})
 			assert.Equal(t, tc.expected, Expected{returnedSession, err})
 			storeMock.AssertExpectations(t)
 		})
