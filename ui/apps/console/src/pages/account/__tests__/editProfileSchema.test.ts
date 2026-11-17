@@ -6,6 +6,7 @@ import {
 } from "../editProfileSchema";
 
 const ALL_CHANGED = { name: "\0", email: "\0", recoveryEmail: "\0" };
+const NO_RECOVERY_EMAIL = { ...ALL_CHANGED, recoveryEmail: "" };
 
 function resolve(
   values: Partial<EditProfileFormValues>,
@@ -59,13 +60,16 @@ describe("editProfileSchema", () => {
       ).toEqual({});
     });
 
-    it("produces no errors when recoveryEmail is empty", () => {
+    it("produces no errors when recoveryEmail is empty and none is stored", () => {
       expect(
-        resolve({
-          name: "Alice",
-          email: "alice@example.com",
-          recoveryEmail: "",
-        }),
+        resolve(
+          {
+            name: "Alice",
+            email: "alice@example.com",
+            recoveryEmail: "",
+          },
+          NO_RECOVERY_EMAIL,
+        ),
       ).toEqual({});
     });
   });
@@ -117,8 +121,19 @@ describe("editProfileSchema", () => {
   });
 
   describe("recoveryEmail", () => {
-    it("emits no error when recoveryEmail is empty", () => {
-      expect(resolve({ recoveryEmail: "" }).recoveryEmail).toBeUndefined();
+    it("emits no error when recoveryEmail is empty and none is stored", () => {
+      expect(
+        resolve({ recoveryEmail: "" }, NO_RECOVERY_EMAIL).recoveryEmail,
+      ).toBeUndefined();
+    });
+
+    it.each([
+      ["empty", ""],
+      ["blank", "   "],
+    ])("emits 'Recovery email can't be removed' when a stored one is %s", (_, recoveryEmail) => {
+      expect(resolve({ recoveryEmail }).recoveryEmail).toBe(
+        "Recovery email can't be removed",
+      );
     });
 
     it("emits error for an invalid recovery email format", () => {
@@ -176,6 +191,16 @@ describe("editProfileSchema", () => {
       expect(resolve({ ...unchanged, ...change }, stored).currentPassword).toBe(
         "Enter your current password to change an email",
       );
+    });
+
+    it.each([
+      ["email is cleared", { email: "" }],
+      ["recovery email is cleared", { recoveryEmail: "" }],
+      ["email is invalid", { email: "not-an-email" }],
+    ])("is not needed while the %s", (_, change) => {
+      expect(
+        resolve({ ...unchanged, ...change }, stored).currentPassword,
+      ).toBeUndefined();
     });
 
     it("is satisfied by any entry, which the server checks", () => {
