@@ -268,11 +268,11 @@ func TestGateway(t *testing.T) {
 		assert.NotContains(t, compose.ServerLogSince(t, mark), path, "the request after the preamble reached the API")
 	})
 
-	t.Run("X-Real-IP carries the address the client connected from", func(t *testing.T) {
+	t.Run("a client cannot name its address in X-Real-IP or X-Forwarded-For", func(t *testing.T) {
 		mark := compose.ServerLogMark(t)
 		path := probePath()
 
-		execInServer(t, compose, "wget -q -O- --header 'X-Real-IP: "+forgedAddress+"' http://localhost"+path)
+		execInServer(t, compose, "wget -q -O- --header 'X-Real-IP: "+forgedAddress+"' --header 'X-Forwarded-For: "+forgedAddress+"' http://localhost"+path)
 
 		remote := net.ParseIP(requestLogged(t, compose, mark, path)["remote_ip"])
 		require.NotNil(t, remote)
