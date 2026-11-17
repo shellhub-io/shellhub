@@ -8,6 +8,7 @@ import { emailRefusalMessage } from "@/utils/emailRefusal";
 import {
   changesAnAddress,
   editProfileSchema,
+  needsCurrentPassword,
   type EditProfileFormValues,
   type CurrentProfileValues,
 } from "@/pages/account/editProfileSchema";
@@ -80,7 +81,7 @@ export function EditProfileModal({
     control,
     name: ["email", "recoveryEmail"],
   });
-  const needsPassword = changesAnAddress(
+  const needsPassword = needsCurrentPassword(
     { email: watchedEmail, recoveryEmail: watchedRecoveryEmail },
     current,
   );
