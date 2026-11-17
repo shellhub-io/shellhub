@@ -161,6 +161,7 @@ export default function SignUp() {
             control={control}
             placeholder="username"
             autoComplete="username"
+            autoCapitalize="none"
             onValueChange={() => clearSignUpServerField("username")}
           />
         </div>

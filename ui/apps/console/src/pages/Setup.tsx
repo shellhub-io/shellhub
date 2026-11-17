@@ -143,6 +143,7 @@ export default function Setup() {
                 name="username"
                 control={control}
                 placeholder="username"
+                autoCapitalize="none"
                 maxLength={32}
               />
             </div>

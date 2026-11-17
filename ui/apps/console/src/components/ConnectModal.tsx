@@ -578,6 +578,7 @@ export default function ConnectModal({
             data-autofocus
             variant="mono"
             autoComplete="off"
+            autoCapitalize="none"
             spellCheck={false}
             value={state.username}
             onChange={(v) => dispatch({ type: "setUsername", value: v })}
