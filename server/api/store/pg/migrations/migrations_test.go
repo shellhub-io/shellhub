@@ -43,6 +43,10 @@ var nonTransactionalStatements = []string{
 // suffix, and the pool runs in pgx simple-protocol mode where a multi-statement Exec is itself
 // an implicit transaction block. Getting either wrong fails at boot, not in review.
 //
+// It also holds the converse: a file without the ".tx." suffix must contain such a statement.
+// Dropping the suffix from any other file commits each chunk on its own, so a failed boot leaves
+// the migration half applied, which no test notices.
+//
 // Such a file must also be safe to run twice. The runner records it only after its last chunk,
 // so a boot killed in between runs every chunk again, as 033 and 038 can, since they drop their
 // index before creating it.
@@ -58,6 +62,8 @@ func TestNonTransactionalMigrations(t *testing.T) {
 			t.Fatalf("failed to read %q: %v", file, err)
 		}
 
+		needsAutocommit := false
+
 		for chunk := range strings.SplitSeq(string(raw), "--bun:split") {
 			statement := stripSQLComments(chunk)
 
@@ -66,6 +72,8 @@ func TestNonTransactionalMigrations(t *testing.T) {
 				continue
 			}
 
+			needsAutocommit = true
+
 			if strings.Contains(file, ".tx.") {
 				t.Errorf("%s: %q cannot run inside a transaction, so the file must not carry the .tx. suffix", file, keyword)
 			}
@@ -73,6 +81,10 @@ func TestNonTransactionalMigrations(t *testing.T) {
 			if n := countStatements(statement); n > 1 {
 				t.Errorf("%s: %q shares its --bun:split chunk with %d other statement(s), which simple-protocol mode batches into an implicit transaction", file, keyword, n-1)
 			}
+		}
+
+		if !needsAutocommit && !strings.Contains(file, ".tx.") {
+			t.Errorf("%s: no statement in it needs to run outside a transaction, so the file must carry the .tx. suffix", file)
 		}
 	}
 }
