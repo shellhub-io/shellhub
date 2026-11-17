@@ -153,6 +153,7 @@ export default function SignInForm({
         control={control}
         placeholder="username"
         autoComplete="username"
+        autoCapitalize="none"
       />
 
       <FormPasswordField<LoginFormValues>

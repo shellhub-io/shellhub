@@ -59,6 +59,7 @@ export default function UserFormFields({
         placeholder={isCreate ? "johndoe" : undefined}
         hint={USERNAME_HINT}
         autoComplete="username"
+        autoCapitalize="none"
         maxLength={USERNAME_MAX_LENGTH}
         required={usernameRequired}
       />

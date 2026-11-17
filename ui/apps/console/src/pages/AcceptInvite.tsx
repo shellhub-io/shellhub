@@ -267,6 +267,7 @@ export default function AcceptInvite() {
               control={control}
               placeholder="username"
               autoComplete="username"
+              autoCapitalize="none"
             />
             <FormPasswordField<InviteFormValues>
               id="invite-password"

@@ -72,6 +72,7 @@ export default function ForgotPassword() {
             label="Username or email address"
             placeholder="username or email"
             autoComplete="username"
+            autoCapitalize="none"
             required
           />
 
