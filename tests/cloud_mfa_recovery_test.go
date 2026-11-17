@@ -112,7 +112,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("three wrong recovery codes cancel the reset and the right pair is refused after them", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-reset-guess")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-reset-guess")
 		codes := requestMFAReset(t, compose, user)
 
 		wrong := map[string]string{"main_email_code": codes["main_email_code"], "recovery_email_code": "ZZZZZ"}
@@ -148,7 +148,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("pairs with both codes wrong do not cancel the reset", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-reset-outsider")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-reset-outsider")
 		codes := requestMFAReset(t, compose, user)
 
 		wrong := map[string]string{"main_email_code": "ZZZZZ", "recovery_email_code": "ZZZZZ"}
@@ -168,7 +168,7 @@ func TestCloudMFARecovery(t *testing.T) {
 	})
 
 	t.Run("a reset request answers alike for an unknown account and is throttled per identifier", func(t *testing.T) {
-		user := newMFAUser(t, compose, "mfa-reset-ask")
+		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-reset-ask")
 
 		requestReset := func(identifier string) string {
 			var answer struct {
