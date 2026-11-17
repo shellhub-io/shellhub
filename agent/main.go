@@ -239,7 +239,7 @@ func main() {
 			go selfupdater.Watch(cmd.Context(), log.NewEntry(log.StandardLogger()), AgentVersion, currentVersion, connector.CheckUpdate, updater, updateTicker.C)
 
 			if err := connector.Listen(cmd.Context()); err != nil {
-				logger.Fatal("Failed to listen for connections")
+				logger.WithError(err).Fatal("Failed to listen for connections")
 			}
 
 			logger.Info("ShellHub Agent Connector stopped")
