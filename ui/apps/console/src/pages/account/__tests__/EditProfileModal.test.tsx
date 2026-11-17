@@ -192,6 +192,21 @@ describe("EditProfileModal", () => {
       expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
     });
 
+    it.each([
+      ["Email", "Email is required"],
+      ["Recovery Email", "Recovery email can't be removed"],
+    ])("is not asked for while the %s is cleared", async (label, message) => {
+      const user = userEvent.setup();
+      render(<EditProfileModal {...defaultProps} />);
+
+      await user.clear(screen.getByLabelText(label));
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Current Password"),
+      ).not.toBeInTheDocument();
+    });
+
     it("is sent with the changed email", async () => {
       const { user } = await changeField("Email", "new@example.com");
       await user.type(screen.getByLabelText("Current Password"), "secret");
