@@ -208,7 +208,7 @@ export function EditProfileModal({
         hint={
           emailsManagedExternally
             ? "Managed by your identity provider."
-            : "Optional. Used for account recovery if you lose access."
+            : `${currentRecoveryEmail ? "" : "Optional. "}Used for account recovery if you lose access.`
         }
         onValueChange={() => clearErrors("root")}
       />
