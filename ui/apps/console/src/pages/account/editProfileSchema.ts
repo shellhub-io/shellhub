@@ -41,12 +41,39 @@ export function changesAnAddress(
   );
 }
 
+type AddressErrors = Partial<Record<"email" | "recoveryEmail", string>>;
+
+function addressErrors(
+  values: Pick<EditProfileFormValues, "email" | "recoveryEmail">,
+  current: CurrentProfileValues,
+): AddressErrors {
+  const errors: AddressErrors = {};
+
+  if (values.email !== current.email) {
+    const emailError = validateEmail(values.email);
+    if (emailError) errors.email = emailError;
+  }
+
+  if (current.recoveryEmail && !values.recoveryEmail.trim()) {
+    errors.recoveryEmail = "Recovery email can't be removed";
+  } else if (values.recoveryEmail) {
+    const recoveryEmailError = validateRecoveryEmail(
+      values.recoveryEmail,
+      values.email,
+    );
+    if (recoveryEmailError) errors.recoveryEmail = recoveryEmailError;
+  }
+
+  return errors;
+}
+
 /**
- * Builds the edit-profile schema around the current values, so an unchanged field is not
+ * Builds the edit-profile schema around the current values, so an unchanged name or email is not
  * re-validated: a stored value that fails today's rules must not block saving the other fields.
- * A field counts as changed when its input differs from the stored value at all, padding
- * included. Changing either email requires the current password, and on an account with MFA
- * enabled a code from the authenticator app or a recovery code.
+ * The recovery email is checked whenever it is set, since it must differ from the email, and a
+ * stored one cannot be cleared. A field counts as changed when its input differs from the stored
+ * value at all, padding included. Changing either email requires the current password, and on an
+ * account with MFA enabled a code from the authenticator app or a recovery code.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
@@ -56,10 +83,15 @@ export function editProfileSchema(current: CurrentProfileValues) {
         ctx.addIssue({ code: "custom", path: ["name"], message: nameError });
     }
 
-    if (values.email !== current.email) {
-      const emailError = validateEmail(values.email);
-      if (emailError)
-        ctx.addIssue({ code: "custom", path: ["email"], message: emailError });
+    const errors = addressErrors(values, current);
+    if (errors.email)
+      ctx.addIssue({ code: "custom", path: ["email"], message: errors.email });
+    if (errors.recoveryEmail) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["recoveryEmail"],
+        message: errors.recoveryEmail,
+      });
     }
 
     if (changesAnAddress(values, current) && !values.currentPassword) {
@@ -80,20 +112,6 @@ export function editProfileSchema(current: CurrentProfileValues) {
         path: ["mfaCode"],
         message: MFA_CODE_REQUIRED_MESSAGE,
       });
-    }
-
-    if (values.recoveryEmail) {
-      const recoveryEmailError = validateRecoveryEmail(
-        values.recoveryEmail,
-        values.email,
-      );
-      if (recoveryEmailError) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["recoveryEmail"],
-          message: recoveryEmailError,
-        });
-      }
     }
   });
 }
