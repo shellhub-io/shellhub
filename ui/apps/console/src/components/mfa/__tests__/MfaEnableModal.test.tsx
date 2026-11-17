@@ -1,4 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  onTestFinished,
+} from "vitest";
 import {
   render as rtlRender,
   screen,
@@ -295,6 +302,23 @@ describe("MfaEnableModal", () => {
       });
     });
 
+    it("copies the codes, one per line, and says so", async () => {
+      vi.stubGlobal("isSecureContext", true);
+      onTestFinished(() => {
+        vi.unstubAllGlobals();
+      });
+      const user = userEvent.setup();
+
+      await user.click(screen.getByRole("button", { name: "Copy" }));
+
+      expect(
+        await screen.findByRole("button", { name: "Copied" }),
+      ).toBeInTheDocument();
+      expect(await navigator.clipboard.readText()).toBe(
+        "code1\ncode2\ncode3\ncode4\ncode5\ncode6",
+      );
+    });
+
     it("requires saving confirmation before proceeding", async () => {
       const user = userEvent.setup();
 
@@ -488,7 +512,7 @@ describe("MfaEnableModal", () => {
     });
   });
 
-  it("rewinds to step 1 when the modal is cancelled and reopened", async () => {
+  it("is back on step 1 as soon as it is cancelled and reopened", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <MfaEnableModal
@@ -524,9 +548,7 @@ describe("MfaEnableModal", () => {
       />,
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/Confirm Recovery Email/i)).toBeInTheDocument();
-    });
+    expect(screen.getByText(/Confirm Recovery Email/i)).toBeInTheDocument();
     expect(screen.queryByText(/Save Recovery Codes/i)).not.toBeInTheDocument();
   });
 

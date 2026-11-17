@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockInfo } from "@/tests/factories";
 import { renderWithSignInPage } from "@/tests/renderWithSignInPage";
+import { createTestWrapper } from "@/tests/wrapper";
 import MfaDisableDialog from "../MfaDisableDialog";
 
 describe("MfaDisableDialog", () => {
@@ -70,6 +71,78 @@ describe("MfaDisableDialog", () => {
       await user.click(screen.getByText(/use authenticator/i));
 
       expect(screen.getByText(/Verification Code/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("reopening", () => {
+    function reopenable() {
+      const user = userEvent.setup();
+      const tree = (open: boolean) => (
+        <MfaDisableDialog open={open} onClose={onClose} onSuccess={onSuccess} />
+      );
+      const { rerender } = render(tree(true), {
+        wrapper: createTestWrapper({ initialEntries: ["/"] }),
+      });
+      const closeAndReopen = () => {
+        rerender(tree(false));
+        rerender(tree(true));
+      };
+      return { user, closeAndReopen };
+    }
+
+    it("clears the last error", async () => {
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
+      const { user, closeAndReopen } = reopenable();
+      await fillTotpCode(user, "999999");
+      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
+      expect(
+        await screen.findByText(/Invalid verification code/i),
+      ).toBeInTheDocument();
+
+      closeAndReopen();
+
+      expect(
+        screen.queryByText(/Invalid verification code/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("goes back to the authenticator code", async () => {
+      const { user, closeAndReopen } = reopenable();
+      await user.click(screen.getByText(/use recovery code/i));
+
+      closeAndReopen();
+
+      expect(
+        screen.queryByPlaceholderText(/recovery code/i),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText(/Verification Code/i)).toBeInTheDocument();
+    });
+
+    it("stays on the email codes once they were sent", async () => {
+      useAuthStore.setState({ user: "admin" });
+      server.use(
+        http.post("*/api/user/mfa/reset", () =>
+          HttpResponse.json({ token: "reset-token" }),
+        ),
+      );
+      const { user, closeAndReopen } = reopenable();
+      await user.click(screen.getByText(/use recovery code/i));
+      await user.click(screen.getByText(/request email reset/i));
+      await user.click(
+        screen.getByRole("button", { name: /send verification codes/i }),
+      );
+      expect(await screen.findByText(/Emails Sent!/i)).toBeInTheDocument();
+
+      closeAndReopen();
+
+      expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/main email code character 1/i),
+      ).toBeInTheDocument();
     });
   });
 
