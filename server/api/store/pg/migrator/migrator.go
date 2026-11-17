@@ -50,7 +50,16 @@ var fileName = regexp.MustCompile(`^(\d{1,14})_([0-9a-z_\-]+)\.`)
 // goMigrations, sorted by name. A file is transactional when its name ends in .tx.up.sql, and
 // --bun:split separates its chunks. It fails on a file name bun would not accept, on any other
 // --bun: directive, on a Go migration without a function and on two migrations sharing a name.
+//
+// It also fails on any .sql file, up or down, whose name disagrees with its statements: a .tx.
+// file holding a statement PostgreSQL refuses inside a transaction (CREATE INDEX CONCURRENTLY,
+// VACUUM, ...), a file without .tx. holding none, and such a statement sharing its chunk with
+// another one, which pgx's simple protocol would batch into an implicit transaction.
 func Load(sqlFS fs.FS, goMigrations ...Migration) ([]Migration, error) {
+	if err := checkAllTransactionality(sqlFS); err != nil {
+		return nil, err
+	}
+
 	files, err := fs.Glob(sqlFS, "*.up.sql")
 	if err != nil {
 		return nil, err
@@ -97,6 +106,31 @@ func Load(sqlFS fs.FS, goMigrations ...Migration) ([]Migration, error) {
 	}
 
 	return loaded, nil
+}
+
+func checkAllTransactionality(sqlFS fs.FS) error {
+	files, err := fs.Glob(sqlFS, "*.sql")
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		raw, err := fs.ReadFile(sqlFS, file)
+		if err != nil {
+			return err
+		}
+
+		chunks, err := split(raw)
+		if err != nil {
+			return fmt.Errorf("%s: %w", file, err)
+		}
+
+		if err := checkTransactionality(file, chunks); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func split(raw []byte) ([]string, error) {
