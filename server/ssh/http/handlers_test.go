@@ -11,6 +11,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
@@ -113,7 +114,7 @@ func TestHandleSSHCloseRetiresASessionNobodyOwns(t *testing.T) {
 	c, rec := newCloseRequest(t, "administrator")
 
 	service := servicemocks.NewMockService(t)
-	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).
+	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), requests.SessionGet{SessionIDParam: requests.SessionIDParam{UID: "session-uid"}}).
 		Return(&models.Session{UID: "session-uid", TenantID: "tenant-id"}, nil).Once()
 	service.On("DeactivateSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).Return(nil).Once()
 
@@ -133,7 +134,7 @@ func TestHandleSSHCloseLeavesAnotherNamespacesSessionAlone(t *testing.T) {
 	c, rec := newCloseRequest(t, "administrator")
 
 	service := servicemocks.NewMockService(t)
-	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), models.UID("session-uid")).
+	service.On("GetSession", mock.Anything, scope.MustBounded("tenant-id"), requests.SessionGet{SessionIDParam: requests.SessionIDParam{UID: "session-uid"}}).
 		Return(nil, services.NewErrSessionNotFound("session-uid", store.ErrNoDocuments)).Once()
 
 	h := &Handlers{ //nolint:exhaustruct // the close path reaches neither the tunnel registry nor the config

@@ -85,7 +85,8 @@ properties:
       items:
         description: >-
           The session's events, oldest first. Carried by GET /sessions/{uid} and never by the
-          list. It excludes the terminal output the recording carries, and is capped,
+          list, and only to a caller who may replay recordings: administrators, owners and the
+          admin console. It excludes the terminal output the recording carries, and is capped,
           so it is not necessarily every event the session recorded.
         type: array
         items:

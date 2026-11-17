@@ -395,7 +395,7 @@ func TestMCPListSessions(t *testing.T) {
 func TestMCPGetSession(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("GetSession", gomock.Anything, scope.MustBounded(mcpCallerTenant), models.UID("sess1")).
+		On("GetSession", gomock.Anything, scope.MustBounded(mcpCallerTenant), sessionGet("sess1", true)).
 		Return(&models.Session{UID: "sess1"}, nil).
 		Once()
 

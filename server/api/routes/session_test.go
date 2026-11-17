@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
@@ -18,6 +19,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	svc "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -247,7 +249,7 @@ func TestGetSession(t *testing.T) {
 			tenant: "00000000-0000-4000-0000-000000000000",
 			admin:  true,
 			requiredMocks: func(session *models.Session) {
-				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), sessionGet("123", true)).Return(session, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Session{UID: "123"},
@@ -259,7 +261,7 @@ func TestGetSession(t *testing.T) {
 			uid:    "1234",
 			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(*models.Session) {
-				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("1234")).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), sessionGet("1234", true)).Return(nil, svc.NewErrSessionNotFound(models.UID("1234"), store.ErrNoDocuments))
 			},
 			expected: Expected{
 				expectedSession: nil,
@@ -271,7 +273,7 @@ func TestGetSession(t *testing.T) {
 			uid:    "123",
 			tenant: "00000000-0000-4000-0000-000000000000",
 			requiredMocks: func(session *models.Session) {
-				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID("123")).Return(session, nil)
+				mock.On("GetSession", gomock.Anything, scope.MustBounded("00000000-0000-4000-0000-000000000000"), sessionGet("123", true)).Return(session, nil)
 			},
 			expected: Expected{
 				expectedSession: &models.Session{UID: "123"},
@@ -306,4 +308,58 @@ func TestGetSession(t *testing.T) {
 	}
 
 	mock.AssertExpectations(t)
+}
+
+func sessionGet(uid string, timeline bool) requests.SessionGet {
+	return requests.SessionGet{SessionIDParam: requests.SessionIDParam{UID: uid}, Timeline: timeline}
+}
+
+func TestGetSessionGivesTheTimelineOnlyToCallersWhoMayReplay(t *testing.T) {
+	const tenant = "00000000-0000-4000-0000-000000000000"
+
+	cases := []struct {
+		caller   string
+		role     authorizer.Role
+		admin    bool
+		timeline bool
+	}{
+		{caller: "observer", role: authorizer.RoleObserver, timeline: false},
+		{caller: "operator", role: authorizer.RoleOperator, timeline: false},
+		{caller: "administrator", role: authorizer.RoleAdministrator, timeline: true},
+		{caller: "owner", role: authorizer.RoleOwner, timeline: true},
+		{caller: "instance admin console", admin: true, timeline: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.caller, func(t *testing.T) {
+			service := mocks.NewMockService(t)
+			router := newTestRouter(t, service)
+			path := "/api/sessions/123"
+
+			if tc.admin {
+				path = "/admin/api/sessions/123"
+				markAdmin := func(next echo.HandlerFunc) echo.HandlerFunc {
+					return func(c *echo.Context) error {
+						gateway.NewContext(c).MarkAdminRoute()
+
+						return next(c)
+					}
+				}
+				router.GET("/admin/api/sessions/:uid", gateway.Handler(NewHandler(service).GetSession), markAdmin)
+			}
+
+			service.On("GetSession", gomock.Anything, gomock.AnythingOfType("scope.Scope"), sessionGet("123", tc.timeline)).
+				Return(&models.Session{UID: "123"}, nil).Once()
+
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, path, nil)
+			if !tc.admin {
+				req = identitytest.As(req, identity.Identity{Role: tc.role, TenantID: tenant})
+			}
+
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, http.StatusOK, rec.Code)
+		})
+	}
 }

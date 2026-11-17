@@ -35,8 +35,12 @@ type SessionService interface {
 
 	// GetSession fetches a session within the given namespace scope. The scope is an explicit
 	// parameter rather than something recovered from the request context, so a caller cannot
-	// receive a cross-namespace read by omission.
-	GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error)
+	// receive a cross-namespace read by omission. The session carries its event timeline only
+	// when req.Timeline is set; a failed timeline read returns the session without it. It
+	// returns ErrSessionNotFound when resolving the session fails for any reason, a missing UID or a
+	// store error alike. Every read runs under ctx, so a cancelled ctx surfaces as ErrSessionNotFound
+	// or, when req.Timeline is set, as a session without a timeline.
+	GetSession(ctx context.Context, sc scope.Scope, req requests.SessionGet) (*models.Session, error)
 	CreateSession(ctx context.Context, session requests.SessionCreate) (*models.Session, error)
 	// DeactivateSession retires the session within the namespace sc is bounded to. It returns
 	// ErrSessionNotFound when no session in that namespace has the UID, store.ErrInvalidScope when
@@ -69,10 +73,16 @@ func (s *service) ListSessions(ctx context.Context, sc scope.Scope, req *request
 
 const sessionTimelineMaxEvents = 1000
 
-func (s *service) GetSession(ctx context.Context, sc scope.Scope, uid models.UID) (*models.Session, error) {
-	session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, string(uid))
+func (s *service) GetSession(ctx context.Context, sc scope.Scope, req requests.SessionGet) (*models.Session, error) {
+	uid := models.UID(req.UID)
+
+	session, err := s.store.SessionResolve(ctx, sc, store.SessionUIDResolver, req.UID)
 	if err != nil {
 		return nil, NewErrSessionNotFound(uid, err)
+	}
+
+	if !req.Timeline {
+		return session, nil
 	}
 
 	events, err := s.store.SessionEventsTimeline(ctx, uid, sessionTimelineMaxEvents)

@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
@@ -160,7 +161,7 @@ func (h *Handlers) HandleSSHClose(c *echo.Context) error {
 		return routeserrors.NewErrForbidden(err)
 	}
 
-	if _, err := h.Service.GetSession(ctx, sc, models.UID(data.UID)); err != nil {
+	if _, err := h.Service.GetSession(ctx, sc, requests.SessionGet{SessionIDParam: requests.SessionIDParam{UID: data.UID}}); err != nil {
 		return err
 	}
 

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
-	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/gateway"
 	errs "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -58,7 +58,12 @@ func (h *Handler) GetSessionList(c *gateway.Context) error {
 	return c.JSON(http.StatusOK, sessions)
 }
 
-// GetSession serves one session by UID.
+// GetSession serves one session by UID. The session carries its event timeline only for a caller
+// who may replay recordings, or one on the instance admin console; a failed timeline read serves the
+// session without it. It answers 422 on a body that fails to bind (413 or 415 on an oversized or XML
+// body), 400 on a body it cannot read or a request that fails validation, 403 when the caller
+// carries no namespace, and 404 when the session is not in the caller's scope or the store fails to
+// resolve it.
 func (h *Handler) GetSession(c *gateway.Context) error {
 	var req requests.SessionGet
 	if err := c.Bind(&req); err != nil {
@@ -74,7 +79,9 @@ func (h *Handler) GetSession(c *gateway.Context) error {
 		return err
 	}
 
-	session, err := h.service.GetSession(c.Ctx(), sc, models.UID(req.UID))
+	req.Timeline = !sc.IsBounded() || c.Role().HasPermission(authorizer.SessionPlay)
+
+	session, err := h.service.GetSession(c.Ctx(), sc, req)
 	if err != nil {
 		return err
 	}
