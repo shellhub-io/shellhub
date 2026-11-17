@@ -77,10 +77,8 @@ export function EditProfileModal({
   });
   const { control, trigger, setError, clearErrors, formState } = form;
 
-  const [watchedEmail, watchedRecoveryEmail] = useWatch({
-    control,
-    name: ["email", "recoveryEmail"],
-  });
+  const watchedEmail = useWatch({ control, name: "email" });
+  const watchedRecoveryEmail = useWatch({ control, name: "recoveryEmail" });
   const needsPassword = needsCurrentPassword(
     { email: watchedEmail, recoveryEmail: watchedRecoveryEmail },
     current,
