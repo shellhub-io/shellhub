@@ -131,7 +131,7 @@ describe("CreateUserModal", () => {
       await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     });
 
-    it("omits max_namespaces when the limit is not enabled", async () => {
+    it("sends max_namespaces as -1 when the limit is not enabled", async () => {
       renderModal();
       await fillForm();
 
@@ -140,9 +140,7 @@ describe("CreateUserModal", () => {
       await waitFor(() => {
         expect(createSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            body: expect.not.objectContaining({
-              max_namespaces: expect.anything(),
-            }),
+            body: expect.objectContaining({ max_namespaces: -1 }),
           }),
         );
       });

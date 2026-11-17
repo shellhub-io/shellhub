@@ -112,37 +112,27 @@ export function buildUserDefaults(user?: UserAdminResponse | null): UserFormValu
   return user ? valuesFromUser(user) : blankValues();
 }
 
-function computeMaxNamespaces(
-  mode: UserFormMode,
-  values: UserFormValues,
-  initial?: UserAdminResponse | null,
-): number | undefined {
-  if (!values.limitEnabled) {
-    if (mode === "edit") {
-      const orig = initial?.max_namespaces;
-      return orig !== undefined && orig < 0 ? orig : undefined;
-    }
-    return undefined;
-  }
+function computeMaxNamespaces(values: UserFormValues): number {
+  if (!values.limitEnabled) return -1;
   if (values.limitDisabled) return 0;
   return parseInt(values.maxNamespaces, 10);
 }
 
 /**
- * Builds the request body for the given mode. On edit only the changed fields are sent, so an
- * untouched password is omitted rather than sent as an empty string, which would clear it.
+ * Builds the request body for the given mode. On edit an empty password is left out rather than
+ * sent, which would clear it; every other field is always sent. An unticked namespace limit is
+ * sent as -1, which the server reads as unlimited.
  */
 export function buildUserPayload<M extends UserFormMode>(
   mode: M,
   values: UserFormValues,
-  initial?: UserAdminResponse | null,
 ): UserFormPayload<M> {
   const base = {
     name: values.name.trim(),
     username: values.username.trim(),
     email: values.email.trim(),
     admin: values.admin,
-    max_namespaces: computeMaxNamespaces(mode, values, initial),
+    max_namespaces: computeMaxNamespaces(values),
   };
 
   if (mode === "create") {

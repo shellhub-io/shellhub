@@ -65,7 +65,7 @@ export default function EditUserModal({
     const update = () =>
       updateUser.mutateAsync({
         path: { id: user.id },
-        body: buildUserPayload("edit", values, user),
+        body: buildUserPayload("edit", values),
       });
     try {
       if (isSelf && values.password !== "") {
