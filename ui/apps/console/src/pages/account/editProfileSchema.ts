@@ -5,7 +5,8 @@ import { MFA_CODE_REQUIRED_MESSAGE } from "./mfaCode";
 
 /**
  * The profile as it stands. The schema is built around it so a field can be validated only when
- * it has actually changed. mfaEnabled says whether changing an address also takes an MFA code.
+ * it has actually changed. mfaEnabled says whether a change that needs the current password also
+ * takes an MFA code.
  */
 export interface CurrentProfileValues {
   name: string;
@@ -68,12 +69,28 @@ function addressErrors(
 }
 
 /**
+ * Whether saving values needs the current password, and with MFA a code: true when either email
+ * differs from current and neither has an error (clearing a stored recovery email is one). While
+ * an email has an error the form cannot be saved, so it asks for neither.
+ */
+export function needsCurrentPassword(
+  values: Pick<EditProfileFormValues, "email" | "recoveryEmail">,
+  current: CurrentProfileValues,
+): boolean {
+  const errors = addressErrors(values, current);
+  return (
+    changesAnAddress(values, current) && !errors.email && !errors.recoveryEmail
+  );
+}
+
+/**
  * Builds the edit-profile schema around the current values, so an unchanged name or email is not
  * re-validated: a stored value that fails today's rules must not block saving the other fields.
  * The recovery email is checked whenever it is set, since it must differ from the email, and a
  * stored one cannot be cleared. A field counts as changed when its input differs from the stored
- * value at all, padding included. Changing either email requires the current password, and on an
- * account with MFA enabled a code from the authenticator app or a recovery code.
+ * value at all, padding included. Changing either email to a valid address requires the current
+ * password, and on an account with MFA enabled a code from the authenticator app or a recovery
+ * code.
  */
 export function editProfileSchema(current: CurrentProfileValues) {
   return editProfileFields.superRefine((values, ctx) => {
@@ -94,7 +111,8 @@ export function editProfileSchema(current: CurrentProfileValues) {
       });
     }
 
-    if (changesAnAddress(values, current) && !values.currentPassword) {
+    const passwordNeeded = needsCurrentPassword(values, current);
+    if (passwordNeeded && !values.currentPassword) {
       ctx.addIssue({
         code: "custom",
         path: ["currentPassword"],
@@ -104,7 +122,7 @@ export function editProfileSchema(current: CurrentProfileValues) {
 
     if (
       current.mfaEnabled &&
-      changesAnAddress(values, current) &&
+      passwordNeeded &&
       !values.mfaCode.trim()
     ) {
       ctx.addIssue({
