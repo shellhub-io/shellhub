@@ -28,7 +28,7 @@ type DockerConnector struct {
 	server          string
 	tenant          string
 	provisioningKey string
-	cli             *dockerclient.Client
+	cli             dockerclient.APIClient
 	privateKeys     string
 	// Label is the label used to identify the containers managed by the ShellHub agent.
 	Label   string
@@ -239,7 +239,7 @@ func (d *DockerConnector) CheckUpdate() (*semver.Version, error) {
 	return semver.NewVersion(info.Version)
 }
 
-func initContainerAgent(ctx context.Context, cli *dockerclient.Client, container connector.Container) {
+func initContainerAgent(ctx context.Context, cli dockerclient.APIClient, container connector.Container) {
 	cfg := &agentd.Config{
 		ServerAddress:     container.ServerAddress,
 		TenantID:          container.Tenant,

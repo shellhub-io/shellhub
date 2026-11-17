@@ -74,13 +74,13 @@ func (m *HostMode) GetInfo() (*Info, error) {
 // responsible for the SSH server, but the authentication and authorization is made by either the conainer
 // internals, `passwd` or `shadow`, or by the ShellHub API.
 type ConnectorMode struct {
-	cli      *dockerclient.Client
+	cli      dockerclient.APIClient
 	identity string
 }
 
 // NewConnectorMode returns a [Mode] that exposes the Docker container named by identity as a
 // device, using cli to inspect and exec into it.
-func NewConnectorMode(cli *dockerclient.Client, identity string) (Mode, error) {
+func NewConnectorMode(cli dockerclient.APIClient, identity string) (Mode, error) {
 	return &ConnectorMode{
 		cli:      cli,
 		identity: identity,
