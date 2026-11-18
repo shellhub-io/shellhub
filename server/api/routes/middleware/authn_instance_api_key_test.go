@@ -87,9 +87,7 @@ func TestAuthenticatorResolveInstanceAPIKey(t *testing.T) {
 			service := new(mocks.MockService)
 			tc.requiredMocks(service)
 
-			identity, err := NewAuthenticator(service).Resolve(apiKeyRequest(echo.New(), tc.key))
-			require.NoError(t, err)
-			assert.Equal(t, tc.expected, identity)
+			assert.Equal(t, tc.expected, NewAuthenticator(service).Resolve(apiKeyRequest(echo.New(), tc.key)))
 
 			service.AssertExpectations(t)
 		})
@@ -107,11 +105,7 @@ func TestAuthenticatorResolveInstanceAPIKeyOffAdminSurface(t *testing.T) {
 		t.Run(path, func(t *testing.T) {
 			service := new(mocks.MockService)
 
-			identity, err := NewAuthenticator(service).Resolve(
-				apiKeyRequestTo(echo.New(), path, instanceKey),
-			)
-			require.NoError(t, err)
-			assert.Nil(t, identity)
+			assert.Nil(t, NewAuthenticator(service).Resolve(apiKeyRequestTo(echo.New(), path, instanceKey)))
 
 			service.AssertNotCalled(t, "AuthInstanceAPIKey", mock.Anything, mock.Anything)
 			service.AssertExpectations(t)
@@ -134,8 +128,7 @@ func TestAuthenticatorResolveNamespaceAPIKeyIsNeverAdmin(t *testing.T) {
 				Return(&models.APIKey{Digest: "digest", Name: "ci", TenantID: testTenant, Role: role}, nil).
 				Once()
 
-			identity, err := NewAuthenticator(service).Resolve(apiKeyRequest(echo.New(), namespaceKey))
-			require.NoError(t, err)
+			identity := NewAuthenticator(service).Resolve(apiKeyRequest(echo.New(), namespaceKey))
 			require.NotNil(t, identity)
 
 			assert.False(t, identity.Admin, "a namespace API key must never carry the admin flag")
