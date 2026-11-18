@@ -8,13 +8,13 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
+	apiservices "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
 // The per-edition ceilings on namespaces and devices. A negative value means no limit.
 const (
 	MaxNumberNamespacesCommunity = -1 // MaxNumberNamespacesCommunity defines a unlimited number of namespaces for communitty environment.
-	MaxNumberDevicesLimited      = 3  // MaxNumberDevicesLimited defines the limit of devices for cloud environment.
 	MaxNumberDevicesUnlimited    = -1 // MaxNumberDevicesUnlimited defines a unlimited number of devices for enterprise and community environment.
 )
 
@@ -85,12 +85,10 @@ type Services interface {
 }
 
 type service struct {
-	store   store.Store
-	cache   cache.Cache
-	edition envs.Edition
-	clock   clock.Clock
-
-	namespaceRequireVerifiedDeviceKey bool
+	store           store.Store
+	cache           cache.Cache
+	clock           clock.Clock
+	namespacePolicy apiservices.NamespacePolicy
 }
 
 // Option configures the service at construction.
@@ -101,7 +99,7 @@ type Option func(*service)
 // it a new namespace does not require them.
 func WithNamespaceRequireVerifiedDeviceKey(required bool) Option {
 	return func(s *service) {
-		s.namespaceRequireVerifiedDeviceKey = required
+		s.namespacePolicy.RequireVerifiedDeviceKey = required
 	}
 }
 
@@ -109,7 +107,7 @@ func WithNamespaceRequireVerifiedDeviceKey(required bool) Option {
 // Without it the service runs as Community.
 func WithEdition(edition envs.Edition) Option {
 	return func(s *service) {
-		s.edition = edition
+		s.namespacePolicy.Edition = edition
 	}
 }
 
@@ -133,7 +131,7 @@ func WithCache(c cache.Cache) Option {
 // envs.Community, without WithClock they read the wall clock, and without WithCache they evict
 // from a no-op cache.
 func NewService(store store.Store, options ...Option) Services {
-	s := &service{store: store, cache: cache.NewNullCache(), edition: envs.Community, clock: clock.New()}
+	s := &service{store: store, cache: cache.NewNullCache(), clock: clock.New(), namespacePolicy: apiservices.NamespacePolicy{Edition: envs.Community}}
 	for _, option := range options {
 		option(s)
 	}

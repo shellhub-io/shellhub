@@ -5,10 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/pkg/uuid"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -132,26 +130,10 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 		tenantID = devTenantID
 	}
 
-	namespace := &models.Namespace{
-		Name:       namespaceName,
-		TenantID:   tenantID,
-		MaxDevices: -1,
-		Owner:      insertedID,
-		Type:       models.TypePersonal,
-		Members: []models.Member{
-			{
-				ID:      insertedID,
-				Role:    authorizer.RoleOwner,
-				AddedAt: s.clock.Now(),
-			},
-		},
-		CreatedAt: s.clock.Now(),
-		Settings: &models.NamespaceSettings{
-			SessionRecord:            false,
-			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
-			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
-		},
-	}
+	namespace := s.namespacePolicy().New(namespaceName, insertedID, models.TypePersonal, s.clock.Now())
+	namespace.TenantID = tenantID
+	namespace.MaxDevices = -1
+	namespace.Settings.SessionRecord = false
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {

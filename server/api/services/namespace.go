@@ -5,11 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/query"
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
@@ -135,39 +133,7 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 		return nil, NewErrNamespaceDuplicated(err)
 	}
 
-	ns := &models.Namespace{
-		Name:                 strings.ToLower(req.Name),
-		Owner:                user.ID,
-		DevicesAcceptedCount: 0,
-		DevicesPendingCount:  0,
-		DevicesRejectedCount: 0,
-		DevicesRemovedCount:  0,
-		Members: []models.Member{
-			{
-				ID:      user.ID,
-				Role:    authorizer.RoleOwner,
-				AddedAt: s.clock.Now(),
-			},
-		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord:            true,
-			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
-			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
-		},
-		Type: models.NewDefaultType(),
-	}
-
-	if models.IsTypeTeam(req.Type) {
-		ns.Type = models.TypeTeam
-	} else if models.IsTypePersonal(req.Type) {
-		ns.Type = models.TypePersonal
-	}
-
-	if s.edition.IsCloud() {
-		ns.MaxDevices = 3
-	} else {
-		ns.MaxDevices = -1
-	}
+	ns := s.namespacePolicy().New(req.Name, user.ID, models.ParseType(req.Type), s.clock.Now())
 
 	tenantID, err := s.store.NamespaceCreate(ctx, ns)
 	if err != nil {
