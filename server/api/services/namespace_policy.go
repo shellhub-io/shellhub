@@ -20,9 +20,9 @@ type NamespacePolicy struct {
 // verified device key when p does. The store issues the tenant ID and adds the owner as a member
 // when it creates the namespace.
 func (p NamespacePolicy) New(name, ownerID string, typ models.Type, now time.Time) *models.Namespace {
-	maxDevices := -1
+	maxDevices := models.NamespaceUnlimitedDevices
 	if p.Edition.IsCloud() {
-		maxDevices = 3
+		maxDevices = models.NamespaceFreeDevices
 	}
 
 	return &models.Namespace{

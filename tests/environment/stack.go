@@ -894,9 +894,9 @@ func (s *Stack) NewLegacyNamespace(ctx context.Context, owner, name, tenant stri
 		return err
 	}
 
-	maxDevices := -1
+	maxDevices := models.NamespaceUnlimitedDevices
 	if edition.profile().cloud {
-		maxDevices = 3
+		maxDevices = models.NamespaceFreeDevices
 	}
 
 	_, err = s.SQL(ctx, legacyNamespaceSQL, map[string]string{
