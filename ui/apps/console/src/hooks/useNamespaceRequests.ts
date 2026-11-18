@@ -284,8 +284,7 @@ export function useDeleteNamespace() {
         path: { tenant: tenantId },
         throwOnError: true,
       });
-      useAuthStore.getState().logout();
-      window.location.replace("/login");
+      useAuthStore.getState().leaveToLogin();
     },
   });
 }
@@ -301,8 +300,7 @@ export function useLeaveNamespace() {
         path: { tenant: tenantId },
         throwOnError: true,
       });
-      useAuthStore.getState().logout();
-      window.location.replace("/login");
+      useAuthStore.getState().leaveToLogin();
     },
   });
 }

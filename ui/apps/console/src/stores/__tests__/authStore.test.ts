@@ -386,6 +386,25 @@ describe("authStore", () => {
       expect(state.onboardingSurvey).toBe("pending");
       expect(state.loading).toBe(false);
     });
+
+    it("signs the previous session out entirely when the account cannot be read", async () => {
+      server.use(
+        http.get(
+          "*/api/auth/user",
+          () => new HttpResponse(null, { status: 500 }),
+        ),
+      );
+      useWorkspaceTabsStore.setState({
+        tabs: [namespaceTab("tenant-a", "acme")],
+      });
+
+      await expect(
+        useAuthStore.getState().loginWithToken(VALID_JWT),
+      ).rejects.toThrow();
+
+      expect(useAuthStore.getState().token).toBeNull();
+      expect(useWorkspaceTabsStore.getState().tabs).toEqual([]);
+    });
   });
 
   describe("partialize (persistence)", () => {

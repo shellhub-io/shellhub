@@ -50,6 +50,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>;
   loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
+  leaveToLogin: () => void;
   fetchUser: () => Promise<void>;
   setSession: (data: {
     token: string;
@@ -158,8 +159,7 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
           });
         } catch {
-          tearDownChatwoot("logout");
-          set({ ...initialState });
+          get().logout();
           throw new Error("Token login failed");
         }
       },
@@ -173,8 +173,13 @@ export const useAuthStore = create<AuthState>()(
         useWorkspaceTabsStore.getState().clear();
         useRecentDevicesStore.getState().clear();
         set(initialState);
-        localStorage.removeItem("shellhub-session");
+        localStorage.removeItem(authSessionKey);
         queryClient.clear();
+      },
+
+      leaveToLogin: () => {
+        get().logout();
+        window.location.replace("/login");
       },
 
       fetchUser: async () => {
@@ -220,8 +225,7 @@ export const useAuthStore = create<AuthState>()(
 
       deleteUser: async (factor) => {
         await deleteUserSdk({ body: factor, throwOnError: true });
-        get().logout();
-        window.location.replace("/login");
+        get().leaveToLogin();
       },
 
       confirmAccount: async (identifier, code) => {
