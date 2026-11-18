@@ -130,9 +130,7 @@ func TestAuthenticatorResolveUserClaims(t *testing.T) {
 
 			c, _ := authenticatedRequest(echo.New(), bearer)
 
-			identity, err := NewAuthenticator(service).Resolve(c)
-			require.NoError(t, err)
-			assert.Equal(t, tc.expected, identity)
+			assert.Equal(t, tc.expected, NewAuthenticator(service).Resolve(c))
 
 			service.AssertExpectations(t)
 		})
@@ -153,8 +151,7 @@ func TestAuthenticatorResolveForwardsNamespace(t *testing.T) {
 
 	c, _ := authenticatedRequest(echo.New(), bearer)
 
-	_, err := NewAuthenticator(service).Resolve(c)
-	require.NoError(t, err)
+	NewAuthenticator(service).Resolve(c)
 
 	forwarded, ok := authctx.NamespaceDeviceLimit(c.Request().Context(), testTenant)
 	require.True(t, ok)
@@ -184,8 +181,7 @@ func TestAuthenticatorResolveForwardsTokenVersion(t *testing.T) {
 
 	c, _ := authenticatedRequest(echo.New(), bearer)
 
-	_, err = NewAuthenticator(service).Resolve(c)
-	require.NoError(t, err)
+	NewAuthenticator(service).Resolve(c)
 
 	forwarded, ok := authctx.UserTokenVersion(c.Request().Context(), testUserID)
 	require.True(t, ok)

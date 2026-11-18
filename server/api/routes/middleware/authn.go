@@ -94,14 +94,7 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		anonymous := a.anonymous.contains(c)
 
-		caller, err := a.Resolve(c)
-		if err != nil {
-			if !anonymous {
-				return err
-			}
-
-			caller = nil
-		}
+		caller := a.Resolve(c)
 
 		if caller != nil && caller.DeviceUID != "" && !a.devices.contains(c) {
 			if !anonymous {
@@ -132,30 +125,31 @@ func (a *Authenticator) Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 const adminAPIPrefix = "/admin/api"
 
-// Resolve turns the request's credential into an identity. It returns a nil
-// identity when the request carries no usable credential, and an error only
-// when a credential was presented and could not be honoured.
-func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
+// Resolve turns the request's credential into an identity. It returns nil when the request carries
+// no credential, or one it cannot honour. For a user token it also puts the bearer on c's request
+// context and, when the token names a tenant, the namespace's device limit; the device limit is set
+// before the user is checked, so it stays on the context even when Resolve then returns nil.
+func (a *Authenticator) Resolve(c *echo.Context) *identity.Identity {
 	if key := c.Request().Header.Get("X-API-Key"); key != "" {
 		if strings.HasPrefix(key, models.InstanceAPIKeyPrefix) {
 			if !strings.HasPrefix(c.Path(), adminAPIPrefix) {
-				return nil, nil
+				return nil
 			}
 
 			if _, err := a.service.AuthInstanceAPIKey(c.Request().Context(), key); err != nil {
 				log.WithError(err).Warn("failed to resolve the instance API key")
 
-				return nil, nil
+				return nil
 			}
 
-			return &identity.Identity{APIKey: key, Admin: true}, nil
+			return &identity.Identity{APIKey: key, Admin: true}
 		}
 
 		apiKey, err := a.service.AuthAPIKey(c.Request().Context(), key)
 		if err != nil {
 			log.WithError(err).Warn("failed to resolve the API key")
 
-			return nil, nil
+			return nil
 		}
 
 		return &identity.Identity{
@@ -163,17 +157,17 @@ func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 			Role:     apiKey.Role,
 			APIKey:   key,
 			APIKeyID: apiKey.ID,
-		}, nil
+		}
 	}
 
 	bearer := c.Request().Header.Get("Authorization")
 	if bearer == "" {
-		return nil, nil
+		return nil
 	}
 
 	claims, err := jwttoken.ClaimsFromBearerToken(a.service.PublicKey(), bearer)
 	if err != nil {
-		return nil, nil //nolint:nilerr
+		return nil
 	}
 
 	switch claims := claims.(type) {
@@ -186,13 +180,13 @@ func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 				entry.Error("failed to check a device token")
 			}
 
-			return nil, nil
+			return nil
 		}
 
 		return &identity.Identity{
 			DeviceUID: claims.UID,
 			TenantID:  claims.TenantID,
-		}, nil
+		}
 	case *authorizer.UserClaims:
 		if claims.TenantID != "" {
 			ns, role, err := a.service.ResolveNamespaceRole(c.Request().Context(), claims.TenantID, claims.ID)
@@ -201,7 +195,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 					WithFields(log.Fields{"user_id": claims.ID, "tenant_id": claims.TenantID}).
 					Warn("failed to resolve the token's role")
 
-				return nil, nil
+				return nil
 			}
 
 			claims.Role = authorizer.RoleFromString(role)
@@ -217,7 +211,7 @@ func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 				WithField("user_id", claims.ID).
 				Warn("refused the token: its user is gone, unreachable or had its tokens revoked")
 
-			return nil, nil
+			return nil
 		}
 
 		c.SetRequest(c.Request().WithContext(
@@ -230,8 +224,8 @@ func (a *Authenticator) Resolve(c *echo.Context) (*identity.Identity, error) {
 			TenantID: claims.TenantID,
 			Role:     claims.Role,
 			Admin:    user.Admin,
-		}, nil
+		}
 	}
 
-	return nil, nil
+	return nil
 }
