@@ -299,13 +299,6 @@ func TestSetup(t *testing.T) {
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
 					Type:       models.TypePersonal,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -366,13 +359,6 @@ func TestSetup(t *testing.T) {
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
 					Type:       models.TypePersonal,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -433,13 +419,6 @@ func TestSetup(t *testing.T) {
 					Owner:      "000000000000000000000000",
 					MaxDevices: -1,
 					Type:       models.TypePersonal,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          false,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),

@@ -11,19 +11,12 @@ const (
 	TypeTeam Type = "team"
 )
 
-// NewDefaultType returns the type a namespace is created with when the caller does not choose one.
-func NewDefaultType() Type {
+// ParseType returns the type raw names, and TypeTeam for anything that names no type, the empty
+// string included.
+func ParseType(raw string) Type {
+	if Type(raw) == TypePersonal {
+		return TypePersonal
+	}
+
 	return TypeTeam
-}
-
-// IsTypeTeam reports whether the raw string names the team type. An unrecognized value is not a
-// team, so a corrupted or future value degrades to the more restrictive answer.
-func IsTypeTeam(typeNamespace string) bool {
-	return Type(typeNamespace) == TypeTeam
-}
-
-// IsTypePersonal reports whether the raw string names the personal type. An unrecognized value is
-// not personal, and neither predicate is the negation of the other.
-func IsTypePersonal(typeNamespace string) bool {
-	return Type(typeNamespace) == TypePersonal
 }

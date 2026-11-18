@@ -8,24 +8,15 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/admin/inputs"
 	apiservices "github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-func (s *service) maxDevices() int {
-	if s.edition.IsCloud() {
-		return MaxNumberDevicesLimited
-	}
-
-	return MaxNumberDevicesUnlimited
-}
-
 // NamespaceCreate initializes a new namespace, making the specified user its owner, under the
-// tenant ID the input names or, without one, a tenant ID the store issues. Max device limit is
-// based on the service's edition. It returns ErrUserNotFound when the owner cannot be resolved,
+// tenant ID the input names or, without one, a tenant ID the store issues. Its device limit
+// and settings follow [apiservices.NamespacePolicy]. It returns ErrUserNotFound when the owner cannot be resolved,
 // whatever the store's error, ErrNamespaceSingle when the instance is bound to a single namespace,
 // ErrDuplicateNamespace when the name is taken or the tenant ID was issued since migration 057,
 // deleted namespaces included, and ErrCreateNewNamespace wrapping any other store error.
@@ -35,36 +26,8 @@ func (s *service) NamespaceCreate(ctx context.Context, input *inputs.NamespaceCr
 		return nil, ErrUserNotFound
 	}
 
-	ns := &models.Namespace{
-		Name:                 input.Namespace,
-		Owner:                user.ID,
-		TenantID:             input.TenantID,
-		MaxDevices:           s.maxDevices(),
-		DevicesAcceptedCount: 0,
-		DevicesPendingCount:  0,
-		DevicesRejectedCount: 0,
-		DevicesRemovedCount:  0,
-		Members: []models.Member{
-			{
-				ID:      user.ID,
-				Role:    authorizer.RoleOwner,
-				AddedAt: s.clock.Now(),
-			},
-		},
-		Settings: &models.NamespaceSettings{
-			SessionRecord:            true,
-			ConnectionAnnouncement:   envs.AnnouncementFor(s.edition),
-			RequireVerifiedDeviceKey: s.namespaceRequireVerifiedDeviceKey,
-		},
-		CreatedAt: s.clock.Now(),
-		Type:      models.NewDefaultType(),
-	}
-
-	if models.IsTypeTeam(input.Type) {
-		ns.Type = models.TypeTeam
-	} else if models.IsTypePersonal(input.Type) {
-		ns.Type = models.TypePersonal
-	}
+	ns := s.namespacePolicy.New(input.Namespace, user.ID, models.ParseType(input.Type), s.clock.Now())
+	ns.TenantID = input.TenantID
 
 	tenantID, err := s.store.NamespaceCreate(ctx, ns)
 	if err != nil {

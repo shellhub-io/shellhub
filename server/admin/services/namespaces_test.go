@@ -76,13 +76,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -116,13 +109,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -157,13 +143,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -178,13 +157,6 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -215,13 +187,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -236,13 +201,6 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "11111111-1111-4111-8111-111111111111",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
@@ -273,18 +231,11 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
-					MaxDevices: MaxNumberDevicesLimited,
+					MaxDevices: 3,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
@@ -294,18 +245,11 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 				},
-				MaxDevices: MaxNumberDevicesLimited,
+				MaxDevices: 3,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -331,18 +275,11 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
-					MaxDevices: MaxNumberDevicesLimited,
+					MaxDevices: 3,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
@@ -352,18 +289,11 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 				},
-				MaxDevices: MaxNumberDevicesLimited,
+				MaxDevices: 3,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -389,13 +319,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
@@ -410,13 +333,6 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
@@ -447,13 +363,6 @@ func TestNamespaceCreate(t *testing.T) {
 					Owner:    "507f191e810c19729de860ea",
 					TenantID: "00000000-0000-0000-0000-000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "507f191e810c19729de860ea",
-							Role:    "owner",
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
@@ -468,13 +377,6 @@ func TestNamespaceCreate(t *testing.T) {
 				Owner:    "507f191e810c19729de860ea",
 				TenantID: "00000000-0000-0000-0000-000000000000",
 				Type:     models.TypeTeam,
-				Members: []models.Member{
-					{
-						ID:      "507f191e810c19729de860ea",
-						Role:    "owner",
-						AddedAt: now,
-					},
-				},
 				Settings: &models.NamespaceSettings{
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),

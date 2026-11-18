@@ -705,18 +705,12 @@ func TestCreateNamespace(t *testing.T) {
 							Name:  "namespace",
 							Owner: "000000000000000000000000",
 							Type:  models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
+							CreatedAt:  now,
 						},
 					).
 					Return("", errors.New("error")).
@@ -768,18 +762,12 @@ func TestCreateNamespace(t *testing.T) {
 							Name:  "namespace",
 							Owner: "000000000000000000000000",
 							Type:  models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
+							CreatedAt:  now,
 						},
 					).
 					Return("", store.ErrDuplicate).
@@ -831,18 +819,12 @@ func TestCreateNamespace(t *testing.T) {
 							Name:  "namespace",
 							Owner: "000000000000000000000000",
 							Type:  models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 							},
 							MaxDevices: -1,
+							CreatedAt:  now,
 						},
 					).
 					Return("00000000-0000-4000-0000-000000000000", nil).
@@ -854,18 +836,12 @@ func TestCreateNamespace(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
 					MaxDevices: -1,
+					CreatedAt:  now,
 				},
 				err: nil,
 			},
@@ -912,18 +888,12 @@ func TestCreateNamespace(t *testing.T) {
 							Name:  "namespace",
 							Owner: "000000000000000000000000",
 							Type:  models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 							},
 							MaxDevices: 3,
+							CreatedAt:  now,
 						},
 					).
 					Return("00000000-0000-4000-0000-000000000000", nil).
@@ -935,18 +905,12 @@ func TestCreateNamespace(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: 3,
+					CreatedAt:  now,
 				},
 				err: nil,
 			},
@@ -993,18 +957,12 @@ func TestCreateNamespace(t *testing.T) {
 							Name:  "namespace",
 							Owner: "000000000000000000000000",
 							Type:  models.TypeTeam,
-							Members: []models.Member{
-								{
-									ID:      "000000000000000000000000",
-									Role:    authorizer.RoleOwner,
-									AddedAt: now,
-								},
-							},
 							Settings: &models.NamespaceSettings{
 								SessionRecord:          true,
 								ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 							},
 							MaxDevices: 3,
+							CreatedAt:  now,
 						},
 					).
 					Return("00000000-0000-4000-0000-000000000000", nil).
@@ -1016,18 +974,12 @@ func TestCreateNamespace(t *testing.T) {
 					Name:     "namespace",
 					Owner:    "000000000000000000000000",
 					Type:     models.TypeTeam,
-					Members: []models.Member{
-						{
-							ID:      "000000000000000000000000",
-							Role:    authorizer.RoleOwner,
-							AddedAt: now,
-						},
-					},
 					Settings: &models.NamespaceSettings{
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Cloud),
 					},
 					MaxDevices: 3,
+					CreatedAt:  now,
 				},
 				err: nil,
 			},
