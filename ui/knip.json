@@ -9,7 +9,7 @@
   "workspaces": {
     ".": {},
     "apps/console": {
-      "entry": ["src/migrate.tsx", "playwright.config.ts"],
+      "entry": ["playwright.config.ts"],
       "ignore": ["src/client/**", "e2e/tmp/**"],
       "playwright": {
         "config": [],

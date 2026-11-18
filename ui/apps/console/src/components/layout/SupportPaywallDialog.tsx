@@ -1,8 +1,8 @@
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
 import Modal from "@/components/common/Modal";
+import { PRICING_URL } from "@/edition";
 
-const PRICING_URL = "https://www.shellhub.io/pricing";
 const DOCS_URL = "https://docs.shellhub.io/";
 
 interface SupportPaywallDialogProps {

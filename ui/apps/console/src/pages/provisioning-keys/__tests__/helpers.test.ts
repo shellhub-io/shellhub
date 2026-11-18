@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type ProvisioningKey } from "@/client";
 import {
-  getExpiryInfo,
+  expiryPhrase,
   getKeyBlockers,
   getUsageInfo,
   getWaitingInfo,
@@ -89,24 +89,21 @@ describe("getUsageInfo", () => {
   });
 });
 
-describe("getExpiryInfo", () => {
-  it("reads a null expiry as a muted Never", () => {
-    expect(getExpiryInfo(null)).toEqual({ label: "Never", tone: "muted" });
-    expect(getExpiryInfo(undefined)).toEqual({ label: "Never", tone: "muted" });
+describe("expiryPhrase", () => {
+  it("reads a key without an expiry as never expiring", () => {
+    expect(expiryPhrase(key({ expires_at: null }))).toBe("never expires");
   });
 
-  it("is danger once elapsed", () => {
-    expect(getExpiryInfo(daysFromNow(-1)).tone).toBe("danger");
+  it("names the date a live key expires on", () => {
+    expect(expiryPhrase(key({ expires_at: "2099-10-24T12:00:00Z" }))).toBe(
+      "expires Oct 24, 2099",
+    );
   });
 
-  it("warns within the last seven calendar days and is normal beyond", () => {
-    expect(getExpiryInfo(daysFromNow(3)).tone).toBe("warning");
-    expect(getExpiryInfo(daysFromNow(7)).tone).toBe("warning");
-    expect(getExpiryInfo(daysFromNow(30)).tone).toBe("normal");
-  });
-
-  it("labels a live expiry with its date", () => {
-    expect(getExpiryInfo(daysFromNow(30)).label).toBeTruthy();
+  it("names the date an expired key stopped on", () => {
+    expect(expiryPhrase(key({ expires_at: "2020-01-01T12:00:00Z" }))).toBe(
+      "expired Jan 1, 2020",
+    );
   });
 });
 

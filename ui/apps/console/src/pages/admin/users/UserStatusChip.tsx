@@ -4,12 +4,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
-
-/**
- * Where an account stands. awaiting_approval is not the same as unconfirmed: the person may
- * have verified their address and still be waiting for an admin.
- */
-export type UserStatus = "confirmed" | "not-confirmed" | "awaiting_approval";
+import type { UserStatus } from "./userStatus";
 
 const STATUS_CONFIG: Record<
   UserStatus,

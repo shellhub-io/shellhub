@@ -4,7 +4,7 @@ import { getInfo } from "@/client";
 import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
 import { isTokenExpired } from "@/utils/authToken";
-import { Spinner } from "@shellhub/design-system/primitives";
+import ScreenLoader from "./ScreenLoader";
 
 /**
  * Holds the app until the instance has been set up, sending an unconfigured one to the setup
@@ -38,14 +38,7 @@ export default function SetupGuard() {
   const authed = token !== null && !isTokenExpired(token);
 
   if (loading && !authed) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex items-center gap-3">
-          <Spinner />
-          <span className="text-xs font-mono text-text-muted">Loading...</span>
-        </div>
-      </div>
-    );
+    return <ScreenLoader label="Loading…" />;
   }
 
   const isSetupPage = location.pathname === "/setup";

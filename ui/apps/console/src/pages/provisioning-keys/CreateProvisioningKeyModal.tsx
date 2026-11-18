@@ -18,15 +18,12 @@ import {
   KEY_NAME_MAX_LENGTH,
   validateKeyName,
 } from "@/utils/validation";
+import { keyExpiryPayload } from "@/utils/date";
 import EphemeralField from "./EphemeralField";
 import ExpirationField from "./ExpirationField";
 import ModeField, { type ProvisioningKeyMode } from "./ModeField";
 import UsageLimitField from "./UsageLimitField";
-import {
-  keyExpiryPayload,
-  parseAllowedIdentities,
-  validateModeConfig,
-} from "./helpers";
+import { parseAllowedIdentities, validateModeConfig } from "./helpers";
 
 /**
  * Creates a provisioning key and shows it with its install command. onCreated receives the new

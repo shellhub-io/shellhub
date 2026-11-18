@@ -1,5 +1,9 @@
 import { differenceInDays } from "date-fns";
-import { formatDateFull, formatDateShort } from "@/utils/date";
+import {
+  formatDateFull,
+  formatDateShort,
+  keyExpiryPayload,
+} from "@/utils/date";
 import { isSdkError } from "@/api/errors";
 import type { SshIdentity } from "@/client";
 
@@ -10,17 +14,6 @@ import type { SshIdentity } from "@/client";
  */
 export function isAlreadyEnrolled(err: unknown): boolean {
   return isSdkError(err) && err.status === 409;
-}
-
-/**
- * Turn the expiry form value into the create-request field. "-1" (never) omits
- * it entirely, so a key with no deadline carries no expires_at at all rather
- * than one far in the future.
- */
-export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
-  const days = Number(expiresIn);
-
-  return days > 0 ? { expires_in: days } : {};
 }
 
 /**

@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import MfaEnableModal from "@/components/mfa/MfaEnableModal";
 import MfaDisableDialog from "@/components/mfa/MfaDisableDialog";
-import { features } from "@/edition";
+import { features, PRICING_URL } from "@/edition";
 import { Button } from "@shellhub/design-system/primitives";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SettingsField from "@/components/settings/SettingsField";
@@ -188,7 +188,7 @@ export default function AccountSecurity() {
                     as="a"
                     size="sm"
                     variant="secondary"
-                    href="https://www.shellhub.io/pricing"
+                    href={PRICING_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

@@ -13,7 +13,7 @@ import Breadcrumb from "@/components/common/Breadcrumb";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import EditNamespaceModal from "./EditNamespaceModal";
 import DeleteNamespaceDialog from "./DeleteNamespaceDialog";
-import { formatDateFull } from "@/utils/date";
+import { formatDateFull, isUnsetTime } from "@/utils/date";
 import { formatMaxDevices } from "./utils";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
@@ -24,8 +24,6 @@ import {
   Card,
   IconButton,
 } from "@shellhub/design-system/primitives";
-
-const ZERO_DATE = "0001-01-01T00:00:00Z";
 
 type Member = NonNullable<
   NonNullable<ReturnType<typeof useAdminNamespace>["data"]>["members"]
@@ -95,7 +93,7 @@ export default function NamespaceDetails() {
       header: "Added",
       render: (member) => (
         <span className="text-xs text-text-secondary">
-          {member.added_at && member.added_at !== ZERO_DATE
+          {!isUnsetTime(member.added_at)
             ? formatDateFull(member.added_at)
             : "\u2014"}
         </span>

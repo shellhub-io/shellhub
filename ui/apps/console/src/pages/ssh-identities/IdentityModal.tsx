@@ -18,8 +18,8 @@ import Modal from "@/components/common/Modal";
 import InputField from "@/components/common/fields/InputField";
 import KeyFileInput from "@/components/common/fields/KeyFileInput";
 import IdentityLifecycleFields from "@/components/common/IdentityLifecycleFields";
+import { keyExpiryPayload } from "@/utils/date";
 import {
-  keyExpiryPayload,
   identityLifecyclePayload,
   sshIdentitySource,
   isAlreadyEnrolled,

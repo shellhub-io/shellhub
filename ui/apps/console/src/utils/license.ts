@@ -33,8 +33,7 @@ type DisplayFeature
 
 /**
  * The licence features as rows for the admin table, in display order. login_link and reports are
- * deliberately absent: the Vue admin UI does not show them, and the two views are kept in step
- * until it is retired.
+ * not listed.
  */
 export function getDisplayFeatures(features: Features): DisplayFeature[] {
   return [
@@ -47,7 +46,8 @@ export function getDisplayFeatures(features: Features): DisplayFeature[] {
 
 /**
  * Checks a licence file before upload, returning the reason to show or null when it is fine.
- * Both limits mirror the server, so an obvious mistake is caught without a round trip.
+ * The server ignores the file's name and refuses only bodies over its 1 MiB request cap, so the
+ * .dat extension and the 32 KB limit are the console's own.
  */
 export function validateLicenseFile(file: File): string | null {
   if (!file.name.toLowerCase().endsWith(".dat")) return "Only .dat files are allowed";
