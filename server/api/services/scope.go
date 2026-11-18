@@ -11,8 +11,8 @@ import (
 
 const (
 	reasonAPIKeyDigest          = "authenticating an API key by its digest, which api_keys_key_digest_unique makes name exactly one namespace"
-	reasonDeviceCleanup         = "device-cleanup cron sweeps every namespace, bucketing its deletions per namespace afterwards"
-	reasonEphemeralCleanup      = "the ephemeral cleanup removes expired devices of every namespace, bucketing its deletions per namespace afterwards"
+	reasonDeviceCleanup         = "device-cleanup cron deletes the removed devices of every namespace"
+	reasonEphemeralCleanup      = "the ephemeral cleanup removes expired devices of every namespace"
 	reasonHeartbeatBatch        = "a heartbeat batch spans every namespace holding a tunnel, and each beat is matched within its own"
 	reasonPairingByPublicKey    = "pairing by public key: the device has not been placed in a namespace yet, and possession of the matching private key is still required"
 	reasonPresenceSweep         = "the presence sweep closes the unwritten tunnel closes of every namespace"

@@ -545,7 +545,7 @@ func (pg *Pg) DeviceDelete(ctx context.Context, sc scope.Scope, device *models.D
 }
 
 // DeviceDeleteMany implements [store.DeviceStore].
-func (pg *Pg) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+func (pg *Pg) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) ([]string, error) {
 	if !sc.IsValid() {
 		return nil, store.ErrInvalidScope
 	}
@@ -553,8 +553,8 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []strin
 	return pg.deviceDeleteUIDs(ctx, sc, uids)
 }
 
-func (pg *Pg) deviceDeleteUIDs(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
-	var deleted []store.DeletedDevice
+func (pg *Pg) deviceDeleteUIDs(ctx context.Context, sc scope.Scope, uids []string) ([]string, error) {
+	var deleted []string
 
 	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		var err error
@@ -566,10 +566,10 @@ func (pg *Pg) deviceDeleteUIDs(ctx context.Context, sc scope.Scope, uids []strin
 	return deleted, err
 }
 
-func (pg *Pg) deviceDeleteManyInTx(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+func (pg *Pg) deviceDeleteManyInTx(ctx context.Context, sc scope.Scope, uids []string) ([]string, error) {
 	tx := pg.GetConnection(ctx)
 
-	deleted := []store.DeletedDevice{}
+	deleted := []string{}
 	if len(uids) == 0 {
 		return deleted, nil
 	}
@@ -578,7 +578,7 @@ func (pg *Pg) deviceDeleteManyInTx(ctx context.Context, sc scope.Scope, uids []s
 	query, err := whereInScope(tx.NewDelete().
 		Model(&rows).
 		Where("id IN (?)", bun.List(uids)).
-		Returning("id, namespace_id, status"), sc, "namespace_id")
+		Returning("id"), sc, "namespace_id")
 	if errors.Is(err, store.ErrNoDocuments) {
 		return deleted, nil
 	}
@@ -595,15 +595,13 @@ func (pg *Pg) deviceDeleteManyInTx(ctx context.Context, sc scope.Scope, uids []s
 		return deleted, nil
 	}
 
-	ids := make([]string, len(rows))
-	for i, row := range rows {
-		ids[i] = row.ID
-		deleted = append(deleted, store.DeletedDevice{UID: row.ID, TenantID: row.NamespaceID, Status: models.DeviceStatus(row.Status)})
+	for _, row := range rows {
+		deleted = append(deleted, row.ID)
 	}
 
 	if _, err := tx.NewDelete().
 		Model((*entity.Session)(nil)).
-		Where("device_id IN (?)", bun.List(ids)).
+		Where("device_id IN (?)", bun.List(deleted)).
 		Exec(ctx); err != nil {
 		return nil, fromSQLError(err)
 	}

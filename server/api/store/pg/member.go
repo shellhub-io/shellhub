@@ -96,7 +96,7 @@ func (pg *Pg) NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberI
 			return err
 		}
 
-		removed, err := pg.removeOwnedDevices(ctx, sc, tenantID, memberID)
+		removed, err := pg.removeOwnedDevices(ctx, tenantID, memberID)
 		if err != nil {
 			return err
 		}
@@ -148,7 +148,7 @@ func (pg *Pg) keepDepartingDevices(ctx context.Context, tenantID, memberID strin
 	return nil
 }
 
-func (pg *Pg) removeOwnedDevices(ctx context.Context, sc scope.Scope, tenantID, memberID string) ([]string, error) {
+func (pg *Pg) removeOwnedDevices(ctx context.Context, tenantID, memberID string) ([]string, error) {
 	now := pg.clock.Now()
 
 	removed := []string{}
@@ -174,19 +174,6 @@ func (pg *Pg) removeOwnedDevices(ctx context.Context, sc scope.Scope, tenantID, 
 		Where("owner_id = ?", memberID).
 		Exec(ctx); err != nil {
 		return nil, fromSQLError(err)
-	}
-
-	if len(removed) == 0 {
-		return removed, nil
-	}
-
-	count := int64(len(removed))
-	if err := pg.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusAccepted, -count); err != nil {
-		return nil, err
-	}
-
-	if err := pg.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, count); err != nil {
-		return nil, err
 	}
 
 	return removed, nil

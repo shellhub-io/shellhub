@@ -18,7 +18,7 @@ type dbAccessor interface {
 }
 
 // TestNamespaceUpdateDoesNotClobberDeviceCounts ensures a full-model NamespaceUpdate carrying a
-// stale device-counter snapshot cannot roll back a concurrent NamespaceIncrementDeviceCount.
+// stale device-counter snapshot cannot roll back a device created since the snapshot was read.
 func (s *Suite) TestNamespaceUpdateDoesNotClobberDeviceCounts(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
@@ -26,13 +26,15 @@ func (s *Suite) TestNamespaceUpdateDoesNotClobberDeviceCounts(t *testing.T) {
 	require.NoError(t, s.provider.CleanDatabase(t))
 
 	tenantID := s.CreateNamespace(t, WithNamespaceName("counters"))
-	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 5))
+	for range 5 {
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+	}
 
 	snapshot, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	require.NoError(t, err)
 	require.Equal(t, int64(5), snapshot.DevicesAcceptedCount)
 
-	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 1))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
 
 	snapshot.Name = "counters-renamed"
 	require.NoError(t, st.NamespaceUpdate(ctx, snapshot))
@@ -40,7 +42,7 @@ func (s *Suite) TestNamespaceUpdateDoesNotClobberDeviceCounts(t *testing.T) {
 	updated, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 	require.NoError(t, err)
 	assert.Equal(t, "counters-renamed", updated.Name, "the intended field must still be written")
-	assert.Equal(t, int64(6), updated.DevicesAcceptedCount, "concurrent counter increment must not be clobbered")
+	assert.Equal(t, int64(6), updated.DevicesAcceptedCount, "a device created since the snapshot must stay counted")
 }
 
 // TestDeviceUpdateDoesNotClobberCustomFields ensures a full-model DeviceUpdate carrying a stale

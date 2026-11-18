@@ -990,14 +990,6 @@ func TestDeleteDevice(t *testing.T) {
 					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
 					Return(nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusRemoved, int64(1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
 			},
 			expected: nil,
 		},
@@ -1037,10 +1029,6 @@ func TestDeleteDevice(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceDelete", ctx, scope.MustBounded("tenant"), device).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("tenant"), models.DeviceStatusPending, int64(-1)).
 					Return(nil).
 					Once()
 			},
@@ -1585,14 +1573,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusRejected, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
-					Once()
 			},
 			expectedError: nil,
 		},
@@ -1630,14 +1610,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusRejected, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -1772,19 +1744,7 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), finalDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -1934,14 +1894,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2094,14 +2046,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2325,14 +2269,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
 					Return(nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
-					Return(nil).
-					Once()
 			},
 			expectedError: nil,
 		},
@@ -2387,14 +2323,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Once()
 				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), updatedDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2477,19 +2405,7 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 					Return(nil).
 					Once()
 				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
 					On("DeviceUpdate", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), finalDevice).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusPending, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-0000-0000-000000000000"), models.DeviceStatusAccepted, int64(1)).
 					Return(nil).
 					Once()
 			},
@@ -2566,14 +2482,6 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 		Return(nil, store.ErrNoDocuments).
 		Once()
 	storeMock.On("DeviceUpdate", ctx, scope.MustBounded(tenantID), &accepted).Return(nil).Once()
-	storeMock.
-		On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(-1)).
-		Return(nil).
-		Once()
-	storeMock.
-		On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, int64(1)).
-		Return(nil).
-		Once()
 	storeMock.
 		On("ProvisioningKeyEventStampDecision", ctx, scope.MustBounded(tenantID), "keyless", models.DeviceStatusAccepted, mock.Anything).
 		Return(nil).

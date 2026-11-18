@@ -302,7 +302,7 @@ func (s *Suite) TestScopeIsolationDeviceDeleteMany(t *testing.T) {
 	deleted, err := st.DeviceDeleteMany(ctx, scope.MustBounded(owner), []string{string(owned), string(foreign)})
 	require.NoError(t, err)
 	require.Len(t, deleted, 1)
-	assert.Equal(t, string(owned), deleted[0].UID)
+	assert.Equal(t, string(owned), deleted[0])
 
 	_, err = st.DeviceResolve(ctx, scope.MustBounded(other), store.DeviceUIDResolver, string(foreign))
 	require.NoError(t, err, "a device of another namespace must survive")

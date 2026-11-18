@@ -610,31 +610,6 @@ func (s *Suite) TestScopeIsolationMembershipWrites(t *testing.T) {
 		store.ErrInvalidScope)
 }
 
-// TestScopeIsolationNamespaceIncrementDeviceCount locks that NamespaceIncrementDeviceCount answers within the owning namespace and returns
-// nothing when bounded to another.
-func (s *Suite) TestScopeIsolationNamespaceIncrementDeviceCount(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-	require.NoError(t, s.provider.CleanDatabase(t))
-
-	owner := s.CreateNamespace(t)
-	other := s.CreateNamespace(t)
-
-	require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(owner), models.DeviceStatusAccepted, 3))
-
-	ownerNs, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, owner)
-	require.NoError(t, err)
-	assert.Equal(t, int64(3), ownerNs.DevicesAcceptedCount)
-
-	otherNs, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, other)
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), otherNs.DevicesAcceptedCount)
-
-	assert.ErrorIs(t,
-		st.NamespaceIncrementDeviceCount(ctx, scope.NewUnbounded(reasonTestQueryMechanics), models.DeviceStatusAccepted, 1),
-		store.ErrInvalidScope)
-}
-
 // TestScopeIsolationDeviceConflicts locks that DeviceConflicts answers within the owning namespace and returns
 // nothing when bounded to another.
 func (s *Suite) TestScopeIsolationDeviceConflicts(t *testing.T) {
