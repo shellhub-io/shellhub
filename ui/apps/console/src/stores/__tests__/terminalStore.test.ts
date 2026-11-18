@@ -13,6 +13,8 @@ function openTerminal() {
 
 const recording = {
   id: "session-1",
+  sessionUid: "session-1",
+  seat: 0,
   title: "dev-1",
   logs: "cast",
   filename: "dev-1.cast",

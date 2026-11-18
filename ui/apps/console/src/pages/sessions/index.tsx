@@ -134,6 +134,7 @@ function SessionActions({
           <RecordingActionsMenu
             sessionUid={session.uid}
             recorded={session.recorded}
+            seats={session.events?.seats}
             active={session.active}
             onDownload={onDownload}
           />

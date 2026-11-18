@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -217,6 +217,42 @@ describe("Sessions", () => {
       expect(
         await screen.findByRole("button", { name: "Play recording" }),
       ).toHaveAccessibleDescription("This session was not recorded");
+    });
+
+    it("deletes the recording of every seat of the session", async () => {
+      const user = userEvent.setup();
+      const deleted: string[] = [];
+      server.use(
+        http.delete("*/api/sessions/:uid/records/:seat", ({ params }) => {
+          deleted.push(String(params.seat));
+          return new HttpResponse(null, { status: 200 });
+        }),
+        http.get("*/api/sessions/:uid", () =>
+          HttpResponse.json(mockSession({ uid: "session-1", recorded: true })),
+        ),
+      );
+      setSessions([
+        mockSession({
+          uid: "session-1",
+          recorded: true,
+          events: { types: ["pty-req", "shell"], seats: [0, 1], first: "pty-req" },
+        }),
+      ]);
+      renderSessions();
+
+      await user.click(
+        await screen.findByRole("button", { name: "Recording actions" }),
+      );
+      await user.click(
+        screen.getByRole("menuitem", { name: "Delete recording" }),
+      );
+      await user.click(
+        within(screen.getByRole("dialog")).getByRole("button", {
+          name: "Delete recording",
+        }),
+      );
+
+      await waitFor(() => expect(deleted).toEqual(["0", "1"]));
     });
 
     it("opens the menu without opening the session", async () => {

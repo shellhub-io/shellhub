@@ -206,6 +206,8 @@ describe("AppLayout", () => {
         recordings: [
           {
             id: "recording-1",
+            sessionUid: "recording-1",
+            seat: 0,
             title: "my-device",
             logs: "",
             filename: "my-device.cast",

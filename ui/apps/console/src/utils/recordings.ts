@@ -71,16 +71,29 @@ async function recordingsDir(): Promise<FileSystemDirectoryHandle> {
 /** Why playing or downloading a recording waits: an active session's recording is still partial. */
 export const AVAILABLE_WHEN_SESSION_ENDS = "Available when the session ends";
 
-/** Build a filesystem-safe `.cast` download name for a device, stamped with `at`. */
+/**
+ * The id of the tab playing one seat's recording: the bare session uid for seat zero and `uid#seat`
+ * for any other. It is not the id of the copy the browser holds, which is found by its sessionUid.
+ */
+export function recordingId(sessionUid: string, seat: number): string {
+  return seat === 0 ? sessionUid : `${sessionUid}#${seat}`;
+}
+
+/**
+ * Build a filesystem-safe `.cast` download name for a device, stamped with `at`. A seat other than
+ * zero is named too, so the recordings of one session's terminals do not overwrite each other.
+ */
 export function castFilename(
   deviceName: string,
   at: Date = new Date(),
+  seat = 0,
 ): string {
   const slug = (deviceName || "session")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return `shellhub-${slug || "session"}-${format(at, "yyyyMMdd-HHmmss")}.cast`;
+  const seatSuffix = seat === 0 ? "" : `-seat-${seat}`;
+  return `shellhub-${slug || "session"}-${format(at, "yyyyMMdd-HHmmss")}${seatSuffix}.cast`;
 }
 
 /**

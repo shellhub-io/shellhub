@@ -127,8 +127,9 @@ export default function TerminalManager() {
             visible={r.shown}
             actions={
               <RecordingActionsMenu
-                sessionUid={r.id}
+                sessionUid={r.sessionUid}
                 recorded={r.recorded}
+                seats={[r.seat]}
                 placement="top-end"
                 portal={false}
                 loaded
