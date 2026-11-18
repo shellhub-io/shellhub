@@ -6,6 +6,14 @@ delete:
     namespaces they are a member of. Users who are owners of namespaces cannot
     be deleted. In such cases, the user must delete the namespace(s) first.
 
+    The request carries the account's factor: the current `password` for a user without MFA, the
+    MFA `code` for one with it. A request with neither is refused with 400. A wrong factor deletes
+    nothing and answers 403, and counts toward that factor's lockout, the same one password changes
+    and MFA disable count toward: the third wrong one in a row starts it, and a factor sent while it
+    holds, or while another guess for the account is being checked, is refused unchecked with 429.
+    A user created through SAML has no factor here and is refused with 403; an administrator
+    deletes that account.
+
     > NOTE: This route is available only for **cloud** instances. Enterprise
     users must use the admin console, and community users must use the CLI.
   tags:
@@ -13,13 +21,23 @@ delete:
     - cloud
   security:
     - jwt: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/userDelete.yaml
   responses:
     '204':
       description: Success to delete the user
+    '400':
+      $ref: ../components/responses/400.yaml
     '401':
       $ref: ../components/responses/401.yaml
     '403':
       $ref: ../components/responses/403.yaml
+    '429':
+      $ref: ../components/responses/429.yaml
     '500':
       $ref: ../components/responses/500.yaml
     '503':

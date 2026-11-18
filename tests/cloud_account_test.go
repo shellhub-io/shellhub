@@ -21,7 +21,7 @@ func TestCloudAccountDeletion(t *testing.T) {
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
 	t.Cleanup(compose.Down)
 
-	t.Run("deleting the account removes the member's paired devices", func(t *testing.T) {
+	t.Run("deleting the account asks for the password and removes the member's paired devices", func(t *testing.T) {
 		tenant := uuid.Generate()
 		compose.NewUser(t, "account-owner", "account-owner"+stripeTestEmailDomain, ShellHubPassword)
 		compose.NewNamespace(t, "account-owner", "account-space", tenant)
@@ -35,6 +35,18 @@ func TestCloudAccountDeletion(t *testing.T) {
 		require.Equal(t, member.ID, paired.OwnerID)
 
 		resp, err := asBearer(t, compose, member.Token).Delete("/api/user")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode(), resp.String())
+
+		resp, err = asBearer(t, compose, member.Token).
+			SetBody(map[string]string{"password": "not-" + ShellHubPassword}).
+			Delete("/api/user")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode(), resp.String())
+
+		resp, err = asBearer(t, compose, member.Token).
+			SetBody(map[string]string{"password": ShellHubPassword}).
+			Delete("/api/user")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())
 
