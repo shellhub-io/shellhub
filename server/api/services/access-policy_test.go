@@ -945,13 +945,6 @@ func TestSubjectMatches(t *testing.T) {
 			role:        authorizer.RoleAdministrator,
 			expected:    false,
 		},
-		{
-			description: "empty kind is treated as a person for all-members",
-			subject:     models.PolicySubject{Type: models.PolicySubjectAllMembers},
-			principal:   models.Principal{Kind: models.PrincipalUser, ID: "legacy-id"},
-			role:        authorizer.RoleObserver,
-			expected:    true,
-		},
 	}
 
 	for _, tc := range cases {

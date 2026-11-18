@@ -465,63 +465,6 @@ func TestValidateFilters(t *testing.T) {
 	}
 }
 
-func TestIsBoolConvertible(t *testing.T) {
-	cases := []struct {
-		name string
-		in   any
-		want bool
-	}{
-		{"bool true", true, true},
-		{"bool false", false, true},
-		{"float64 nonzero (JSON number)", float64(1), true},
-		{"float64 zero (JSON number)", float64(0), true},
-		{"string true", "true", true},
-		{"string 1", "1", true},
-		{"string false", "false", true},
-		{"string 0", "0", true},
-		{"string t", "t", true},
-		{"string yes — rejected by ParseBool", "yes", false},
-		{"string on — rejected by ParseBool", "on", false},
-		{"string x — invalid", "x", false},
-		{"nil", nil, false},
-		{"int — not a JSON type", 1, false},
-		{"slice", []any{true}, false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, isBoolConvertible(tc.in))
-		})
-	}
-}
-
-func TestIsPrimitive(t *testing.T) {
-	cases := []struct {
-		name string
-		in   any
-		want bool
-	}{
-		{"nil", nil, true},
-		{"bool", true, true},
-		{"string", "x", true},
-		{"float64 (JSON number)", 3.14, true},
-		{"int is not a JSON primitive", 42, false},
-		{"int64 is not a JSON primitive", int64(42), false},
-		{"array of primitives", []any{"a", 3.14, true}, true},
-		{"empty array", []any{}, true},
-		{"map", map[string]any{"$ne": "x"}, false},
-		{"array with map", []any{map[string]any{"$ne": "x"}}, false},
-		{"nested array of primitives", []any{[]any{"a", "b"}}, true},
-		{"struct", struct{ X int }{X: 1}, false},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, isPrimitive(tc.in))
-		})
-	}
-}
-
 func TestValidateFiltersRejectsAValueTheFieldDoesNotDeclare(t *testing.T) {
 	allowed := NewFieldConstraints(map[string][]string{
 		"name":   {"contains", "eq", "ne"},

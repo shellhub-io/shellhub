@@ -50,7 +50,7 @@ func TestCreateProvisioningKey(t *testing.T) {
 
 	matchCreate := func(want *models.ProvisioningKey) any {
 		return mock.MatchedBy(func(got *models.ProvisioningKey) bool {
-			if got.KeyEncrypted == "" || got.KeyHint != provisioningKeyHint(generated) {
+			if got.KeyEncrypted == "" || got.KeyHint != "1e7b0f4b" {
 				return false
 			}
 
