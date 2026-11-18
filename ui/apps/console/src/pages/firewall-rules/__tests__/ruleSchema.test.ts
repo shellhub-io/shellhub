@@ -129,6 +129,13 @@ describe("ruleSchema — username", () => {
     ).toBeUndefined();
   });
 
+  it("accepts a Go flag group as username", () => {
+    expect(
+      errorsFor(makeValues({ usernameOption: "restrict", username: "(?i)root" }))
+        .username,
+    ).toBeUndefined();
+  });
+
   it("ignores username validation when usernameOption is 'all'", () => {
     expect(
       errorsFor(makeValues({ usernameOption: "all", username: "" })).username,

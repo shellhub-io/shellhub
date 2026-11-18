@@ -244,6 +244,42 @@ describe("KeyModal", () => {
     });
   });
 
+  describe("400 error handling", () => {
+    it("points at the key and the patterns when the server refuses a new key", async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.post("*/api/sshkeys/public-keys", () =>
+          HttpResponse.json({ message: "invalid entity" }, { status: 400 }),
+        ),
+      );
+      renderModal();
+
+      await fillName(user, "test-key");
+      await fillKeyData(user, VALID_KEY);
+      await user.click(getSubmitButton());
+
+      expect(
+        await screen.findByText(/the key or a pattern isn't valid/i),
+      ).toBeInTheDocument();
+    });
+
+    it("names the patterns when the server refuses an edit", async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.put("*/api/sshkeys/public-keys/:fingerprint", () =>
+          HttpResponse.json({ message: "invalid entity" }, { status: 400 }),
+        ),
+      );
+      renderModal({ editKey: mockPublicKey() });
+
+      await user.click(getSubmitButton());
+
+      expect(
+        await screen.findByText(/^a pattern isn't valid/i),
+      ).toBeInTheDocument();
+    });
+  });
+
   describe("generic root error", () => {
     it("shows the error message in a root error paragraph", async () => {
       const user = userEvent.setup();

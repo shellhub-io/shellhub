@@ -201,6 +201,23 @@ describe("RuleModal — edit mode", () => {
 });
 
 describe("RuleModal — API rejection", () => {
+  it("names the patterns when the server refuses the rule as invalid", async () => {
+    server.use(
+      http.post("*/api/firewall/rules", () =>
+        HttpResponse.json({ message: "invalid entity" }, { status: 400 }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderModal();
+
+    await typePriority(user, "1");
+    await user.click(getConfirmButton());
+
+    expect(
+      await screen.findByText(/a pattern isn't valid/i),
+    ).toBeInTheDocument();
+  });
+
   it("shows root error alert and does not call onClose when API rejects", async () => {
     server.use(
       http.post("*/api/firewall/rules", () =>
