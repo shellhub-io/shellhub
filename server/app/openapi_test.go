@@ -9,9 +9,9 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v5"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/server/api/routes/middleware"
-	sshhttp "github.com/shellhub-io/shellhub/server/ssh/http"
 	"github.com/shellhub-io/shellhub/server/ssh/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -61,9 +61,9 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 	}))
 
 	for _, path := range []string{
-		sshhttp.HandleConnectionV1Path,
-		sshhttp.HandleConnectionV2Path,
-		sshhttp.HandleRevdialPath,
+		tunnelproto.ConnectionV1Path,
+		tunnelproto.ConnectionV2Path,
+		tunnelproto.RevdialPath,
 		controlUpgradePath,
 	} {
 		e.GET(path, upgrade)
@@ -90,9 +90,9 @@ func TestOpenAPIValidationAllowsWebSocketUpgrades(t *testing.T) {
 	}
 
 	for _, path := range []string{
-		sshhttp.HandleConnectionV1Path,
-		sshhttp.HandleConnectionV2Path,
-		sshhttp.HandleRevdialPath,
+		tunnelproto.ConnectionV1Path,
+		tunnelproto.ConnectionV2Path,
+		tunnelproto.RevdialPath,
 		web.WebsocketSSHBridgeRoute,
 	} {
 		t.Run("upgrade succeeds on "+path, func(t *testing.T) {
@@ -113,9 +113,9 @@ func TestOpenAPIValidationSkipper(t *testing.T) {
 		path string
 		skip bool
 	}{
-		{sshhttp.HandleConnectionV1Path, true},
-		{sshhttp.HandleConnectionV2Path, true},
-		{sshhttp.HandleRevdialPath, true},
+		{tunnelproto.ConnectionV1Path, true},
+		{tunnelproto.ConnectionV2Path, true},
+		{tunnelproto.RevdialPath, true},
 		{web.WebsocketSSHBridgeRoute, true},
 		{"/metrics", true},
 		{"/internal/auth", true},

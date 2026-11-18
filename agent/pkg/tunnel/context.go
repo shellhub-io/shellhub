@@ -9,6 +9,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -42,10 +43,11 @@ func (c Context) Value(key any) any {
 	return c.ctx.Value(key)
 }
 
-// Status reports the outcome of the handler to the other end of the stream. It is sent before
-// the stream carries any payload.
-func (c Context) Status(status string) error {
-	if err := c.encoder.Encode(map[string]string{"status": status}); err != nil {
+// Reached tells the other end of the stream that the handler reached its target, before the
+// stream carries any payload. It returns the encoder's error, joined with a send failure, when
+// the reply cannot be written.
+func (c Context) Reached() error {
+	if err := c.encoder.Encode(tunnelproto.Reply{Status: tunnelproto.StatusOK}); err != nil {
 		log.WithError(err).Error("failed to send status response")
 
 		return errors.Join(errors.New("failed to send status response"), err)
@@ -55,7 +57,7 @@ func (c Context) Status(status string) error {
 }
 
 func (c Context) Error(err error) error {
-	if err := c.encoder.Encode(map[string]string{"error": err.Error()}); err != nil {
+	if err := c.encoder.Encode(tunnelproto.Reply{Error: err.Error()}); err != nil {
 		log.WithError(err).Error("failed to send error response")
 
 		return errors.Join(errors.New("failed to send error response"), err)
@@ -64,18 +66,16 @@ func (c Context) Error(err error) error {
 	return nil
 }
 
-// Headers is the metadata the server sends ahead of a stream's payload.
-type Headers map[string]string
-
-// Headers reads the header frame the server sends before the payload. It must be called
-// before the stream is read for anything else.
-func (c Context) Headers() (Headers, error) {
-	var header Headers
+// Header reads the header frame the server sends before the payload. It must be called
+// before the stream is read for anything else. It returns a zero header and the decoder's error
+// when the frame cannot be decoded.
+func (c Context) Header() (tunnelproto.Header, error) {
+	var header tunnelproto.Header
 
 	if err := c.decoder.Decode(&header); err != nil {
 		log.WithError(err).Error("failed to decode the header")
 
-		return nil, err
+		return tunnelproto.Header{}, err
 	}
 
 	return header, nil

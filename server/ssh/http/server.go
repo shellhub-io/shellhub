@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/revdial"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
@@ -77,14 +78,14 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 		Config:   cfg,
 	}
 
-	router.GET(HandleConnectionV1Path, handlers.HandleConnectionV1)
-	authn.AllowDevice(http.MethodGet, HandleConnectionV1Path)
+	router.GET(tunnelproto.ConnectionV1Path, handlers.HandleConnectionV1)
+	authn.AllowDevice(http.MethodGet, tunnelproto.ConnectionV1Path)
 
-	router.GET(HandleConnectionV2Path, handlers.HandleConnectionV2)
-	authn.AllowDevice(http.MethodGet, HandleConnectionV2Path)
+	router.GET(tunnelproto.ConnectionV2Path, handlers.HandleConnectionV2)
+	authn.AllowDevice(http.MethodGet, tunnelproto.ConnectionV2Path)
 
-	router.GET(HandleRevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
-	authn.AllowAnonymous(http.MethodGet, HandleRevdialPath)
+	router.GET(tunnelproto.RevdialPath, echo.WrapHandler(revdial.ConnHandler(upgrader)))
+	authn.AllowAnonymous(http.MethodGet, tunnelproto.RevdialPath)
 
 	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
 }

@@ -36,9 +36,9 @@ func TestStreamKeepsThePayloadTheHeaderDecoderBuffered(t *testing.T) {
 
 	ctx := NewContext(context.Background(), rwc)
 
-	headers, err := ctx.Headers()
+	header, err := ctx.Header()
 	require.NoError(t, err)
-	assert.Equal(t, "session-uid", headers["id"])
+	assert.Equal(t, "session-uid", header.ID)
 
 	rest, err := io.ReadAll(ctx.Stream())
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestHandleServesTheStreamThatKeptThePayload(t *testing.T) {
 	failed := make(chan error, 1)
 
 	tun.Handle(protocol, func(ctx Context, rwc io.ReadWriteCloser) error {
-		headers, err := ctx.Headers()
+		header, err := ctx.Header()
 		if err != nil {
 			failed <- err
 
@@ -75,7 +75,7 @@ func TestHandleServesTheStreamThatKeptThePayload(t *testing.T) {
 			return err
 		}
 
-		served <- headers["id"] + "|" + string(got)
+		served <- header.ID + "|" + string(got)
 
 		return nil
 	})

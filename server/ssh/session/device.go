@@ -329,7 +329,7 @@ func (s *Session) Online() bool {
 
 // Dial establishes the underlying transport to the target device. For V1
 // transports an HTTP GET request is issued (legacy reverse tunnel). For
-// V2 transports the ProtoSSHOpen multistream selection and a JSON envelope
+// V2 transports the [tunnelproto.ProtoSSHOpen] multistream selection and a JSON envelope
 // with the session id are written together, without waiting for the agent
 // to confirm the selection. After a nil return s.agent.conn is the raw stream
 // on V1, and on V2 a stream whose first read checks that confirmation. Unless
