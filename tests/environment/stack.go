@@ -128,6 +128,25 @@ type Stack struct {
 	artifacts []string
 }
 
+var errNoRun = errors.New("the stack config has no run to own its images")
+
+func (cfg Config) validate() error {
+	switch {
+	case cfg.Run == nil:
+		return errNoRun
+	case cfg.StripeEvents && !cfg.Edition.profile().cloud:
+		return errStripeEventsOutsideCloud
+	case cfg.ACMEDNS && !cfg.ACME:
+		return errACMEDNSWithoutACME
+	case cfg.SuppliedCertificate != nil && cfg.ACME:
+		return errSuppliedCertificateAndACME
+	case cfg.Unlicensed && cfg.License != nil:
+		return errLicensedAndUnlicensed
+	}
+
+	return nil
+}
+
 // Up brings a ShellHub stack up according to cfg, blocking until every service is running and
 // healthy. The first Up per edition in a run builds the images, tagged with the run's ID, unless
 // [BuildStackImages] or [BuildEditionImages] built them; later Ups reuse them. The stack's network is created by the run,
@@ -155,12 +174,8 @@ type Stack struct {
 // the file in the error returned when it wrote at least one container's logs; an error writing
 // them is joined to it.
 func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
-	if cfg.Run == nil {
-		return nil, errors.New("the stack config has no run to own its images")
-	}
-
-	if cfg.StripeEvents && !cfg.Edition.profile().cloud {
-		return nil, errStripeEventsOutsideCloud
+	if err := cfg.validate(); err != nil {
+		return nil, err
 	}
 
 	if cfg.CloudDir == "" {

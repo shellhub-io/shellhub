@@ -8,10 +8,6 @@ import (
 func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 	issuer := cfg.Run.LicenseIssuer()
 
-	if cfg.Unlicensed && cfg.License != nil {
-		return nil, nil, errLicensedAndUnlicensed
-	}
-
 	switch {
 	case cfg.Unlicensed:
 		return map[string]string{licenseFileEnv: ""}, nil, nil

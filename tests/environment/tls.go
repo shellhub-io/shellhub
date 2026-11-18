@@ -105,10 +105,6 @@ func (cfg Config) httpsLayer(ctx context.Context) (httpsLayer, error) {
 	)
 
 	switch {
-	case cfg.ACMEDNS && !cfg.ACME:
-		return httpsLayer{}, errACMEDNSWithoutACME
-	case cfg.SuppliedCertificate != nil && cfg.ACME:
-		return httpsLayer{}, errSuppliedCertificateAndACME
 	case cfg.SuppliedCertificate != nil:
 		layer, err = cfg.suppliedCertificateLayer()
 	case cfg.ACME:

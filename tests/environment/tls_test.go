@@ -3,8 +3,6 @@ package environment
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/fs"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,17 +28,12 @@ func TestSelfSignedCertificateVerifiesAgainstItself(t *testing.T) {
 	}
 }
 
-func TestUpRefusesASuppliedCertificateWithACME(t *testing.T) {
-	t.Chdir(t.TempDir())
-
+func TestConfigValidateRefusesASuppliedCertificateWithACME(t *testing.T) {
 	certificate, err := SelfSignedCertificate("localhost")
 	require.NoError(t, err)
 
-	_, err = Up(t.Context(), Config{Edition: EditionCommunity, Name: "shellhub-e2e-a", Run: &Run{}, SuppliedCertificate: &certificate, ACME: true})
+	err = Config{Edition: EditionCommunity, Run: &Run{}, SuppliedCertificate: &certificate, ACME: true}.validate()
 	require.ErrorIs(t, err, errSuppliedCertificateAndACME)
-
-	_, err = os.Stat(stackArtifactsDir)
-	assert.ErrorIs(t, err, fs.ErrNotExist, "a refused stack leaves no certificate or Pebble file behind")
 }
 
 func TestSelfSignedCertificateNeedsAName(t *testing.T) {
