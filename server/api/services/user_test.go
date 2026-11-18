@@ -337,7 +337,7 @@ func TestUpdateUser(t *testing.T) {
 					Once()
 			},
 			expected: Expected{
-				err: NewErrUserUnhandledDuplicate(),
+				err: NewErrUserDuplicated([]string{}, store.ErrDuplicate),
 			},
 		},
 		{

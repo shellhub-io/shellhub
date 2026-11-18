@@ -203,7 +203,7 @@ func TestSetup(t *testing.T) {
 
 				storeMock.On("UserCreate", ctx, user).Return("", store.ErrDuplicate).Once()
 			},
-			expected: NewErrUserUnhandledDuplicate(),
+			expected: NewErrUserDuplicated([]string{}, store.ErrDuplicate),
 		},
 		{
 			description: "Fail when cannot create the user due to a generic store error",
