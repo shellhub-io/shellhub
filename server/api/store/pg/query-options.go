@@ -102,7 +102,9 @@ func (o *queryOptions) Match(filters *query.Filters) store.QueryOption {
 			tableAlias = alias
 		}
 
-		match := filterMatch{tableAlias: tableAlias, onlineCutoff: OnlineCutoff(o.clock)}
+		columns, _ := ctx.Value(CtxFilterColumns).(map[string]string)
+
+		match := filterMatch{tableAlias: tableAlias, columns: columns, onlineCutoff: OnlineCutoff(o.clock)}
 
 		var err error
 		wrapper.query = wrapper.query.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
@@ -117,6 +119,7 @@ func (o *queryOptions) Match(filters *query.Filters) store.QueryOption {
 
 type filterMatch struct {
 	tableAlias   string
+	columns      map[string]string
 	onlineCutoff time.Time
 }
 
@@ -139,6 +142,10 @@ func (m filterMatch) where(q *bun.SelectQuery, nodes []query.Filter) (*bun.Selec
 			params, ok := node.Params.(*query.FilterProperty)
 			if !ok {
 				return q, added, ErrFilterNodeInvalid
+			}
+
+			if column, renamed := m.columns[params.Name]; renamed {
+				params = &query.FilterProperty{Name: column, Operator: params.Operator, Value: params.Value}
 			}
 
 			condition, args, valid, err := internal.ParseFilterProperty(params, m.tableAlias, m.onlineCutoff)
