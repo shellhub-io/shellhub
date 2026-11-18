@@ -144,7 +144,7 @@ Devices already accepted stay accepted; the namespace refuses the next accept on
 			cmd.Println("Namespace limit set successfully")
 			cmd.Println("Namespace:", namespace.Name)
 			cmd.Println("Tenant:", namespace.TenantID)
-			if namespace.MaxDevices == services.MaxNumberDevicesUnlimited {
+			if namespace.MaxDevices == models.NamespaceUnlimitedDevices {
 				cmd.Println("Max Devices: unlimited")
 			} else {
 				cmd.Println("Max Devices:", namespace.MaxDevices)

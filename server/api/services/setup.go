@@ -128,7 +128,7 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 
 	namespace := s.namespacePolicy().New(namespaceName, insertedID, models.TypePersonal, s.clock.Now())
 	namespace.TenantID = tenantID
-	namespace.MaxDevices = -1
+	namespace.MaxDevices = models.NamespaceUnlimitedDevices
 	namespace.Settings.SessionRecord = false
 
 	if _, err = s.store.NamespaceCreate(ctx, namespace); err != nil {

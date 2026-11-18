@@ -80,7 +80,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("", store.ErrDuplicate).Once()
@@ -113,7 +113,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("", errStoreDown).Once()
@@ -147,7 +147,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
@@ -161,7 +161,7 @@ func TestNamespaceCreate(t *testing.T) {
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 				},
-				MaxDevices: MaxNumberDevicesUnlimited,
+				MaxDevices: models.NamespaceUnlimitedDevices,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -191,7 +191,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("11111111-1111-4111-8111-111111111111", nil).Once()
@@ -205,7 +205,7 @@ func TestNamespaceCreate(t *testing.T) {
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Community),
 				},
-				MaxDevices: MaxNumberDevicesUnlimited,
+				MaxDevices: models.NamespaceUnlimitedDevices,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -323,7 +323,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
@@ -337,7 +337,7 @@ func TestNamespaceCreate(t *testing.T) {
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 				},
-				MaxDevices: MaxNumberDevicesUnlimited,
+				MaxDevices: models.NamespaceUnlimitedDevices,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -367,7 +367,7 @@ func TestNamespaceCreate(t *testing.T) {
 						SessionRecord:          true,
 						ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceCreate", ctx, namespace).Return("00000000-0000-0000-0000-000000000000", nil).Once()
@@ -381,7 +381,7 @@ func TestNamespaceCreate(t *testing.T) {
 					SessionRecord:          true,
 					ConnectionAnnouncement: envs.AnnouncementFor(envs.Enterprise),
 				},
-				MaxDevices: MaxNumberDevicesUnlimited,
+				MaxDevices: models.NamespaceUnlimitedDevices,
 				CreatedAt:  now,
 			}, nil},
 		},
@@ -721,7 +721,7 @@ func TestNamespaceLimit(t *testing.T) {
 			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: 1},
 			requiredMocks: func() {
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil).Once()
+					Return(&models.Namespace{Name: "namespace", MaxDevices: models.NamespaceUnlimitedDevices}, nil).Once()
 				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: 1}).Return(errors.New("error")).Once()
 			},
 			expected: Expected{nil, ErrFailedLimitNamespace},
@@ -731,20 +731,20 @@ func TestNamespaceLimit(t *testing.T) {
 			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: 1},
 			requiredMocks: func() {
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
-					Return(&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil).Once()
+					Return(&models.Namespace{Name: "namespace", MaxDevices: models.NamespaceUnlimitedDevices}, nil).Once()
 				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: 1}).Return(nil).Once()
 			},
 			expected: Expected{&models.Namespace{Name: "namespace", MaxDevices: 1}, nil},
 		},
 		{
 			description: "lifts the limit",
-			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: MaxNumberDevicesUnlimited},
+			input:       inputs.NamespaceLimit{Namespace: "namespace", MaxDevices: models.NamespaceUnlimitedDevices},
 			requiredMocks: func() {
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").
 					Return(&models.Namespace{Name: "namespace", MaxDevices: 1}, nil).Once()
-				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}).Return(nil).Once()
+				mock.On("NamespaceUpdate", ctx, &models.Namespace{Name: "namespace", MaxDevices: models.NamespaceUnlimitedDevices}).Return(nil).Once()
 			},
-			expected: Expected{&models.Namespace{Name: "namespace", MaxDevices: MaxNumberDevicesUnlimited}, nil},
+			expected: Expected{&models.Namespace{Name: "namespace", MaxDevices: models.NamespaceUnlimitedDevices}, nil},
 		},
 	}
 
@@ -797,7 +797,7 @@ func TestNamespaceDelete(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord: true,
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()
@@ -832,7 +832,7 @@ func TestNamespaceDelete(t *testing.T) {
 					Settings: &models.NamespaceSettings{
 						SessionRecord: true,
 					},
-					MaxDevices: MaxNumberDevicesUnlimited,
+					MaxDevices: models.NamespaceUnlimitedDevices,
 					CreatedAt:  now,
 				}
 				mock.On("NamespaceResolve", ctx, store.NamespaceNameResolver, "namespace").Return(namespace, nil).Once()

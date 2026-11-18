@@ -12,11 +12,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
-// The per-edition ceilings on namespaces and devices. A negative value means no limit.
-const (
-	MaxNumberNamespacesCommunity = -1 // MaxNumberNamespacesCommunity defines a unlimited number of namespaces for communitty environment.
-	MaxNumberDevicesUnlimited    = -1 // MaxNumberDevicesUnlimited defines a unlimited number of devices for enterprise and community environment.
-)
+// MaxNumberNamespacesCommunity is the namespace ceiling of a user the admin CLI creates: none.
+const MaxNumberNamespacesCommunity = -1
 
 // NamespaceResolver names the field an admin command looks a namespace up by.
 type NamespaceResolver string

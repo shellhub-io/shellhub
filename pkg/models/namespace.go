@@ -2,6 +2,13 @@ package models
 
 import "time"
 
+// The device limits a namespace carries in MaxDevices: the cap Cloud gives a namespace without a
+// subscription, and the value meaning no cap.
+const (
+	NamespaceFreeDevices      = 3
+	NamespaceUnlimitedDevices = -1
+)
+
 // Namespace is a tenant: the unit devices, members and billing all hang off. Its TenantID is what
 // every scoped query filters on, and its Name is what an SSH address resolves through, so the two
 // are equally load-bearing and only the name may change.
