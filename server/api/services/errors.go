@@ -87,6 +87,7 @@ var (
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)
 	ErrForbidden                       = errors.New("forbidden", ErrLayer, ErrCodeForbidden)
 	ErrUserNotFound                    = errors.New("user not found", ErrLayer, ErrCodeNotFound)
+	ErrUserOwnsNamespace               = errors.New("user still has a owned namespace", ErrLayer, ErrCodeForbidden)
 	ErrUserInvalid                     = errors.New("user invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserDuplicated                  = errors.New("user duplicated", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
