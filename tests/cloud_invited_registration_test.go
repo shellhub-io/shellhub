@@ -19,7 +19,6 @@ func TestCloudInvitedRegistration(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	inviter := "inviter"
 	compose.NewUser(t, inviter, inviter+stripeTestEmailDomain, ShellHubPassword)

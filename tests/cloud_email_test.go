@@ -18,7 +18,6 @@ func TestCloudEmailPartials(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	t.Run("the password reset email carries the shared header, footer and copyright", func(t *testing.T) {
 		email := "email-partials" + stripeTestEmailDomain

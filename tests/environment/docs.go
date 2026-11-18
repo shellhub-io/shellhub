@@ -7,14 +7,14 @@
 //
 // For tests, [New] creates a [DockerComposeConfigurator] that wraps [Config] with randomised
 // ports and network and the [Run] the test binary started in TestMain, and
-// [DockerComposeConfigurator.Up] wraps [Up] with [require.NoError]:
+// [DockerComposeConfigurator.Up] wraps [Up] with [require.NoError] and takes the stack down when the
+// test ends:
 //
 //	func TestSomething(t *testing.T) {
 //	    ctx := context.Background()
 //	    cfg := environment.New(t, run)
 //
 //	    dockerCompose := cfg.Up(ctx)
-//	    t.Cleanup(dockerCompose.Down)
 //	}
 //
 // The running instance provides helper methods to facilitate docker-compose manipulation
@@ -25,7 +25,6 @@
 //	    cfg := environment.New(t, run)
 //
 //	    dockerCompose := cfg.Up(ctx)
-//	    t.Cleanup(dockerCompose.Down)
 //
 //	    dockerCompose.NewUser(t, "john_doe", "john.doe@test.com", "secret")
 //	    dockerCompose.NewNamespace(t, "john_doe", "dev", "00000000-0000-0000-0000-000000000000")

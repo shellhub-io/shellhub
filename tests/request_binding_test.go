@@ -34,7 +34,6 @@ func TestRequestFieldsKeepTheirDeclaredSource(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	seedTwoNamespaces(t, compose)
 
@@ -160,7 +159,6 @@ func TestMemberRoutesActOnTheTokenNamespace(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	seedTwoNamespaces(t, compose)
 	compose.NewMember(t, ShellHubUsername, secondNamespace, string(authorizer.RoleAdministrator))

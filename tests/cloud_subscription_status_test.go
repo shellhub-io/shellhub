@@ -20,7 +20,6 @@ func TestCloudSubscriptionStatus(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubUsername+stripeTestEmailDomain, ShellHubPassword)
 	ownNamespace(t, ctx, compose, legacyNamespace)

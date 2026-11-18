@@ -23,7 +23,6 @@ func TestGatewayBehindAnHTTPProxy(t *testing.T) {
 	compose := environment.New(t, run).
 		WithEnv("SHELLHUB_PROXY_TRUSTED_IPS", "127.0.0.1/32 ::1/128").
 		Up(ctx)
-	t.Cleanup(compose.Down)
 
 	throughTheProxy := func(t *testing.T, forwardedFor, path string, wgetArgs ...string) string {
 		t.Helper()

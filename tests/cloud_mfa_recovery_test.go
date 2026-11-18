@@ -33,7 +33,6 @@ func TestCloudMFARecovery(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	t.Run("a recovery code completes the password step", func(t *testing.T) {
 		user := newMFAUser(t, compose, environment.EditionCloud, "mfa-recover")

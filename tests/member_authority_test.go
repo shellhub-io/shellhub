@@ -133,7 +133,6 @@ func newMembershipEnvironment(t *testing.T) *environment.DockerCompose {
 	t.Helper()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)

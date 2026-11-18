@@ -20,7 +20,6 @@ func TestSingleNamespaceInstance(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	const (
 		boundUsername  = "bound"

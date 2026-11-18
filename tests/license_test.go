@@ -48,7 +48,6 @@ func newEnterpriseEnvironment(t *testing.T, ctx context.Context, configurator *e
 	t.Helper()
 
 	compose := configurator.WithEdition(environment.EditionEnterprise).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	compose.NewAdmin(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	ownNamespace(t, ctx, compose, legacyNamespace)

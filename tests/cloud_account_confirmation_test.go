@@ -20,7 +20,6 @@ func TestCloudAccountConfirmation(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	t.Run("the emailed code confirms the account and signs it in", func(t *testing.T) {
 		email := signUp(t, compose, "confirm-code")

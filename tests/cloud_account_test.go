@@ -19,7 +19,6 @@ func TestCloudAccountDeletion(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	t.Run("deleting the account asks for the password and removes the member's paired devices", func(t *testing.T) {
 		tenant := uuid.Generate()

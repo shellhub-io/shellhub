@@ -126,16 +126,20 @@ func (dcc *DockerComposeConfigurator) WithTelemetryCollector(image string) *Dock
 // every later Up starts from those images and fails if they were removed in between.
 //
 // It returns a [DockerCompose], which is a ShellHub Docker environment, calling
-// [assert.FailNow] if an error arises. A stack that fails to come up leaves its containers' logs in
-// .stack/<test name>.log under the tests directory, as [DockerCompose.Down] does for a failed test.
+// [assert.FailNow] if an error arises, and takes the stack down with [DockerCompose.Down] when the
+// test ends. A stack that fails to come up leaves its containers' logs in .stack/<test name>.log
+// under the tests directory, as [DockerCompose.Down] does for a failed test.
 func (dcc *DockerComposeConfigurator) Up(ctx context.Context) *DockerCompose {
 	dcc.cfg.FailureLog = stackLogPath(dcc.t.Name())
 
 	stack, err := Up(ctx, dcc.cfg)
 	require.NoError(dcc.t, err)
 
-	return &DockerCompose{
+	dc := &DockerCompose{
 		setupT: dcc.t,
 		stack:  stack,
 	}
+	dcc.t.Cleanup(dc.Down)
+
+	return dc
 }

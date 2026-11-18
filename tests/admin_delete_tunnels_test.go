@@ -101,7 +101,6 @@ func newAdministeredTunnelEnvironment(t *testing.T, ctx context.Context, edition
 		WithEdition(edition).
 		WithEnv("SHELLHUB_TUNNEL_PING_INTERVAL", fastTunnelPingInterval.String()).
 		Up(ctx)
-	t.Cleanup(compose.Down)
 
 	const adminUsername = "root"
 	compose.NewUser(t, adminUsername, "root@ossystems.com.br", ShellHubPassword)

@@ -156,7 +156,6 @@ func TestEnterpriseWebEndpointsTLS(t *testing.T) {
 		WithEnv("SHELLHUB_WEB_ENDPOINTS", "true").
 		WithAutoSSL().
 		Up(context.Background())
-	t.Cleanup(compose.Down)
 
 	roots := x509.NewCertPool()
 	roots.AddCert(gatewayAuthority(t, compose))
@@ -186,7 +185,6 @@ func TestEnterpriseWebEndpointsDNS01(t *testing.T) {
 		WithEnv("SHELLHUB_WEB_ENDPOINTS", "true").
 		WithACMEDNS().
 		Up(context.Background())
-	t.Cleanup(compose.Down)
 
 	host := unknownAddress + "." + environment.ACMEDNSWebEndpointsDomain
 	config := &tls.Config{
