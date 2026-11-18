@@ -25,12 +25,12 @@ func TestNamespaceUpgrade(t *testing.T) {
 	pending := enroll(t, compose, pendingReq)
 	require.Equal(t, models.DeviceStatusPending, pending.Status)
 
-	require.True(t, compose.GetNamespace(t, ShellHubNamespace).Settings.IsLegacy(), "the fixture namespace is legacy")
+	require.True(t, compose.Namespace(t, ShellHubNamespace).Settings.IsLegacy(), "the fixture namespace is legacy")
 
 	compose.UpgradeNamespace(t, ShellHubNamespace)
 
 	t.Run("the namespace is new and seeded with the owner's access policy", func(t *testing.T) {
-		assert.False(t, compose.GetNamespace(t, ShellHubNamespace).Settings.IsLegacy())
+		assert.False(t, compose.Namespace(t, ShellHubNamespace).Settings.IsLegacy())
 
 		policies := []models.AccessPolicy{}
 		resp, err := compose.R(ctx).SetResult(&policies).Get("/api/access-policies")

@@ -49,7 +49,7 @@ func TestRequestFieldsKeepTheirDeclaredSource(t *testing.T) {
 	})
 
 	compose.JWT(other.Token)
-	before := compose.GetNamespace(t, secondTenant)
+	before := compose.Namespace(t, secondTenant)
 
 	client := resty.New().SetBaseURL(compose.BaseURL()).SetAllowGetMethodPayload(true)
 	asOwner := func(t *testing.T) *resty.Request {
@@ -148,12 +148,12 @@ func TestRequestFieldsKeepTheirDeclaredSource(t *testing.T) {
 	}
 
 	compose.JWT(other.Token)
-	after := compose.GetNamespace(t, secondTenant)
+	after := compose.Namespace(t, secondTenant)
 	assert.Equal(t, before.Name, after.Name)
 	assert.Equal(t, before.Settings, after.Settings)
 
 	compose.JWT(caller.Token)
-	assert.Equal(t, ShellHubNamespaceName, compose.GetNamespace(t, ShellHubNamespace).Name)
+	assert.Equal(t, ShellHubNamespaceName, compose.Namespace(t, ShellHubNamespace).Name)
 }
 
 func TestMemberRoutesActOnTheTokenNamespace(t *testing.T) {
