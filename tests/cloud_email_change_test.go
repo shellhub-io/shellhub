@@ -22,7 +22,6 @@ func TestCloudEmailChange(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	username := "email-change-confirm"
 	oldEmail := username + stripeTestEmailDomain
@@ -95,7 +94,6 @@ func TestCloudAccountChangeAsksForMFA(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	user := newMFAUser(t, compose, environment.EditionCloud, "account-change-mfa")
 	newEmail := user.username + "-new" + stripeTestEmailDomain

@@ -1735,7 +1735,6 @@ func newConfiguredSSHEnvironment(t *testing.T, ctx context.Context, configurator
 	t.Helper()
 
 	compose := configurator.Up(ctx)
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	ownNamespace(t, ctx, compose, model)

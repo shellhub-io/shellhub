@@ -28,7 +28,6 @@ func TestCloudDisposableEmail(t *testing.T) {
 			WithEdition(environment.EditionCloud).
 			WithEnv("SHELLHUB_DISPOSABLE_EMAIL_CHECK", "true").
 			Up(ctx)
-		t.Cleanup(compose.Down)
 
 		cases := []struct {
 			description string
@@ -77,7 +76,6 @@ func TestCloudDisposableEmail(t *testing.T) {
 			WithEdition(environment.EditionCloud).
 			WithEnv("SHELLHUB_DISPOSABLE_EMAIL_CHECK", "false").
 			Up(ctx)
-		t.Cleanup(compose.Down)
 
 		resp := signUpWithEmail(t, compose, "listed-off", "listed-off@mailinator.com")
 		assert.Equal(t, http.StatusNoContent, resp.StatusCode(), resp.String())

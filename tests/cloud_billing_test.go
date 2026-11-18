@@ -60,7 +60,6 @@ func TestCloudBilling(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).WithEdition(environment.EditionCloud).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	sweepStripeLeftovers(t, compose)
 

@@ -14,7 +14,6 @@ func TestStatsDeviceCounts(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewLegacyNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)

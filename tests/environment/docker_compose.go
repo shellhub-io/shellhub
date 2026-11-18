@@ -37,7 +37,8 @@ type DockerCompose struct {
 // stack up has failed, Down first writes the stack's container logs to .stack/<test name>.log
 // under the tests directory, so the cause of a failure can be read after the teardown. The first
 // stack a run writes for a test replaces the file an earlier run left, and the test's later stacks
-// append to it. It's generally a good idea to encapsulate it inside a [t.Cleanup] function.
+// append to it. [DockerComposeConfigurator.Up] registers Down with t.Cleanup, so a test does not
+// call it.
 func (dc *DockerCompose) Down() {
 	dc.keepLogsOnFailure()
 

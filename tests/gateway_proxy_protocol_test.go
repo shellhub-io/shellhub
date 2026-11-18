@@ -20,7 +20,6 @@ func TestGatewayProxyProtocol(t *testing.T) {
 		WithEnv("SHELLHUB_PROXY", "true").
 		WithEnv("SHELLHUB_PROXY_TRUSTED_IPS", "127.0.0.1/32 ::1/128").
 		Up(ctx)
-	t.Cleanup(compose.Down)
 
 	host := gatewayHost(t, compose)
 

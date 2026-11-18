@@ -333,7 +333,6 @@ func TestCloudTelemetry(t *testing.T) {
 		WithEnv("SHELLHUB_TELEMETRY_TENANT_KEY", tenantKey).
 		WithEnv("SHELLHUB_TELEMETRY_WRITE_KEY", writeKey).
 		Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	tenant := uuid.Generate()
 	compose.NewUser(t, "telemetry-owner", "telemetry-owner"+stripeTestEmailDomain, ShellHubPassword)

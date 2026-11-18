@@ -16,7 +16,6 @@ func TestServerShutdown(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	t.Run("SIGTERM finishes the shutdown and exits with status zero", func(t *testing.T) {
 		server := compose.Service(environment.ServiceServer)

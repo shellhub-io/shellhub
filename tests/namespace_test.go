@@ -36,7 +36,6 @@ func TestLeaveNamespace(t *testing.T) {
 	ctx := context.Background()
 
 	compose := environment.New(t, run).Up(ctx)
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
@@ -149,7 +148,6 @@ func TestDeleteNamespaceRefusesItsAPIKeys(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)

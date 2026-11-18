@@ -23,7 +23,6 @@ func TestRoutesThatRefuseAPIKeys(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
@@ -232,7 +231,6 @@ func TestEditionRoutesThatRefuseAPIKeys(t *testing.T) {
 			t.Parallel()
 
 			compose := environment.New(t, run).WithEdition(tc.edition).Up(t.Context())
-			t.Cleanup(compose.Down)
 
 			compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 			compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
@@ -265,7 +263,6 @@ func TestNamespaceAPIKeyAuthentication(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
@@ -469,7 +466,6 @@ func TestAPIKeyRoleCap(t *testing.T) {
 	t.Parallel()
 
 	compose := environment.New(t, run).Up(t.Context())
-	t.Cleanup(compose.Down)
 
 	compose.NewUser(t, ShellHubUsername, ShellHubEmail, ShellHubPassword)
 	compose.NewNamespace(t, ShellHubUsername, ShellHubNamespaceName, ShellHubNamespace)
