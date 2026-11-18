@@ -4,8 +4,8 @@ import "github.com/shellhub-io/shellhub/pkg/validator"
 
 func validateInput(input any) error {
 	v := validator.New()
-	ok, fields, err := v.StructWithFields(input)
-	if !ok || err != nil {
+	fields, err := v.StructWithFields(input)
+	if err != nil {
 		return mapValidationError(fields)
 	}
 

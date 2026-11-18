@@ -227,7 +227,7 @@ type UserAuthIdentifier string
 
 // IsEmail checks if the identifier is an email.
 func (i *UserAuthIdentifier) IsEmail() bool {
-	if ok, err := validator.New().Var(i, "required,email"); !ok || err != nil {
+	if err := validator.New().Var(i, "required,email"); err != nil {
 		return false
 	}
 

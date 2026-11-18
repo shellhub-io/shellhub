@@ -202,26 +202,28 @@ func New() *Validator {
 	}
 }
 
-// Var validates a variable using a ShellHub validation's tags.
-func (v *Validator) Var(value any, tag Tag) (bool, error) {
+// Var validates value against tag, returning ErrVarInvalid when it fails.
+func (v *Validator) Var(value any, tag Tag) error {
 	if err := v.Validate.Var(value, string(tag)); err != nil {
-		return false, ErrVarInvalid
+		return ErrVarInvalid
 	}
 
-	return true, nil
+	return nil
 }
 
-// Struct validates a structure using ShellHub validation's tags.
-func (v *Validator) Struct(structure any) (bool, error) {
+// Struct validates structure against its fields' tags, returning ErrStructureInvalid when any
+// fails.
+func (v *Validator) Struct(structure any) error {
 	if err := v.Validate.Struct(structure); err != nil {
-		return false, ErrStructureInvalid
+		return ErrStructureInvalid
 	}
 
-	return true, nil
+	return nil
 }
 
-// StructWithFields validades a structure using ShellHub validation's tags, returnig the invalid fields and its tags.
-func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error) {
+// StructWithFields validates structure as [Validator.Struct] does, and also returns each failing
+// field mapped to the tag it failed.
+func (v *Validator) StructWithFields(structure any) (map[string]any, error) {
 	if err := v.Validate.Struct(structure); err != nil {
 		fields := make(map[string]any, 0)
 
@@ -231,8 +233,8 @@ func (v *Validator) StructWithFields(structure any) (bool, map[string]any, error
 			}
 		}
 
-		return false, fields, ErrStructureInvalid
+		return fields, ErrStructureInvalid
 	}
 
-	return true, nil, nil
+	return nil, nil
 }

@@ -42,7 +42,7 @@ func TestUserName(t *testing.T) {
 				Name: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -115,7 +115,7 @@ func TestUserUsername(t *testing.T) {
 				Username: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -158,7 +158,7 @@ func TestUserEmail(t *testing.T) {
 				Email: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -201,7 +201,7 @@ func TestUserPassword(t *testing.T) {
 				Password: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -254,7 +254,7 @@ func TestDeviceName(t *testing.T) {
 				DeviceName: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -366,7 +366,7 @@ rRrVfCKhbJKpjAZq5U9VKt9LcGe9kA==
 				Key: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -454,7 +454,7 @@ func TestAPIKeyName(t *testing.T) {
 				Name: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -517,7 +517,7 @@ func TestAPIKeyExpiresAt(t *testing.T) {
 				ExpiresAt: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -575,7 +575,7 @@ func TestMemberRole(t *testing.T) {
 				Role: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -659,7 +659,7 @@ eiDIAGdPArZi+JWdNsp+TK4MJjcy
 				Cert: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
@@ -702,7 +702,7 @@ func TestDevicePairingCode(t *testing.T) {
 				Code: tt.value,
 			}
 
-			ok, _ := New().Struct(data)
+			ok := New().Struct(data) == nil
 
 			assert.Equal(t, tt.want, ok)
 		})
