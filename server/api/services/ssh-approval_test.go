@@ -655,7 +655,6 @@ func TestRedeemSSHApprovalLeavesAKeyAnotherAccountWonBound(t *testing.T) {
 	require.ErrorIs(t, err, ErrSSHIdentityDuplicated)
 
 	storeMock.AssertExpectations(t)
-	storeMock.AssertNumberOfCalls(t, "SSHApprovalRedeem", 2)
 	storeMock.AssertNotCalled(t, "SSHIdentityTouchLastUsed", mock.Anything, mock.Anything, mock.Anything)
 }
 

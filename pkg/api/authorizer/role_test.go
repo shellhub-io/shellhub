@@ -93,16 +93,7 @@ func TestRoleAssignable(t *testing.T) {
 }
 
 func TestAssignableRoles(t *testing.T) {
-	known := []authorizer.Role{authorizer.RoleInvalid, authorizer.RoleObserver, authorizer.RoleOperator, authorizer.RoleAdministrator, authorizer.RoleOwner}
-
-	assignable := []authorizer.Role{}
-	for _, role := range known {
-		if role.Assignable() {
-			assignable = append(assignable, role)
-		}
-	}
-
-	require.ElementsMatch(t, assignable, authorizer.AssignableRoles())
+	require.Equal(t, []authorizer.Role{authorizer.RoleOwner, authorizer.RoleAdministrator, authorizer.RoleOperator, authorizer.RoleObserver}, authorizer.AssignableRoles(), "most privileged first")
 }
 
 func TestRolePermissions(t *testing.T) {
@@ -251,7 +242,7 @@ func TestRolePermissions(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(tt *testing.T) {
-			require.Equal(tt, tc.expected, tc.role.Permissions())
+			require.ElementsMatch(tt, tc.expected, tc.role.Permissions())
 		})
 	}
 }

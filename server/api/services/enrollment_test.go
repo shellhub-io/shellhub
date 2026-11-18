@@ -3,6 +3,9 @@ package services
 import (
 	"cmp"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net"
@@ -94,7 +97,9 @@ func TestEvaluateEnrollmentWebhook(t *testing.T) {
 
 			got := svc.evaluateEnrollment(context.Background(), keyFor(srv.URL), req, "uid", "host", false)
 			require.Equal(t, decision, got)
-			require.Equal(t, signEnrollmentWebhook(secret, gotBody), gotSignature)
+			mac := hmac.New(sha256.New, []byte(secret))
+			mac.Write(gotBody)
+			require.Equal(t, hex.EncodeToString(mac.Sum(nil)), gotSignature)
 
 			srv.Close()
 		}

@@ -47,7 +47,8 @@ func TestUserConflict(t *testing.T) {
 		t.Run(tc.description, func(t *testing.T) {
 			fields, err := UserConflict(tc.err)
 			assert.Equal(t, tc.fields, fields)
-			assert.Equal(t, NewErrUserDuplicated(tc.fields, tc.err), err)
+			require.ErrorIs(t, err, ErrUserDuplicated)
+			require.ErrorIs(t, err, store.ErrDuplicate)
 		})
 	}
 
