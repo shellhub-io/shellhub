@@ -9,7 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/responses"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/middleware"
-	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers/pkg/converter"
 	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/api/store"
@@ -40,12 +39,6 @@ func respond(ctx *echo.Context, status int, message string, fields map[string]st
 		message, fields = genericMessage, nil
 	}
 
-	if status == http.StatusNoContent {
-		ctx.NoContent(status) //nolint:errcheck
-
-		return
-	}
-
 	ctx.JSON(status, responses.Error{Message: message, Fields: fields}) //nolint:errcheck
 }
 
@@ -72,14 +65,11 @@ func statusText(code int) string {
 }
 
 func fieldsOf(e errors.Error) map[string]string {
-	switch data := e.Data.(type) {
-	case routes.ErrDataInvalidEntity:
+	if data, ok := e.Data.(errors.InvalidFields); ok {
 		return data.Fields
-	case services.ErrDataInvalidFields:
-		return data.Fields
-	default:
-		return nil
 	}
+
+	return nil
 }
 
 // NewErrors returns a custom echo's error handler. An internal store error is reported to reporter,
@@ -108,16 +98,9 @@ func NewErrors(reporter *sentry.Client) echo.HTTPErrorHandler {
 			return
 		}
 
-		var status int
-		switch e.Layer {
-		case routes.ErrLayer:
-			status = converter.FromErrRouteToHTTPStatus(e.Code)
-		case services.ErrLayer:
-			status = converter.FromErrServiceToHTTPStatus(e.Code)
-		case store.ErrLayer:
-			status = http.StatusInternalServerError
-		default:
-			status = http.StatusInternalServerError
+		status := http.StatusInternalServerError
+		if e.Layer == routes.ErrLayer || e.Layer == services.ErrLayer {
+			status = errors.HTTPStatus(e.Code)
 		}
 
 		if lockout, ok := e.Data.(services.ErrDataLockout); ok {

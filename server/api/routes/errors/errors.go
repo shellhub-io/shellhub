@@ -10,30 +10,16 @@ import (
 // ErrLayer is the errors' level for service's error.
 const ErrLayer = "route"
 
+// The route layer's error codes, the kinds [errors.HTTPStatus] maps.
 const (
-	// ErrCodeUnprocessableEntity is the error code for when the input model has syntax errors.
-	ErrCodeUnprocessableEntity = iota + 1
-	// ErrCodeInvalidEntity is the error code for when the input model is invalid or its body could
-	// not be read.
-	ErrCodeInvalidEntity
-	// ErrCodeUnauthorized is the error code for when the user is not authorized to access the resource.
-	ErrCodeUnauthorized
-	// ErrCodeForbidden is the error code for when the caller is known and still may not do what it asked.
-	ErrCodeForbidden
-	// ErrCodeNotFound is the error code for when the route cannot resolve what the request named.
-	ErrCodeNotFound
-	// ErrCodeTooManyRequests is the error code for when the caller must wait before asking again.
-	ErrCodeTooManyRequests
-	// ErrCodePaymentRequired is the error code for when the instance's licence does not cover what
-	// the caller asked for.
-	ErrCodePaymentRequired
+	ErrCodeUnprocessableEntity = errors.CodeUnprocessable
+	ErrCodeInvalidEntity       = errors.CodeInvalid
+	ErrCodeUnauthorized        = errors.CodeUnauthorized
+	ErrCodeForbidden           = errors.CodeForbidden
+	ErrCodeNotFound            = errors.CodeNotFound
+	ErrCodeTooManyRequests     = errors.CodeTooManyRequests
+	ErrCodePaymentRequired     = errors.CodePayment
 )
-
-// ErrDataInvalidEntity carries which fields failed validation and why, so the UI can mark
-// them individually rather than showing one message for the whole form.
-type ErrDataInvalidEntity struct {
-	Fields map[string]string `json:"fields"`
-}
 
 // The route layer's own failures, raised before a request reaches a service.
 var (
@@ -53,7 +39,7 @@ func NewErrUnprocessableEntity(err error) error {
 
 // NewErrInvalidEntity returns an error with the invalids fields and why it is invalid after a validation.
 func NewErrInvalidEntity(fields map[string]string) error {
-	return errors.Wrap(errors.WithData(ErrInvalidEntity, ErrDataInvalidEntity{Fields: fields}), nil)
+	return errors.Wrap(errors.WithData(ErrInvalidEntity, errors.InvalidFields{Fields: fields}), nil)
 }
 
 // NewErrUnreadableBody returns [ErrInvalidEntity] for a request body the server could not finish
