@@ -47,7 +47,7 @@ func (pg *Pg) NamespaceCreate(ctx context.Context, namespace *models.Namespace) 
 		}
 	}
 
-	if err := pg.inTransaction(ctx, func(ctx context.Context) error {
+	if err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
 		issued := &entity.IssuedTenant{ID: namespace.TenantID, CreatedAt: namespace.CreatedAt}
@@ -424,77 +424,56 @@ func (pg *Pg) NamespaceDelete(ctx context.Context, namespace *models.Namespace) 
 
 // NamespaceDeleteMany implements [store.NamespaceStore].
 func (pg *Pg) NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error) {
-	db := pg.GetConnection(ctx)
-	fn := pg.namespaceDeleteManyFn(ctx, tenantIDs)
+	var count int64
 
-	if tx, ok := db.(bun.Tx); ok {
-		return fn(tx)
-	} else {
-		tx, err := pg.driver.BeginTx(ctx, nil)
-		if err != nil {
-			return 0, fromSQLError(err)
-		}
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		count, err = pg.namespaceDeleteManyInTx(ctx, tenantIDs)
 
-		defer func() {
-			if p := recover(); p != nil {
-				_ = tx.Rollback()
-				panic(p)
-			}
-		}()
+		return err
+	})
 
-		count, err := fn(tx)
-		if err != nil {
-			_ = tx.Rollback()
-
-			return 0, err
-		}
-
-		if err := tx.Commit(); err != nil {
-			return 0, fromSQLError(err)
-		}
-
-		return count, nil
-	}
+	return count, err
 }
 
-func (pg *Pg) namespaceDeleteManyFn(ctx context.Context, tenantIDs []string) func(tx bun.Tx) (int64, error) {
-	return func(tx bun.Tx) (int64, error) {
-		if _, err := tx.NewDelete().
-			Model((*entity.Session)(nil)).
-			Where("device_id IN (SELECT id FROM devices WHERE namespace_id IN (?))", bun.List(tenantIDs)).
-			Exec(ctx); err != nil {
-			return 0, fromSQLError(err)
-		}
+func (pg *Pg) namespaceDeleteManyInTx(ctx context.Context, tenantIDs []string) (int64, error) {
+	tx := pg.GetConnection(ctx)
 
-		res, err := tx.NewDelete().Model((*entity.Namespace)(nil)).Where("id IN (?)", bun.List(tenantIDs)).Exec(ctx)
-		if err != nil {
-			return 0, fromSQLError(err)
-		}
-
-		count, _ := res.RowsAffected()
-
-		entities := []any{
-			(*entity.Device)(nil),
-			(*entity.PublicKey)(nil),
-			(*entity.APIKey)(nil),
-		}
-
-		for _, e := range entities {
-			if _, err := tx.NewDelete().Model(e).Where("namespace_id IN (?)", bun.List(tenantIDs)).Exec(ctx); err != nil {
-				return 0, fromSQLError(err)
-			}
-		}
-
-		if _, err := tx.NewUpdate().
-			Model((*entity.User)(nil)).
-			Set("preferred_namespace_id = NULL").
-			Where("preferred_namespace_id IN (?)", bun.List(tenantIDs)).
-			Exec(ctx); err != nil {
-			return 0, fromSQLError(err)
-		}
-
-		return count, nil
+	if _, err := tx.NewDelete().
+		Model((*entity.Session)(nil)).
+		Where("device_id IN (SELECT id FROM devices WHERE namespace_id IN (?))", bun.List(tenantIDs)).
+		Exec(ctx); err != nil {
+		return 0, fromSQLError(err)
 	}
+
+	res, err := tx.NewDelete().Model((*entity.Namespace)(nil)).Where("id IN (?)", bun.List(tenantIDs)).Exec(ctx)
+	if err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	count, _ := res.RowsAffected()
+
+	entities := []any{
+		(*entity.Device)(nil),
+		(*entity.PublicKey)(nil),
+		(*entity.APIKey)(nil),
+	}
+
+	for _, e := range entities {
+		if _, err := tx.NewDelete().Model(e).Where("namespace_id IN (?)", bun.List(tenantIDs)).Exec(ctx); err != nil {
+			return 0, fromSQLError(err)
+		}
+	}
+
+	if _, err := tx.NewUpdate().
+		Model((*entity.User)(nil)).
+		Set("preferred_namespace_id = NULL").
+		Where("preferred_namespace_id IN (?)", bun.List(tenantIDs)).
+		Exec(ctx); err != nil {
+		return 0, fromSQLError(err)
+	}
+
+	return count, nil
 }
 
 func namespaceExprPreferredOrder() string {

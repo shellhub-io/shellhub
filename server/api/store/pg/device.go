@@ -533,7 +533,7 @@ func (pg *Pg) DeviceDelete(ctx context.Context, sc scope.Scope, device *models.D
 		return err
 	}
 
-	deleted, err := pg.deviceDeleteIn(ctx, sc, []string{device.UID})
+	deleted, err := pg.deviceDeleteUIDs(ctx, sc, []string{device.UID})
 	switch {
 	case err != nil:
 		return err
@@ -550,86 +550,65 @@ func (pg *Pg) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []strin
 		return nil, store.ErrInvalidScope
 	}
 
-	return pg.deviceDeleteIn(ctx, sc, uids)
+	return pg.deviceDeleteUIDs(ctx, sc, uids)
 }
 
-func (pg *Pg) deviceDeleteIn(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
-	db := pg.GetConnection(ctx)
-	fn := pg.deviceDeleteManyFn(ctx, sc, uids)
+func (pg *Pg) deviceDeleteUIDs(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+	var deleted []store.DeletedDevice
 
-	if tx, ok := db.(bun.Tx); ok {
-		return fn(tx)
-	} else {
-		tx, err := pg.driver.BeginTx(ctx, nil)
-		if err != nil {
-			return nil, fromSQLError(err)
-		}
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		deleted, err = pg.deviceDeleteManyInTx(ctx, sc, uids)
 
-		defer func() {
-			if p := recover(); p != nil {
-				_ = tx.Rollback()
-				panic(p)
-			}
-		}()
+		return err
+	})
 
-		deleted, err := fn(tx)
-		if err != nil {
-			_ = tx.Rollback()
-
-			return nil, err
-		}
-
-		if err := tx.Commit(); err != nil {
-			return nil, fromSQLError(err)
-		}
-
-		return deleted, nil
-	}
+	return deleted, err
 }
 
-func (pg *Pg) deviceDeleteManyFn(ctx context.Context, sc scope.Scope, uids []string) func(tx bun.Tx) ([]store.DeletedDevice, error) {
-	return func(tx bun.Tx) ([]store.DeletedDevice, error) {
-		deleted := []store.DeletedDevice{}
-		if len(uids) == 0 {
-			return deleted, nil
-		}
+func (pg *Pg) deviceDeleteManyInTx(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+	tx := pg.GetConnection(ctx)
 
-		rows := []entity.Device{}
-		query, err := whereInScope(tx.NewDelete().
-			Model(&rows).
-			Where("id IN (?)", bun.List(uids)).
-			Returning("id, namespace_id, status"), sc, "namespace_id")
-		if errors.Is(err, store.ErrNoDocuments) {
-			return deleted, nil
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		if err := query.Scan(ctx); err != nil {
-			return nil, fromSQLError(err)
-		}
-
-		if len(rows) == 0 {
-			return deleted, nil
-		}
-
-		ids := make([]string, len(rows))
-		for i, row := range rows {
-			ids[i] = row.ID
-			deleted = append(deleted, store.DeletedDevice{UID: row.ID, TenantID: row.NamespaceID, Status: models.DeviceStatus(row.Status)})
-		}
-
-		if _, err := tx.NewDelete().
-			Model((*entity.Session)(nil)).
-			Where("device_id IN (?)", bun.List(ids)).
-			Exec(ctx); err != nil {
-			return nil, fromSQLError(err)
-		}
-
+	deleted := []store.DeletedDevice{}
+	if len(uids) == 0 {
 		return deleted, nil
 	}
+
+	rows := []entity.Device{}
+	query, err := whereInScope(tx.NewDelete().
+		Model(&rows).
+		Where("id IN (?)", bun.List(uids)).
+		Returning("id, namespace_id, status"), sc, "namespace_id")
+	if errors.Is(err, store.ErrNoDocuments) {
+		return deleted, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	if len(rows) == 0 {
+		return deleted, nil
+	}
+
+	ids := make([]string, len(rows))
+	for i, row := range rows {
+		ids[i] = row.ID
+		deleted = append(deleted, store.DeletedDevice{UID: row.ID, TenantID: row.NamespaceID, Status: models.DeviceStatus(row.Status)})
+	}
+
+	if _, err := tx.NewDelete().
+		Model((*entity.Session)(nil)).
+		Where("device_id IN (?)", bun.List(ids)).
+		Exec(ctx); err != nil {
+		return nil, fromSQLError(err)
+	}
+
+	return deleted, nil
 }
 
 // OnlineCutoff returns the instant, at c's now, that a device's last_seen must be after to count

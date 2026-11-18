@@ -17,7 +17,7 @@ func (pg *Pg) ProvisioningKeyCreate(ctx context.Context, provisioningKey *models
 	provisioningKey.UpdatedAt = pg.clock.Now()
 	e := entity.ProvisioningKeyFromModel(provisioningKey)
 
-	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		if _, err := pg.GetConnection(ctx).NewInsert().Model(e).Exec(ctx); err != nil {
 			return fromSQLError(err)
 		}
@@ -195,7 +195,7 @@ func (pg *Pg) ProvisioningKeyUpdate(ctx context.Context, provisioningKey *models
 	s := entity.ProvisioningKeyFromModel(provisioningKey)
 	s.UpdatedAt = pg.clock.Now()
 
-	return pg.inTransaction(ctx, func(ctx context.Context) error {
+	return pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
 		r, err := db.NewUpdate().Model(s).WherePK().Exec(ctx)

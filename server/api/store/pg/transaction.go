@@ -20,35 +20,18 @@ var txKey = txKeyType{}
 // running inside a transaction or not.
 func (pg *Pg) GetConnection(ctx context.Context) bun.IDB {
 	if tx, ok := ctx.Value(txKey).(bun.Tx); ok {
-		log.Debug("reusing existing SQL transaction from context")
-
 		return tx
 	}
 
 	return pg.driver
 }
 
-// WithTransaction implements [store.TransactionStore]. The callback receives a context
-// carrying the transaction, so every store call made with it joins the same transaction;
-// returning an error rolls it back and returns that error. A failure to begin or commit the
-// transaction returns ctx's error when it is cancelled or its deadline passes and
-// [store.ErrInternal] otherwise.
-//
-// Example:
-//
-//	err := store.WithTransaction(ctx, func(ctx context.Context) error {
-//	    db := store.GetConnection(ctx)
-//	    if _, err := db.NewDelete().Model(&Device{}).Where("id = ?", id).Exec(ctx); err != nil {
-//	        return err
-//	    }
-//
-//	    return store.NamespaceIncrementDeviceCount(ctx, tenantID, models.DeviceStatusRemoved, -1)
-//	})
-//
-// TODO: The transaction handle is stored in the context for simplicity.
-// This hides the dependency and makes it less explicit.
-// Consider refactoring to expose a typed TxStore in the future for better clarity.
+// WithTransaction implements [store.TransactionStore].
 func (pg *Pg) WithTransaction(ctx context.Context, fn store.TransactionCb) error {
+	if _, ok := ctx.Value(txKey).(bun.Tx); ok {
+		return fn(ctx)
+	}
+
 	tx, err := pg.driver.BeginTx(ctx, nil)
 	if err != nil {
 		return fromSQLError(err)
@@ -92,14 +75,6 @@ func runIn(ctx context.Context, tx bun.Tx, fn store.TransactionCb) error {
 	}
 
 	return fromSQLError(tx.Commit())
-}
-
-func (pg *Pg) inTransaction(ctx context.Context, fn store.TransactionCb) error {
-	if _, ok := ctx.Value(txKey).(bun.Tx); ok {
-		return fn(ctx)
-	}
-
-	return pg.WithTransaction(ctx, fn)
 }
 
 func (pg *Pg) transactionLock(ctx context.Context, key string) error {
