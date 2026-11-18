@@ -20,11 +20,11 @@ func TestCreateInstanceAPIKeyAdminID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			valid, _ := validator.New().Struct(&requests.CreateInstanceAPIKey{
+			valid := validator.New().Struct(&requests.CreateInstanceAPIKey{
 				AdminID:   tc.adminID,
 				Name:      "ci-key",
 				ExpiresAt: 30,
-			})
+			}) == nil
 			assert.Equal(t, tc.valid, valid)
 		})
 	}

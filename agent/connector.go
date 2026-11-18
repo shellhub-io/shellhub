@@ -67,7 +67,7 @@ func LoadConfigConnectorFromEnv(backend envs.Backend) (*ConfigConnector, map[str
 		log.Fatal(err)
 	}
 
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+	if fields, err := validator.New().StructWithFields(cfg); err != nil {
 		log.WithFields(fields).Error("failed to validate the configuration loaded from envs")
 
 		return nil, fields, err

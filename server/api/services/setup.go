@@ -84,7 +84,7 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 		RecoveryEmail: "",
 	}
 
-	if ok, err := s.validator.Struct(data); !ok || err != nil {
+	if err := s.validator.Struct(data); err != nil {
 		return "", NewErrUserInvalid(nil, err)
 	}
 
@@ -93,7 +93,7 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 		return "", NewErrUserPasswordInvalid(err)
 	}
 
-	if ok, err := s.validator.Struct(password); !ok || err != nil {
+	if err := s.validator.Struct(password); err != nil {
 		return "", NewErrUserPasswordInvalid(err)
 	}
 

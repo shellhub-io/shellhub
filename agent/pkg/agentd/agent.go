@@ -237,7 +237,7 @@ func LoadConfigFromEnv(backend envs.Backend) (*Config, map[string]any, error) {
 		}
 	}
 
-	if ok, fields, err := validator.New().StructWithFields(cfg); err != nil || !ok {
+	if fields, err := validator.New().StructWithFields(cfg); err != nil {
 		if rule, invalid := fields["TenantID"]; invalid && cfg.TenantOrigin == TenantFromFile {
 			delete(fields, "TenantID")
 			fields[TenantFilePath(cfg.PrivateKey)] = rule
