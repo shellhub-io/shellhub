@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  castFilename,
   OpfsCastRecorder,
   readRecording,
   setRecordingsScope,
@@ -111,5 +112,16 @@ describe("OpfsCastRecorder", () => {
 
     expect(await recorder.finish()).toBeNull();
     expect(countCasts(storage)).toBe(0);
+  });
+});
+
+describe("castFilename", () => {
+  const at = new Date("2024-01-01T00:00:00Z");
+
+  it.each([
+    [0, "shellhub-web-01-20240101-000000.cast"],
+    [2, "shellhub-web-01-20240101-000000-seat-2.cast"],
+  ])("names seat %i's recording %s", (seat, expected) => {
+    expect(castFilename("Web 01", at, seat)).toBe(expected);
   });
 });

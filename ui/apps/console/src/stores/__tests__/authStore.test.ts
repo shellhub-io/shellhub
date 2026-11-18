@@ -191,6 +191,8 @@ describe("authStore", () => {
     it("closes the open recordings, whose output belongs to the user leaving", () => {
       useTerminalStore.getState().openRecording({
         id: "session-1",
+        sessionUid: "session-1",
+        seat: 0,
         title: "dev",
         logs: "cast",
         filename: "dev.cast",

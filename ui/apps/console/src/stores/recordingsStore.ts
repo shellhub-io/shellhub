@@ -29,12 +29,16 @@ interface RecordingsState {
 }
 
 /**
- * Selects the recording the browser holds of a session, or undefined when it holds none.
+ * Selects the recording the browser holds of one seat of a session, seat zero by default, or
+ * undefined when it holds none. The web terminal records only its own seat, which is seat zero, so
+ * it is undefined for every other seat.
  */
 export const heldByBrowser =
-  (sessionUid: string) =>
+  (sessionUid: string, seat = 0) =>
   (state: RecordingsState): RecordingMeta | undefined =>
-    state.recordings.find((r) => r.sessionUid === sessionUid);
+    seat === 0
+      ? state.recordings.find((r) => r.sessionUid === sessionUid)
+      : undefined;
 
 /**
  * The locally recorded sessions, listed from OPFS. Retention is applied here, so a recording

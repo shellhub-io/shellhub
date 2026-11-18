@@ -56,13 +56,15 @@ function MenuItem({
  * confirming, each gated by useRecordingPermissions. loaded says the caller already holds the
  * recording, so downloading it reads nothing and needs no permission. active disables the download,
  * since the recording is still partial, and hides the delete while a server copy exists, which the
- * server refuses while the session is still recording.
+ * server refuses while the session is still recording. seats are the seats the delete removes,
+ * seat zero alone by default.
  * portal is off inside an element that goes fullscreen, where a panel portalled to the body would
  * not show.
  */
 export default function RecordingActionsMenu({
   sessionUid,
   recorded,
+  seats,
   onDownload,
   placement = "bottom-end",
   portal = true,
@@ -71,6 +73,7 @@ export default function RecordingActionsMenu({
 }: {
   sessionUid: string;
   recorded: boolean;
+  seats?: number[];
   onDownload: () => void;
   placement?: "bottom-end" | "top-end";
   portal?: boolean;
@@ -116,6 +119,7 @@ export default function RecordingActionsMenu({
         onClose={() => setConfirming(false)}
         sessionUid={sessionUid}
         recorded={recorded}
+        seats={seats}
       />
     </>
   );
