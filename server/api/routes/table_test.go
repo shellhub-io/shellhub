@@ -92,7 +92,7 @@ func mountedWithRecordingEndpoints(t *testing.T, table []routetable.Route, authn
 
 func targetOf(r routetable.Route, tenant string) string {
 	return publicAPIPrefix + pathParam.ReplaceAllStringFunc(r.Path, func(param string) string {
-		if param[1:] == ParamNamespaceTenant {
+		if param[1:] == routetable.TenantParam {
 			return tenant
 		}
 
@@ -263,7 +263,7 @@ func TestAuthenticationRoutesServeAnonymousCallers(t *testing.T) {
 }
 
 func namesTheTenant(r routetable.Route) bool {
-	return slices.Contains(strings.Split(r.Path, "/"), ":"+ParamNamespaceTenant)
+	return slices.Contains(strings.Split(r.Path, "/"), ":"+routetable.TenantParam)
 }
 
 func TestARouteActingOnTheCallersAccountReachesItsHandlerForAnyNamespace(t *testing.T) {

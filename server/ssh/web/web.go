@@ -152,7 +152,7 @@ func NewSSHServerBridge(router *echo.Echo, authn *routesmiddleware.Authenticator
 
 			response(res, http.StatusOK, Success{Token: token.ID})
 		})),
-		routesmiddleware.RequiresPermission(authorizer.DeviceConnect),
+		routesmiddleware.RequiresAnyPermission(authorizer.DeviceConnect),
 	)
 
 	router.Add(http.MethodGet, WebsocketSSHBridgeRoute, echo.WrapHandler(websocket.Handler(func(wsconn *websocket.Conn) {

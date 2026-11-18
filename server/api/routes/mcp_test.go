@@ -303,7 +303,7 @@ func TestMCPUpdateDeviceStatus(t *testing.T) {
 }
 
 // TestMCPUpdateDeviceStatusForbidden is the crux of the parity work: an
-// observer lacks DeviceStatusUpdate, so RequiresPermission on the route
+// observer lacks DeviceStatusUpdate, so RequiresAnyPermission on the route
 // returns 403 before the handler runs. The tool no longer checks permissions
 // itself -- the middleware does. The service must never be reached.
 func TestMCPUpdateDeviceStatusForbidden(t *testing.T) {
