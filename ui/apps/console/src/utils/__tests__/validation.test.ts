@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
+  isGoRegex,
+  validatePattern,
   suggestNamespaceName,
   validateEmail,
   validateIdentifier,
@@ -9,6 +11,66 @@ import {
   validatePassword,
   validateUsername,
 } from "../validation";
+
+describe("isGoRegex", () => {
+  it.each([
+    ["a plain pattern", "^root$"],
+    ["a flag group", "(?i)root"],
+    ["a scoped flag group", "(?i:a)b"],
+    ["a Go named group", "(?P<n>x)"],
+    ["an octal escape", "\\12"],
+    ["a lookahead-looking class", "[(?=]"],
+    ["an escaped parenthesis before ?=", "a\\(?=b"],
+    ["a quoted lookahead", "\\Q(?=\\E"],
+    ["a quoted bracket left open", "\\Qa[b"],
+    ["an empty flag group", "(?)a"],
+    ["a repeated start anchor", "^*"],
+    ["a repeated end anchor", "a$+"],
+    ["an optional word boundary", "\\b?x"],
+    ["a class opening with ] and holding a parenthesis", "[]a(x]"],
+    ["a Unicode class before a dash in a class", "[\\p{L}-0-9]+"],
+    ["a one-letter Unicode class before a dash", "[\\pL-0]"],
+    ["a repeated hex code point", "\\x{41}+"],
+    ["a POSIX class followed by a parenthesis", "[[:alpha:](]"],
+    ["a POSIX class followed by repeat characters", "[[:alnum:]+*]"],
+    ["a repeat after a flag group", "a*(?i)*"],
+    ["a repeat after an empty quote", "a+\\Q\\E+"],
+  ])("accepts %s", (_, pattern) => {
+    expect(isGoRegex(pattern)).toBe(true);
+  });
+
+  it.each([
+    ["a lookahead", "^(?!root).*"],
+    ["a lookbehind", "(?<=a)b"],
+    ["a backreference", "(\\w)\\1"],
+    ["an unclosed class", "[a-"],
+    ["an unclosed group", "("],
+  ])("rejects %s", (_, pattern) => {
+    expect(isGoRegex(pattern)).toBe(false);
+  });
+});
+
+describe("validatePattern", () => {
+  it("asks for a pattern when there is none", () => {
+    expect(validatePattern("  ", "Username")).toBe("Username pattern is required");
+  });
+
+  it("refuses a pattern Go cannot compile", () => {
+    expect(validatePattern("[a-", "Hostname")).toBe(
+      "Hostname must be a valid regular expression",
+    );
+  });
+
+  it("checks the trimmed pattern, which is what the form sends", () => {
+    expect(validatePattern("a\\ ", "Username")).toBe(
+      "Username must be a valid regular expression",
+    );
+  });
+
+  it("accepts a valid pattern", () => {
+    expect(validatePattern(" root|admin ", "Username")).toBeNull();
+  });
+});
 
 describe("validateNamespaceName", () => {
   describe("valid names", () => {

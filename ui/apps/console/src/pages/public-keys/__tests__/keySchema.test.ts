@@ -153,6 +153,15 @@ describe("keySchema — username", () => {
     ).toBeUndefined();
   });
 
+  it("rejects a username pattern that is not a regular expression", () => {
+    expect(
+      errorsFor(
+        "create",
+        makeValues({ usernameOption: "username", username: "[a-" }),
+      ).username,
+    ).toBe("Username must be a valid regular expression");
+  });
+
   it("ignores username validation when usernameOption is 'all'", () => {
     expect(
       errorsFor("create", makeValues({ usernameOption: "all", username: "" }))
@@ -187,6 +196,15 @@ describe("keySchema — hostname", () => {
         makeValues({ filterOption: "hostname", hostname: "web-.*" }),
       ).hostname,
     ).toBeUndefined();
+  });
+
+  it("rejects a hostname pattern that is not a regular expression", () => {
+    expect(
+      errorsFor(
+        "create",
+        makeValues({ filterOption: "hostname", hostname: "[a-" }),
+      ).hostname,
+    ).toBe("Hostname must be a valid regular expression");
   });
 
   it("ignores hostname validation when filterOption is not 'hostname'", () => {
@@ -259,6 +277,13 @@ describe("buildKeyBody", () => {
   it("builds filter with hostname when filterOption is 'hostname'", () => {
     const body = buildKeyBody(
       makeValues({ filterOption: "hostname", hostname: "web-.*" }),
+    );
+    expect(body.filter).toEqual({ hostname: "web-.*" });
+  });
+
+  it("sends the trimmed hostname pattern, which is the one the form checked", () => {
+    const body = buildKeyBody(
+      makeValues({ filterOption: "hostname", hostname: " web-.* " }),
     );
     expect(body.filter).toEqual({ hostname: "web-.*" });
   });
