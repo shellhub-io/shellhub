@@ -135,16 +135,6 @@ func (c *Context) DeviceUID() string {
 	return c.identity().DeviceUID
 }
 
-// ID returns the user's ID resolved by authentication.
-func (c *Context) ID() *models.ID {
-	ID := c.identity().ID
-	if ID != "" {
-		return &models.ID{ID: ID}
-	}
-
-	return nil
-}
-
 // APIKeyID returns the surrogate id of the API key the request authenticated with, and an
 // empty string for every other credential. A handler reads it to tell an automation acting on
 // itself from one acting on another key.
@@ -167,8 +157,8 @@ func (c *Context) GetID() (string, bool) {
 	return "", false
 }
 
-// GetTennat returns the namespace's tenant resolved by authentication.
-func (c *Context) GetTennat() (string, bool) {
+// TenantID returns the tenant ID resolved by authentication, and false when the request carries none.
+func (c *Context) TenantID() (string, bool) {
 	tenant := c.identity().TenantID
 	if tenant != "" {
 		return tenant, true

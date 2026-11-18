@@ -97,50 +97,6 @@ func TestTenant(t *testing.T) {
 	}
 }
 
-func TestID(t *testing.T) {
-	cases := []struct {
-		description string
-		caller      identity.Identity
-		expected    *models.ID
-	}{
-		{
-			description: "returns the value the identity carries",
-			caller:      identity.Identity{ID: "507f191e810c19729de860ea"},
-			expected: &models.ID{
-				ID: "507f191e810c19729de860ea",
-			},
-		}, {
-			description: "returns the zero value with no identity",
-			caller:      identity.Identity{},
-			expected:    nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.description, func(t *testing.T) {
-			e := echo.New()
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/", nil)
-
-			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-
-			if tc.caller != (identity.Identity{}) {
-				req = identitytest.As(req, tc.caller)
-			}
-
-			rec := httptest.NewRecorder()
-			ctx := e.NewContext(req, rec)
-
-			ctxNew := Context{
-				ctx,
-			}
-
-			id := ctxNew.ID()
-
-			require.Equal(t, tc.expected, id)
-		})
-	}
-}
-
 func TestGetID(t *testing.T) {
 	type Expected struct {
 		id string
@@ -193,7 +149,7 @@ func TestGetID(t *testing.T) {
 	}
 }
 
-func TestGetTennat(t *testing.T) {
+func TestTenantID(t *testing.T) {
 	type Expected struct {
 		user string
 		ok   bool
@@ -238,7 +194,7 @@ func TestGetTennat(t *testing.T) {
 				ctx,
 			}
 
-			userNew, validate := ctxNew.GetTennat()
+			userNew, validate := ctxNew.TenantID()
 
 			require.Equal(t, tc.expected, Expected{userNew, validate})
 		})

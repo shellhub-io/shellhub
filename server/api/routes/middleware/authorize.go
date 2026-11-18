@@ -19,7 +19,9 @@ func Authorize(next echo.HandlerFunc) echo.HandlerFunc {
 			return routes.NewErrForbidden(nil)
 		}
 
-		if gCtx.ID() != nil && gCtx.Tenant() == nil && !gCtx.IsAdmin() {
+		_, hasUser := gCtx.GetID()
+		_, hasTenant := gCtx.TenantID()
+		if hasUser && !hasTenant && !gCtx.IsAdmin() {
 			return routes.NewErrForbidden(nil)
 		}
 
@@ -39,13 +41,6 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
-}
-
-// RequiresPermission reports whether the client has the specified permission.
-// If not, it refuses with [routes.ErrForbidden]. Otherwise, it executes the next
-// handler.
-func RequiresPermission(permission authorizer.Permission) echo.MiddlewareFunc {
-	return RequiresAnyPermission(permission)
 }
 
 // RequiresAnyPermission refuses the request with [routes.ErrForbidden] unless the caller's role
@@ -83,7 +78,7 @@ func RequiresTenant(param string) echo.MiddlewareFunc {
 				return routes.NewErrForbidden(nil)
 			}
 
-			if ctx.ID() == nil && ctx.IsAdmin() {
+			if _, ok := ctx.GetID(); !ok && ctx.IsAdmin() {
 				return next(c)
 			}
 
