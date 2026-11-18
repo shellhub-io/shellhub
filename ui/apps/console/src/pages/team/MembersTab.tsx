@@ -41,10 +41,6 @@ import ObjectName from "@/components/common/ObjectName";
 
 const AddMemberModal = lazy(() => import("./AddMemberModal"));
 
-// A single table row is either a real member or a pending invitation (the
-// invitee hasn't completed their account yet). Merging the two sources here —
-// not in the backend — keeps each endpoint honest per edition; the unified
-// table is purely presentation.
 type Row =
   | { kind: "member"; key: string; member: MemberView }
   | { kind: "invite"; key: string; invite: MembershipInvitation };

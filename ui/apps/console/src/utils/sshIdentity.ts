@@ -64,10 +64,6 @@ const SOURCE_COPY: Record<string, IdentitySourceCopy> = {
   },
 };
 
-// The browser key belonging to the browser being used right now. Worth its own
-// copy in both directions: it is the one row a person can act on without going
-// anywhere, and the only one whose revocation costs them the terminal they are
-// looking at.
 const CURRENT_BROWSER_COPY: IdentitySourceCopy = {
   label: "This browser",
   notable: true,
