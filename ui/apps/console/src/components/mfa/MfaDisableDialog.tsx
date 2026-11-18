@@ -53,11 +53,16 @@ export default function MfaDisableDialog({
   const handOverSignOut = useHandOverSignOut();
 
   useResetOnOpen(open, () => {
-    if (!emailRequested) setMode("totp");
+    setMode(emailRequested ? "email-reset" : "totp");
     otp.reset();
     setRecoveryCode("");
     setError("");
   });
+
+  const switchMode = (next: Mode) => {
+    setError("");
+    setMode(next);
+  };
 
   const handleRequestEmailReset = async (): Promise<void> => {
     const identifier = user || username;
@@ -112,6 +117,9 @@ export default function MfaDisableDialog({
         return;
       }
 
+      setEmailRequested(false);
+      otpMainEmail.reset();
+      otpRecoveryEmail.reset();
       onSuccess();
       onClose();
     } catch (err) {
@@ -176,7 +184,7 @@ export default function MfaDisableDialog({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setMode("recovery")}
+                  onClick={() => switchMode("recovery")}
                 >
                   Use recovery code instead
                 </Button>
@@ -206,7 +214,7 @@ export default function MfaDisableDialog({
                   variant="ghost"
                   size="sm"
                   fullWidth
-                  onClick={() => setMode("totp")}
+                  onClick={() => switchMode("totp")}
                 >
                   ← Use authenticator code
                 </Button>
@@ -214,10 +222,7 @@ export default function MfaDisableDialog({
                   variant="ghost"
                   size="sm"
                   fullWidth
-                  onClick={() => {
-                    setMode("email-reset");
-                    setEmailRequested(false);
-                  }}
+                  onClick={() => switchMode("email-reset")}
                 >
                   Lost recovery codes? Request email reset
                 </Button>
@@ -246,7 +251,7 @@ export default function MfaDisableDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setMode("recovery")}
+                      onClick={() => switchMode("recovery")}
                     >
                       ← Use recovery code
                     </Button>
@@ -278,10 +283,19 @@ export default function MfaDisableDialog({
                     variant="danger"
                   />
 
-                  <div className="text-center">
+                  <div className="text-center space-y-2">
                     <Button
                       variant="ghost"
                       size="sm"
+                      fullWidth
+                      onClick={() => switchMode("totp")}
+                    >
+                      ← Use authenticator code
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      fullWidth
                       onClick={() => void handleRequestEmailReset()}
                       loading={requestingEmail}
                     >
