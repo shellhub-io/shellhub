@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	storecache "github.com/shellhub-io/shellhub/pkg/cache"
+	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/hash"
 	hashmock "github.com/shellhub-io/shellhub/pkg/hash/mocks"
@@ -14,6 +16,8 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUpdateUser(t *testing.T) {
@@ -698,4 +702,62 @@ func TestRecordOnboardingSurvey(t *testing.T) {
 			assert.Equal(t, tc.expected, service.RecordOnboardingSurvey(ctx, req))
 		})
 	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	const userID = "000000000000000000000000"
+	user := &models.User{ID: userID}
+	inTransaction := func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }
+
+	t.Run("refuses a user who owns a namespace", func(t *testing.T) {
+		ctx := context.Background()
+		storeMock := mocks.NewMockStore(t)
+		storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).Return(inTransaction).Once()
+		storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
+		storeMock.On("UserGetInfo", ctx, userID).Return(&models.UserInfo{OwnedNamespaces: []models.Namespace{{TenantID: "owned"}}}, nil).Once()
+
+		err := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache()).DeleteUser(ctx, userID)
+		require.ErrorIs(t, err, ErrUserOwnsNamespace)
+	})
+
+	t.Run("reports a missing user as not found", func(t *testing.T) {
+		ctx := context.Background()
+		storeMock := mocks.NewMockStore(t)
+		storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).Return(inTransaction).Once()
+		storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(nil, store.ErrNoDocuments).Once()
+
+		err := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache()).DeleteUser(ctx, userID)
+		require.ErrorIs(t, err, ErrUserNotFound)
+	})
+
+	t.Run("returns a store failure resolving the user as it is, not as not found", func(t *testing.T) {
+		ctx := context.Background()
+		storeMock := mocks.NewMockStore(t)
+		storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).Return(inTransaction).Once()
+		storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(nil, store.ErrInternal).Once()
+
+		err := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache()).DeleteUser(ctx, userID)
+		require.ErrorIs(t, err, store.ErrInternal)
+		require.NotErrorIs(t, err, ErrUserNotFound)
+	})
+
+	t.Run("leaves every namespace, deletes the user, then uncaches its tokens", func(t *testing.T) {
+		ctx := context.Background()
+		storeMock := mocks.NewMockStore(t)
+		cacheMock := cachemock.NewMockCache(t)
+		storeMock.On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).Return(inTransaction).Once()
+		storeMock.On("UserResolve", ctx, store.UserIDResolver, userID).Return(user, nil).Once()
+		storeMock.On("UserGetInfo", ctx, userID).Return(&models.UserInfo{AssociatedNamespaces: []models.Namespace{{TenantID: "a"}, {TenantID: "b"}}}, nil).Once()
+		for _, tenant := range []string{"a", "b"} {
+			storeMock.
+				On("NamespaceDepartMember", ctx, scope.MustBounded(tenant), userID, store.MemberDeparture{}).
+				Return(&models.MemberDeparted{TenantID: tenant, MemberID: userID}, nil).
+				Once()
+		}
+		deleted := storeMock.On("UserDelete", ctx, user).Return(nil).Once()
+		cacheMock.On("Delete", ctx, "token_a"+userID).Return(nil).Once().NotBefore(deleted)
+		cacheMock.On("Delete", ctx, "token_b"+userID).Return(nil).Once().NotBefore(deleted)
+
+		require.NoError(t, NewService(store.Store(storeMock), privateKey, publicKey, cacheMock).DeleteUser(ctx, userID))
+	})
 }

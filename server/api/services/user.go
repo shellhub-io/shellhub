@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
+	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
@@ -86,6 +87,15 @@ type UserService interface {
 	// address, such as an administrator's edit, and must be called once the change is saved.
 	NotifyEmailsChanged(ctx context.Context, change EmailsChange)
 
+	// DeleteUser deletes the user of userID and its membership in every namespace it belongs to,
+	// in one transaction, then settles each departure as [MemberService.SettleMemberDeparture]
+	// does, only logging what fails there. It returns ErrUserNotFound when no user has userID,
+	// ErrUserOwnsNamespace while the user still owns a namespace, and the store's error when the
+	// transaction cannot begin or commit, the user cannot be resolved, the user's namespaces cannot
+	// be read, a membership cannot be dropped or the user cannot be deleted; any of them leaves
+	// everything as it was.
+	DeleteUser(ctx context.Context, userID string) error
+
 	// RevokeUserTokens revokes every token the user holds, the caller's own included, in one write
 	// bounded by ctx. It returns [ErrUserNotFound] when the user does not exist and [ErrUserUpdate]
 	// when the tokens cannot be revoked, a cancelled ctx included.
@@ -111,6 +121,47 @@ func (s *service) RecordOnboardingSurvey(ctx context.Context, req *requests.Reco
 
 func (s *service) CheckEmail(ctx context.Context, email string) string {
 	return s.hooks.checkEmail(ctx, email)
+}
+
+func (s *service) DeleteUser(ctx context.Context, userID string) error {
+	var departures []*models.MemberDeparted
+	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
+		user, err := s.store.UserResolve(ctx, store.UserIDResolver, userID)
+		switch {
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrUserNotFound(userID, err)
+		case err != nil:
+			return err
+		}
+
+		info, err := s.store.UserGetInfo(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		if len(info.OwnedNamespaces) > 0 {
+			return NewErrForbidden(ErrUserOwnsNamespace, nil)
+		}
+
+		for _, ns := range info.AssociatedNamespaces {
+			departed, err := s.store.NamespaceDepartMember(ctx, scope.MustBounded(ns.TenantID), userID, store.MemberDeparture{})
+			if err != nil {
+				return err
+			}
+
+			departures = append(departures, departed)
+		}
+
+		return s.store.UserDelete(ctx, user)
+	}); err != nil {
+		return err
+	}
+
+	for _, departed := range departures {
+		s.SettleMemberDeparture(ctx, departed)
+	}
+
+	return nil
 }
 
 func (s *service) NotifyEmailsChanged(ctx context.Context, change EmailsChange) {
