@@ -20,6 +20,34 @@ export function sessionHasTerminal(session: Session): boolean {
   return (session.events?.types ?? []).includes("pty-req");
 }
 
+const CHANNEL_STARTS = new Set<string | undefined>([
+  "pty-req",
+  "shell",
+  "exec",
+  "subsystem",
+]);
+
+/**
+ * The seats that may have a recording of their own, lowest first: those whose timeline shows a
+ * terminal request, and those whose timeline does not show how their channel started. The server
+ * caps the timeline at its oldest events, so a seat whose start fell past the cap may still have
+ * asked for a terminal, and one that did not is offered too. It is empty when the session carries
+ * no timeline, as on the sessions list or when the server could not read it.
+ */
+export function terminalSeats(session: Session): number[] {
+  const items = session.events?.items;
+  if (!items) return [];
+  const seatOf = (event: SessionEvent) => event.seat ?? 0;
+  const started = new Set(
+    items.filter((event) => CHANNEL_STARTS.has(event.type)).map(seatOf),
+  );
+  const seats = [
+    ...items.filter((event) => event.type === "pty-req").map(seatOf),
+    ...(session.events?.seats ?? []).filter((seat) => !started.has(seat)),
+  ];
+  return [...new Set(seats)].sort((a, b) => a - b);
+}
+
 /**
  * What a session did, as the label and colour of its badge: an SFTP transfer, a single exec, or an
  * interactive shell. It is null when the session opened no channel. This is the one place that

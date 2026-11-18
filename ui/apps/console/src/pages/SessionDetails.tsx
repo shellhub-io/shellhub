@@ -39,8 +39,9 @@ import PageLoader from "@/components/common/PageLoader";
 import InfoItem from "@/components/common/InfoItem";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
-import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
-import { sessionTerminal } from "@/utils/session";
+import SegmentedTabs from "@/components/common/SegmentedTabs";
+import { AVAILABLE_WHEN_SESSION_ENDS, recordingId } from "@/utils/recordings";
+import { sessionTerminal, terminalSeats } from "@/utils/session";
 import ObjectName from "@/components/common/ObjectName";
 import { getSessionOptions } from "@/client";
 import { useCloseSession } from "@/hooks/useSessionRequests";
@@ -252,9 +253,11 @@ function DurationStat({
  */
 export default function SessionDetails() {
   const { uid } = useParams<{ uid: string }>();
-  const { data: session, isLoading, error } = useQuery(
-    getSessionOptions({ path: { uid: uid! } }),
-  );
+  const {
+    data: session,
+    isLoading,
+    error,
+  } = useQuery(getSessionOptions({ path: { uid: uid! } }));
   const principalName = usePrincipalName();
 
   const closeSession = useCloseSession();
@@ -262,19 +265,25 @@ export default function SessionDetails() {
     isLoading: logsLoading,
     isDownloading,
     error: logsError,
+    failedRecording,
+    deleted,
     play,
     download,
   } = useSessionRecording();
   useLocalRecordings();
-  const permissions = useRecordingPermissions(uid!, session?.recorded ?? false);
 
   const [showClose, setShowClose] = useState(false);
   const [showDeleteLogs, setShowDeleteLogs] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
-
-  const handlePlayRecording = async () => {
-    if (session) await play(session);
-  };
+  const [seat, setSeat] = useState(0);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const terminals = session ? terminalSeats(session) : [];
+  const pickedSeat = terminals.includes(seat) ? seat : (terminals[0] ?? 0);
+  const permissions = useRecordingPermissions(
+    uid!,
+    session?.recorded ?? false,
+    pickedSeat,
+  );
 
   const handleClose = async () => {
     if (!uid || !session) return;
@@ -305,6 +314,9 @@ export default function SessionDetails() {
   }
 
   const timeline = buildTimeline(session);
+  const pickedId = recordingId(session.uid, pickedSeat);
+  const pickedDeleted =
+    deleted.includes(pickedId) || removed.includes(pickedId);
 
   return (
     <div className="animate-fade-in">
@@ -384,7 +396,23 @@ export default function SessionDetails() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {permissions.available && (
+          {permissions.available && terminals.length > 1 && (
+            <SegmentedTabs
+              label="Terminal"
+              tabs={terminals.map((terminalSeat, i) => ({
+                label: `Terminal ${i + 1}`,
+                value: String(terminalSeat),
+              }))}
+              value={String(pickedSeat)}
+              onChange={(value) => setSeat(Number(value))}
+            />
+          )}
+          {permissions.available && pickedDeleted && (
+            <span className="text-xs text-text-muted">
+              This terminal&apos;s recording was deleted
+            </span>
+          )}
+          {permissions.available && !pickedDeleted && (
             <>
               <RestrictedAction permission={permissions.read}>
                 <Button
@@ -394,7 +422,7 @@ export default function SessionDetails() {
                   title={
                     session.active ? AVAILABLE_WHEN_SESSION_ENDS : undefined
                   }
-                  onClick={() => void handlePlayRecording()}
+                  onClick={() => void play(session, pickedSeat)}
                 >
                   {logsLoading ? "Loading…" : "Play Recording"}
                 </Button>
@@ -411,7 +439,7 @@ export default function SessionDetails() {
                   aria-label="Download recording"
                   className="border border-border"
                   disabled={isDownloading || session.active}
-                  onClick={() => void download(session)}
+                  onClick={() => void download(session, pickedSeat)}
                 >
                   <ArrowDownTrayIcon className="w-4 h-4" />
                 </IconButton>
@@ -556,6 +584,10 @@ export default function SessionDetails() {
         onClose={() => setShowDeleteLogs(false)}
         sessionUid={session.uid}
         recorded={session.recorded}
+        seats={[pickedSeat]}
+        onDeleted={() =>
+          setRemoved((ids) => [...ids, recordingId(session.uid, pickedSeat)])
+        }
       />
 
       <ConfirmDialog
@@ -582,7 +614,7 @@ export default function SessionDetails() {
         errorMessage={closeError}
       />
 
-      {logsError && (
+      {logsError && failedRecording === pickedId && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-banner px-4 py-2.5 bg-accent-red/10 border border-accent-red/30 text-accent-red text-sm rounded-lg shadow-lg">
           {logsError}
         </div>
