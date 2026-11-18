@@ -11,6 +11,7 @@ import {
   confirmAccount as confirmAccountSdk,
   type UserOnboardingSurvey,
   type UserOrigin,
+  type UserDelete,
 } from "../client";
 import { queryClient } from "../api/queryClient";
 import { isSdkError } from "../api/errors";
@@ -68,7 +69,7 @@ interface AuthState {
     newPassword: string,
     mfaCode?: string,
   ) => Promise<void>;
-  deleteUser: () => Promise<void>;
+  deleteUser: (factor: UserDelete) => Promise<void>;
   loginWithMfa: (code: string) => Promise<void>;
   confirmAccount: (identifier: string, code: string) => Promise<boolean>;
   recoverWithCode: (code: string) => Promise<void>;
@@ -217,8 +218,8 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      deleteUser: async () => {
-        await deleteUserSdk({ throwOnError: true });
+      deleteUser: async (factor) => {
+        await deleteUserSdk({ body: factor, throwOnError: true });
         get().logout();
         window.location.replace("/login");
       },
