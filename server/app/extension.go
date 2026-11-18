@@ -65,36 +65,26 @@ type Mount struct {
 	Tunnels dialer.TunnelDialer
 }
 
-func openExtensions(ctx context.Context, extensions []Extension, infra Infra) ([]Features, store.Store, error) {
+func openExtensions(ctx context.Context, extensions []Extension, infra Infra) (Features, error) {
 	opened := make([]Features, 0, len(extensions))
-	current := infra.Store
 
 	for _, extension := range extensions {
-		infra.Store = current
-
 		features, err := extension(ctx, infra)
 		if err != nil {
-			return nil, nil, err
+			return Features{}, err
 		}
 
 		if features.Store != nil {
-			current = features.Store
+			infra.Store = features.Store
 		}
 
 		opened = append(opened, features)
 	}
 
-	return opened, current, nil
-}
+	merged := Merge(opened...)
+	merged.Store = infra.Store
 
-func maxMindOf(opened []Features) func(context.Context) (geoip.Locator, error) {
-	for _, features := range opened {
-		if features.MaxMind != nil {
-			return features.MaxMind
-		}
-	}
-
-	return nil
+	return merged, nil
 }
 
 // Merge joins features into one that adds what each adds, in order. The last part with a Store or

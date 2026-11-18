@@ -253,7 +253,7 @@ type Server struct {
 	publicURL     string
 	gatewayConfig *gateway.GatewayConfig
 	extensions    []Extension
-	features      []Features
+	features      Features
 }
 
 const (
@@ -320,18 +320,19 @@ func (s *Server) Setup(ctx context.Context) error {
 		return fmt.Errorf("failed to open the task queue client: %w", err)
 	}
 
-	features, store, err := openExtensions(ctx, s.extensions, Infra{Env: *s.env, Store: coreStore, Cache: cache, Clock: s.clock, Tasks: s.tasks})
+	features, err := openExtensions(ctx, s.extensions, Infra{Env: *s.env, Store: coreStore, Cache: cache, Clock: s.clock, Tasks: s.tasks})
 	if err != nil {
 		return fmt.Errorf("failed to open the server's extensions: %w", err)
 	}
 
 	s.features = features
+	store := features.Store
 
 	if err := reconcileInstanceBinding(ctx, store); err != nil {
 		return errors.Join(errors.New("failed to reconcile instance binding"), err)
 	}
 
-	located, err := s.chooseLocator(ctx, maxMindOf(features))
+	located, err := s.chooseLocator(ctx, features.MaxMind)
 	if err != nil {
 		return err
 	}
@@ -348,11 +349,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		services.WithHooks(services.Hooks{DeviceRemoved: []services.DeviceRemovedHookFn{evictTunnel}}),
 	}
 
-	for _, f := range features {
-		if f.Services != nil {
-			servicesOptions = append(servicesOptions, f.Services(located.locator)...)
-		}
-	}
+	servicesOptions = append(servicesOptions, features.Services(located.locator)...)
 
 	routerOptions, err := s.routerOptions(ctx, located.source)
 	if err != nil {
@@ -407,11 +404,7 @@ func (s *Server) Setup(ctx context.Context) error {
 		log.Warn("session retention disabled; sessions and their events are kept indefinitely")
 	}
 
-	for _, f := range features {
-		if f.Workers != nil {
-			f.Workers(s.worker)
-		}
-	}
+	features.Workers(s.worker)
 
 	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock, dialer.EffectivePingInterval(time.Duration(s.sshEnv.TunnelPingInterval)), evictTunnel)
 
@@ -483,14 +476,8 @@ func (s *Server) setupSSH(service services.Service, tunnels *dialer.Manager) err
 		return err
 	}
 
-	for _, f := range s.features {
-		if f.Routes == nil {
-			continue
-		}
-
-		if err := f.Routes(Mount{Router: s.router, Authn: s.authn, Service: service, Tunnels: d}); err != nil {
-			return fmt.Errorf("failed to mount an extension's routes: %w", err)
-		}
+	if err := s.features.Routes(Mount{Router: s.router, Authn: s.authn, Service: service, Tunnels: d}); err != nil {
+		return fmt.Errorf("failed to mount an extension's routes: %w", err)
 	}
 
 	if err := requireDeclaredRoutes(s.router); err != nil {
@@ -587,19 +574,14 @@ func (s *Server) stopGateway() {
 
 // Shutdown stops the worker, the in-process gateway when it runs, and the HTTP and SSH servers,
 // then closes every device tunnel without reporting the devices offline. It waits up to
-// heartbeaterDrainTimeout for pending heartbeats, flushes telemetry, and logs each failure
-// instead of returning it. Call it only after [Server.Start] has returned: it reads the servers
-// Start creates, and while Start runs those are being written on another goroutine.
+// heartbeaterDrainTimeout for pending heartbeats, flushes telemetry, closes the task queue client,
+// and logs each failure instead of returning it. Call it only after [Server.Start] has returned: it
+// reads the servers Start creates, and while Start runs those are being written on another
+// goroutine.
 func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
 	s.worker.Shutdown()
-
-	if s.tasks != nil {
-		if err := s.tasks.Close(); err != nil {
-			log.WithError(err).Warn("the task queue client did not close cleanly")
-		}
-	}
 
 	s.stopGateway()
 
@@ -629,6 +611,12 @@ func (s *Server) Shutdown() {
 	if s.telemetry != nil {
 		if err := s.telemetry.Close(); err != nil {
 			log.WithError(err).Debug("telemetry events were still pending at shutdown")
+		}
+	}
+
+	if s.tasks != nil {
+		if err := s.tasks.Close(); err != nil {
+			log.WithError(err).Warn("the task queue client did not close cleanly")
 		}
 	}
 

@@ -29,11 +29,11 @@ func TestOpenExtensionsHandsEachTheStoreTheOneBeforeLeft(t *testing.T) {
 		return Features{}, nil
 	}
 
-	_, final, err := openExtensions(context.Background(), []Extension{wrap, keep}, Infra{Store: core})
+	features, err := openExtensions(context.Background(), []Extension{wrap, keep}, Infra{Store: core})
 	require.NoError(t, err)
 
 	assert.Equal(t, []store.Store{core, wrapped}, seen)
-	assert.Same(t, wrapped, final)
+	assert.Same(t, wrapped, features.Store)
 }
 
 func TestOpenExtensionsStopsAtTheFirstError(t *testing.T) {
@@ -47,7 +47,7 @@ func TestOpenExtensionsStopsAtTheFirstError(t *testing.T) {
 		return Features{}, nil
 	}
 
-	_, _, err := openExtensions(context.Background(), []Extension{fail, after}, Infra{})
+	_, err := openExtensions(context.Background(), []Extension{fail, after}, Infra{})
 
 	require.ErrorIs(t, err, failure)
 	assert.False(t, opened)
