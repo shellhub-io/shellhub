@@ -117,7 +117,10 @@ delete:
   description: |
     Deletes a session record based on its seat, from the object storage and from the session's
     events. The session must be closed: an active session is still recording, so deleting its
-    record is refused with 409.
+    record is refused with 409. The session stays recorded while any other seat still has a
+    record, so each seat can be deleted in turn, and deleting a seat that holds nothing succeeds.
+    Once the last record is gone the session is no longer recorded, and a delete is refused with
+    400.
   security:
     - jwt: []
     - api-key: []
