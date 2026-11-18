@@ -250,7 +250,7 @@ export default function SSHIdentities() {
 
               <Dropdown.Panel className="w-40 py-1">
                 {mine && (
-                  <RestrictedAction action="sshIdentity:add">
+                  <RestrictedAction permission="SSHIdentityAdd">
                     <Dropdown.Item
                       label="Edit"
                       onSelect={() => modal.openEdit(i)}
@@ -262,7 +262,7 @@ export default function SSHIdentities() {
                   </RestrictedAction>
                 )}
                 <RestrictedAction
-                  action={mine ? "sshIdentity:add" : "sshIdentity:manage"}
+                  permission={mine ? "SSHIdentityAdd" : "SSHIdentityManage"}
                 >
                   <Dropdown.Item
                     label="Revoke"
@@ -312,7 +312,7 @@ export default function SSHIdentities() {
           ]}
           footnote="Identities are scoped to this namespace."
         >
-          <RestrictedAction action="sshIdentity:add">
+          <RestrictedAction permission="SSHIdentityAdd">
             <Button
               size="lg"
               onClick={modal.openNew}
@@ -330,7 +330,7 @@ export default function SSHIdentities() {
             title="SSH Identities"
             description="Manage the SSH keys that are your identity in a new namespace."
           >
-            <RestrictedAction action="sshIdentity:add">
+            <RestrictedAction permission="SSHIdentityAdd">
               <Button
                 onClick={modal.openNew}
                 icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}

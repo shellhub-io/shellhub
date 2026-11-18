@@ -234,8 +234,8 @@ function NamespaceCard({
 export default function GeneralSettings() {
   const { tenant: tenantId } = useAuthStore();
   const { namespace: ns } = useNamespace(tenantId ?? "");
-  const canRename = useHasPermission("namespace:rename");
-  const canDelete = useHasPermission("namespace:delete");
+  const canRename = useHasPermission("NamespaceUpdate");
+  const canDelete = useHasPermission("NamespaceDelete");
   const [renameOpen, setRenameOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
 

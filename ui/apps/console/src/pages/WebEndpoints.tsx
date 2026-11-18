@@ -794,7 +794,7 @@ function EndpointCard({
         </div>
 
         <div className="flex items-center shrink-0">
-          <RestrictedAction action="webEndpoint:delete">
+          <RestrictedAction permission="TunnelsDelete">
             <IconButton
               variant="danger"
               type="button"
@@ -899,7 +899,7 @@ function WebEndpointsContent() {
           ]}
           footnote="No VPN, no SSH port forwarding — just a URL."
         >
-          <RestrictedAction action="webEndpoint:create">
+          <RestrictedAction permission="TunnelsCreate">
             <Button
               size="lg"
               onClick={openNew}
@@ -923,7 +923,7 @@ function WebEndpointsContent() {
             title="Web Endpoints"
             description="Unique URLs that tunnel HTTP traffic to services on your devices."
           >
-            <RestrictedAction action="webEndpoint:create">
+            <RestrictedAction permission="TunnelsCreate">
               <Button
                 onClick={openNew}
                 icon={
@@ -1021,7 +1021,7 @@ function WebEndpointsContent() {
  * the list is never requested for it.
  */
 export default function WebEndpoints() {
-  const canList = useHasPermission("webEndpoint:list");
+  const canList = useHasPermission("DeviceConnect");
   if (!canList) {
     return (
       <EmptyState

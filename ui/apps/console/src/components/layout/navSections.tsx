@@ -180,7 +180,7 @@ function buildSections(
  */
 export function useNavSections(): NavSection[] {
   const isNewNamespace = useNamespaceLegacy() !== true;
-  const canListWebEndpoints = useHasPermission("webEndpoint:list");
+  const canListWebEndpoints = useHasPermission("DeviceConnect");
   return buildSections(isNewNamespace, canListWebEndpoints);
 }
 

@@ -187,7 +187,7 @@ export default function PublicKeys() {
       headerClassName: "w-16",
       render: (pk) => (
         <div className="flex items-center justify-end gap-0.5">
-          <RestrictedAction action="publicKey:edit">
+          <RestrictedAction permission="PublicKeyEdit">
             <IconButton
               variant="primary"
               title="Edit"
@@ -197,7 +197,7 @@ export default function PublicKeys() {
               <PencilSquareIcon className="w-4 h-4" strokeWidth={2} />
             </IconButton>
           </RestrictedAction>
-          <RestrictedAction action="publicKey:remove">
+          <RestrictedAction permission="PublicKeyRemove">
             <IconButton
               variant="danger"
               title="Delete"
@@ -242,7 +242,7 @@ export default function PublicKeys() {
           ]}
           footnote="Supports RSA, DSA, ECDSA, and ED25519 key types."
         >
-          <RestrictedAction action="publicKey:create">
+          <RestrictedAction permission="PublicKeyCreate">
             <Button
               size="lg"
               onClick={modal.openNew}
@@ -270,7 +270,7 @@ export default function PublicKeys() {
         title="Public Keys"
         description="Manage SSH public keys for passwordless authentication to your devices."
       >
-        <RestrictedAction action="publicKey:create">
+        <RestrictedAction permission="PublicKeyCreate">
           <Button
             onClick={modal.openNew}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}

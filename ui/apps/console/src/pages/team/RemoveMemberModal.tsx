@@ -47,7 +47,7 @@ export default function RemoveMemberModal({
     onSuccess: invalidateMembership,
   });
   const devices = useMemberDevices(member.id ?? "");
-  const canKeepDevices = useHasPermission("provisioningKey:create");
+  const canKeepDevices = useHasPermission("ProvisioningKeyCreate");
   const [keepDevices, setKeepDevices] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 

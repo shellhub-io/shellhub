@@ -180,7 +180,7 @@ function formatCurrency(amountCents: number, currency: string): string {
  * way to subscribe or into the provider's portal. Only whoever may subscribe sees the details.
  */
 export default function BillingSection() {
-  const canSubscribe = useHasPermission("billing:subscribe");
+  const canSubscribe = useHasPermission("BillingCreateSubscription");
   const { tenant: tenantId } = useAuthStore();
   const { namespace } = useNamespace(tenantId ?? "");
   const billing = namespace?.billing;

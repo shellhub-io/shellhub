@@ -81,7 +81,7 @@ export default function ActionDialog({
   const tenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(tenant ?? "");
   const hasSubscription = isSubscriptionBlocked(namespace?.billing);
-  const canSubscribe = useHasPermission("billing:subscribe");
+  const canSubscribe = useHasPermission("BillingCreateSubscription");
   const billingTitleId = useId();
   const [error, setError] = useState<string | null>(null);
   const [billingError, setBillingError] = useState<unknown>(null);

@@ -153,7 +153,7 @@ export default function FirewallRules() {
       headerClassName: "w-20",
       render: (rule) => (
         <div className="flex items-center justify-end gap-0.5">
-          <RestrictedAction action="firewall:edit">
+          <RestrictedAction permission="FirewallEdit">
             <IconButton
               variant="primary"
               aria-label={`Edit firewall rule with priority ${rule.priority}`}
@@ -163,7 +163,7 @@ export default function FirewallRules() {
               <PencilSquareIcon className="w-4 h-4" aria-hidden="true" />
             </IconButton>
           </RestrictedAction>
-          <RestrictedAction action="firewall:remove">
+          <RestrictedAction permission="FirewallRemove">
             <IconButton
               variant="danger"
               aria-label={`Delete firewall rule with priority ${rule.priority}`}
@@ -208,7 +208,7 @@ export default function FirewallRules() {
           ]}
           footnote="Rules are evaluated by priority before connections reach devices."
         >
-          <RestrictedAction action="firewall:create">
+          <RestrictedAction permission="FirewallCreate">
             <Button
               size="lg"
               onClick={modal.openNew}
@@ -242,7 +242,7 @@ export default function FirewallRules() {
         title="Firewall Rules"
         description="Control SSH connections to your devices with allow and deny rules evaluated by priority."
       >
-        <RestrictedAction action="firewall:create">
+        <RestrictedAction permission="FirewallCreate">
           <Button
             onClick={modal.openNew}
             icon={

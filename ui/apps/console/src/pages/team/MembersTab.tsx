@@ -246,11 +246,11 @@ function MembersTab({ tenantId }: { tenantId: string }) {
           return (
             <div className="flex items-center justify-end gap-1">
               {inv.invite_url && (
-                <RestrictedAction action="namespace:addMember">
+                <RestrictedAction permission="NamespaceAddMember">
                   <CopyButton text={inv.invite_url} />
                 </RestrictedAction>
               )}
-              <RestrictedAction action="namespace:addMember">
+              <RestrictedAction permission="NamespaceAddMember">
                 <IconButton
                   variant="ghost"
                   disabled={!expired}
@@ -265,7 +265,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                   <ArrowPathIcon className="w-4 h-4" />
                 </IconButton>
               </RestrictedAction>
-              <RestrictedAction action="namespace:cancelInvitation">
+              <RestrictedAction permission="NamespaceRemoveMember">
                 <IconButton
                   variant="danger"
                   title="Cancel invitation"
@@ -296,7 +296,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                 <CheckIcon className="w-4 h-4" />
               </IconButton>
             )}
-            <RestrictedAction action="namespace:editMember">
+            <RestrictedAction permission="NamespaceEditMember">
               <MemberRoleDialog
                 tenantId={tenantId}
                 memberId={m.id ?? ""}
@@ -304,7 +304,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
                 role={m.role ?? "observer"}
               />
             </RestrictedAction>
-            <RestrictedAction action="namespace:removeMember">
+            <RestrictedAction permission="NamespaceRemoveMember">
               <IconButton
                 variant="danger"
                 title="Remove"
@@ -331,7 +331,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-text-muted">{summary}</p>
-        <RestrictedAction action="namespace:addMember">
+        <RestrictedAction permission="NamespaceAddMember">
           <Button
             onClick={() => setAddOpen(true)}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}

@@ -99,7 +99,7 @@ function SessionActions({
   return (
     <div className="flex items-center justify-end gap-1.5">
       {hasTerminal && (
-        <RestrictedAction action={read}>
+        <RestrictedAction permission={read}>
           <button
             type="button"
             className={PLAY_BTN}
@@ -121,7 +121,7 @@ function SessionActions({
         </RestrictedAction>
       )}
       {session.active && (
-        <RestrictedAction action="session:close">
+        <RestrictedAction permission="SessionClose">
           <CloseButton onClose={onClose} />
         </RestrictedAction>
       )}

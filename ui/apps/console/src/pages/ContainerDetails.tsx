@@ -146,7 +146,7 @@ export default function ContainerDetails() {
         <div className="flex items-center gap-2 shrink-0">
           {container.status === "accepted" && (
             <>
-              <RestrictedAction action="device:connect">
+              <RestrictedAction permission="DeviceConnect">
                 <Button
                   variant="success"
                   onClick={() => connect(container.uid, container.name)}
@@ -161,7 +161,7 @@ export default function ContainerDetails() {
                   Connect
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:remove">
+              <RestrictedAction permission="DeviceRemove">
                 <IconButton
                   variant="danger"
                   size="lg"
@@ -179,7 +179,7 @@ export default function ContainerDetails() {
           )}
           {container.status === "pending" && (
             <>
-              <RestrictedAction action="device:accept">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="success"
                   onClick={() =>
@@ -189,7 +189,7 @@ export default function ContainerDetails() {
                   Accept
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:reject">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="warning"
                   onClick={() =>
@@ -203,7 +203,7 @@ export default function ContainerDetails() {
           )}
           {container.status === "rejected" && (
             <>
-              <RestrictedAction action="device:accept">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="success"
                   onClick={() =>
@@ -213,7 +213,7 @@ export default function ContainerDetails() {
                   Accept
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:remove">
+              <RestrictedAction permission="DeviceRemove">
                 <Button
                   variant="destructive"
                   onClick={() =>

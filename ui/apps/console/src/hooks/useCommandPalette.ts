@@ -99,7 +99,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   );
   const logout = useAuthStore((s) => s.logout);
   const tenant = useAuthStore((s) => s.tenant);
-  const canConnect = useHasPermission("device:connect");
+  const canConnect = useHasPermission("DeviceConnect");
   const { namespace } = useNamespace(tenant ?? "");
   const legacy = useNamespaceLegacy();
   const workspace = useWorkspaceTabs();

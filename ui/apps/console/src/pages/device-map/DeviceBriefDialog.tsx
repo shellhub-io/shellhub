@@ -62,7 +62,7 @@ export default function DeviceBriefDialog({
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
-          <RestrictedAction action="device:connect">
+          <RestrictedAction permission="DeviceConnect">
             <Button
               variant="success"
               onClick={connect}

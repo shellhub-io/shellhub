@@ -43,8 +43,8 @@ export default function MemberRoleDialog({
     ...updateNamespaceMemberMutation(),
     onSuccess: invalidateMembership,
   });
-  const canKeepDevices = useHasPermission("provisioningKey:create");
-  const devicesLeave = !hasPermission(next, "device:accept");
+  const canKeepDevices = useHasPermission("ProvisioningKeyCreate");
+  const devicesLeave = !hasPermission(next, "DeviceStatusUpdate");
   const devices = useMemberDevices(memberId, devicesLeave);
 
   return (

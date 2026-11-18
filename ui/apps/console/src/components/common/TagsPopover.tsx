@@ -44,7 +44,7 @@ export default function TagsPopover({
   const [error, setError] = useState<string | null>(null);
   const titleId = useId();
   const descriptionId = useId();
-  const canEditTags = useHasPermission("tag:edit");
+  const canEditTags = useHasPermission(["TagCreate", "TagDelete"]);
   const tags = entityTags || [];
 
   const handleAdd = async (tag: string) => {

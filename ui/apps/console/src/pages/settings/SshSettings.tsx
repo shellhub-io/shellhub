@@ -141,7 +141,7 @@ function NamespaceModelCard({ ns }: { ns: Namespace }) {
     ...upgradeNamespaceMutation(),
     onSuccess: invalidateUpgraded,
   });
-  const canUpgrade = useHasPermission("namespace:upgrade");
+  const canUpgrade = useHasPermission("NamespaceUpdate");
   const { error, saved, run } = useSettingSave(
     "Couldn't upgrade the namespace. Try again.",
   );
@@ -216,7 +216,7 @@ function NamespaceModelCard({ ns }: { ns: Namespace }) {
 
 function RecordingCard({ ns }: { ns: Namespace }) {
   const editNs = useEditNamespace();
-  const canChange = useHasPermission("namespace:updateSessionRecording");
+  const canChange = useHasPermission("NamespaceEnableSessionRecord");
   const { error, saved, run } = useSettingSave(
     "Couldn't change session recording. Try again.",
   );
@@ -298,7 +298,7 @@ function EnforcedBadge({
 
 function EnforceSignaturesCard({ ns }: { ns: Namespace }) {
   const editNs = useEditNamespace();
-  const canChange = useHasPermission("namespace:requireVerifiedDeviceKeys");
+  const canChange = useHasPermission("NamespaceUpdate");
   const { error, saved, run } = useSettingSave(
     "Couldn't change device signature enforcement. Try again.",
   );
@@ -552,7 +552,7 @@ function BannerViewer({
 }
 
 function BannerCard({ ns }: { ns: Namespace }) {
-  const canEdit = useHasPermission("namespace:editBanner");
+  const canEdit = useHasPermission("NamespaceUpdate");
   const [open, setOpen] = useState(false);
 
   return (

@@ -47,7 +47,7 @@ export function useFirstDevice() {
   const tenant = useAuthStore((s) => s.tenant);
   const { namespace } = useNamespace(tenant ?? "");
   const legacy = useNamespaceLegacy();
-  const canSubscribe = useHasPermission("billing:subscribe");
+  const canSubscribe = useHasPermission("BillingCreateSubscription");
 
   const [code, setCode] = useState("");
   const [paired, setPaired] = useState<PairedDevice | null>(null);
