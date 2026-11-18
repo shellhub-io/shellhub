@@ -343,10 +343,6 @@ func endRemovedDevice(ctx context.Context, c cache.Cache, removed DeviceRemovedH
 	}
 }
 
-func (s *service) DeleteNamespacesEndingDevices(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
-	return DeleteNamespacesEndingDevices(ctx, s.store, s.cache, s.hooks.deviceRemoved, tenantIDs, deleteNamespaces)
-}
-
 // DeleteNamespacesEndingDevices lists the devices of the namespaces of tenantIDs through st, runs
 // deleteNamespaces, which deletes those namespaces, and then ends every device listed as a device
 // removal does: it evicts from c the device's cached authorization, so its agent's next
