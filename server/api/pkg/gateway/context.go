@@ -2,7 +2,6 @@ package gateway
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/labstack/echo/v5"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -10,6 +9,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
+	routes "github.com/shellhub-io/shellhub/server/api/routes/errors"
 )
 
 type ctxKey string
@@ -100,17 +100,18 @@ func (c *Context) Tenant() *models.Tenant {
 }
 
 // Scope bounds the request to the namespace its identity carries. A route that serves
-// namespace-bound data calls this and returns the error rather than widening the read: an absent
-// tenant refuses the request, matching the tenant guard's fail-closed behaviour.
+// namespace-bound data calls this and returns the error rather than widening the read. It returns
+// [routes.ErrForbidden] joined with [scope.ErrEmptyTenantID] when the identity carries no tenant,
+// matching the tenant guard's fail-closed behaviour.
 func (c *Context) Scope() (scope.Scope, error) {
 	tenant := c.Tenant()
 	if tenant == nil {
-		return scope.Scope{}, echo.NewHTTPError(http.StatusForbidden, scope.ErrEmptyTenantID.Error())
+		return scope.Scope{}, routes.NewErrForbidden(scope.ErrEmptyTenantID)
 	}
 
 	sc, err := scope.NewBounded(tenant.ID)
 	if err != nil {
-		return scope.Scope{}, echo.NewHTTPError(http.StatusForbidden, err.Error())
+		return scope.Scope{}, routes.NewErrForbidden(err)
 	}
 
 	return sc, nil
