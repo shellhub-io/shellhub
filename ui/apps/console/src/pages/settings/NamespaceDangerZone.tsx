@@ -143,7 +143,7 @@ export function LeaveDialog({
  * goes. Renders nothing for anyone without the permission, who leaves instead.
  */
 export function DeleteNamespaceZone({ ns }: { ns: Namespace }) {
-  const canDelete = useHasPermission("namespace:delete");
+  const canDelete = useHasPermission("NamespaceDelete");
   const [open, setOpen] = useState(false);
 
   if (!canDelete) return null;

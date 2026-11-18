@@ -103,7 +103,7 @@ function CustomKeysEmpty({ onCreate }: { onCreate: () => void }) {
           Create a key with its own secret and mode to register devices with
           your namespace.
         </p>
-        <RestrictedAction action="provisioningKey:create">
+        <RestrictedAction permission="ProvisioningKeyCreate">
           <Button
             size="sm"
             onClick={onCreate}

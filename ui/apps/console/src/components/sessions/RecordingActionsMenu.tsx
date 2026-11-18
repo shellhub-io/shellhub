@@ -7,19 +7,19 @@ import {
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
-import { type Action } from "@/utils/permission";
+import { type Permission } from "@/utils/permission";
 import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
 import DeleteRecordingDialog from "./DeleteRecordingDialog";
 
 function MenuItem({
-  action,
+  permission,
   icon,
   label,
   danger,
   unavailableReason,
   onSelect,
 }: {
-  action?: Action;
+  permission?: Permission;
   icon: ReactNode;
   label: string;
   danger?: boolean;
@@ -27,7 +27,7 @@ function MenuItem({
   onSelect: () => void;
 }) {
   return (
-    <RestrictedAction action={action}>
+    <RestrictedAction permission={permission}>
       <Dropdown.Item
         label={label}
         variant={danger ? "danger" : "default"}
@@ -91,7 +91,7 @@ export default function RecordingActionsMenu({
 
         <Dropdown.Panel className="w-48 py-1">
           <MenuItem
-            action={loaded ? undefined : permissions.read}
+            permission={loaded ? undefined : permissions.read}
             icon={<ArrowDownTrayIcon className="w-4 h-4" />}
             label="Download recording"
             unavailableReason={
@@ -101,7 +101,7 @@ export default function RecordingActionsMenu({
           />
           {!(active && recorded) && (
             <MenuItem
-              action={permissions.remove}
+              permission={permissions.remove}
               icon={<TrashIcon className="w-4 h-4" />}
               label="Delete recording"
               danger

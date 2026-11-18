@@ -1,224 +1,50 @@
 import { describe, it, expect } from "vitest";
-import {
-  hasPermission,
-  isValidRole,
-  type Role,
-  type Action,
-} from "../permission";
+import { hasPermission, isValidRole, type Permission, type Role } from "../permission";
+import { rolePermissions } from "../permissions.generated";
 
-const OBSERVER_ACTIONS: Action[] = [
-  "device:details",
-  "session:details",
-  "namespace:create",
-  "namespace:leave",
-];
-
-const OPERATOR_ACTIONS: Action[] = [
-  "device:connect",
-  "device:add",
-  "device:accept",
-  "device:reject",
-  "device:rename",
-  "tag:edit",
-  "tag:remove",
-  "tag:deviceCreate",
-  "tag:update",
-  "notification:view",
-  "sshIdentity:add",
-  "provisioningKey:list",
-  "webEndpoint:list",
-];
-
-const ADMINISTRATOR_ACTIONS: Action[] = [
-  "device:remove",
-  "session:play",
-  "session:close",
-  "session:removeRecord",
-  "namespace:rename",
-  "namespace:addMember",
-  "namespace:editMember",
-  "namespace:removeMember",
-  "namespace:cancelInvitation",
-  "namespace:updateSessionRecording",
-  "namespace:editBanner",
-  "publicKey:create",
-  "publicKey:edit",
-  "publicKey:remove",
-  "sshIdentity:manage",
-  "firewall:create",
-  "firewall:edit",
-  "firewall:remove",
-  "webEndpoint:create",
-  "webEndpoint:delete",
-  "connector:add",
-  "connector:edit",
-  "connector:remove",
-  "apiKey:create",
-  "apiKey:edit",
-  "apiKey:delete",
-  "provisioningKey:create",
-  "provisioningKey:reveal",
-  "provisioningKey:edit",
-  "provisioningKey:disable",
-  "provisioningKey:revoke",
-];
-
-const OWNER_ACTIONS: Action[] = [
-  "device:choose",
-  "namespace:delete",
-  "billing:subscribe",
-  "billing:unsubscribe",
-];
-
-const ALL_ACTIONS: Action[] = [
-  ...OBSERVER_ACTIONS,
-  ...OPERATOR_ACTIONS,
-  ...ADMINISTRATOR_ACTIONS,
-  ...OWNER_ACTIONS,
+const roles = Object.keys(rolePermissions) as Role[];
+const everyPermission = [
+  ...new Set<Permission>(Object.values(rolePermissions).flat()),
 ];
 
 describe("isValidRole", () => {
-  it("returns true for each of the four valid roles", () => {
-    const validRoles: Role[] = [
-      "observer",
-      "operator",
-      "administrator",
-      "owner",
-    ];
-    validRoles.forEach((role) => expect(isValidRole(role)).toBe(true));
+  it.each(roles)("accepts %s", (role) => {
+    expect(isValidRole(role)).toBe(true);
   });
 
-  it("returns false for null", () => {
-    expect(isValidRole(null)).toBe(false);
-  });
-
-  it("returns false for empty string", () => {
-    expect(isValidRole("")).toBe(false);
-  });
-
-  it("returns false for common invalid strings", () => {
-    ["admin", "superuser", "user", "OWNER"].forEach((s) =>
-      expect(isValidRole(s)).toBe(false),
-    );
-  });
-
-  it("returns false for prototype-chain keys", () => {
-    ["constructor", "toString", "hasOwnProperty"].forEach((s) =>
-      expect(isValidRole(s)).toBe(false),
-    );
-  });
+  it.each([null, "", "admin", "superuser", "OWNER", "constructor", "toString", "hasOwnProperty"])(
+    "rejects %j",
+    (role) => {
+      expect(isValidRole(role)).toBe(false);
+    },
+  );
 });
 
 describe("hasPermission", () => {
-  describe("null or invalid role", () => {
-    it("denies all actions when role is null", () => {
-      ALL_ACTIONS.forEach((action) =>
-        expect(hasPermission(null, action)).toBe(false),
-      );
-    });
-
-    it("denies all actions when role is an invalid string", () => {
-      expect(hasPermission("admin", "device:connect")).toBe(false);
-      expect(hasPermission("superuser", "namespace:delete")).toBe(false);
-    });
+  it.each([null, "admin", "constructor"])("grants %j nothing", (role) => {
+    everyPermission.forEach((permission) =>
+      expect(hasPermission(role, permission)).toBe(false),
+    );
   });
 
-  describe("observer role (level 1)", () => {
-    it("allows observer-level actions", () => {
-      OBSERVER_ACTIONS.forEach((action) =>
-        expect(hasPermission("observer", action)).toBe(true),
-      );
-    });
-
-    it("denies operator-level actions", () => {
-      OPERATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("observer", action)).toBe(false),
-      );
-    });
-
-    it("denies administrator-level actions", () => {
-      ADMINISTRATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("observer", action)).toBe(false),
-      );
-    });
-
-    it("denies owner-level actions", () => {
-      OWNER_ACTIONS.forEach((action) =>
-        expect(hasPermission("observer", action)).toBe(false),
-      );
-    });
+  it.each(roles)("grants %s exactly what the authorizer gives it", (role) => {
+    const held: readonly Permission[] = rolePermissions[role];
+    everyPermission.forEach((permission) =>
+      expect(hasPermission(role, permission)).toBe(held.includes(permission)),
+    );
   });
 
-  describe("operator role (level 2)", () => {
-    it("allows observer-level actions", () => {
-      OBSERVER_ACTIONS.forEach((action) =>
-        expect(hasPermission("operator", action)).toBe(true),
-      );
-    });
-
-    it("allows operator-level actions", () => {
-      OPERATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("operator", action)).toBe(true),
-      );
-    });
-
-    it("denies administrator-level actions", () => {
-      ADMINISTRATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("operator", action)).toBe(false),
-      );
-    });
-
-    it("denies owner-level actions", () => {
-      OWNER_ACTIONS.forEach((action) =>
-        expect(hasPermission("operator", action)).toBe(false),
-      );
-    });
+  it("keeps device connections from observers", () => {
+    expect(hasPermission("observer", "DeviceConnect")).toBe(false);
   });
 
-  describe("administrator role (level 3)", () => {
-    it("allows observer-level actions", () => {
-      OBSERVER_ACTIONS.forEach((action) =>
-        expect(hasPermission("administrator", action)).toBe(true),
-      );
-    });
-
-    it("allows operator-level actions", () => {
-      OPERATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("administrator", action)).toBe(true),
-      );
-    });
-
-    it("allows administrator-level actions", () => {
-      ADMINISTRATOR_ACTIONS.forEach((action) =>
-        expect(hasPermission("administrator", action)).toBe(true),
-      );
-    });
-
-    it("denies owner-level actions", () => {
-      OWNER_ACTIONS.forEach((action) =>
-        expect(hasPermission("administrator", action)).toBe(false),
-      );
-    });
+  it("keeps namespace deletion from administrators", () => {
+    expect(hasPermission("administrator", "NamespaceDelete")).toBe(false);
+    expect(hasPermission("owner", "NamespaceDelete")).toBe(true);
   });
 
-  describe("owner role (level 4)", () => {
-    it("allows all actions", () => {
-      ALL_ACTIONS.forEach((action) =>
-        expect(hasPermission("owner", action)).toBe(true),
-      );
-    });
-  });
-
-  describe("boundary conditions — minimum required role", () => {
-    it.each<[Action, Role, Role]>([
-      ["device:connect", "observer", "operator"],
-      ["device:accept", "observer", "operator"],
-      ["device:remove", "operator", "administrator"],
-      ["namespace:delete", "administrator", "owner"],
-      ["billing:subscribe", "administrator", "owner"],
-    ])("%s: %s denied, %s allowed", (action, denied, allowed) => {
-      expect(hasPermission(denied, action)).toBe(false);
-      expect(hasPermission(allowed, action)).toBe(true);
-    });
+  it("requires every permission in a list", () => {
+    expect(hasPermission("operator", ["TagCreate", "TagDelete"])).toBe(true);
+    expect(hasPermission("operator", ["TagCreate", "DeviceRemove"])).toBe(false);
   });
 });

@@ -18,7 +18,7 @@ describe("RestrictedAction", () => {
       const user = userEvent.setup();
       let clicked = false;
       render(
-        <RestrictedAction action="publicKey:create">
+        <RestrictedAction permission="PublicKeyCreate">
           <button
             type="button"
             onClick={() => {
@@ -44,7 +44,7 @@ describe("RestrictedAction", () => {
 
     it("marks the wrapper aria-disabled, inert, and titled with the default message", () => {
       render(
-        <RestrictedAction action="publicKey:create">
+        <RestrictedAction permission="PublicKeyCreate">
           <button type="button">Add Key</button>
         </RestrictedAction>,
       );
@@ -59,7 +59,7 @@ describe("RestrictedAction", () => {
 
     it("shows a custom message when provided", () => {
       render(
-        <RestrictedAction action="publicKey:create" message="Admins only.">
+        <RestrictedAction permission="PublicKeyCreate" message="Admins only.">
           <button type="button">Add Key</button>
         </RestrictedAction>,
       );
@@ -75,7 +75,7 @@ describe("RestrictedAction", () => {
     it("switches from restricted to allowed when role upgrades", () => {
       useAuthStore.setState({ role: "observer" });
       const { rerender } = render(
-        <RestrictedAction action="device:remove">
+        <RestrictedAction permission="DeviceRemove">
           <button type="button">Delete</button>
         </RestrictedAction>,
       );
@@ -85,7 +85,7 @@ describe("RestrictedAction", () => {
 
       useAuthStore.setState({ role: "administrator" });
       rerender(
-        <RestrictedAction action="device:remove">
+        <RestrictedAction permission="DeviceRemove">
           <button type="button">Delete</button>
         </RestrictedAction>,
       );

@@ -118,7 +118,7 @@ function ApiKeysTab() {
     run: (key: ApiKey) =>
       deleteKeyMutation.mutateAsync({ path: { key: key.name } }),
   });
-  const canManageIdentities = useHasPermission("sshIdentity:manage");
+  const canManageIdentities = useHasPermission("SSHIdentityManage");
   const [generateOpen, setGenerateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ApiKey | null>(null);
   const [sshTarget, setSshTarget] = useState<ApiKey | null>(null);
@@ -190,7 +190,7 @@ function ApiKeysTab() {
       headerClassName: "text-right",
       render: (key) => (
         <div className="flex items-center justify-end gap-1">
-          <RestrictedAction action="apiKey:edit">
+          <RestrictedAction permission="APIKeyUpdate">
             <IconButton
               variant="primary"
               title="Edit"
@@ -200,7 +200,7 @@ function ApiKeysTab() {
               <PencilSquareIcon className="w-4 h-4" />
             </IconButton>
           </RestrictedAction>
-          <RestrictedAction action="apiKey:delete">
+          <RestrictedAction permission="APIKeyDelete">
             <IconButton
               variant="danger"
               title="Delete"
@@ -222,7 +222,7 @@ function ApiKeysTab() {
           {totalCount} key
           {totalCount !== 1 ? "s" : ""}
         </p>
-        <RestrictedAction action="apiKey:create">
+        <RestrictedAction permission="APIKeyCreate">
           <Button
             onClick={() => setGenerateOpen(true)}
             icon={<KeyIcon className="w-4 h-4" strokeWidth={2} />}

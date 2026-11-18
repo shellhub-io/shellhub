@@ -52,7 +52,7 @@ export default function DeviceDetails() {
   const { provisioningKeys } = useProvisioningKeys();
   const connect = useTerminalStore((s) => s.connect);
   const renameMutation = useRenameDevice();
-  const canRename = useHasPermission("device:rename");
+  const canRename = useHasPermission("DeviceRename");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useActionDialog({
@@ -154,7 +154,7 @@ export default function DeviceDetails() {
         <div className="flex items-center gap-2 shrink-0">
           {device.status === "accepted" && (
             <>
-              <RestrictedAction action="device:connect">
+              <RestrictedAction permission="DeviceConnect">
                 <Button
                   variant="success"
                   onClick={() => connect(device.uid, device.name)}
@@ -169,7 +169,7 @@ export default function DeviceDetails() {
                   Connect
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:remove">
+              <RestrictedAction permission="DeviceRemove">
                 <IconButton
                   variant="danger"
                   size="lg"
@@ -188,7 +188,7 @@ export default function DeviceDetails() {
           )}
           {device.status === "pending" && (
             <>
-              <RestrictedAction action="device:accept">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="success"
                   onClick={() =>
@@ -198,7 +198,7 @@ export default function DeviceDetails() {
                   Accept
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:reject">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="warning"
                   onClick={() =>
@@ -212,7 +212,7 @@ export default function DeviceDetails() {
           )}
           {device.status === "rejected" && (
             <>
-              <RestrictedAction action="device:accept">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="success"
                   onClick={() =>
@@ -222,7 +222,7 @@ export default function DeviceDetails() {
                   Accept
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:remove">
+              <RestrictedAction permission="DeviceRemove">
                 <Button
                   variant="destructive"
                   onClick={() =>

@@ -180,7 +180,7 @@ export function useProvisioningKeyEvents({
  * namespace sends members to the provisioning keys instead, so it asks for no registrations.
  */
 export function useTenantRegistrationQueue() {
-  const allowed = useHasPermission("device:accept");
+  const allowed = useHasPermission("DeviceStatusUpdate");
   const legacy = useNamespaceLegacy() === true;
   const reachable = allowed && legacy;
   const { events } = useTenantRegistrations({ enabled: reachable });

@@ -24,7 +24,7 @@ export default function TagsSection({
   addTag,
   removeTag,
 }: TagsSectionProps) {
-  const canEditTags = useHasPermission("tag:edit");
+  const canEditTags = useHasPermission(["TagCreate", "TagDelete"]);
   const { tags: tagObjects } = useTags();
   const allTags = tagObjects.map((t) => t.name);
   const [input, setInput] = useState("");

@@ -84,7 +84,7 @@ export default function ShellStep({
               A terminal right here, as the login you pick.
             </p>
           </div>
-          <RestrictedAction action="device:connect">
+          <RestrictedAction permission="DeviceConnect">
             <Button onClick={() => setConnecting(true)}>Open terminal</Button>
           </RestrictedAction>
         </div>

@@ -30,7 +30,7 @@ export default function CustomFieldsSection({
     ...deleteDeviceCustomFieldMutation(),
     onSuccess: invalidateDevice,
   });
-  const canEdit = useHasPermission("device:customField:update");
+  const canEdit = useHasPermission("DeviceCustomFieldUpdate");
   const [keyInput, setKeyInput] = useState("");
   const [valueInput, setValueInput] = useState("");
   const [adding, setAdding] = useState(false);

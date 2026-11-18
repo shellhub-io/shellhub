@@ -100,7 +100,7 @@ export default function Containers() {
   const addContainerTag = useAddContainerTag();
   const removeContainerTag = useRemoveContainerTag();
   const renameContainer = useRenameContainer();
-  const canRename = useHasPermission("device:rename");
+  const canRename = useHasPermission("DeviceRename");
   const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
   const runContainerAction = useContainerActionRunner();
@@ -241,7 +241,7 @@ export default function Containers() {
           headerClassName: "w-20",
           render: (container) =>
             container.online ? (
-              <RestrictedAction action="device:connect">
+              <RestrictedAction permission="DeviceConnect">
                 <Button
                   variant="successSoft"
                   size="sm"
@@ -277,7 +277,7 @@ export default function Containers() {
           headerClassName: "text-right",
           render: (container) => (
             <div className="flex items-center justify-end gap-1.5">
-              <RestrictedAction action="device:accept">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="successSoft"
                   size="sm"
@@ -289,7 +289,7 @@ export default function Containers() {
                   Accept
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action="device:reject">
+              <RestrictedAction permission="DeviceStatusUpdate">
                 <Button
                   variant="warningSoft"
                   size="sm"
@@ -315,7 +315,7 @@ export default function Containers() {
         headerClassName: "text-right",
         render: (container) => (
           <div className="flex items-center justify-end gap-1.5">
-            <RestrictedAction action="device:accept">
+            <RestrictedAction permission="DeviceStatusUpdate">
               <Button
                 variant="successSoft"
                 size="sm"
@@ -327,7 +327,7 @@ export default function Containers() {
                 Accept
               </Button>
             </RestrictedAction>
-            <RestrictedAction action="device:remove">
+            <RestrictedAction permission="DeviceRemove">
               <Button
                 variant="dangerSoft"
                 size="sm"

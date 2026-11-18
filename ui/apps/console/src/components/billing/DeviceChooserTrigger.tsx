@@ -25,7 +25,7 @@ export default function DeviceChooserTrigger() {
 }
 
 function DeviceChooserTriggerInner() {
-  const canChoose = useHasPermission("device:choose");
+  const canChoose = useHasPermission("BillingChooseDevices");
   const tenantId = useAuthStore((s) => s.tenant);
   const { namespace, isLoading: nsLoading } = useNamespace(tenantId ?? "");
   const { stats, isLoading: statsLoading } = useStats();

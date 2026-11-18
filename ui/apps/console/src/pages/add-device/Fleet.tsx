@@ -105,7 +105,7 @@ export default function Fleet() {
   const listedCount = totalCount - (provisioningKeys.length - listed.length);
   const installable = listed.filter(isInstallable);
   const selectedKey = installable.find((k) => k.name === openName);
-  const canRevealKey = useHasPermission("provisioningKey:reveal");
+  const canRevealKey = useHasPermission("ProvisioningKeyReveal");
   const { key: revealedKey, error: revealError } = useRevealProvisioningKey(
     selectedKey?.name ?? null,
     canRevealKey,
@@ -127,7 +127,7 @@ export default function Fleet() {
               each device gets in.
             </p>
           </div>
-          <RestrictedAction action="provisioningKey:create">
+          <RestrictedAction permission="ProvisioningKeyCreate">
             <Button
               size="sm"
               onClick={() => setCreateOpen(true)}

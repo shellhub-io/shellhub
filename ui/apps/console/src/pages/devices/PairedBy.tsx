@@ -19,7 +19,7 @@ export default function PairedBy({
   ownerId?: string;
 }) {
   const { members } = useNamespaceMembers(ownerId ? tenantId : "");
-  const canMakeTeamDevice = useHasPermission("provisioningKey:create");
+  const canMakeTeamDevice = useHasPermission("ProvisioningKeyCreate");
   const [confirming, setConfirming] = useState(false);
 
   if (!ownerId) {

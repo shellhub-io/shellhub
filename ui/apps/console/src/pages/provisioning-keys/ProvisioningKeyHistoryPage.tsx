@@ -90,7 +90,7 @@ function SecretKey({
         <span className="font-mono text-text-muted">
           {key.key_hint}••••••••••••••••
         </span>
-        <RestrictedAction action="provisioningKey:reveal">
+        <RestrictedAction permission="ProvisioningKeyReveal">
           <button
             type="button"
             onClick={() => setShown(true)}

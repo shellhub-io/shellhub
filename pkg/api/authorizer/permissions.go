@@ -1,8 +1,11 @@
 package authorizer
 
+//go:generate go test -run TestConsolePermissionsFile -update .
+
 // Permission is one action a role may or may not perform. The values are iota-assigned and carry
 // no meaning outside the process: they are never persisted or sent on the wire, so the list can be
-// reordered.
+// reordered. The names do carry meaning: go generate writes them, with each role's set, into the
+// console's permission table, so renaming one renames what the console checks.
 type Permission int
 
 // The actions a role can be granted. Grouped by resource, and deliberately finer-grained than the

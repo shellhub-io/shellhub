@@ -98,7 +98,7 @@ export default function Devices() {
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
   const renameDevice = useRenameDevice();
-  const canRename = useHasPermission("device:rename");
+  const canRename = useHasPermission("DeviceRename");
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
   const tenantId = useAuthStore((s) => s.tenant) ?? "";
@@ -208,7 +208,7 @@ export default function Devices() {
         headerClassName: "w-20",
         render: (device) =>
           device.online ? (
-            <RestrictedAction action="device:connect">
+            <RestrictedAction permission="DeviceConnect">
               <Button
                 variant="successSoft"
                 size="sm"
@@ -263,7 +263,7 @@ export default function Devices() {
 
           <WaitingForApproval />
 
-          <RestrictedAction action="device:add">
+          <RestrictedAction permission="DeviceStatusUpdate">
             <Button
               as={Link}
               to="/devices/add"

@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import type { Action } from "@/utils/permission";
+import type { Permission } from "@/utils/permission";
 
 interface RestrictedActionProps {
-  action?: Action;
+  permission?: Permission;
   children: ReactNode;
   message?: string;
 }
 
 /**
  * Wraps a UI action element (button, link, etc.) and prevents interaction when
- * the current user lacks the required permission for `action`.
+ * the current user lacks the permission given in `permission`.
  *
  * When restricted:
  * - Pointer events are blocked on the child (`pointer-events-none`)
@@ -18,14 +18,14 @@ interface RestrictedActionProps {
  *   native `title` tooltip explaining the restriction
  * - The child remains visible so users understand the feature exists
  *
- * When allowed, or given no action to check: children are rendered without any wrapper.
+ * When allowed, or given no permission to check: children are rendered without any wrapper.
  */
 export default function RestrictedAction({
-  action,
+  permission,
   children,
   message = "You don't have permission to perform this action.",
 }: RestrictedActionProps) {
-  const allowed = useHasPermission(action);
+  const allowed = useHasPermission(permission);
 
   if (allowed) {
     return <>{children}</>;

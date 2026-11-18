@@ -12,7 +12,7 @@ import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
  * the device list's way back both ask this.
  */
 export function useFirstRunEligible(): boolean | "loading" {
-  const canAccept = useHasPermission("device:accept");
+  const canAccept = useHasPermission("DeviceStatusUpdate");
   const { namespaces, isLoading: namespacesLoading } = useNamespaces();
   const { stats, isLoading } = useStats();
   const legacy = useNamespaceLegacy() === true;

@@ -17,7 +17,7 @@ interface Connectable {
  */
 export function useConnectFromLink(device: Connectable | null | undefined) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const canConnect = useHasPermission("device:connect");
+  const canConnect = useHasPermission("DeviceConnect");
   const connect = useTerminalStore((s) => s.connect);
 
   const target =

@@ -176,7 +176,7 @@ function WaitingEntry({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
           <Headline event={event} />
           <span className="ml-auto flex items-center gap-1.5">
-            <RestrictedAction action="device:accept">
+            <RestrictedAction permission="DeviceStatusUpdate">
               <Button
                 variant="successSoft"
                 size="sm"
@@ -185,7 +185,7 @@ function WaitingEntry({
                 Accept
               </Button>
             </RestrictedAction>
-            <RestrictedAction action="device:reject">
+            <RestrictedAction permission="DeviceStatusUpdate">
               <Button
                 variant="ghost"
                 size="sm"
@@ -386,7 +386,7 @@ function ResolvedEntry({
       action={
         reconsider && (
           <span className="text-2xs font-medium">
-            <RestrictedAction action="device:accept">
+            <RestrictedAction permission="DeviceStatusUpdate">
               <button
                 type="button"
                 onClick={() => decide(deviceOf(event), "accept")}

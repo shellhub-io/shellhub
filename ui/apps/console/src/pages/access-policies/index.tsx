@@ -325,7 +325,7 @@ export default function AccessPolicies() {
             </Dropdown.Trigger>
 
             <Dropdown.Panel className="w-40 py-1">
-              <RestrictedAction action="accessPolicy:edit">
+              <RestrictedAction permission="AccessPolicyManage">
                 <Dropdown.Item
                   label="Edit"
                   onSelect={() => modal.openEdit(p)}
@@ -335,7 +335,7 @@ export default function AccessPolicies() {
                   Edit
                 </Dropdown.Item>
               </RestrictedAction>
-              <RestrictedAction action="accessPolicy:remove">
+              <RestrictedAction permission="AccessPolicyManage">
                 <Dropdown.Item
                   label="Delete"
                   variant="danger"
@@ -394,7 +394,7 @@ export default function AccessPolicies() {
             },
           ]}
         >
-          <RestrictedAction action="accessPolicy:create">
+          <RestrictedAction permission="AccessPolicyManage">
             <Button
               size="lg"
               onClick={modal.openNew}
@@ -422,7 +422,7 @@ export default function AccessPolicies() {
         title="Access Policies"
         description="Control who may reach which devices, as which login."
       >
-        <RestrictedAction action="accessPolicy:create">
+        <RestrictedAction permission="AccessPolicyManage">
           <Button
             onClick={modal.openNew}
             icon={<PlusIcon className="w-4 h-4" strokeWidth={2} />}

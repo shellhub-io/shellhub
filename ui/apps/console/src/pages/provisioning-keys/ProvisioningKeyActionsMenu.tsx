@@ -10,24 +10,24 @@ import {
 import { Dropdown, IconButton } from "@shellhub/design-system/primitives";
 import { type ProvisioningKey } from "@/client";
 import RestrictedAction from "@/components/common/RestrictedAction";
-import { type Action } from "@/utils/permission";
+import { type Permission } from "@/utils/permission";
 import { isSystemKey } from "./helpers";
 
 function MenuItem({
-  action,
+  permission,
   icon,
   label,
   danger,
   onSelect,
 }: {
-  action: Action;
+  permission: Permission;
   icon: ReactNode;
   label: string;
   danger?: boolean;
   onSelect: () => void;
 }) {
   return (
-    <RestrictedAction action={action}>
+    <RestrictedAction permission={permission}>
       <Dropdown.Item
         label={label}
         variant={danger ? "danger" : "default"}
@@ -88,13 +88,13 @@ export default function ProvisioningKeyActionsMenu({
           <>
             {onActivity && <Dropdown.Separator />}
             <MenuItem
-              action="provisioningKey:edit"
+              permission="ProvisioningKeyUpdate"
               icon={<PencilIcon className="w-4 h-4" />}
               label="Edit"
               onSelect={() => onEdit(provisioningKey)}
             />
             <MenuItem
-              action="provisioningKey:disable"
+              permission="ProvisioningKeyUpdate"
               icon={
                 provisioningKey.disabled ? (
                   <PlayIcon className="w-4 h-4" />
@@ -109,7 +109,7 @@ export default function ProvisioningKeyActionsMenu({
               <>
                 <Dropdown.Separator />
                 <MenuItem
-                  action="provisioningKey:revoke"
+                  permission="ProvisioningKeyUpdate"
                   icon={<NoSymbolIcon className="w-4 h-4" />}
                   label="Revoke"
                   danger

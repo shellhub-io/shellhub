@@ -368,7 +368,7 @@ export default function SessionDetails() {
                 active={session.active}
               />
               {session.active && (
-                <RestrictedAction action="session:close">
+                <RestrictedAction permission="SessionClose">
                   <Button
                     variant="dangerSoft"
                     size="sm"
@@ -386,7 +386,7 @@ export default function SessionDetails() {
         <div className="flex items-center gap-2 shrink-0">
           {permissions.available && (
             <>
-              <RestrictedAction action={permissions.read}>
+              <RestrictedAction permission={permissions.read}>
                 <Button
                   icon={<PlayIcon className="w-4 h-4" />}
                   loading={logsLoading}
@@ -399,7 +399,7 @@ export default function SessionDetails() {
                   {logsLoading ? "Loading…" : "Play Recording"}
                 </Button>
               </RestrictedAction>
-              <RestrictedAction action={permissions.read}>
+              <RestrictedAction permission={permissions.read}>
                 <IconButton
                   size="lg"
                   type="button"
@@ -417,7 +417,7 @@ export default function SessionDetails() {
                 </IconButton>
               </RestrictedAction>
               {!(session.active && session.recorded) && (
-                <RestrictedAction action={permissions.remove}>
+                <RestrictedAction permission={permissions.remove}>
                   <IconButton
                     variant="danger"
                     size="lg"
@@ -434,7 +434,7 @@ export default function SessionDetails() {
             </>
           )}
           {session.active && (
-            <RestrictedAction action="session:close">
+            <RestrictedAction permission="SessionClose">
               <Button
                 variant="dangerSoft"
                 icon={<XCircleIcon className="w-4 h-4" strokeWidth={2} />}

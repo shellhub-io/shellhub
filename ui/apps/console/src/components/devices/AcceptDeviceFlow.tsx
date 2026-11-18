@@ -112,7 +112,7 @@ export default function AcceptDeviceFlow({
     selectedTenant || authTenant || "",
   );
   const hasSubscription = isSubscriptionBlocked(targetNamespace?.billing);
-  const canSubscribeInAuth = useHasPermission("billing:subscribe");
+  const canSubscribeInAuth = useHasPermission("BillingCreateSubscription");
   const canSubscribe =
     canSubscribeInAuth && (!selectedTenant || selectedTenant === authTenant);
 

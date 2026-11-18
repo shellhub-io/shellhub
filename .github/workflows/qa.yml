@@ -45,6 +45,7 @@ jobs:
               - 'pkg/**'
               - 'tests/**'
               - 'openapi/**'
+              - 'ui/apps/console/src/utils/permissions.generated.ts'
               - 'devscripts/prepare-release'
               - 'docker-compose*.yml'
               - 'versions.env'
