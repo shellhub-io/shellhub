@@ -1,9 +1,8 @@
 import { lazy, Suspense, useState } from "react";
 import { features } from "@/edition";
-import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { hasActiveSubscription } from "@/utils/billing";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useAuthStore } from "@/stores/authStore";
 
 const DeviceChooserDialog = lazy(() => import("./DeviceChooserDialog"));
 
@@ -26,13 +25,11 @@ export default function DeviceChooserTrigger() {
 
 function DeviceChooserTriggerInner() {
   const canChoose = useHasPermission("BillingChooseDevices");
-  const tenantId = useAuthStore((s) => s.tenant);
-  const { namespace, isLoading: nsLoading } = useNamespace(tenantId ?? "");
+  const { namespace, isLoading: nsLoading } = useCurrentNamespace();
   const { stats, isLoading: statsLoading } = useStats();
   const [dismissed, setDismissed] = useState(false);
 
-  if (!tenantId || nsLoading || statsLoading || !namespace || !stats)
-    return null;
+  if (nsLoading || statsLoading || !namespace || !stats) return null;
 
   const overLimit = (stats?.registered_devices ?? 0) > FREE_TIER_DEVICE_LIMIT;
   const noActiveSubscription = !hasActiveSubscription(namespace.billing);

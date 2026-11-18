@@ -3,9 +3,10 @@ import {
   getLicense,
   getLicenseQueryKey,
   type GetLicenseResponse,
-} from "../client";
-import { useAuthStore } from "../stores/authStore";
-import { isSdkError } from "../api/errors";
+} from "@/client";
+import { useAuthStore } from "@/stores/authStore";
+import { isSdkError } from "@/api/errors";
+import { adminQueryDefaults } from "@/hooks/adminQueryDefaults";
 import { features } from "@/edition";
 
 type LicenseData = GetLicenseResponse | null;
@@ -30,9 +31,7 @@ export function useAdminLicense({ active = true }: { active?: boolean } = {}) {
       }
     },
     enabled,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (count) => count < 1,
-    refetchOnWindowFocus: false,
+    ...adminQueryDefaults,
   });
 
   const installedLicense =

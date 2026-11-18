@@ -12,7 +12,7 @@ import {
   type RecentDevice,
 } from "@/stores/recentDevicesStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
 import { useCopy } from "@/hooks/useCopy";
@@ -100,7 +100,7 @@ export function useCommandPalette(): CommandPaletteViewModel {
   const logout = useAuthStore((s) => s.logout);
   const tenant = useAuthStore((s) => s.tenant);
   const canConnect = useHasPermission("DeviceConnect");
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const legacy = useNamespaceLegacy();
   const workspace = useWorkspaceTabs();
   const adminNav = useAdminNav({ active: adminContext });

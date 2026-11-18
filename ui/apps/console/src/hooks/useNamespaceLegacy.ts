@@ -1,6 +1,5 @@
-import { useAuthStore } from "@/stores/authStore";
 import type { Namespace } from "@/client";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 
 /**
  * Whether a namespace is legacy. A namespace with no settings is new.
@@ -15,8 +14,7 @@ export function isLegacyNamespace(namespace?: Namespace | null): boolean {
  * bounced out of a page while the namespace resolves; a display treats `undefined` as new.
  */
 export function useNamespaceLegacy(): boolean | undefined {
-  const { tenant } = useAuthStore();
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   if (!namespace) return undefined;
   return isLegacyNamespace(namespace);
 }

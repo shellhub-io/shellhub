@@ -1,7 +1,6 @@
 import type { SessionPrincipal } from "@/client";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 
 /**
  * A resolver from a session's principal to the name a person reads: a member's email, or an API
@@ -11,8 +10,7 @@ import { useAuthStore } from "@/stores/authStore";
 export function usePrincipalName(): (
   principal: SessionPrincipal,
 ) => string | undefined {
-  const tenant = useAuthStore((state) => state.tenant);
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const apiKeys = useApiKeys();
 
   return (principal) =>

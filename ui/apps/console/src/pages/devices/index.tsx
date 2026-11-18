@@ -3,9 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { devicesQueryOptions, type NormalizedDevice } from "@/hooks/useDevices";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePagedList } from "@/hooks/usePagedList";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useFirstRunEligible } from "@/hooks/useFirstRunEligible";
-import { useAuthStore } from "@/stores/authStore";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
 import ManageTagsModal from "@/components/ManageTagsModal";
@@ -101,8 +100,7 @@ export default function Devices() {
   const canRename = useHasPermission("DeviceRename");
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { namespace: currentNamespace } = useCurrentNamespace();
   const navigate = useNavigate();
 
   const nsName = currentNamespace?.name ?? "";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useDevices } from "@/hooks/useDevices";
 import {
@@ -45,7 +45,7 @@ export type FirstDeviceStage = "install" | "pair" | "shell";
  */
 export function useFirstDevice() {
   const tenant = useAuthStore((s) => s.tenant);
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const legacy = useNamespaceLegacy();
   const canSubscribe = useHasPermission("BillingCreateSubscription");
 

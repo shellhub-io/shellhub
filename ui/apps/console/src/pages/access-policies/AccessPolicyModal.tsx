@@ -19,8 +19,7 @@ import {
 } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
-import { useAuthStore } from "@/stores/authStore";
-import { useNamespace, type NamespaceMember } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace, type NamespaceMember } from "@/hooks/useNamespaceRequests";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
 import { useTags } from "@/hooks/useTagRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
@@ -355,8 +354,7 @@ function AccessPolicyModal({
   editPolicy: AccessPolicy | null;
   onClose: () => void;
 }) {
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace } = useNamespace(tenantId ?? "");
+  const { namespace } = useCurrentNamespace();
   const { tags: allTagObjects } = useTags();
   const allTags = allTagObjects.map((t) => t.name);
   const invalidatePolicies = useInvalidateByIds("listAccessPolicies");

@@ -98,6 +98,15 @@ export function useNamespace(tenantId: string) {
 }
 
 /**
+ * The namespace the user is signed into, read through useNamespace. namespace is null while
+ * loading, without a tenant, and when the first read fails; a failed refetch keeps the last
+ * namespace and sets error.
+ */
+export function useCurrentNamespace() {
+  return useNamespace(useAuthStore((s) => s.tenant) ?? "");
+}
+
+/**
  * Lists a namespace's members with their full identity (name, username, email)
  * and a flattened account status. Backs the members table; the (cloud/enterprise)
  * pending invitations are fetched separately and merged in the component.

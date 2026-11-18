@@ -9,7 +9,7 @@ import { cn } from "@shellhub/design-system/cn";
 import type { Namespace } from "@/client";
 import {
   useEditNamespace,
-  useNamespace,
+  useCurrentNamespace,
   useStats,
 } from "@/hooks/useNamespaceRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -232,8 +232,7 @@ function NamespaceCard({
  * the way out of it: deleting it for the owner, leaving it for everyone else.
  */
 export default function GeneralSettings() {
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace: ns } = useNamespace(tenantId ?? "");
+  const { namespace: ns } = useCurrentNamespace();
   const canRename = useHasPermission("NamespaceUpdate");
   const canDelete = useHasPermission("NamespaceDelete");
   const [renameOpen, setRenameOpen] = useState(false);

@@ -13,7 +13,7 @@ import { useTerminalStore } from "../stores/terminalStore";
 import type { TerminalSession } from "../stores/terminalStore";
 import { useVaultStore } from "../stores/vaultStore";
 import { useAuthStore } from "../stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { getFingerprint, validatePrivateKey } from "../utils/sshKeys";
 import {
@@ -302,7 +302,7 @@ export default function ConnectModal({
   const accountEmail = useAuthStore((s) => s.email);
   const createIdentity = useCreateSSHIdentity();
   const queryClient = useQueryClient();
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const namespaceRecords =
     features().paid && (namespace?.settings?.session_record ?? false);
 

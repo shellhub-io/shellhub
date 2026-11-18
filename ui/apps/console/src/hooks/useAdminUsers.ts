@@ -9,7 +9,7 @@ import {
 import { paginatedQueryFn, type PaginatedResult } from "../api/pagination";
 import { PER_PAGE } from "@/utils/pagination";
 import { useAuthStore } from "../stores/authStore";
-import { adminQueryDefaults } from "./useAdminRequests";
+import { adminQueryDefaults } from "@/hooks/adminQueryDefaults";
 import {
   groupFilter,
   operatorFilter,

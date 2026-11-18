@@ -6,8 +6,7 @@ import { normalizeDeviceTags, type TaggedDevice } from "@/utils/deviceTags";
 import { propertyFilter, toBase64Json } from "@/utils/encoding";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePagedList } from "@/hooks/usePagedList";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useTerminalStore } from "@/stores/terminalStore";
 import PageHeader from "@/components/common/PageHeader";
 import ManageTagsModal from "@/components/ManageTagsModal";
@@ -133,8 +132,7 @@ export default function Containers() {
   });
   const containers = rows.map(normalizeDeviceTags);
 
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { namespace: currentNamespace } = useCurrentNamespace();
   const navigate = useNavigate();
 
   const nsName = currentNamespace?.name ?? "";
