@@ -291,9 +291,8 @@ export async function signUpFromInvite(
 export async function deleteOwnAccount(page: Page, username: string) {
   await signInAndOpen(page, username, "/account/danger-zone");
   await page.getByRole("button", { name: "Delete account" }).click();
-  await page
-    .getByRole("dialog", { name: "Delete account" })
-    .getByRole("button", { name: "Delete account" })
-    .click();
+  const dialog = page.getByRole("dialog", { name: "Delete account" });
+  await dialog.getByLabel("Password", { exact: true }).fill(password);
+  await dialog.getByRole("button", { name: "Delete account" }).click();
   await expect(page).toHaveURL(/\/login$/);
 }

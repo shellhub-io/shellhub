@@ -4,7 +4,9 @@ import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import BaseDialog from "@/components/common/BaseDialog";
 import CopyButton from "@/components/common/CopyButton";
-import { isSdkError } from "@/api/errors";
+import InputField from "@/components/common/fields/InputField";
+import PasswordField from "@/components/common/fields/PasswordField";
+import { isSdkError, lockoutMessage } from "@/api/errors";
 
 import { isCloud, isCommunity } from "@/env";
 import {
@@ -19,6 +21,19 @@ import SettingsSection from "@/components/settings/SettingsSection";
 import SettingsDangerCard from "@/components/settings/SettingsDangerCard";
 import DialogHeader from "@/components/common/DialogHeader";
 
+const OWNS_NAMESPACE_MESSAGE = "user still has a owned namespace";
+
+function deleteAccountErrorMessage(err: unknown, mfaEnabled: boolean): string {
+  if (isSdkError(err) && err.status === 403) {
+    if (err.message === OWNS_NAMESPACE_MESSAGE)
+      return "You cannot delete your account while you own namespaces.";
+
+    return mfaEnabled ? "The code is incorrect." : "The password is incorrect.";
+  }
+
+  return lockoutMessage(err) ?? "Failed to delete account.";
+}
+
 function DeleteAccountDialog({
   open,
   onClose,
@@ -28,7 +43,10 @@ function DeleteAccountDialog({
 }) {
   const deleteUser = useAuthStore((s) => s.deleteUser);
   const userId = useAuthStore((s) => s.userId);
+  const mfaEnabled = useAuthStore((s) => s.mfaEnabled);
+  const isSsoUser = useAuthStore((s) => s.origin === "saml");
   const { namespaces } = useNamespaces();
+  const [factor, setFactor] = useState("");
   const [error, setError] = useState("");
 
   const isNamespaceOwner = namespaces.some((ns) => ns.owner === userId);
@@ -36,15 +54,10 @@ function DeleteAccountDialog({
   const handleDelete = async () => {
     setError("");
     try {
-      await deleteUser();
+      await deleteUser(mfaEnabled ? { code: factor } : { password: factor });
     } catch (err) {
-      if (isSdkError(err) && err.status === 403) {
-        setError(
-          "You cannot delete your account while you have active namespaces.",
-        );
-      } else {
-        setError("Failed to delete account.");
-      }
+      setFactor("");
+      setError(deleteAccountErrorMessage(err, mfaEnabled));
     }
   };
 
@@ -61,24 +74,46 @@ function DeleteAccountDialog({
           : "Your account is deleted. This can't be undone."
       }
       confirmLabel="Delete account"
-      confirmDisabled={isNamespaceOwner}
+      confirmDisabled={isNamespaceOwner || isSsoUser || factor === ""}
+      errorMessage={error}
     >
-      {(isNamespaceOwner || !!error) && (
-        <div className="mb-4 space-y-2">
-          {isNamespaceOwner && (
-            <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
-              <ExclamationTriangleIcon
-                className="w-4 h-4 shrink-0 mt-0.5"
-                strokeWidth={2}
-              />
-              <span className="text-sm">
-                Please delete all your owned namespaces before attempting to
-                delete your account.
-              </span>
-            </div>
-          )}
-          {error && <p className="text-2xs text-accent-red">{error}</p>}
+      {isNamespaceOwner ? (
+        <div className="p-3 rounded-lg bg-accent-yellow/10 border border-accent-yellow/20 flex items-start gap-2 text-accent-yellow">
+          <ExclamationTriangleIcon
+            className="w-4 h-4 shrink-0 mt-0.5"
+            strokeWidth={2}
+          />
+          <span className="text-sm">
+            Please delete all your owned namespaces before attempting to delete
+            your account.
+          </span>
         </div>
+      ) : isSsoUser ? (
+        <p className="text-sm text-text-muted">
+          Your account signs in through your identity provider, so it has no
+          password to confirm the deletion with. Ask an administrator to delete
+          it.
+        </p>
+      ) : mfaEnabled ? (
+        <InputField
+          id="delete-account-code"
+          label="Verification code"
+          value={factor}
+          onChange={setFactor}
+          hint="Enter the code from your authenticator app."
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={6}
+        />
+      ) : (
+        <PasswordField
+          id="delete-account-password"
+          label="Password"
+          value={factor}
+          onChange={setFactor}
+          hint="Enter your password to confirm."
+          autoComplete="current-password"
+        />
       )}
     </ConfirmDialog>
   );

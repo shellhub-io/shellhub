@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
@@ -183,7 +183,11 @@ describe("Account", () => {
             { message: "too many wrong attempts" },
             {
               status: 429,
-              headers: { "X-Account-Lockout": String(Math.floor(Date.now() / 1000) + 270) },
+              headers: {
+                "X-Account-Lockout": String(
+                  Math.floor(Date.now() / 1000) + 270,
+                ),
+              },
             },
           ),
         ),
@@ -199,7 +203,9 @@ describe("Account", () => {
       await user.click(getModalSubmitButton());
 
       expect(
-        await screen.findByText("Too many wrong attempts. Try again in 4 minutes."),
+        await screen.findByText(
+          "Too many wrong attempts. Try again in 4 minutes.",
+        ),
       ).toBeInTheDocument();
     });
 
@@ -315,6 +321,188 @@ describe("Account", () => {
       await waitFor(() => {
         expect(screen.getByLabelText(/current password/i)).toHaveValue("");
       });
+    });
+  });
+
+  describe("DeleteAccountDialog", () => {
+    const deleteUser = vi.fn(() => Promise.resolve());
+    const storeDeleteUser = useAuthStore.getState().deleteUser;
+
+    afterEach(() => {
+      useAuthStore.setState({ deleteUser: storeDeleteUser });
+    });
+
+    async function openDeleteDialog() {
+      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      const user = userEvent.setup();
+      renderAt("/account/danger-zone");
+      await user.click(
+        await screen.findByRole("button", { name: "Delete account" }),
+      );
+      return user;
+    }
+
+    function getConfirmButton() {
+      return within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Delete account",
+      });
+    }
+
+    async function submitFactor(
+      user: ReturnType<typeof userEvent.setup>,
+      label: "Password" | "Verification code",
+      value: string,
+    ) {
+      await user.type(screen.getByLabelText(label), value);
+      await user.click(getConfirmButton());
+    }
+
+    it("asks a user without MFA for the password and sends it", async () => {
+      useAuthStore.setState({ deleteUser });
+      const user = await openDeleteDialog();
+
+      expect(getConfirmButton()).toBeDisabled();
+      expect(
+        screen.queryByLabelText("Verification code"),
+      ).not.toBeInTheDocument();
+
+      await submitFactor(user, "Password", "correct-horse");
+
+      await waitFor(() =>
+        expect(deleteUser).toHaveBeenCalledWith({ password: "correct-horse" }),
+      );
+    });
+
+    it("sends a password made only of spaces as typed", async () => {
+      useAuthStore.setState({ deleteUser });
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Password", "     ");
+
+      await waitFor(() =>
+        expect(deleteUser).toHaveBeenCalledWith({ password: "     " }),
+      );
+    });
+
+    it("asks a user with MFA for the code instead of the password", async () => {
+      seedAuthStore({ mfaEnabled: true });
+      useAuthStore.setState({ deleteUser });
+      const user = await openDeleteDialog();
+
+      expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+      await submitFactor(user, "Verification code", "123456");
+
+      await waitFor(() =>
+        expect(deleteUser).toHaveBeenCalledWith({ code: "123456" }),
+      );
+    });
+
+    it("sends the factor in the request body", async () => {
+      let body: unknown;
+      server.use(
+        http.delete("*/api/user", async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json({ message: "forbidden" }, { status: 403 });
+        }),
+      );
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Password", "wrong");
+
+      await waitFor(() => expect(body).toEqual({ password: "wrong" }));
+    });
+
+    it("says the password is incorrect when the server refuses it", async () => {
+      server.use(
+        http.delete("*/api/user", () =>
+          HttpResponse.json({ message: "forbidden" }, { status: 403 }),
+        ),
+      );
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Password", "wrong");
+
+      expect(
+        await screen.findByText("The password is incorrect."),
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Password")).toHaveValue("");
+    });
+
+    it("says the account owns namespaces when the server refuses the deletion for it", async () => {
+      server.use(
+        http.delete("*/api/user", () =>
+          HttpResponse.json(
+            { message: "user still has a owned namespace" },
+            { status: 403 },
+          ),
+        ),
+      );
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Password", "correct-horse");
+
+      expect(
+        await screen.findByText(
+          "You cannot delete your account while you own namespaces.",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("The password is incorrect."),
+      ).not.toBeInTheDocument();
+    });
+
+    it("says the code is incorrect when the server refuses it", async () => {
+      seedAuthStore({ mfaEnabled: true });
+      server.use(
+        http.delete("*/api/user", () =>
+          HttpResponse.json({ message: "forbidden" }, { status: 403 }),
+        ),
+      );
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Verification code", "000000");
+
+      expect(
+        await screen.findByText("The code is incorrect."),
+      ).toBeInTheDocument();
+    });
+
+    it("names the lockout on 429", async () => {
+      const end = Math.floor(Date.now() / 1000) + 270;
+      server.use(
+        http.delete("*/api/user", () =>
+          HttpResponse.json(
+            { message: "too many requests" },
+            { status: 429, headers: { "X-Account-Lockout": String(end) } },
+          ),
+        ),
+      );
+      const user = await openDeleteDialog();
+
+      await submitFactor(user, "Password", "wrong");
+
+      expect(
+        await screen.findByText(
+          "Too many wrong attempts. Try again in 4 minutes.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("refuses an SSO user, who has no factor to give, and sends nothing", async () => {
+      seedAuthStore({ origin: "saml" });
+      useAuthStore.setState({ deleteUser });
+      const user = await openDeleteDialog();
+
+      expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+      expect(
+        screen.queryByLabelText("Verification code"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(/ask an administrator to delete it/i),
+      ).toBeInTheDocument();
+      expect(getConfirmButton()).toBeDisabled();
+      await user.click(getConfirmButton());
+      expect(deleteUser).not.toHaveBeenCalled();
     });
   });
 });
