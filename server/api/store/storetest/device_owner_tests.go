@@ -185,7 +185,6 @@ func (s *Suite) TestNamespaceDepartMember(t *testing.T) {
 		team := s.CreateDevice(t, WithTenantID(tenantID))
 		othersDevice := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceOwner(otherMemberID))
 		elsewhere := s.CreateDevice(t, WithTenantID(otherTenantID), WithDeviceOwner(memberID))
-		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusAccepted, 3))
 
 		digest := s.CreateAPIKey(t, WithAPIKeyTenant(tenantID))
 

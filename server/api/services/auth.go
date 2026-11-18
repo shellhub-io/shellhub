@@ -555,10 +555,6 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			return nil, NewErrDeviceCreate(models.Device{}, err)
 		}
 
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, 1); err != nil {
-			return nil, err
-		}
-
 		if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
 			s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)
 		}
@@ -609,12 +605,6 @@ func (s *service) authDevice(ctx context.Context, req deviceAuth, enrollment enr
 			device.Status = models.DeviceStatusPending
 			device.StatusUpdatedAt = s.clock.Now()
 			device.EnrollWith(provisioningKey)
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, -1); err != nil {
-				return nil, err
-			}
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusPending, 1); err != nil {
-				return nil, err
-			}
 
 			if provisioningKey != nil && len(provisioningKey.TagIDs) > 0 {
 				s.applyProvisioningKeyTags(ctx, uid, provisioningKey.TagIDs)

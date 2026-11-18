@@ -1071,23 +1071,15 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		assert.Equal(t, string(uid3), device.UID)
 	})
 
-	t.Run("returns the namespace and status of each device it deleted", func(t *testing.T) {
+	t.Run("returns the UID of each device it deleted, whatever its status", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		accepted := s.CreateDevice(t, WithDeviceStatus(models.DeviceStatusAccepted))
 		removed := s.CreateDevice(t, WithDeviceStatus(models.DeviceStatusRemoved))
 
-		acceptedDevice, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(accepted))
-		require.NoError(t, err)
-		removedDevice, err := st.DeviceResolve(ctx, scope.NewUnbounded(reasonTestQueryMechanics), store.DeviceUIDResolver, string(removed))
-		require.NoError(t, err)
-
 		deleted, err := st.DeviceDeleteMany(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []string{string(accepted), string(removed)})
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []store.DeletedDevice{
-			{UID: string(accepted), TenantID: acceptedDevice.TenantID, Status: models.DeviceStatusAccepted},
-			{UID: string(removed), TenantID: removedDevice.TenantID, Status: models.DeviceStatusRemoved},
-		}, deleted)
+		assert.ElementsMatch(t, []string{string(accepted), string(removed)}, deleted)
 	})
 
 	t.Run("leaves out a device an earlier call already deleted", func(t *testing.T) {
@@ -1102,7 +1094,7 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		deleted, err := st.DeviceDeleteMany(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []string{string(first), string(second)})
 		require.NoError(t, err)
 		require.Len(t, deleted, 1)
-		assert.Equal(t, string(second), deleted[0].UID)
+		assert.Equal(t, string(second), deleted[0])
 	})
 
 	t.Run("deletes related sessions in cascade", func(t *testing.T) {
@@ -1137,7 +1129,7 @@ func (s *Suite) TestDeviceDeleteMany(t *testing.T) {
 		uid1 := s.CreateDevice(t, WithDeviceName("device-tx-1"))
 		uid2 := s.CreateDevice(t, WithDeviceName("device-tx-2"))
 
-		var deleted []store.DeletedDevice
+		var deleted []string
 		err := st.WithTransaction(ctx, func(ctx context.Context) error {
 			var err error
 			deleted, err = st.DeviceDeleteMany(ctx, scope.NewUnbounded(reasonTestQueryMechanics), []string{string(uid1), string(uid2)})

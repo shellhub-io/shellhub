@@ -484,14 +484,6 @@ func TestAuthDevice(t *testing.T) {
 					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
 					Return(device, nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusRemoved, int64(-1)).
-					Return(nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
-					Once()
 
 				expectedDevice := *device
 				expectedDevice.RemoteAddr = "127.0.0.1"
@@ -586,75 +578,6 @@ func TestAuthDevice(t *testing.T) {
 			},
 		},
 		{
-			description: "[device creation] fails when namespace increment fails",
-			req: requests.DeviceAuth{
-				TenantID:  "00000000-0000-4000-0000-000000000000",
-				Hostname:  "new-device",
-				Identity:  &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-				PublicKey: "public-key",
-				Info: &requests.DeviceInfo{
-					ID:         "device-id",
-					PrettyName: "My Device",
-					Version:    "1.0.0",
-					Arch:       "x86_64",
-					Platform:   "linux",
-				},
-				Sessions: []string{},
-			},
-			requiredMocks: func(ctx context.Context) {
-				uid := toUID("00000000-0000-4000-0000-000000000000", "new-device", "aa:bb:cc:dd:ee:ff", "public-key")
-
-				storeMock.
-					On("NamespaceGetWithoutMembers", ctx, "00000000-0000-4000-0000-000000000000").
-					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test", Settings: &models.NamespaceSettings{Legacy: true}}, nil).
-					Once()
-				cacheMock.
-					On("Get", ctx, "auth_device/"+uid, testifymock.Anything).
-					Return(nil).
-					Once()
-				storeMock.
-					On("DeviceResolve", ctx, testifymock.Anything, store.DeviceUIDResolver, uid).
-					Return(nil, store.ErrNoDocuments).
-					Once()
-				storeMock.
-					On(
-						"DeviceCreate",
-						ctx,
-						scope.MustBounded("00000000-0000-4000-0000-000000000000"),
-						&models.Device{
-							CreatedAt:       now,
-							UID:             uid,
-							TenantID:        "00000000-0000-4000-0000-000000000000",
-							Status:          models.DeviceStatusPending,
-							StatusUpdatedAt: now,
-							Name:            "new-device",
-							Identity:        &models.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
-							PublicKey:       "public-key",
-							RemoteAddr:      "127.0.0.1",
-							Taggable:        models.Taggable{TagIDs: []string{}},
-							Position:        &models.DevicePosition{Longitude: 0., Latitude: 0.},
-							Info: &models.DeviceInfo{
-								ID:         "device-id",
-								PrettyName: "My Device",
-								Version:    "1.0.0",
-								Arch:       "x86_64",
-								Platform:   "linux",
-							},
-						},
-					).
-					Return(uid, nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(errors.New("increment error", "store", 0)).
-					Once()
-			},
-			expected: Expected{
-				res: nil,
-				err: errors.New("increment error", "store", 0),
-			},
-		},
-		{
 			description: "[device creation] succeeds to create and authenticate new device",
 			req: requests.DeviceAuth{
 				TenantID: "00000000-0000-4000-0000-000000000000",
@@ -712,10 +635,6 @@ func TestAuthDevice(t *testing.T) {
 						},
 					).
 					Return(uid, nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
 					Once()
 				storeMock.
 					On("DeviceSessionsSeen", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID(uid), []models.UID{"session_1", "session_2"}, testifymock.Anything).
@@ -797,10 +716,6 @@ func TestAuthDevice(t *testing.T) {
 					).
 					Return(uid, nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
-					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "new-device", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -877,10 +792,6 @@ func TestAuthDevice(t *testing.T) {
 					).
 					Return(uid, nil).
 					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
-					Once()
 				cacheMock.
 					On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "aa-bb-cc-dd-ee-ff", "namespace_name": "test"}, time.Second*30).
 					Return(nil).
@@ -944,10 +855,6 @@ func TestAuthDevice(t *testing.T) {
 						},
 					).
 					Return(uid, nil).
-					Once()
-				storeMock.
-					On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.DeviceStatusPending, int64(1)).
-					Return(nil).
 					Once()
 				storeMock.
 					On("DeviceSessionsSeen", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), models.UID(uid), []models.UID{"session_1", "session_2"}, testifymock.Anything).
@@ -3266,10 +3173,6 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 				},
 			).
 			Return(uid, nil).
-			Once()
-		storeMock.
-			On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenantID), models.DeviceStatusPending, int64(1)).
-			Return(nil).
 			Once()
 		cacheMock.
 			On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "invalid-ip-device", "namespace_name": "test"}, time.Second*30).

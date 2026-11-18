@@ -115,7 +115,6 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 					Info:              &models.DeviceInfo{},
 					ProvisioningKeyID: "legacydigest",
 				}).Return(uid, nil).Once()
-				storeMock.On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenant), models.DeviceStatusPending, int64(1)).Return(nil).Once()
 				storeMock.On("ProvisioningKeyEventCreate", ctx, testifymock.Anything).Return(nil).Once()
 				cacheMock.On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "d", "namespace_name": "test"}, time.Second*30).Return(nil).Once()
 			},
@@ -311,7 +310,6 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 					Info:              &models.DeviceInfo{},
 					ProvisioningKeyID: keyDigest,
 				}).Return(uid, nil).Once()
-				storeMock.On("NamespaceIncrementDeviceCount", ctx, scope.MustBounded(tenant), models.DeviceStatusPending, int64(1)).Return(nil).Once()
 				storeMock.On("ProvisioningKeyEventCreate", ctx, testifymock.Anything).Return(nil).Once()
 				cacheMock.On("Set", ctx, "auth_device/"+uid, map[string]string{"device_name": "fleet-a", "namespace_name": "test"}, time.Second*30).Return(nil).Once()
 			},

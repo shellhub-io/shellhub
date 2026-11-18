@@ -320,18 +320,10 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 				return err
 			}
 		}
-
-		if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, models.DeviceStatusRemoved, 1); err != nil {
-			return err
-		}
 	} else {
 		if err := s.store.DeviceDelete(ctx, sc, device); err != nil {
 			return err
 		}
-	}
-
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, device.Status, -1); err != nil {
-		return err
 	}
 
 	s.endRemovedDevice(ctx, tenant, device.UID)
@@ -623,8 +615,6 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 			return NewErrDeviceStatusAccepted(nil)
 		}
 
-		oldStatus := device.Status
-
 		if newStatus == device.Status {
 			return nil
 		}
@@ -729,12 +719,6 @@ func (s *service) updateDeviceStatus(req *requests.DeviceUpdateStatus, ownerID s
 			}
 		}
 
-		for status, count := range map[models.DeviceStatus]int64{oldStatus: -1, newStatus: 1} {
-			if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, status, count); err != nil {
-				return err
-			}
-		}
-
 		return nil
 	}
 }
@@ -828,12 +812,6 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	log.WithFields(logFields).Debug("mergeDevice: deleting old device")
 	if err := s.store.DeviceDelete(ctx, sc, oldDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("failed to delete old device")
-
-		return err
-	}
-
-	if err := s.store.NamespaceIncrementDeviceCount(ctx, sc, oldDevice.Status, -1); err != nil {
-		log.WithError(err).WithFields(logFields).Error("failed to decrement namespace device count")
 
 		return err
 	}

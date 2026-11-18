@@ -183,7 +183,8 @@ func (s *Suite) TestNamespaceGetDeviceLimit(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
 		tenantID := s.CreateNamespace(t)
-		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 2))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
@@ -594,47 +595,6 @@ func (s *Suite) TestNamespaceUpdate(t *testing.T) {
 	})
 }
 
-// TestNamespaceIncrementDeviceCount tests atomic device counter updates
-func (s *Suite) TestNamespaceIncrementDeviceCount(t *testing.T) {
-	ctx := context.Background()
-	st := s.provider.Store()
-
-	t.Run("increments and decrements device count", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		tenantID := s.CreateNamespace(t)
-
-		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-		require.NoError(t, err)
-		initialAccepted := ns.DevicesAcceptedCount
-		initialPending := ns.DevicesPendingCount
-
-		err = st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 5)
-		require.NoError(t, err)
-
-		ns, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-		require.NoError(t, err)
-		assert.Equal(t, initialAccepted+5, ns.DevicesAcceptedCount)
-		assert.Equal(t, initialPending, ns.DevicesPendingCount, "other counters should not change")
-
-		err = st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, -3)
-		require.NoError(t, err)
-
-		ns, err = st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-		require.NoError(t, err)
-		assert.Equal(t, initialAccepted+2, ns.DevicesAcceptedCount)
-	})
-
-	t.Run("fails for non-existent namespace", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
-
-		nonExistentID := "00000000-0000-0000-0000-000000000000"
-
-		err := st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(nonExistentID), models.DeviceStatusAccepted, 1)
-		assert.ErrorIs(t, err, store.ErrNoDocuments)
-	})
-}
-
 // TestNamespaceDelete tests namespace deletion
 func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	ctx := context.Background()
@@ -753,47 +713,43 @@ func (s *Suite) TestNamespaceDelete(t *testing.T) {
 	})
 }
 
-// TestNamespaceSyncDeviceCounts locks that the cached per-status device counts are rebuilt to match the
-// devices actually present.
-func (s *Suite) TestNamespaceSyncDeviceCounts(t *testing.T) {
+// TestNamespaceDeviceCountsFollowDevices locks that a namespace's per-status device counts follow
+// the devices written to it: created, moved to another status and deleted.
+func (s *Suite) TestNamespaceDeviceCountsFollowDevices(t *testing.T) {
 	ctx := context.Background()
 	st := s.provider.Store()
+	require.NoError(t, s.provider.CleanDatabase(t))
 
-	t.Run("syncs counters with actual device data", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
+	tenantID := s.CreateNamespace(t, WithNamespaceName("counted"))
+	other := s.CreateNamespace(t, WithNamespaceName("uncounted"))
+	sc := scope.MustBounded(tenantID)
 
-		tenantID := s.CreateNamespace(t, WithNamespaceName("sync-test"))
-		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
-		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
-		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusPending))
-		s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusRejected))
-
-		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 100))
-		require.NoError(t, st.NamespaceSyncDeviceCounts(ctx))
+	counts := func(tenantID string) [4]int64 {
+		t.Helper()
 
 		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), ns.DevicesAcceptedCount)
-		assert.Equal(t, int64(1), ns.DevicesPendingCount)
-		assert.Equal(t, int64(1), ns.DevicesRejectedCount)
-		assert.Equal(t, int64(0), ns.DevicesRemovedCount)
-	})
 
-	t.Run("sets zero for namespaces with no devices", func(t *testing.T) {
-		require.NoError(t, s.provider.CleanDatabase(t))
+		return [4]int64{ns.DevicesAcceptedCount, ns.DevicesPendingCount, ns.DevicesRejectedCount, ns.DevicesRemovedCount}
+	}
 
-		tenantID := s.CreateNamespace(t, WithNamespaceName("empty-ns"))
+	accepted := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusAccepted))
+	pending := s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusPending))
+	s.CreateDevice(t, WithTenantID(tenantID), WithDeviceStatus(models.DeviceStatusRejected))
+	assert.Equal(t, [4]int64{2, 1, 1, 0}, counts(tenantID))
 
-		require.NoError(t, st.NamespaceIncrementDeviceCount(ctx, scope.MustBounded(tenantID), models.DeviceStatusAccepted, 50))
-		require.NoError(t, st.NamespaceSyncDeviceCounts(ctx))
+	device, err := st.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(accepted))
+	require.NoError(t, err)
+	device.Status = models.DeviceStatusRemoved
+	require.NoError(t, st.DeviceUpdate(ctx, sc, device))
+	assert.Equal(t, [4]int64{1, 1, 1, 1}, counts(tenantID))
 
-		ns, err := st.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, tenantID)
-		require.NoError(t, err)
-		assert.Equal(t, int64(0), ns.DevicesAcceptedCount)
-		assert.Equal(t, int64(0), ns.DevicesPendingCount)
-		assert.Equal(t, int64(0), ns.DevicesRejectedCount)
-		assert.Equal(t, int64(0), ns.DevicesRemovedCount)
-	})
+	_, err = st.DeviceDeleteMany(ctx, sc, []string{string(accepted), string(pending)})
+	require.NoError(t, err)
+	assert.Equal(t, [4]int64{1, 0, 1, 0}, counts(tenantID))
+
+	assert.Equal(t, [4]int64{0, 0, 0, 0}, counts(other))
 }
 
 // TestNamespaceDeleteMany tests bulk namespace deletion

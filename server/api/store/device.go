@@ -9,14 +9,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 )
 
-// DeletedDevice is a device [DeviceStore.DeviceDeleteMany] deleted, with the namespace and status
-// it had, which are what a caller adjusts the namespace's device counts by.
-type DeletedDevice struct {
-	UID      string
-	TenantID string
-	Status   models.DeviceStatus
-}
-
 // DeviceAcceptable selects how the acceptable flag is computed for the devices a query
 // returns. It depends on the namespace's limit, so it cannot be a stored column.
 type DeviceAcceptable uint
@@ -183,11 +175,11 @@ type DeviceStore interface {
 	// tenant, [ErrNoDocuments] when sc holds no such device, and the store's error otherwise.
 	DeviceDelete(ctx context.Context, sc scope.Scope, device *models.Device) error
 	// DeviceDeleteMany deletes the devices of sc that uids names, with their sessions, and returns the
-	// ones it deleted. A uid that names no device of sc, including one another call deleted first, is
+	// UIDs of the ones it deleted. A uid that names no device of sc, including one another call deleted first, is
 	// left out, so the result can be shorter than uids, and an empty uids deletes nothing. It returns
 	// ErrInvalidScope for a scope of no known kind, ctx's error when ctx ends, and an error wrapping
 	// [ErrInternal] for any other database failure.
-	DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) (deleted []DeletedDevice, err error)
+	DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) (deleted []string, err error)
 
 	// DeviceListExpiredEphemeral lists up to 1000 ephemeral devices of sc the cleanup can remove: those
 	// that do not read online and whose last tunnel beat and last status change, whichever is later,

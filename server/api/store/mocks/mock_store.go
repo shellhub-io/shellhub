@@ -1548,23 +1548,23 @@ func (_c *MockStore_DeviceDeleteCustomField_Call) RunAndReturn(run func(ctx cont
 }
 
 // DeviceDeleteMany provides a mock function for the type MockStore
-func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error) {
+func (_mock *MockStore) DeviceDeleteMany(ctx context.Context, sc scope.Scope, uids []string) ([]string, error) {
 	ret := _mock.Called(ctx, sc, uids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeviceDeleteMany")
 	}
 
-	var r0 []store.DeletedDevice
+	var r0 []string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) ([]store.DeletedDevice, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) ([]string, error)); ok {
 		return returnFunc(ctx, sc, uids)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) []store.DeletedDevice); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, []string) []string); ok {
 		r0 = returnFunc(ctx, sc, uids)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]store.DeletedDevice)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, scope.Scope, []string) error); ok {
@@ -1611,12 +1611,12 @@ func (_c *MockStore_DeviceDeleteMany_Call) Run(run func(ctx context.Context, sc 
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) Return(deleted []store.DeletedDevice, err error) *MockStore_DeviceDeleteMany_Call {
+func (_c *MockStore_DeviceDeleteMany_Call) Return(deleted []string, err error) *MockStore_DeviceDeleteMany_Call {
 	_c.Call.Return(deleted, err)
 	return _c
 }
 
-func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uids []string) ([]store.DeletedDevice, error)) *MockStore_DeviceDeleteMany_Call {
+func (_c *MockStore_DeviceDeleteMany_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, uids []string) ([]string, error)) *MockStore_DeviceDeleteMany_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4477,75 +4477,6 @@ func (_c *MockStore_NamespaceGetWithoutMembers_Call) RunAndReturn(run func(ctx c
 	return _c
 }
 
-// NamespaceIncrementDeviceCount provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error {
-	ret := _mock.Called(ctx, sc, status, count)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceIncrementDeviceCount")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, scope.Scope, models.DeviceStatus, int64) error); ok {
-		r0 = returnFunc(ctx, sc, status, count)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockStore_NamespaceIncrementDeviceCount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceIncrementDeviceCount'
-type MockStore_NamespaceIncrementDeviceCount_Call struct {
-	*mock.Call
-}
-
-// NamespaceIncrementDeviceCount is a helper method to define mock.On call
-//   - ctx context.Context
-//   - sc scope.Scope
-//   - status models.DeviceStatus
-//   - count int64
-func (_e *MockStore_Expecter) NamespaceIncrementDeviceCount(ctx any, sc any, status any, count any) *MockStore_NamespaceIncrementDeviceCount_Call {
-	return &MockStore_NamespaceIncrementDeviceCount_Call{Call: _e.mock.On("NamespaceIncrementDeviceCount", ctx, sc, status, count)}
-}
-
-func (_c *MockStore_NamespaceIncrementDeviceCount_Call) Run(run func(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64)) *MockStore_NamespaceIncrementDeviceCount_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 scope.Scope
-		if args[1] != nil {
-			arg1 = args[1].(scope.Scope)
-		}
-		var arg2 models.DeviceStatus
-		if args[2] != nil {
-			arg2 = args[2].(models.DeviceStatus)
-		}
-		var arg3 int64
-		if args[3] != nil {
-			arg3 = args[3].(int64)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStore_NamespaceIncrementDeviceCount_Call) Return(err error) *MockStore_NamespaceIncrementDeviceCount_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockStore_NamespaceIncrementDeviceCount_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error) *MockStore_NamespaceIncrementDeviceCount_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NamespaceList provides a mock function for the type MockStore
 func (_mock *MockStore) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]models.Namespace, int64, error) {
 	var tmpRet mock.Arguments
@@ -4845,57 +4776,6 @@ func (_c *MockStore_NamespaceResolve_Call) Return(namespace *models.Namespace, e
 }
 
 func (_c *MockStore_NamespaceResolve_Call) RunAndReturn(run func(ctx context.Context, resolver store.NamespaceResolver, value string) (*models.Namespace, error)) *MockStore_NamespaceResolve_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// NamespaceSyncDeviceCounts provides a mock function for the type MockStore
-func (_mock *MockStore) NamespaceSyncDeviceCounts(ctx context.Context) error {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NamespaceSyncDeviceCounts")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockStore_NamespaceSyncDeviceCounts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NamespaceSyncDeviceCounts'
-type MockStore_NamespaceSyncDeviceCounts_Call struct {
-	*mock.Call
-}
-
-// NamespaceSyncDeviceCounts is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockStore_Expecter) NamespaceSyncDeviceCounts(ctx any) *MockStore_NamespaceSyncDeviceCounts_Call {
-	return &MockStore_NamespaceSyncDeviceCounts_Call{Call: _e.mock.On("NamespaceSyncDeviceCounts", ctx)}
-}
-
-func (_c *MockStore_NamespaceSyncDeviceCounts_Call) Run(run func(ctx context.Context)) *MockStore_NamespaceSyncDeviceCounts_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStore_NamespaceSyncDeviceCounts_Call) Return(err error) *MockStore_NamespaceSyncDeviceCounts_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockStore_NamespaceSyncDeviceCounts_Call) RunAndReturn(run func(ctx context.Context) error) *MockStore_NamespaceSyncDeviceCounts_Call {
 	_c.Call.Return(run)
 	return _c
 }

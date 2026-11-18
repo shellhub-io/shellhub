@@ -96,14 +96,6 @@ type NamespaceStore interface {
 	// already new or does not exist, and the database's error otherwise.
 	NamespaceUpgrade(ctx context.Context, tenantID string) error
 
-	// NamespaceIncrementDeviceCount atomically increments or decrements the device count for a specific status within a namespace.
-	// Returns [ErrNoDocuments] if the namespace is not found.
-	NamespaceIncrementDeviceCount(ctx context.Context, sc scope.Scope, status models.DeviceStatus, count int64) error
-
 	NamespaceDelete(ctx context.Context, namespace *models.Namespace) error
 	NamespaceDeleteMany(ctx context.Context, tenantIDs []string) (int64, error)
-
-	// NamespaceSyncDeviceCounts recalculates and sets the device counter cache fields
-	// for all namespaces based on actual device data.
-	NamespaceSyncDeviceCounts(ctx context.Context) error
 }
