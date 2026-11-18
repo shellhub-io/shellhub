@@ -45,12 +45,44 @@ describe("MfaDisableDialog", () => {
     }
   }
 
+  async function navigateToEmailReset(
+    user: ReturnType<typeof userEvent.setup>,
+  ) {
+    await user.click(
+      screen.getByRole("button", { name: /use recovery code/i }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: /request email reset/i }),
+    );
+  }
+
+  async function requestCodes(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(
+      screen.getByRole("button", { name: /send verification codes/i }),
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
+    });
+  }
+
+  async function backToAuthenticatorCode(
+    user: ReturnType<typeof userEvent.setup>,
+  ) {
+    await user.click(
+      screen.getByRole("button", { name: /use authenticator code/i }),
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
+    seedAuthStore();
     server.use(
       http.put(
         "*/api/user/mfa/disable",
         () => new HttpResponse(null, { status: 204 }),
+      ),
+      http.post("*/api/user/mfa/reset", () =>
+        HttpResponse.json({ token: "reset-token" }),
       ),
     );
   });
@@ -123,19 +155,9 @@ describe("MfaDisableDialog", () => {
     });
 
     it("stays on the email codes once they were sent", async () => {
-      useAuthStore.setState({ user: "admin" });
-      server.use(
-        http.post("*/api/user/mfa/reset", () =>
-          HttpResponse.json({ token: "reset-token" }),
-        ),
-      );
       const { user, closeAndReopen } = reopenable();
-      await user.click(screen.getByText(/use recovery code/i));
-      await user.click(screen.getByText(/request email reset/i));
-      await user.click(
-        screen.getByRole("button", { name: /send verification codes/i }),
-      );
-      expect(await screen.findByText(/Emails Sent!/i)).toBeInTheDocument();
+      await navigateToEmailReset(user);
+      await requestCodes(user);
 
       closeAndReopen();
 
@@ -143,6 +165,32 @@ describe("MfaDisableDialog", () => {
       expect(
         screen.getByLabelText(/main email code character 1/i),
       ).toBeInTheDocument();
+    });
+
+    it("asks for the authenticator code again after MFA was disabled with it", async () => {
+      const { user, closeAndReopen } = reopenable();
+      await navigateToEmailReset(user);
+      await requestCodes(user);
+      await backToAuthenticatorCode(user);
+      await fillTotpCode(user);
+      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
+      await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+
+      closeAndReopen();
+
+      expect(screen.queryByText(/Emails Sent!/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Verification Code/i)).toBeInTheDocument();
+    });
+
+    it("comes back to the email codes after leaving them for the authenticator code", async () => {
+      const { user, closeAndReopen } = reopenable();
+      await navigateToEmailReset(user);
+      await requestCodes(user);
+      await backToAuthenticatorCode(user);
+
+      closeAndReopen();
+
+      expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
     });
   });
 
@@ -299,31 +347,6 @@ describe("MfaDisableDialog", () => {
   });
 
   describe("Email-Reset Mode", () => {
-    beforeEach(() => {
-      useAuthStore.setState({ user: "admin" });
-      server.use(
-        http.post("*/api/user/mfa/reset", () =>
-          HttpResponse.json({ token: "reset-token" }),
-        ),
-      );
-    });
-
-    async function navigateToEmailReset(
-      user: ReturnType<typeof userEvent.setup>,
-    ) {
-      await user.click(screen.getByText(/use recovery code/i));
-      await user.click(screen.getByText(/request email reset/i));
-    }
-
-    async function requestCodes(user: ReturnType<typeof userEvent.setup>) {
-      await user.click(
-        screen.getByRole("button", { name: /send verification codes/i }),
-      );
-      await waitFor(() => {
-        expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
-      });
-    }
-
     async function fillEmailOtpInputs(
       user: ReturnType<typeof userEvent.setup>,
     ) {
@@ -360,7 +383,6 @@ describe("MfaDisableDialog", () => {
     });
 
     it("submits email codes, then signs out on the sign-in page", async () => {
-      seedAuthStore();
       server.use(http.get("*/info", () => HttpResponse.json(mockInfo())));
       const user = renderDialog();
 
@@ -409,7 +431,63 @@ describe("MfaDisableDialog", () => {
       }
     });
 
-    it("resets email-reset state when switching back to recovery", async () => {
+    it("disables MFA with the authenticator code after the codes were sent", async () => {
+      let body: unknown;
+      server.use(
+        http.put("*/api/user/mfa/disable", async ({ request }) => {
+          body = await request.json();
+          return new HttpResponse(null, { status: 204 });
+        }),
+      );
+      const user = renderDialog();
+
+      await navigateToEmailReset(user);
+      await requestCodes(user);
+      await backToAuthenticatorCode(user);
+      await fillTotpCode(user);
+      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
+
+      await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+      expect(body).toEqual({ code: "123456" });
+    });
+
+    it("drops the rejected email codes error when going back to the authenticator code", async () => {
+      server.use(
+        http.put("*/api/user/mfa/disable", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
+      const user = renderDialog();
+
+      await navigateToEmailReset(user);
+      await requestCodes(user);
+      await fillEmailOtpInputs(user);
+      await user.click(screen.getByRole("button", { name: /disable mfa/i }));
+      expect(
+        await screen.findByText(/Three wrong attempts cancel the codes/i),
+      ).toBeInTheDocument();
+      await backToAuthenticatorCode(user);
+
+      expect(
+        screen.queryByText(/Three wrong attempts cancel the codes/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("keeps the sent codes when coming back to the email reset", async () => {
+      const user = renderDialog();
+
+      await navigateToEmailReset(user);
+      await requestCodes(user);
+      await backToAuthenticatorCode(user);
+      await navigateToEmailReset(user);
+
+      expect(screen.getByText(/Emails Sent!/i)).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /send verification codes/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("returns to the recovery code before any codes are sent", async () => {
       const user = renderDialog();
 
       await navigateToEmailReset(user);
