@@ -10,14 +10,10 @@ type Data any
 
 // Error is a custom error that carry attributes to specify error's message, resource, layer, code and data.
 type Error struct {
-	// message is the error message.
-	Message string `json:"message"`
-	// Layer is the error layer.
-	Layer string `json:"layer,omitempty"`
-	// Code is the error code.
-	Code int `json:"code,omitempty"`
-	// Data is the error metadata.
-	Data Data `json:"data,omitempty"`
+	Message string
+	Layer   string
+	Code    int
+	Data    Data
 }
 
 // New creates a new [Error].
@@ -30,19 +26,16 @@ func New(message, layer string, code int) error {
 	}
 }
 
-// WithData insiert [Data] into parent is from type [Error].
+// WithData returns the [Error] in parent's chain with data as its Data. A nil parent returns nil,
+// and a parent with no [Error] in its chain comes back unchanged.
 func WithData(parent error, data Data) error {
-	if parent == nil {
-		return nil
-	}
-
 	if err, ok := errors.AsType[Error](parent); ok {
 		err.Data = data
 
 		return err
 	}
 
-	return nil
+	return parent
 }
 
 func (e Error) Error() string {
