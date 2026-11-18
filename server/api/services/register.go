@@ -57,22 +57,11 @@ func (s *service) newRegistrationUser(req *requests.RegisterUser, email string) 
 		return nil, err
 	}
 
-	return &models.User{
-		Origin: models.UserOriginLocal,
-		UserData: models.UserData{
-			Name:     req.Name,
-			Email:    email,
-			Username: strings.ToLower(req.Username),
-		},
-		Password:       password,
-		CreatedAt:      s.clock.Now(),
-		MaxNamespaces:  1,
-		EmailMarketing: req.EmailMarketing,
-		Status:         models.UserStatusNotConfirmed,
-		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-		},
-	}, nil
+	user := models.NewLocalUser(models.UserData{Name: req.Name, Email: email, Username: req.Username}, password, models.UserStatusNotConfirmed, s.clock.Now())
+	user.MaxNamespaces = 1
+	user.EmailMarketing = req.EmailMarketing
+
+	return user, nil
 }
 
 func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {

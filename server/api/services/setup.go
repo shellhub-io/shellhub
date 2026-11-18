@@ -97,18 +97,9 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 		return "", NewErrUserPasswordInvalid(err)
 	}
 
-	user := &models.User{
-		Origin:        models.UserOriginLocal,
-		UserData:      data,
-		Password:      password,
-		Status:        models.UserStatusConfirmed,
-		CreatedAt:     s.clock.Now(),
-		MaxNamespaces: -1,
-		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-		},
-		Admin: true,
-	}
+	user := models.NewLocalUser(data, password, models.UserStatusConfirmed, s.clock.Now())
+	user.MaxNamespaces = -1
+	user.Admin = true
 
 	insertedID, err := s.store.UserCreate(ctx, user)
 	if err != nil {
