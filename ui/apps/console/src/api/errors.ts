@@ -17,6 +17,21 @@ export interface SdkHttpError {
   fields?: unknown;
 }
 
+const PATTERN_SYNTAX = "Patterns use Go regular expression syntax.";
+
+/**
+ * What a firewall rule form, or a public key form editing a key, shows when the server refuses it
+ * with a 400. The validator's 400 names no field, and the regular expression patterns are what the
+ * form's own check can miss.
+ */
+export const INVALID_PATTERN_MESSAGE = `A pattern isn't valid. ${PATTERN_SYNTAX}`;
+
+/**
+ * What a public key form creating a key shows when the server refuses it with a 400, which it
+ * also does for key data it cannot parse.
+ */
+export const INVALID_KEY_OR_PATTERN_MESSAGE = `The key or a pattern isn't valid. ${PATTERN_SYNTAX}`;
+
 /**
  * Type guard analogous to `axios.isAxiosError()` — narrows an unknown
  * caught value to an object carrying the HTTP status and response headers

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { PublicKeyRequest, PublicKeyResponse } from "@/client";
 import { isPublicKeyValid } from "@/utils/sshKeys";
-import { validateName } from "@/utils/validation";
+import { validateName, validatePattern } from "@/utils/validation";
 
 /**
  * Whether the key form is creating or editing, which decides if the key material is editable.
@@ -56,12 +56,14 @@ export function keySchema(mode: KeyMode) {
       }
     }
 
-    if (values.usernameOption === "username" && !values.username.trim()) {
-      ctx.addIssue({ code: "custom", path: ["username"], message: "Username pattern is required" });
+    if (values.usernameOption === "username") {
+      const message = validatePattern(values.username, "Username");
+      if (message) ctx.addIssue({ code: "custom", path: ["username"], message });
     }
 
-    if (values.filterOption === "hostname" && !values.hostname.trim()) {
-      ctx.addIssue({ code: "custom", path: ["hostname"], message: "Hostname pattern is required" });
+    if (values.filterOption === "hostname") {
+      const message = validatePattern(values.hostname, "Hostname");
+      if (message) ctx.addIssue({ code: "custom", path: ["hostname"], message });
     }
 
     if (values.filterOption === "tags") {
@@ -81,7 +83,7 @@ export function keySchema(mode: KeyMode) {
 export function buildKeyBody(values: KeyFormValues): PublicKeyRequest {
   const filter: PublicKeyRequest["filter"] =
     values.filterOption === "hostname"
-      ? { hostname: values.hostname }
+      ? { hostname: values.hostname.trim() }
       : values.filterOption === "tags"
         ? { tags: values.tags }
         : { hostname: ".*" };
