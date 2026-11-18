@@ -59,9 +59,9 @@ func BuildStackImages(ctx context.Context, run *Run, cloudDir string) error {
 
 	for edition := range builds {
 		group.Go(func() error {
-			services := []string{"server", "ui"}
-			if edition != EditionCommunity {
-				services = []string{"server"}
+			services := []string{string(ServiceServer), "ui"}
+			if edition.profile().paid {
+				services = []string{string(ServiceServer)}
 			}
 
 			if err := buildEditionImages(ctx, run, edition, cloudDir, services); err != nil {
@@ -390,7 +390,7 @@ func imageKey(ctx context.Context, repoRoot, cloudDir, service string, edition E
 	if service == "server" {
 		inputs.WriteString("edition " + edition.Build() + "\nldflags " + ldflags + "\n")
 
-		if edition != EditionCommunity {
+		if edition.profile().paid {
 			cloudTree, err := gitRevParse(ctx, cloudDir, "HEAD^{tree}")
 			if err != nil {
 				return "", err

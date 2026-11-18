@@ -22,7 +22,7 @@ func (cfg Config) licensingEnvs() (map[string]string, []string, error) {
 	license := FullLicense()
 	if cfg.License != nil {
 		license = *cfg.License
-	} else if cfg.Edition == EditionCloud {
+	} else if cfg.Edition.profile().cloud {
 		license.Features.Cloud = true
 	}
 

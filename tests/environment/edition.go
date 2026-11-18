@@ -25,28 +25,39 @@ const (
 	EditionCloud Edition = "cloud"
 )
 
+type editionProfile struct {
+	paid        bool
+	cloud       bool
+	openapiSpec string
+}
+
+var editionProfiles = map[Edition]editionProfile{
+	EditionCommunity:  {openapiSpec: "community-openapi.yaml"},
+	EditionEnterprise: {paid: true, openapiSpec: "enterprise-openapi.yaml"},
+	EditionCloud:      {paid: true, cloud: true, openapiSpec: "cloud-openapi.yaml"},
+}
+
+func (e Edition) profile() editionProfile {
+	return editionProfiles[e]
+}
+
 // ParseEdition converts a string to an [Edition], returning an error for unknown values.
 func ParseEdition(s string) (Edition, error) {
-	switch Edition(s) {
-	case EditionCommunity:
-		return EditionCommunity, nil
-	case EditionEnterprise:
-		return EditionEnterprise, nil
-	case EditionCloud:
-		return EditionCloud, nil
-	default:
+	if _, ok := editionProfiles[Edition(s)]; !ok {
 		return "", fmt.Errorf("unknown edition %q: must be community, enterprise, or cloud", s)
 	}
+
+	return Edition(s), nil
 }
 
 // Build returns the build-time edition flag: community builds as "community", enterprise and
 // cloud both build as "enterprise" (the server binary is the same for both).
 func (e Edition) Build() string {
-	if e == EditionCommunity {
-		return "community"
+	if e.profile().paid {
+		return "enterprise"
 	}
 
-	return "enterprise"
+	return "community"
 }
 
 func statCloudSource(cloudDir string) error {
@@ -56,44 +67,43 @@ func statCloudSource(cloudDir string) error {
 }
 
 func (e Edition) composeFiles(cloudDir string) ([]string, error) {
-	base := []string{"../docker-compose.yml"}
+	profile := e.profile()
+	files := []string{"../docker-compose.yml"}
 
-	if e != EditionCommunity {
+	if profile.paid {
 		if err := statCloudSource(cloudDir); err != nil {
 			return nil, fmt.Errorf("the %s edition builds from the cloud source: %w", e, err)
 		}
+
+		files = append(files, "../docker-compose.enterprise.yml")
 	}
 
-	switch e {
-	case EditionCommunity:
-	case EditionEnterprise:
-		base = append(base, "../docker-compose.enterprise.yml")
-	case EditionCloud:
+	if profile.cloud {
 		cloudCompose := filepath.Join(cloudDir, "docker-compose.yml")
 		if _, err := os.Stat(cloudCompose); err != nil {
 			return nil, fmt.Errorf("cloud edition requires %s: %w", cloudCompose, err)
 		}
 
-		base = append(base, "../docker-compose.enterprise.yml", cloudCompose)
+		files = append(files, cloudCompose)
 	}
 
-	base = append(base, "../docker-compose.test.yml", "../docker-compose.postgres.test.yml")
+	files = append(files, "../docker-compose.test.yml", "../docker-compose.postgres.test.yml")
 
-	if e != EditionCommunity {
-		base = append(base, "../docker-compose.enterprise.test.yml")
+	if profile.paid {
+		files = append(files, "../docker-compose.enterprise.test.yml")
 	}
 
-	if e == EditionCloud {
-		base = append(base, "../docker-compose.cloud.test.yml")
+	if profile.cloud {
+		files = append(files, "../docker-compose.cloud.test.yml")
 	}
 
-	return base, nil
+	return files, nil
 }
 
 func (e Edition) envFiles(cloudDir string) []string {
 	files := []string{"../.env", "../" + testimage.FileName}
 
-	if e == EditionCommunity {
+	if !e.profile().paid {
 		return files
 	}
 
@@ -109,7 +119,7 @@ func (e Edition) envFiles(cloudDir string) []string {
 
 func (e Edition) envs(cloudDir string) (map[string]string, error) {
 	cloudSrc := "."
-	if e != EditionCommunity {
+	if e.profile().paid {
 		abs, err := filepath.Abs(cloudDir)
 		if err != nil {
 			return nil, fmt.Errorf("resolving cloud dir: %w", err)
@@ -130,12 +140,12 @@ func (e Edition) envs(cloudDir string) (map[string]string, error) {
 		testimage.MirrorEnv:       testimage.Mirror(),
 	}
 
-	if e != EditionCommunity {
+	if e.profile().paid {
 		envs["SHELLHUB_MAXMIND_MIRROR"] = ""
 		envs["SHELLHUB_SAML_SECRET"] = buildSAMLSecret()
 	}
 
-	if e == EditionCloud {
+	if e.profile().cloud {
 		envs["SHELLHUB_BILLING"] = "stripe"
 		envs["SHELLHUB_DISPOSABLE_EMAIL_CHECK"] = "false"
 		envs["SHELLHUB_EMAIL_PROVIDER"] = "smtp"
@@ -151,19 +161,6 @@ func buildSAMLSecret() string {
 	rand.Read(key)
 
 	return base64.URLEncoding.EncodeToString(key)
-}
-
-func (e Edition) openapiSpec() string {
-	switch e {
-	case EditionCommunity:
-		return "community-openapi.yaml"
-	case EditionEnterprise:
-		return "enterprise-openapi.yaml"
-	case EditionCloud:
-		return "cloud-openapi.yaml"
-	default:
-		return "community-openapi.yaml"
-	}
 }
 
 // OpenAPIPath returns the output path for the bundled OpenAPI spec, relative to the repo
@@ -184,7 +181,7 @@ func BundleOpenAPI(ctx context.Context, edition Edition, repoRoot string) error 
 
 	cmd := exec.CommandContext(ctx, //nolint:gosec // the arguments are literals and a version read from versions.env
 		"npx", "-y", "@redocly/cli@"+redocly, "bundle",
-		filepath.Join("openapi", "spec", edition.openapiSpec()),
+		filepath.Join("openapi", "spec", edition.profile().openapiSpec),
 		"-o", edition.OpenAPIPath(),
 	)
 	cmd.Dir = repoRoot
