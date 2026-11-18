@@ -12,7 +12,11 @@ import Modal from "@/components/common/Modal";
 import ObjectName from "@/components/common/ObjectName";
 import UserBadge from "@/components/common/UserBadge";
 import { LABEL_BASE } from "@/utils/styles";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+  DEVICE_ROW_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import { RoleBadge } from "./constants";
 
 const CONSEQUENCES = [
@@ -36,10 +40,9 @@ export default function RemoveMemberModal({
   onClose: () => void;
 }) {
   const invalidateMembership = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
+    ...NAMESPACE_QUERIES,
     "listNamespaceMembers",
-    "getDevices",
+    ...DEVICE_ROW_QUERIES,
     "getStats",
   );
   const removeMember = useMutation({

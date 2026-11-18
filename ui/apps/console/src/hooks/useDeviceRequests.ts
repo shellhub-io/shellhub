@@ -1,8 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { isSdkError } from "@/api/errors";
 import {
   acceptDeviceMutation,
-  createTag,
   getDeviceLocations,
   getDeviceLocationsQueryKey,
   getDeviceOptions,
@@ -11,7 +9,12 @@ import {
   updateDeviceMutation,
   type Device,
 } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { ensureTag } from "@/hooks/useTagRequests";
+import {
+  useInvalidateByIds,
+  DEVICE_ROW_QUERIES,
+  DEVICE_STATUS_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import type { GeoIPSource } from "@/types/geoip";
 
 /**
@@ -84,18 +87,11 @@ export function useDeviceLocations() {
 }
 
 /**
- * Accepts a pending device. The counts change with it, so the stats query is refreshed as well
- * as the lists — including the provisioning keys list, which carries each key's pending count.
+ * Accepts a pending device and refreshes every query a status change moves
+ * (DEVICE_STATUS_QUERIES).
  */
 export function useAcceptDevice() {
-  const invalidate = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-    "getStats",
-    "provisioningKeyList",
-    "listTenantRegistrations",
-  );
+  const invalidate = useInvalidateByIds(...DEVICE_STATUS_QUERIES);
   return useMutation({
     ...acceptDeviceMutation(),
     onSuccess: invalidate,
@@ -103,14 +99,10 @@ export function useAcceptDevice() {
 }
 
 /**
- * Renames a device, refreshing the device lists, the device itself and the status counts.
+ * Renames a device and refreshes every query that shows it (DEVICE_ROW_QUERIES).
  */
 export function useRenameDevice() {
-  const invalidate = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-  );
+  const invalidate = useInvalidateByIds(...DEVICE_ROW_QUERIES);
   return useMutation({
     ...updateDeviceMutation(),
     onSuccess: invalidate,
@@ -118,25 +110,13 @@ export function useRenameDevice() {
 }
 
 /**
- * Tags a device. The tag list is refreshed too, because the tag may be new.
+ * Tags a device, creating the tag first when it does not exist yet.
  */
 export function useAddDeviceTag() {
-  const invalidate = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-    "getTags",
-  );
+  const invalidate = useInvalidateByIds(...DEVICE_ROW_QUERIES, "getTags");
   return useMutation({
     mutationFn: async (options: { path: { uid: string; name: string } }) => {
-      try {
-        await createTag({
-          body: { name: options.path.name },
-          throwOnError: true,
-        });
-      } catch (e) {
-        if (!isSdkError(e) || e.status !== 409) throw e;
-      }
+      await ensureTag(options.path.name);
       return pushTagToDevice({ ...options, throwOnError: true });
     },
     onSuccess: invalidate,
@@ -147,11 +127,7 @@ export function useAddDeviceTag() {
  * Removes a tag from a device. The tag survives on anything else carrying it.
  */
 export function useRemoveDeviceTag() {
-  const invalidate = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-  );
+  const invalidate = useInvalidateByIds(...DEVICE_ROW_QUERIES);
   return useMutation({
     ...pullTagFromDeviceMutation(),
     onSuccess: invalidate,

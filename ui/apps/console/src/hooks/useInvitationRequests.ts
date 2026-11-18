@@ -1,6 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { generateInvitationLinkMutation } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 
 /**
  * Mints an invitation link for a namespace. Refreshes the member list too, since a pending
@@ -8,10 +11,9 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
  */
 export function useGenerateInvitationLink() {
   const invalidate = useInvalidateByIds(
+    ...NAMESPACE_QUERIES,
     "getNamespaceMembershipInvitationList",
     "listNamespaceMembers",
-    "getNamespace",
-    "getNamespaces",
   );
   return useMutation({
     ...generateInvitationLinkMutation(),

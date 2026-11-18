@@ -44,7 +44,10 @@ import SettingsSection from "@/components/settings/SettingsSection";
 import SavedMark from "@/components/settings/SavedMark";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import { type Namespace, upgradeNamespaceMutation } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import {
   BANNER_MAX_LENGTH,
   bannerSchema,
@@ -133,8 +136,7 @@ function UpgradeDialog({
 
 function NamespaceModelCard({ ns }: { ns: Namespace }) {
   const invalidateUpgraded = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
+    ...NAMESPACE_QUERIES,
     "listAccessPolicies",
   );
   const upgrade = useMutation({

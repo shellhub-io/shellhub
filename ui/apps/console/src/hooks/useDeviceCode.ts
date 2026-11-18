@@ -3,7 +3,10 @@ import {
   resolveDeviceLoginCodeOptions,
   acceptDevicePairingMutation,
 } from "@/client";
-import { useInvalidateByIds } from "./useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  DEVICE_STATUS_QUERIES,
+} from "./useInvalidateQueries";
 
 /**
  * Resolves an enrolment code to the device waiting behind it. Never retried and never stale: a
@@ -28,17 +31,10 @@ export function useResolveDeviceCode(code: string) {
 }
 
 /**
- * Completes an enrolment from a code, adding the device to the namespace and refreshing the
- * device queries and counts.
+ * Completes an enrolment from a code, adding the device to the namespace.
  */
 export function useAcceptDevicePairing() {
-  const invalidate = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-    "getStats",
-    "provisioningKeyList",
-  );
+  const invalidate = useInvalidateByIds(...DEVICE_STATUS_QUERIES);
   return useMutation({
     ...acceptDevicePairingMutation(),
     onSuccess: invalidate,

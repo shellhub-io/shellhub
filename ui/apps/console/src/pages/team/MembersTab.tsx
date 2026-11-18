@@ -22,7 +22,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNamespaceMembers } from "@/hooks/useNamespaceRequests";
 import { paginatedQueryOptions } from "@/api/pagination";
 import { useGenerateInvitationLink } from "@/hooks/useInvitationRequests";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import { useRowAction } from "@/hooks/useRowAction";
 import { invitationStatusFilter, isInvitationExpired } from "@/utils/invitations";
 import { formatDateShort } from "@/utils/date";
@@ -92,8 +95,7 @@ function MembersTab({ tenantId }: { tenantId: string }) {
   const invitations = pendingInvitations?.data ?? [];
 
   const invalidateMembers = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
+    ...NAMESPACE_QUERIES,
     "listNamespaceMembers",
   );
   const approveMember = useMutation({

@@ -12,7 +12,10 @@ import ObjectName from "@/components/common/ObjectName";
 import UserBadge from "@/components/common/UserBadge";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 import { makeTeamDeviceMutation } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  DEVICE_ROW_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 
 const UNCHANGED = [
   "The device stays accepted and connected. Its agent is not told.",
@@ -37,7 +40,7 @@ export default function MakeTeamDeviceModal({
   ownerEmail: string;
   onClose: () => void;
 }) {
-  const invalidateDevice = useInvalidateByIds("getDevices", "getDevice");
+  const invalidateDevice = useInvalidateByIds(...DEVICE_ROW_QUERIES);
   const makeTeamDevice = useMutation({
     ...makeTeamDeviceMutation(),
     onSuccess: invalidateDevice,

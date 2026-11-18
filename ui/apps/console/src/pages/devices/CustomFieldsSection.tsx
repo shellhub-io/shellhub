@@ -4,7 +4,7 @@ import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { IconButton } from "@shellhub/design-system/primitives";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { setDeviceCustomFieldMutation, deleteDeviceCustomFieldMutation } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { useInvalidateByIds, DEVICE_ROW_QUERIES } from "@/hooks/useInvalidateQueries";
 
 const LABEL =
   "text-2xs font-mono font-semibold uppercase tracking-label text-text-muted";
@@ -21,7 +21,7 @@ export default function CustomFieldsSection({
   uid,
   customFields,
 }: CustomFieldsSectionProps) {
-  const invalidateDevice = useInvalidateByIds("getDevices", "getDevice");
+  const invalidateDevice = useInvalidateByIds(...DEVICE_ROW_QUERIES);
   const setMutation = useMutation({
     ...setDeviceCustomFieldMutation(),
     onSuccess: invalidateDevice,
