@@ -1,4 +1,4 @@
-import { isCommunity } from "@/env";
+import { features } from "@/edition";
 
 /**
  * Whether the signed-in account may create a namespace: never on community, where the server has
@@ -10,5 +10,5 @@ import { isCommunity } from "@/env";
 export function canCreateNamespace(
   user: { max_namespaces: number } | undefined,
 ): boolean {
-  return !isCommunity() && !!user && user.max_namespaces !== 0;
+  return features().paid && !!user && user.max_namespaces !== 0;
 }

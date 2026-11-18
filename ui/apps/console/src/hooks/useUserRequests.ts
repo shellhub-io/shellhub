@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getUserInfoOptions } from "@/client";
-import { isCommunity } from "@/env";
+import { features } from "@/edition";
 
 /**
  * The signed-in account's info, namespace allowance included. Community never requests it, so
@@ -9,6 +9,6 @@ import { isCommunity } from "@/env";
 export function useUserInfo() {
   return useQuery({
     ...getUserInfoOptions(),
-    enabled: !isCommunity(),
+    enabled: features().paid,
   });
 }

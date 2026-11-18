@@ -5,7 +5,6 @@ import { Route } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { renderWithSignInPage } from "@/tests/renderWithSignInPage";
-import { getConfig, defaultConfig } from "@/env";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { mockInfo } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
@@ -15,12 +14,12 @@ const viewport = await vi.hoisted(async () =>
   (await import("@/tests/viewport")).installViewport(),
 );
 
+import { setEdition } from "@/tests/edition";
 import AccountLayout from "../AccountLayout";
 import AccountProfile from "../AccountProfile";
 import AccountSecurity from "../AccountSecurity";
 import AccountDangerZone from "../AccountDangerZone";
 
-const mockGetConfig = vi.mocked(getConfig);
 const fetchUser = vi.fn(() => Promise.resolve());
 
 function renderAt(path: string) {
@@ -38,7 +37,7 @@ function renderAt(path: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   viewport.wide = true;
   seedAuthStore();
   useAuthStore.setState({ fetchUser });
@@ -333,7 +332,7 @@ describe("Account", () => {
     });
 
     async function openDeleteDialog() {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
       const user = userEvent.setup();
       renderAt("/account/danger-zone");
       await user.click(

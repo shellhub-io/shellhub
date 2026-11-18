@@ -3,7 +3,7 @@ import {
   LockClosedIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { Button } from "@shellhub/design-system/primitives";
 import EmptyState from "@/components/common/EmptyState";
 
@@ -22,7 +22,7 @@ export default function FeatureGate({
   feature,
   description,
 }: FeatureGateProps) {
-  if (isEnterpriseOrCloud()) {
+  if (features().paid) {
     return <>{children}</>;
   }
 

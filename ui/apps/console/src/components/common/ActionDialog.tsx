@@ -13,7 +13,7 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import BaseDialog from "@/components/common/BaseDialog";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ObjectName from "@/components/common/ObjectName";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 import type {
   Action,
   EntityBase,
@@ -99,7 +99,7 @@ export default function ActionDialog({
         operation === "accept" &&
         isSdkError(err) &&
         err.status === 402 &&
-        isCloud()
+        features().billing
       ) {
         setBillingError(err);
         return;

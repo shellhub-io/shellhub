@@ -8,6 +8,7 @@ import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import { createTestWrapper } from "@/tests/wrapper";
 import { VALID_JWT } from "@/tests/seedAuthStore";
 import { getConfig, defaultConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import AcceptInvite from "../AcceptInvite";
 
 vi.mock("@/components/common/ConfirmDialog", async () => ({
@@ -59,7 +60,7 @@ function renderPage(search = VALID_PARAMS) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getConfig).mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   useAuthStore.setState({
     token: null,
     user: null,

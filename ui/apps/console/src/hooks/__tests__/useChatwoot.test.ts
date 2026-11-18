@@ -5,6 +5,7 @@ import { server } from "@/tests/msw";
 import { getConfig, defaultConfig } from "@/env";
 import { createTestWrapper } from "@/tests/wrapper";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 import { tearDownChatwoot } from "../chatwootRuntime";
 import { useChatwoot } from "../useChatwoot";
 
@@ -65,7 +66,7 @@ describe("useChatwoot", () => {
 
   describe("status: non-cloud", () => {
     it("returns status 'non-cloud' when cloud=false", () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig });
+      setEdition("community");
 
       const { result } = renderHook(() => useChatwoot(), {
         wrapper: createTestWrapper(),
@@ -75,7 +76,7 @@ describe("useChatwoot", () => {
     });
 
     it("does not inject a script when cloud=false", () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig });
+      setEdition("community");
 
       renderHook(() => useChatwoot(), { wrapper: createTestWrapper() });
 

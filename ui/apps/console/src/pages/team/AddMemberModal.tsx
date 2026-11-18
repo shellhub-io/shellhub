@@ -14,7 +14,7 @@ import { FormInputField } from "@/components/common/fields/rhf";
 import FormRootError from "@/components/common/fields/FormRootError";
 import { useDiscardGuard } from "@/hooks/useDiscardGuard";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 import { FormRoleSelector } from "./constants";
 import {
   addMemberSchema,
@@ -36,7 +36,7 @@ interface AddMemberModalProps {
  */
 function AddMemberModal({ open, onClose, tenantId }: AddMemberModalProps) {
   const generateLink = useGenerateInvitationLink();
-  const emailDelivery = isCloud();
+  const emailDelivery = features().selfService;
   const form = useDrawerForm(open, addMemberSchema, ADD_MEMBER_DEFAULTS);
   const {
     control,

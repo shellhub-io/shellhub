@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { hasActiveSubscription } from "@/utils/billing";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -20,7 +20,7 @@ export const FREE_TIER_DEVICE_LIMIT = 3;
  * behavior so the user keeps seeing it until they subscribe or pick three.
  */
 export default function DeviceChooserTrigger() {
-  if (!isCloud()) return null;
+  if (!features().billing) return null;
   return <DeviceChooserTriggerInner />;
 }
 

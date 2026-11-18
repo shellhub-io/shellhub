@@ -7,7 +7,7 @@ import {
   DocumentCheckIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useAuthStore } from "@/stores/authStore";
 import {
@@ -44,7 +44,7 @@ const telemetryLink: NavItem = {
 const licenseOnlySections: NavSection[] = [{ items: [licenseLink] }];
 
 function buildFullSections(): NavSection[] {
-  const instance = isEnterprise()
+  const instance = features().instanceLicense
     ? [authenticationLink, instanceApiKeysLink, telemetryLink, licenseLink]
     : [instanceApiKeysLink, telemetryLink];
 

@@ -21,10 +21,7 @@ import VaultSettingsSection from "@/components/vault/VaultSettingsSection";
 import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
 import VaultSyncPromoDialog from "@/components/vault/VaultSyncPromoDialog";
 import { useAuthStore } from "@/stores/authStore";
-import {
-  isVaultServerEnabled,
-  isVaultSyncPromoDismissed,
-} from "@/utils/vault-backend-factory";
+import { isVaultSyncPromoDismissed } from "@/utils/vault-backend-factory";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import { useNavSectionTitle } from "@/components/layout/navSections";
@@ -33,6 +30,7 @@ import KeyDeleteDialog from "./KeyDeleteDialog";
 import { formatRelative } from "@/utils/date";
 import type { VaultKeyEntry } from "@/types/vault";
 import { Button, IconButton } from "@shellhub/design-system/primitives";
+import { features } from "@/edition";
 
 const VAULT_FEATURES: EmptyStateFeature[] = [
   {
@@ -96,7 +94,7 @@ export default function SecureVault() {
     if (
       cameFromLocked &&
       status === "unlocked" &&
-      isVaultServerEnabled() &&
+      features().paid &&
       storageMode === "local" &&
       !isVaultSyncPromoDismissed(user && tenant ? { user, tenant } : undefined)
     ) {

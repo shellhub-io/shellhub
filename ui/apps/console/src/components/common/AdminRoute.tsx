@@ -1,6 +1,6 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -12,7 +12,7 @@ import ErrorBoundary from "./ErrorBoundary";
 export default function AdminRoute() {
   const isAdmin = useAuthStore((s) => s.isAdmin);
 
-  if (!isEnterpriseOrCloud()) {
+  if (!features().paid) {
     return <Navigate to="/" replace />;
   }
 

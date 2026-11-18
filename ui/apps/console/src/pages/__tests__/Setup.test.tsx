@@ -7,6 +7,7 @@ import { server } from "@/tests/msw";
 import { USERNAME_HINT } from "@/utils/validation";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockSurveyPayload, surveyEnvironment } from "@/tests/onboardingSurvey";
+import { setEdition } from "@/tests/edition";
 import Setup from "../Setup";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -54,7 +55,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   mockLoginWithToken.mockResolvedValue(undefined);
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   server.use(
     http.post("*/api/setup", () => HttpResponse.json({ token: "jwt-token" })),
   );

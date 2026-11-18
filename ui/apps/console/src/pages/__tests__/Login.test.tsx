@@ -14,8 +14,8 @@ import {
 import { mockInfo, mockUserAuth } from "@/tests/factories";
 import { EXPIRED_JWT, VALID_JWT, jwtExpiringAt } from "@/tests/seedAuthStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
+import { setEdition } from "@/tests/edition";
 import Login from "../Login";
-import { getConfig, defaultConfig } from "@/env";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
 
@@ -23,8 +23,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   const actual = await importOriginal<typeof import("react-router-dom")>();
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function renderLogin(path = "/") {
   return render(
@@ -55,7 +53,7 @@ function setLoginError(status: number, headers?: Record<string, string>) {
 describe("Login", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetConfig.mockReturnValue({ ...defaultConfig });
+    setEdition("community");
     localStorage.removeItem(PENDING_DEVICE_CODE_KEY);
     useAuthStore.setState({
       token: null,
@@ -387,7 +385,7 @@ describe("Login", () => {
     it.each(["community", "cloud"] as const)(
       "does not show SSO button on %s edition",
       async (edition) => {
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        setEdition(edition);
         setInfo({ local: true, saml: true });
 
         renderLogin();
@@ -401,10 +399,7 @@ describe("Login", () => {
     );
 
     it("does not show SSO button when saml is false", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       setInfo({ local: true, saml: false });
 
       renderLogin();
@@ -417,10 +412,7 @@ describe("Login", () => {
     });
 
     it("shows SSO button on enterprise edition when saml is true", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       setInfo({ local: true, saml: true });
 
       renderLogin();
@@ -438,10 +430,7 @@ describe("Login", () => {
       });
 
       try {
-        mockGetConfig.mockReturnValue({
-          ...defaultConfig,
-          edition: "enterprise",
-        });
+        setEdition("enterprise");
         setInfo({ local: true, saml: true });
 
         renderLogin();
@@ -463,10 +452,7 @@ describe("Login", () => {
     });
 
     it("shows error when SSO URL fetch fails", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       setInfo({ local: true, saml: true });
       server.use(
         http.get("*/api/user/saml/auth", () =>
@@ -488,10 +474,7 @@ describe("Login", () => {
 
     describe("when the server sends a finished SSO sign-in", () => {
       beforeEach(() => {
-        mockGetConfig.mockReturnValue({
-          ...defaultConfig,
-          edition: "enterprise",
-        });
+        setEdition("enterprise");
         setInfo({ local: true, saml: true });
       });
 
@@ -602,10 +585,7 @@ describe("Login", () => {
 
     describe("when an SSO sign-in matched an existing account", () => {
       beforeEach(() => {
-        mockGetConfig.mockReturnValue({
-          ...defaultConfig,
-          edition: "enterprise",
-        });
+        setEdition("enterprise");
       });
 
       afterEach(() => {
@@ -673,10 +653,7 @@ describe("Login", () => {
           writable: true,
           value: { ...originalLocation, replace: vi.fn() },
         });
-        mockGetConfig.mockReturnValue({
-          ...defaultConfig,
-          edition: "enterprise",
-        });
+        setEdition("enterprise");
         setInfo({ local: true, saml: true });
       });
 
@@ -778,10 +755,7 @@ describe("Login", () => {
     });
 
     it("hides the form entirely and shows SSO as the only option when local auth is disabled", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       setInfo({ local: false, saml: true });
 
       renderLogin();
@@ -810,7 +784,7 @@ describe("Login", () => {
     }
 
     beforeEach(() => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
     });
 
     it("offers password recovery next to sign-up when the form is shown", async () => {

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { isEnterpriseOrCloud } from "@/env";
+import { useCanEnterAdminConsole } from "@/hooks/useCanEnterAdminConsole";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { isAccountPath } from "@/utils/accountRoute";
@@ -27,7 +27,7 @@ import { ADMIN_UNAUTHORIZED_PATH } from "@/utils/adminRoute";
  */
 export function useSyncWorkspaceTab(pathname: string, isAdminRoute: boolean) {
   const tenant = useAuthStore((s) => s.tenant);
-  const canEnterAdmin = useAuthStore((s) => s.isAdmin) && isEnterpriseOrCloud();
+  const canEnterAdmin = useCanEnterAdminConsole();
   const { namespace } = useNamespace(tenant ?? "");
   const { namespaces, isLoading, error } = useNamespaces();
 

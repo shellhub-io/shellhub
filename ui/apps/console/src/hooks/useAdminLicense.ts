@@ -6,7 +6,7 @@ import {
 } from "../client";
 import { useAuthStore } from "../stores/authStore";
 import { isSdkError } from "../api/errors";
-import { isEnterprise } from "../env";
+import { features } from "@/edition";
 
 type LicenseData = GetLicenseResponse | null;
 
@@ -16,7 +16,7 @@ type LicenseData = GetLicenseResponse | null;
  */
 export function useAdminLicense({ active = true }: { active?: boolean } = {}) {
   const isAdmin = useAuthStore((s) => s.isAdmin);
-  const enabled = active && isAdmin && isEnterprise();
+  const enabled = active && isAdmin && features().instanceLicense;
 
   const query = useQuery<LicenseData>({
     queryKey: getLicenseQueryKey(),

@@ -3,12 +3,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { getConfig, defaultConfig } from "@/env";
 import type { GetLicenseResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 import DeviceLimitBanner from "../DeviceLimitBanner";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function makeLicense(
   devicesLimit: number,
@@ -51,7 +49,7 @@ function renderBanner() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: true });
   setHandlers(makeLicense(100), { registered_devices: 50 });
 });
@@ -179,7 +177,7 @@ describe("DeviceLimitBanner", () => {
 
   describe("cloud deployment", () => {
     it("is hidden when cloud=true and admin=true (getLicense never fires)", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
 
       renderBanner();
 

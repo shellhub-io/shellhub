@@ -9,7 +9,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import SegmentedTabs, { type SegmentedTab } from "@/components/common/SegmentedTabs";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import {
   adminUsersQueryOptions,
   USERS_SEARCH_SCOPE,
@@ -69,7 +69,7 @@ export default function AdminUsers() {
   const navigate = useNavigate();
   const isAdmin = useAuthStore((s) => s.isAdmin);
   const tabs = subsetTabs.filter(
-    (tab) => tab.value !== "awaiting_approval" || isEnterprise(),
+    (tab) => tab.value !== "awaiting_approval" || features().instanceLicense,
   );
   const visibleSubset = (subset: AdminUserSubset) =>
     tabs.some((tab) => tab.value === subset) ? subset : "";

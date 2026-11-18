@@ -4,7 +4,6 @@ import { Button } from "@shellhub/design-system/primitives";
 import Modal from "./Modal";
 import NamespaceNameField from "./fields/NamespaceNameField";
 import { NAMESPACE_NAME_MIN_LENGTH } from "@/utils/validation";
-import { isEnterpriseOrCloud } from "@/env";
 import { useNamespaceCreateForm } from "@/hooks/useNamespaceCreateForm";
 
 const FORM_ID = "create-namespace-form";
@@ -23,10 +22,7 @@ export default function CreateNamespaceDialog({
 }: CreateNamespaceDialogProps) {
   const autoId = useId();
   const inputId = `create-ns-input-${autoId}`;
-  const isPremium = isEnterpriseOrCloud();
   const form = useNamespaceCreateForm({ onCreated: onClose });
-
-  if (!isPremium) return null;
 
   return (
     <Modal

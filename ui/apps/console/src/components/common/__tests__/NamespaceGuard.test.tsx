@@ -8,7 +8,7 @@ import { useConnectivityStore } from "@/stores/connectivityStore";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { getConfig, defaultConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import NamespaceGuard from "../NamespaceGuard";
 
 vi.mock("@/components/common/CopyButton", async () => ({
@@ -18,8 +18,6 @@ vi.mock("@/components/common/CopyButton", async () => ({
 vi.mock("@/components/layout/SessionMenu", () => ({
   default: () => <div data-testid="session-menu" />,
 }));
-
-const mockGetConfig = vi.mocked(getConfig);
 
 afterEach(() => {
   vi.useRealTimers();
@@ -40,7 +38,7 @@ function serveUser(maxNamespaces: number) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   seedAuthStore({ email: "alice@example.com", tenant: null });
   serveUser(-1);
   server.use(
@@ -98,7 +96,7 @@ describe("NamespaceGuard", () => {
   });
 
   it("offers the namespace form, as the start of the trail, to a user who may create one", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     renderGuard("/dashboard");
     expect(
       await screen.findByRole("button", { name: /^create$/i }),
@@ -110,7 +108,7 @@ describe("NamespaceGuard", () => {
   });
 
   it("offers cloud the namespace form too", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+    setEdition("cloud");
     renderGuard("/dashboard");
     expect(
       await screen.findByRole("button", { name: /^create$/i }),
@@ -119,7 +117,7 @@ describe("NamespaceGuard", () => {
 
   it("enters the namespace by itself once an administrator adds the user", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     serveUser(0);
     let added = false;
     server.use(
@@ -139,7 +137,7 @@ describe("NamespaceGuard", () => {
   });
 
   it("offers to try again when getting into the new namespace fails", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     serveUser(0);
     server.use(
       http.get("*/api/namespaces", ({ request }) =>
@@ -185,7 +183,7 @@ describe("NamespaceGuard", () => {
   });
 
   it("surfaces a refused namespace creation on the name field", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     server.use(
       http.post("*/api/namespaces", () =>
         HttpResponse.json({}, { status: 409 }),
@@ -206,7 +204,7 @@ describe("NamespaceGuard", () => {
   });
 
   it("sends a user who may not create namespaces to an administrator", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     serveUser(0);
     renderGuard("/dashboard");
     expect(

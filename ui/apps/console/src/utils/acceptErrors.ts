@@ -1,5 +1,5 @@
 import { apiErrorFields, isSdkError } from "@/api/errors";
-import { isCloud, isEnterprise } from "@/env";
+import { features } from "@/edition";
 
 type EntityType = "device" | "container";
 
@@ -29,7 +29,7 @@ export function getAcceptErrorMessage(
 
   switch (err.status) {
     case 402: {
-      if (isCloud()) {
+      if (features().billing) {
         if (hasSubscription) {
           return canSubscribe
             ? `Your subscription needs attention before this namespace can accept ${entityType}s. Open Billing to finish or repair it — your ${entityType} count is not the problem.`
@@ -39,7 +39,7 @@ export function getAcceptErrorMessage(
           ? `Your subscription plan has reached its ${entityType} limit. Please update your billing plan to accept more ${entityType}s.`
           : `Your namespace has reached its ${entityType} limit. Ask the namespace owner to update the billing plan.`;
       }
-      if (isEnterprise())
+      if (features().instanceLicense)
         return `Your instance has reached its ${entityType} limit. Please update your license to accept more ${entityType}s or contact the instance administrator.`;
       return fallback(entityType);
     }

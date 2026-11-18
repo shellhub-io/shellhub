@@ -7,11 +7,9 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestQueryClient, createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { getConfig, defaultConfig } from "@/env";
 
+import { setEdition } from "@/tests/edition";
 import SshSettings from "../SshSettings";
-
-const mockedGetConfig = vi.mocked(getConfig);
 
 type Settings = Partial<{
   legacy: boolean;
@@ -75,7 +73,7 @@ function renderSsh(queryClient = createTestQueryClient()) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   seedAuthStore();
   server.use(
     http.get("*/api/namespaces/:tenant", () => HttpResponse.json(defaultNs())),
@@ -239,10 +237,7 @@ describe("SshSettings", () => {
 
   describe("session recording", () => {
     beforeEach(() => {
-      mockedGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
     });
 
     it("locks the REC switch for a role that may not change it", async () => {
@@ -294,7 +289,7 @@ describe("SshSettings", () => {
     });
 
     it("is not offered in community", async () => {
-      mockedGetConfig.mockReturnValue({ ...defaultConfig });
+      setEdition("community");
       renderSsh();
 
       await screen.findByText("New");

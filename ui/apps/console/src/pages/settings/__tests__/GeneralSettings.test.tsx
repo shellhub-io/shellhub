@@ -7,15 +7,13 @@ import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
-import { getConfig, defaultConfig } from "@/env";
 
 vi.mock("@/components/common/CopyButton", async () => ({
   default: (await import("@/tests/mocks")).MockCopyButton,
 }));
 
+import { setEdition } from "@/tests/edition";
 import GeneralSettings from "../GeneralSettings";
-
-const mockedGetConfig = vi.mocked(getConfig);
 
 function defaultNs(settings: Partial<{ legacy: boolean }> = {}) {
   return mockNamespace({
@@ -40,7 +38,7 @@ function renderGeneral() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockedGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   seedAuthStore();
   server.use(
     http.get("*/api/namespaces/:tenant", () => HttpResponse.json(defaultNs())),

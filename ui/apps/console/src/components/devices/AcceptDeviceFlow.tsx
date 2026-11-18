@@ -18,7 +18,7 @@ import {
   clearPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
-import { isCloud, isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { CommunityInstructions } from "@/components/common/CreateNamespace";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { useAcceptDevice } from "@/hooks/useDeviceRequests";
@@ -327,7 +327,7 @@ export default function AcceptDeviceFlow({
             submitLabel="Sign in and continue"
             onSignedIn={clearPendingDeviceCode}
             secondaryAction={
-              isCloud() && (
+              features().selfService && (
                 <Button
                   as={Link}
                   to="/sign-up"
@@ -748,7 +748,7 @@ function FirstNamespace({
     create: onCreateAndAccept,
   });
 
-  if (!isEnterpriseOrCloud()) {
+  if (!features().paid) {
     return (
       <div className="space-y-3">
         <p className="text-sm text-text-secondary leading-relaxed text-justify">

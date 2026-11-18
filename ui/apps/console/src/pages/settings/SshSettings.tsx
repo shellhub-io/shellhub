@@ -31,7 +31,7 @@ import {
   useTerminalThemeStore,
   type AnsiColorName,
 } from "@/stores/terminalThemeStore";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { readableOn } from "@/utils/color";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import InputField from "@/components/common/fields/InputField";
@@ -597,7 +597,7 @@ export default function SshSettings() {
       description="How logins to this namespace's devices are authorized and recorded."
     >
       <NamespaceModelCard ns={ns} />
-      {isEnterpriseOrCloud() && <RecordingCard ns={ns} />}
+      {features().paid && <RecordingCard ns={ns} />}
       <EnforceSignaturesCard ns={ns} />
       <BannerCard ns={ns} />
     </SettingsSection>

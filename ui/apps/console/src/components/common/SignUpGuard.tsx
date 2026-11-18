@@ -1,5 +1,5 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 
 /**
  * Gates /sign-up, which is cloud's open self-registration. Everywhere else an account is created
@@ -7,6 +7,6 @@ import { isCloud } from "@/env";
  * offering a form that would be refused.
  */
 export default function SignUpGuard() {
-  if (!isCloud()) return <Navigate to="/login" replace />;
+  if (!features().selfService) return <Navigate to="/login" replace />;
   return <Outlet />;
 }

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import type { SdkHttpError } from "@/api/errors";
 import { createTestWrapper } from "@/tests/wrapper";
+import { setEdition } from "@/tests/edition";
 import ActionDialog from "../ActionDialog";
 import type { Action } from "@/hooks/useActionDialog";
 
@@ -31,8 +31,6 @@ vi.mock("react-router-dom", async () => {
     );
   return { ...actual, useNavigate: () => mockNavigate };
 });
-
-const mockGetConfig = vi.mocked(getConfig);
 
 const entity = { uid: "uid-1", name: "my-device" };
 const acceptAction: Action = { entity, operation: "accept" };
@@ -68,7 +66,7 @@ function renderDialog(
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   useAuthStore.setState({ role: "owner" });
 });
 
@@ -99,10 +97,7 @@ describe("ActionDialog", () => {
       [403, /permission/i],
       [409, /already exists/i],
     ])("shows the %i message when accept fails", async (status, message) => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       const runAction = vi.fn().mockRejectedValue(makeSdkError(status));
       renderDialog({ runAction });
       await userEvent.click(
@@ -141,7 +136,7 @@ describe("ActionDialog", () => {
 
   describe("billing dialog — cloud 402 on accept", () => {
     beforeEach(() => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
     });
 
     it.each([

@@ -1,11 +1,11 @@
 import {
   createContext,
-  useCallback,
   useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
-import { getConfig, isCloud } from "@/env";
+import { getConfig } from "@/env";
+import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
 import { useNamespace } from "@/hooks/useNamespaceRequests";
 import { useSupportIdentifier } from "@/hooks/useSupportIdentifier";
@@ -56,13 +56,13 @@ export function useChatwoot(): ChatwootHandle {
   const namespaceName = namespace?.name ?? "";
   const hasActiveBilling = hasActiveSubscription(namespace?.billing);
 
-  const isCloudEdition = isCloud();
+  const hasBilling = features().billing;
   const hasCloudConfig =
     !!config.chatwootWebsiteToken && !!config.chatwootBaseUrl;
 
   const { identifier, isError: identifierError } = useSupportIdentifier(
     tenant,
-    isCloudEdition && hasCloudConfig && hasActiveBilling,
+    hasBilling && hasCloudConfig && hasActiveBilling,
   );
 
   const widgetReady = useSyncExternalStore(
@@ -79,14 +79,14 @@ export function useChatwoot(): ChatwootHandle {
   const lastIdentityRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isCloudEdition || !hasCloudConfig) return;
+    if (!hasBilling || !hasCloudConfig) return;
     if (!hasActiveBilling || !identifier || !userId) return;
     injectChatwootScript({
       websiteToken: config.chatwootWebsiteToken,
       baseUrl: config.chatwootBaseUrl,
     });
   }, [
-    isCloudEdition,
+    hasBilling,
     hasCloudConfig,
     hasActiveBilling,
     identifier,
@@ -137,13 +137,13 @@ export function useChatwoot(): ChatwootHandle {
     return () => window.removeEventListener("chatwoot:on-message", onMessage);
   }, [widgetReady, tenant, namespaceName]);
 
-  const openWidget = useCallback(() => {
+  const openWidget = () => {
     if (!widgetReady) return;
     attempt(() => window.$chatwoot?.toggle("open"));
-  }, [widgetReady]);
+  };
 
   let status: ChatwootStatus;
-  if (!isCloudEdition) {
+  if (!hasBilling) {
     status = "non-cloud";
   } else if (!hasCloudConfig) {
     status = "unavailable";
