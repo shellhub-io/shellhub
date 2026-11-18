@@ -10,7 +10,11 @@ import { useHasPermission } from "@/hooks/useHasPermission";
 import { useMemberDevices } from "@/hooks/useMemberDevices";
 import { hasPermission } from "@/utils/permission";
 import { updateNamespaceMemberMutation } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+  DEVICE_ROW_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import { RoleSelector } from "./constants";
 import { assignableRoleOr, type AssignableRole } from "./helpers";
 
@@ -33,10 +37,9 @@ export default function MemberRoleDialog({
   const [next, setNext] = useState<AssignableRole>(current);
   const [keepDevices, setKeepDevices] = useState<string[]>([]);
   const invalidateMembership = useInvalidateByIds(
-    "getNamespaces",
-    "getNamespace",
+    ...NAMESPACE_QUERIES,
     "listNamespaceMembers",
-    "getDevices",
+    ...DEVICE_ROW_QUERIES,
     "getStats",
   );
   const updateRole = useMutation({

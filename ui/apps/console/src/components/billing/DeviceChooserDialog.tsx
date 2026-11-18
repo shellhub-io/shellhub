@@ -24,7 +24,10 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTableSort } from "@/hooks/useTableSort";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  DEVICE_STATUS_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import { choiceDevicesMutation, getDevicesMostUsedOptions } from "@/client";
 import { normalizeDeviceTags } from "@/utils/deviceTags";
 import { isSdkError } from "@/api/errors";
@@ -72,11 +75,7 @@ export default function DeviceChooserDialog({
   const suggestedPanelId = useId();
   const allPanelId = useId();
 
-  const invalidateChosen = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-  );
+  const invalidateChosen = useInvalidateByIds(...DEVICE_STATUS_QUERIES);
   const choice = useMutation({
     ...choiceDevicesMutation(),
     onSuccess: invalidateChosen,

@@ -1,7 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { deleteDeviceMutation, updateDeviceStatusMutation } from "@/client";
 import { useAcceptDevice } from "@/hooks/useDeviceRequests";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  DEVICE_STATUS_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
 /**
@@ -10,14 +13,7 @@ import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
  */
 export function useDeviceActionRunner() {
   const accept = useAcceptDevice();
-  const invalidateDevices = useInvalidateByIds(
-    "getDevices",
-    "getDevice",
-    "getStatusDevices",
-    "getStats",
-    "provisioningKeyList",
-    "listTenantRegistrations",
-  );
+  const invalidateDevices = useInvalidateByIds(...DEVICE_STATUS_QUERIES);
   const reject = useMutation({
     ...updateDeviceStatusMutation(),
     onSuccess: invalidateDevices,

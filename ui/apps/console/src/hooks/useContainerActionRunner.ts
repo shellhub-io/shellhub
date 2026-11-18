@@ -3,7 +3,10 @@ import {
   deleteContainerMutation,
   updateContainerStatusMutation,
 } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  DEVICE_STATUS_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
 
 /**
@@ -11,7 +14,7 @@ import type { EntityBase, EntityOperation } from "@/hooks/useActionDialog";
  * have to know which mutation each operation maps to.
  */
 export function useContainerActionRunner() {
-  const invalidateContainers = useInvalidateByIds("getContainers", "getContainer");
+  const invalidateContainers = useInvalidateByIds(...DEVICE_STATUS_QUERIES);
   const status = useMutation({
     ...updateContainerStatusMutation(),
     onSuccess: invalidateContainers,

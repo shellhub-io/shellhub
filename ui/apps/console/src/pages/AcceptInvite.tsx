@@ -18,7 +18,10 @@ import {
 } from "@/components/common/fields/rhf";
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
 import { acceptInviteMutation, resolveInvitationOptions } from "@/client";
-import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import {
+  useInvalidateByIds,
+  NAMESPACE_QUERIES,
+} from "@/hooks/useInvalidateQueries";
 import { inviteSchema, type InviteFormValues } from "./setup/schemas";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
@@ -55,9 +58,8 @@ export default function AcceptInvite() {
   const invite = searchParams.get("invite") ?? "";
 
   const invalidateMemberships = useInvalidateByIds(
+    ...NAMESPACE_QUERIES,
     "getMembershipInvitationList",
-    "getNamespace",
-    "getNamespaces",
   );
   const acceptInvite = useMutation({
     ...acceptInviteMutation(),

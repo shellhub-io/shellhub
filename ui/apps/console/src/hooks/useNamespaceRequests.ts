@@ -23,6 +23,7 @@ import { useVaultStore } from "@/stores/vaultStore";
 import {
   queryOperationId,
   useInvalidateByIds,
+  NAMESPACE_QUERIES,
 } from "@/hooks/useInvalidateQueries";
 
 /**
@@ -136,14 +137,14 @@ export function useStats() {
  * Edits the namespace's settings, refreshing the namespace list and the namespace itself.
  */
 export function useEditNamespace() {
-  const invalidate = useInvalidateByIds("getNamespaces", "getNamespace");
+  const invalidate = useInvalidateByIds(...NAMESPACE_QUERIES);
   return useMutation({
     ...editNamespaceMutation(),
     onSuccess: invalidate,
   });
 }
 
-const NAMESPACE_LIST_QUERIES = new Set(["getNamespaces", "getNamespace"]);
+const NAMESPACE_LIST_QUERIES = new Set<string>(NAMESPACE_QUERIES);
 const KEPT_ACROSS_NAMESPACES = new Set([
   ...NAMESPACE_LIST_QUERIES,
   "getNamespaceToken",
