@@ -53,10 +53,6 @@ import { useNavSectionTitle } from "@/components/layout/navSections";
 import IdentityModal from "./IdentityModal";
 import ObjectName from "@/components/common/ObjectName";
 
-// Upload for a key somebody put here, a terminal for one an SSH client offered
-// at login, a browser window for one a browser holds. The pair that carries the
-// distinction is terminal against window, which is the difference between the
-// two ways in.
 const SOURCE_ICON = {
   manual: ArrowUpTrayIcon,
   approval: CommandLineIcon,
