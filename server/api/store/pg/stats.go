@@ -8,6 +8,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/shellhub-io/shellhub/server/api/store/pg/entity"
+	"github.com/shellhub-io/shellhub/server/api/store/pg/internal"
 	"github.com/uptrace/bun"
 )
 
@@ -83,27 +84,26 @@ func countInScope(ctx context.Context, query *bun.SelectQuery, sc scope.Scope) (
 func buildOnlineDevicesQuery(db bun.IDB, cutoff time.Time) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("disconnected_at IS NULL").
-		Where("last_seen > ?", cutoff).
-		Where("status = ?", "accepted")
+		Where(internal.DeviceOnline, cutoff).
+		Where("status = ?", models.DeviceStatusAccepted)
 }
 
 func buildRegisteredDevicesQuery(db bun.IDB) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("status = ?", "accepted")
+		Where("status = ?", models.DeviceStatusAccepted)
 }
 
 func buildPendingDevicesQuery(db bun.IDB) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("status = ?", "pending")
+		Where("status = ?", models.DeviceStatusPending)
 }
 
 func buildRejectedDevicesQuery(db bun.IDB) *bun.SelectQuery {
 	return db.NewSelect().
 		Model((*entity.Device)(nil)).
-		Where("status = ?", "rejected")
+		Where("status = ?", models.DeviceStatusRejected)
 }
 
 func buildActiveSessionsQuery(db bun.IDB) *bun.SelectQuery {

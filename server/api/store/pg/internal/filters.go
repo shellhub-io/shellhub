@@ -46,10 +46,10 @@ func fromOnlineFilter(value any, threshold time.Time) (string, []any, bool, erro
 	}
 
 	if isOnline {
-		return `("device"."disconnected_at" IS NULL AND "device"."last_seen" > ?)`, []any{threshold}, true, nil
+		return DeviceOnline, []any{threshold}, true, nil
 	}
 
-	return `("device"."disconnected_at" IS NOT NULL OR "device"."last_seen" <= ?)`, []any{threshold}, true, nil
+	return "NOT " + DeviceOnline, []any{threshold}, true, nil
 }
 
 func fromKeyVerifiedFilter(value any) (string, []any, bool, error) {
