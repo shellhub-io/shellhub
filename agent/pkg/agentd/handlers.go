@@ -14,16 +14,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/shellhub-io/shellhub/agent/pkg/tunnel"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	// HandleSSHOpenV2 is the protocol used to open a new SSH connection.
-	HandleSSHOpenV2 = "/ssh/open/1.0.0"
-	// HandleSSHCloseV2 is the protocol used to close an existing SSH connection.
-	HandleSSHCloseV2 = "/ssh/close/1.0.0"
-	// HandleHTTPProxyV2 is the protocol used to open a new HTTP proxy connection.
-	HandleHTTPProxyV2 = "/http/proxy/1.0.0"
 )
 
 // Reasons the HTTP proxy sends the server when it cannot reach its target. They are fixed so the
@@ -57,16 +49,14 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	const ProxyHandlerNetwork = "tcp"
 
 	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
-		headers, err := ctx.Headers()
+		header, err := ctx.Header()
 		if err != nil {
 			log.WithError(err).Error("failed to get the headers from the connection")
 
 			return err
 		}
 
-		id := headers["id"]
-		host := headers["host"]
-		port := headers["port"]
+		id, host, port := header.ID, header.Host, header.Port
 
 		logger := log.WithFields(log.Fields{
 			"id":   id,
@@ -150,7 +140,7 @@ func httpProxyHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 		logger.Trace("proxy handler dialed to the address")
 
-		if err := ctx.Status("ok"); err != nil {
+		if err := ctx.Reached(); err != nil {
 			logger.WithError(err).Error("proxy handler failed to send status response")
 
 			return err
@@ -198,14 +188,14 @@ func sshHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
 		defer rwc.Close() //nolint:errcheck
 
-		headers, err := ctx.Headers()
+		header, err := ctx.Header()
 		if err != nil {
 			log.WithError(err).Error("failed to get the headers from the connection")
 
 			return err
 		}
 
-		id := headers["id"]
+		id := header.ID
 
 		conn, ok := rwc.(net.Conn)
 		if !ok {
@@ -226,14 +216,14 @@ func sshCloseHandlerV2(agent *Agent) tunnel.HandlerFunc {
 	return func(ctx tunnel.Context, rwc io.ReadWriteCloser) error {
 		defer rwc.Close() //nolint:errcheck
 
-		headers, err := ctx.Headers()
+		header, err := ctx.Header()
 		if err != nil {
 			log.WithError(err).Error("failed to get the headers from the connection")
 
 			return err
 		}
 
-		id := headers["id"]
+		id := header.ID
 
 		agent.server.CloseSession(id)
 
@@ -252,9 +242,9 @@ func sshCloseHandlerV2(agent *Agent) tunnel.HandlerFunc {
 
 // The V1 tunnel routes, in the "METHOD://path" form [tunnel.TunnelV1.Handle] parses.
 const (
-	HandleSSHOpenV1   = "GET:///ssh/:id"
-	HandleSSHCloseV1  = "GET:///ssh/close/:id"
-	HandleHTTPProxyV1 = "CONNECT:///http/proxy/:addr"
+	HandleSSHOpenV1   = "GET://" + tunnelproto.SSHOpenPathV1 + ":id"
+	HandleSSHCloseV1  = "GET://" + tunnelproto.SSHClosePathV1 + ":id"
+	HandleHTTPProxyV1 = "CONNECT://" + tunnelproto.HTTPProxyPathV1 + ":addr"
 )
 
 func httpProxyHandlerV1(agent *Agent) func(c *echo.Context) error {

@@ -32,8 +32,8 @@
 // TransportVersion1 (v1) uses the older revdial/http handshake where the
 // client expects HTTP-style GET/CONNECT requests. TransportVersion2 (v2)
 // uses a yamux session and performs per-stream negotiation with the
-// multistream protocol strings (see ProtoSSHOpen, ProtoSSHClose,
-// ProtoHTTPProxy). Callers should prepare the appropriate Target and the
+// multistream protocol strings (see [tunnelproto.ProtoSSHOpen], [tunnelproto.ProtoSSHClose],
+// [tunnelproto.ProtoHTTPProxy]). Callers should prepare the appropriate Target and the
 // dialer will perform the correct handshake based on the returned
 // TransportVersion.
 //

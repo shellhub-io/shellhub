@@ -22,6 +22,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/publicurl"
 	"github.com/shellhub-io/shellhub/pkg/telemetry"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/shellhub-io/shellhub/pkg/webendpoints"
 	"github.com/shellhub-io/shellhub/pkg/worker"
 	"github.com/shellhub-io/shellhub/pkg/worker/asynq"
@@ -688,9 +689,9 @@ func openAPIValidationSkipper(ctx *echo.Context) bool {
 	}
 
 	switch path {
-	case sshhttp.HandleConnectionV1Path,
-		sshhttp.HandleConnectionV2Path,
-		sshhttp.HandleRevdialPath,
+	case tunnelproto.ConnectionV1Path,
+		tunnelproto.ConnectionV2Path,
+		tunnelproto.RevdialPath,
 		web.WebsocketSSHBridgeRoute,
 		webendpoints.ProxyPath:
 		return true

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/multiformats/go-multistream"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -91,7 +92,7 @@ func TestSSHOpenPipelined(t *testing.T) {
 	})
 
 	t.Run("hands back the agent's greeting after the selection's confirmation", func(t *testing.T) {
-		server, headers := agentSpeaking(t, ProtoSSHOpen)
+		server, headers := agentSpeaking(t, tunnelproto.ProtoSSHOpen)
 
 		conn, err := handshake(t.Context(), server, TransportVersion2, SSHOpenTarget{SessionID: "session"})
 		require.NoError(t, err)
@@ -103,7 +104,7 @@ func TestSSHOpenPipelined(t *testing.T) {
 	})
 
 	t.Run("surfaces an agent refusing the protocol on the first read", func(t *testing.T) {
-		server, _ := agentSpeaking(t, ProtoSSHClose)
+		server, _ := agentSpeaking(t, tunnelproto.ProtoSSHClose)
 
 		conn, err := handshake(t.Context(), server, TransportVersion2, SSHOpenTarget{SessionID: "session"})
 		require.NoError(t, err)

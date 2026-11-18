@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/multiformats/go-multistream"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,7 +41,7 @@ func pipeWithDeadline(t *testing.T) (net.Conn, net.Conn) {
 
 func answerHTTPProxy(agent net.Conn, reply string) {
 	mux := multistream.NewMultistreamMuxer[string]()
-	mux.AddHandler(ProtoHTTPProxy, nil)
+	mux.AddHandler(tunnelproto.ProtoHTTPProxy, nil)
 
 	if _, _, err := mux.Negotiate(agent); err != nil {
 		return

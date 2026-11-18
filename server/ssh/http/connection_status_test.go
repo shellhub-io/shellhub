@@ -10,6 +10,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/shellhub-io/shellhub/server/api/pkg/echo/handlers"
 	"github.com/shellhub-io/shellhub/server/api/services"
 	servicemocks "github.com/shellhub-io/shellhub/server/api/services/mocks"
@@ -29,8 +30,8 @@ func newConnectionTestServer(t *testing.T, service services.Service, cfg *Config
 
 	h := &Handlers{Config: cfg, Dialer: nil, Service: service}
 
-	e.GET(HandleConnectionV1Path, h.HandleConnectionV1)
-	e.GET(HandleConnectionV2Path, h.HandleConnectionV2)
+	e.GET(tunnelproto.ConnectionV1Path, h.HandleConnectionV1)
+	e.GET(tunnelproto.ConnectionV2Path, h.HandleConnectionV2)
 
 	return e
 }
@@ -99,7 +100,7 @@ func TestHandleConnectionV1StatusCodes(t *testing.T) {
 
 			e := newConnectionTestServer(t, serviceMock, tt.config)
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tunnelproto.ConnectionV1Path, nil)
 			req.Header.Set("X-Request-ID", "request-id")
 			req = identitytest.As(req, identity.Identity{DeviceUID: testDeviceUID, TenantID: tt.tenant})
 
@@ -145,7 +146,7 @@ func TestHandleConnectionV1RetriesOnlyInfrastructureFailures(t *testing.T) {
 
 			e := newConnectionTestServer(t, serviceMock, &Config{RequireAcceptedTunnel: true}) //nolint:exhaustruct // the test sets only the field it exercises
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV1Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tunnelproto.ConnectionV1Path, nil)
 			req.Header.Set("X-Request-ID", "request-id")
 			req = identitytest.As(req, identity.Identity{DeviceUID: testDeviceUID, TenantID: "00000000-0000-4000-0000-000000000000"})
 
@@ -196,7 +197,7 @@ func TestHandleConnectionV2StatusCodes(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			e := newConnectionTestServer(t, nil, &Config{}) //nolint:exhaustruct // the test sets only the field it exercises
 
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, HandleConnectionV2Path, nil)
+			req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, tunnelproto.ConnectionV2Path, nil)
 			for name, value := range tt.headers {
 				req.Header.Set(name, value)
 			}

@@ -75,6 +75,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/connectivity"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/shellhub-io/shellhub/pkg/validator"
 	log "github.com/sirupsen/logrus"
 )
@@ -855,19 +856,19 @@ func (a *Agent) Listen(ctx context.Context) error {
 		tun.Handle(HandleHTTPProxyV1, httpProxyHandlerV1(a))
 
 		return a.serveTunnel(ctx, func(ctx context.Context) (net.Listener, error) {
-			return a.cli.NewReverseListenerV1(ctx, a.auth().Token, "/ssh/connection")
+			return a.cli.NewReverseListenerV1(ctx, a.auth().Token, tunnelproto.ConnectionV1Path)
 		}, tun.Listen)
 	case TransportV2:
 		tun := tunnel.NewTunnelV2(a.cli)
 
-		tun.Handle(HandleSSHOpenV2, sshHandlerV2(a))
-		tun.Handle(HandleSSHCloseV2, sshCloseHandlerV2(a))
-		tun.Handle(HandleHTTPProxyV2, httpProxyHandlerV2(a))
+		tun.Handle(tunnelproto.ProtoSSHOpen, sshHandlerV2(a))
+		tun.Handle(tunnelproto.ProtoSSHClose, sshCloseHandlerV2(a))
+		tun.Handle(tunnelproto.ProtoHTTPProxy, httpProxyHandlerV2(a))
 
 		return a.serveTunnel(ctx, func(ctx context.Context) (net.Listener, error) {
 			auth := a.auth()
 
-			return a.cli.NewReverseListenerV2(ctx, auth.Token, "/agent/connection", client.NewReverseV2ConfigFromMap(auth.Config))
+			return a.cli.NewReverseListenerV2(ctx, auth.Token, tunnelproto.ConnectionV2Path, client.NewReverseV2ConfigFromMap(auth.Config))
 		}, tun.Listen)
 	default:
 		return fmt.Errorf("unsupported transport version: %d", a.config.TransportVersion)

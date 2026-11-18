@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/multiformats/go-multistream"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -32,16 +33,12 @@ type SSHOpenTarget struct {
 	SessionID string
 }
 
-func (t SSHOpenTarget) envelope() map[string]string {
-	return map[string]string{"id": t.SessionID}
-}
-
 func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
 		log.Debug("preparing SSH open target for transport version 1")
 
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/ssh/"+t.SessionID, nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, tunnelproto.SSHOpenPathV1+t.SessionID, nil)
 		if err := req.Write(conn); err != nil {
 			log.Errorf("failed to write HTTP request: %v", err)
 
@@ -50,8 +47,8 @@ func (t SSHOpenTarget) prepare(ctx context.Context, conn net.Conn, version Trans
 	case TransportVersion2:
 		log.Debug("preparing SSH open target for transport version 2")
 
-		selected := &lazySelection{Conn: conn, lazy: multistream.NewMSSelect(conn, ProtoSSHOpen)}
-		if err := json.NewEncoder(selected).Encode(t.envelope()); err != nil {
+		selected := &lazySelection{Conn: conn, lazy: multistream.NewMSSelect(conn, tunnelproto.ProtoSSHOpen)}
+		if err := json.NewEncoder(selected).Encode(tunnelproto.Header{ID: t.SessionID}); err != nil {
 			return nil, err
 		}
 
@@ -93,15 +90,15 @@ type SSHCloseTarget struct{ SessionID string }
 func (t SSHCloseTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/ssh/close/"+t.SessionID, nil)
+		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, tunnelproto.SSHClosePathV1+t.SessionID, nil)
 		if err := req.Write(conn); err != nil {
 			return nil, err
 		}
 	case TransportVersion2:
-		if err := multistream.SelectProtoOrFail(ProtoSSHClose, conn); err != nil {
+		if err := multistream.SelectProtoOrFail(tunnelproto.ProtoSSHClose, conn); err != nil {
 			return nil, err
 		}
-		if err := json.NewEncoder(conn).Encode(map[string]string{"id": t.SessionID}); err != nil {
+		if err := json.NewEncoder(conn).Encode(tunnelproto.Header{ID: t.SessionID}); err != nil {
 			return nil, err
 		}
 	default:
@@ -134,7 +131,7 @@ type HTTPProxyTarget struct {
 func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version TransportVersion) (net.Conn, error) { //nolint:ireturn
 	switch version {
 	case TransportVersion1:
-		handshakeReq, _ := http.NewRequestWithContext(ctx, http.MethodConnect, fmt.Sprintf("/http/proxy/%s:%d", t.Host, t.Port), nil)
+		handshakeReq, _ := http.NewRequestWithContext(ctx, http.MethodConnect, fmt.Sprintf("%s%s:%d", tunnelproto.HTTPProxyPathV1, t.Host, t.Port), nil)
 		if err := handshakeReq.Write(conn); err != nil {
 			return nil, err
 		}
@@ -151,17 +148,17 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 
 		return withBuffered(conn, buffered), nil
 	case TransportVersion2:
-		if err := multistream.SelectProtoOrFail(ProtoHTTPProxy, conn); err != nil {
+		if err := multistream.SelectProtoOrFail(tunnelproto.ProtoHTTPProxy, conn); err != nil {
 			return nil, err
 		}
-		if err := json.NewEncoder(conn).Encode(map[string]string{
-			"id":   t.RequestID,
-			"host": t.Host,
-			"port": strconv.Itoa(t.Port),
+		if err := json.NewEncoder(conn).Encode(tunnelproto.Header{
+			ID:   t.RequestID,
+			Host: t.Host,
+			Port: strconv.Itoa(t.Port),
 		}); err != nil {
 			return nil, err
 		}
-		result := map[string]string{}
+		var result tunnelproto.Reply
 
 		const Limit = 512
 
@@ -169,8 +166,8 @@ func (t HTTPProxyTarget) prepare(ctx context.Context, conn net.Conn, version Tra
 		if err := decoder.Decode(&result); err != nil {
 			return nil, err
 		}
-		if result["status"] != "ok" {
-			return nil, &ProxyRefusedError{Reason: result["error"]}
+		if result.Status != tunnelproto.StatusOK {
+			return nil, &ProxyRefusedError{Reason: result.Error}
 		}
 
 		rest := bufio.NewReader(io.MultiReader(decoder.Buffered(), conn))

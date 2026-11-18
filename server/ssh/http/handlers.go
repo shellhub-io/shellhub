@@ -12,6 +12,7 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/pkg/tunnelproto"
 	"github.com/shellhub-io/shellhub/pkg/wsconnadapter"
 	routeserrors "github.com/shellhub-io/shellhub/server/api/routes/errors"
 	"github.com/shellhub-io/shellhub/server/api/services"
@@ -77,22 +78,6 @@ func (h *Handlers) resolveDevice(ctx context.Context, uid string) (*models.Devic
 const (
 	// HandleSSHClosePath receives a request to close an existing SSH session.
 	HandleSSHClosePath = "/api/sessions/:uid/close"
-)
-
-const (
-	// HandleConnectionV1Path is the connection endpoint where agents using revdial connects to establish
-	// a WebSocket connection. Each new logical session requires an extra reverse dial handshake.
-	HandleConnectionV1Path = "/ssh/connection"
-	// HandleConnectionV2Path is the connection endpoint where agents using yamux/multistream connects to
-	// establish a WebSocket connection. Subsequent logical streams are opened without additional HTTP
-	// handshakes and are protocol-negotiated via multistream-select.
-	HandleConnectionV2Path = "/agent/connection"
-)
-
-const (
-	// HandleRevdialPath is the reverse dial endpoint where agents using revdial requests a new logical
-	// session.
-	HandleRevdialPath = "/ssh/revdial"
 )
 
 // HandleSSHClose asks for an SSH session to be closed. It dials the device to end the session
@@ -244,7 +229,7 @@ func (h *Handlers) HandleConnectionV1(c *echo.Context) error {
 			wsconnadapter.WithClock(h.Config.clock()),
 			wsconnadapter.WithPingInterval(h.Config.TunnelPingInterval),
 		),
-		HandleRevdialPath,
+		tunnelproto.RevdialPath,
 	)
 
 	return nil
