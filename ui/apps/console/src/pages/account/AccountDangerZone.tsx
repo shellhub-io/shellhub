@@ -8,7 +8,7 @@ import InputField from "@/components/common/fields/InputField";
 import PasswordField from "@/components/common/fields/PasswordField";
 import { isSdkError, lockoutMessage } from "@/api/errors";
 
-import { isCloud, isCommunity } from "@/env";
+import { features } from "@/edition";
 import {
   TrashIcon,
   ExclamationTriangleIcon,
@@ -122,12 +122,11 @@ function DeleteAccountDialog({
 function DeleteAccountWarningDialog({
   open,
   onClose,
-  isCommunity,
 }: {
   open: boolean;
   onClose: () => void;
-  isCommunity: boolean;
 }) {
+  const viaCli = !features().paid;
   const username = useAuthStore((s) => s.username);
   const userId = useAuthStore((s) => s.userId);
   const { namespaces } = useNamespaces();
@@ -146,11 +145,11 @@ function DeleteAccountWarningDialog({
       aria-describedby={accountDeletionDescriptionId}
     >
       <DialogHeader
-        icon={isCommunity ? <CommandLineIcon /> : <ShieldCheckIcon />}
+        icon={viaCli ? <CommandLineIcon /> : <ShieldCheckIcon />}
         iconColor="neutral"
         title="Account deletion"
         description={
-          isCommunity
+          viaCli
             ? "On a Community instance, accounts are deleted from the CLI."
             : "On an Enterprise instance, accounts are deleted from the Admin Console."
         }
@@ -160,7 +159,7 @@ function DeleteAccountWarningDialog({
       />
       <div className="px-6 pb-6">
         <div className="space-y-4 text-sm text-text-muted">
-          {isCommunity ? (
+          {viaCli ? (
             <>
               <p>
                 In Community instances, user accounts can only be deleted via
@@ -233,7 +232,7 @@ function DeleteAccountWarningDialog({
  * The irreversible section of the account: deleting it, which only the cloud does from here.
  */
 export default function AccountDangerZone() {
-  const isCloudEdition = isCloud();
+  const { selfService } = features();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   return (
@@ -245,7 +244,7 @@ export default function AccountDangerZone() {
         <SettingsDangerCard
           title="Delete account"
           description={
-            isCloudEdition
+            selfService
               ? "Removes your account and everything tied to it for good."
               : "Account deletion needs the CLI or the Admin Console."
           }
@@ -261,7 +260,7 @@ export default function AccountDangerZone() {
           }
         />
       </SettingsSection>
-      {isCloudEdition ? (
+      {selfService ? (
         <DeleteAccountDialog
           key={String(deleteDialogOpen)}
           open={deleteDialogOpen}
@@ -271,7 +270,6 @@ export default function AccountDangerZone() {
         <DeleteAccountWarningDialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
-          isCommunity={isCommunity()}
         />
       )}
     </>

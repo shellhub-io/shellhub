@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { defaultConfig, getConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import AddMemberModal from "../AddMemberModal";
 
 vi.mock("@/components/common/Modal", async () => ({
@@ -24,8 +24,6 @@ vi.mock("@/utils/styles", () => ({
 }));
 
 const INVITE_LINK = "https://shellhub.example.com/invite/abc123";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function renderModal(open = true, onClose = vi.fn(), tenantId = "t1") {
   return render(
@@ -60,7 +58,7 @@ function setInviteError(status: number) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+  setEdition("cloud");
   setInviteResponse(null);
 });
 
@@ -92,7 +90,7 @@ describe("AddMemberModal", () => {
       edition,
       mentionsEmail,
     ) => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+      setEdition(edition);
       setInviteResponse(INVITE_LINK);
       const user = userEvent.setup();
       renderModal();

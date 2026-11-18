@@ -29,7 +29,7 @@ import SessionPrincipal from "@/components/sessions/SessionPrincipal";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import SessionLogin from "@/components/sessions/SessionLogin";
 import EmptyCell from "@/components/common/EmptyCell";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { apiErrorMessage } from "@/api/errors";
 import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
@@ -160,7 +160,7 @@ export default function Sessions() {
   });
   const closeSession = useCloseSession();
   const navigate = useNavigate();
-  const premium = isEnterpriseOrCloud();
+  const premium = features().paid;
   const [playTarget, setPlayTarget] = useState<string | null>(null);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const {

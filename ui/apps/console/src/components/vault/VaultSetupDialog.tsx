@@ -8,11 +8,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useVaultStore } from "@/stores/vaultStore";
+import { features } from "@/edition";
 import { loadLegacyKeysFromStorage } from "@/utils/vault-backend-local";
-import {
-  isVaultServerEnabled,
-  type VaultStorageMode,
-} from "@/utils/vault-backend-factory";
+import { type VaultStorageMode } from "@/utils/vault-backend-factory";
 import BaseDialog from "@/components/common/BaseDialog";
 import PasswordField from "@/components/common/fields/PasswordField";
 import { Button } from "@shellhub/design-system/primitives";
@@ -58,7 +56,7 @@ function SetupForm({ open, onClose, instanceId }: FormProps) {
   const [confirm, setConfirm] = useState("");
   const [mode, setMode] = useState<VaultStorageMode>("server");
 
-  const serverEnabled = isVaultServerEnabled();
+  const serverEnabled = features().paid;
   const titleId = `vault-setup-title-${instanceId}`;
 
   useEffect(() => {

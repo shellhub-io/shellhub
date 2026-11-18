@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { getConfig, isCloud } from "./env";
+import { features } from "@/edition";
+import { getConfig } from "./env";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import AppLayout from "./components/layout/AppLayout";
@@ -144,7 +145,7 @@ export default function App() {
                   element={<Navigate to="/login" replace />}
                 />
               </Route>
-              {isCloud() && (
+              {features().selfService && (
                 <>
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/update-password" element={<UpdatePassword />} />
@@ -304,7 +305,7 @@ export default function App() {
                       <Route path="/settings" element={<SettingsLayout />}>
                         <Route path="general" element={<GeneralSettings />} />
                         <Route path="ssh" element={<SshSettings />} />
-                        {isCloud() && (
+                        {features().billing && (
                           <Route path="billing" element={<BillingSettings />} />
                         )}
                         <Route

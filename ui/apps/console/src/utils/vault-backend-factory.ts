@@ -1,4 +1,4 @@
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import type { IVaultBackend } from "@/utils/vault-backend";
 import {
   LocalVaultBackend,
@@ -25,21 +25,13 @@ function modeKey(scope?: VaultScope): string {
 }
 
 /**
- * Whether server-side vault storage is available in this deployment
- * (Cloud/Enterprise). Community Edition is always local.
- */
-export function isVaultServerEnabled(): boolean {
-  return isEnterpriseOrCloud();
-}
-
-/**
  * The storage mode in effect for the given scope. The user's explicit choice
  * (persisted per user/namespace) wins; without one, an existing local vault
  * keeps using local storage — switching to the server is an explicit
  * migration — and new vaults default to the server when available.
  */
 export function getVaultStorageMode(scope?: VaultScope): VaultStorageMode {
-  if (!isVaultServerEnabled()) return "local";
+  if (!features().paid) return "local";
 
   const stored = localStorage.getItem(modeKey(scope));
   if (stored === "local" || stored === "server") return stored;

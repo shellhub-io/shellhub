@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { useServerInfo } from "@/hooks/useServerInfo";
 import { ADMIN_AUTHENTICATION_PATH } from "@/utils/adminRoute";
@@ -28,7 +28,7 @@ export default function AccessPanel({ children }: { children?: ReactNode }) {
       </Row>
       <Row
         label="Sign-in methods"
-        to={isEnterprise() ? ADMIN_AUTHENTICATION_PATH : undefined}
+        to={features().instanceLicense ? ADMIN_AUTHENTICATION_PATH : undefined}
       >
         <Loaded isLoading={info.isLoading} isError={info.isError}>
           {info.signInMethods.length > 0

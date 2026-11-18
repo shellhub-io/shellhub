@@ -27,7 +27,7 @@ import {
   useBrowserKeyFingerprint,
 } from "@/hooks/useBrowserKey";
 import { isRecordingSupported } from "../utils/recordings";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { isAlreadyEnrolled } from "../utils/sshIdentity";
 import { listSshIdentitiesOptions } from "../client";
 import BrowserEnrollDialog from "./terminal/BrowserEnrollDialog";
@@ -304,7 +304,7 @@ export default function ConnectModal({
   const queryClient = useQueryClient();
   const { namespace } = useNamespace(tenant ?? "");
   const namespaceRecords =
-    isEnterpriseOrCloud() && (namespace?.settings?.session_record ?? false);
+    features().paid && (namespace?.settings?.session_record ?? false);
 
   const newNamespace = useNamespaceLegacy() !== true;
   const browserKeyFingerprint = useBrowserKeyFingerprint();

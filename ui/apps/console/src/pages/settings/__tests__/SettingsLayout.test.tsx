@@ -6,15 +6,13 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
-import { getConfig, defaultConfig } from "@/env";
 
 await vi.hoisted(async () =>
   (await import("@/tests/viewport")).installViewport(),
 );
 
+import { setEdition } from "@/tests/edition";
 import SettingsLayout from "../SettingsLayout";
-
-const mockedGetConfig = vi.mocked(getConfig);
 
 function renderAt(entry: string) {
   render(
@@ -32,7 +30,7 @@ function renderAt(entry: string) {
 
 describe("SettingsLayout", () => {
   beforeEach(() => {
-    mockedGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+    setEdition("cloud");
     seedAuthStore();
     server.use(
       http.get("*/api/namespaces/:tenant", () =>
@@ -60,7 +58,7 @@ describe("SettingsLayout", () => {
   });
 
   it("leaves Billing out elsewhere", () => {
-    mockedGetConfig.mockReturnValue({ ...defaultConfig });
+    setEdition("community");
     renderAt("/settings/general");
 
     expect(screen.getByRole("link", { name: "SSH" })).toBeInTheDocument();

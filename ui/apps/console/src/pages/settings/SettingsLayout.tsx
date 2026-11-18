@@ -6,7 +6,7 @@ import {
 import { Navigate, useLocation } from "react-router-dom";
 import SectionedLayout from "@/components/settings/SectionedLayout";
 import { useNavSectionTitle } from "@/components/layout/navSections";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 
 /**
  * The namespace settings area, one section per URL under /settings. A link to the billing anchor
@@ -18,12 +18,12 @@ export default function SettingsLayout() {
   const sections = [
     { to: "general", label: "General", icon: Cog6ToothIcon },
     { to: "ssh", label: "SSH", icon: CommandLineIcon },
-    ...(isCloud()
+    ...(features().billing
       ? [{ to: "billing", label: "Billing", icon: CreditCardIcon }]
       : []),
   ];
 
-  if (hash === "#billing" && pathname === "/settings" && isCloud()) {
+  if (hash === "#billing" && pathname === "/settings" && features().billing) {
     return <Navigate to="billing" replace />;
   }
 

@@ -31,7 +31,7 @@ import ScrollFades from "@/components/common/ScrollFades";
 import VaultAutoLockBanner from "@/components/vault/VaultAutoLockBanner";
 import { cn } from "@shellhub/design-system/cn";
 import LogoMark from "./LogoMark";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { isAdminPath } from "@/utils/adminRoute";
 import { isAccountPath } from "@/utils/accountRoute";
 import { isPreferencesPath } from "@/utils/preferencesRoute";
@@ -83,7 +83,7 @@ export default function AppLayout() {
       >
         <SkipToContentLink />
         <ConnectivityBanner />
-        {isEnterprise() && (
+        {features().instanceLicense && (
           <>
             <LicenseBanner />
             <DeviceLimitBanner />

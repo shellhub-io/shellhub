@@ -5,14 +5,10 @@ import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace, mockUserAuth } from "@/tests/factories";
-import { getConfig, defaultConfig } from "@/env";
 import CreateNamespaceDialog from "../CreateNamespaceDialog";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
   server.use(
     http.get("*/api/namespaces", () => jsonWithTotal([])),
     http.post("*/api/namespaces", () =>
@@ -35,18 +31,7 @@ function renderDialog(open: boolean, onClose = vi.fn()) {
   };
 }
 
-describe("CreateNamespaceDialog (community)", () => {
-  it("renders nothing — namespace creation is a premium feature", () => {
-    renderDialog(true);
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  });
-});
-
-describe("CreateNamespaceDialog (cloud/enterprise)", () => {
-  beforeEach(() => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
-  });
-
+describe("CreateNamespaceDialog", () => {
   it("renders nothing when open=false", () => {
     renderDialog(false);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

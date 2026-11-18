@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { getInfo } from "@/client";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
 import { isTokenExpired } from "@/utils/authToken";
 import { Spinner } from "@shellhub/design-system/primitives";
@@ -11,14 +11,14 @@ import { Spinner } from "@shellhub/design-system/primitives";
  * wizard. Skipped on cloud, where the instance is set up before anyone reaches it.
  */
 export default function SetupGuard() {
-  const isCloudEdition = isCloud();
-  const [loading, setLoading] = useState(!isCloudEdition);
+  const { setupWizard } = features();
+  const [loading, setLoading] = useState(setupWizard);
   const [setupDone, setSetupDone] = useState(true);
   const location = useLocation();
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
-    if (isCloudEdition) return;
+    if (!setupWizard) return;
 
     const controller = new AbortController();
     getInfo({ throwOnError: true, signal: controller.signal })
@@ -33,7 +33,7 @@ export default function SetupGuard() {
       });
 
     return () => controller.abort();
-  }, [isCloudEdition, location.pathname]);
+  }, [setupWizard, location.pathname]);
 
   const authed = token !== null && !isTokenExpired(token);
 

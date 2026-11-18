@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import MfaEnableModal from "@/components/mfa/MfaEnableModal";
 import MfaDisableDialog from "@/components/mfa/MfaDisableDialog";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { Button } from "@shellhub/design-system/primitives";
 import SettingsSection from "@/components/settings/SettingsSection";
 import SettingsField from "@/components/settings/SettingsField";
@@ -178,12 +178,12 @@ export default function AccountSecurity() {
               icon={<ShieldCheckIcon />}
               title="Multi-factor authentication"
               description={
-                isEnterpriseOrCloud()
+                features().paid
                   ? "A code from an authenticator app on every sign-in. Recovery codes are shown once, during setup."
                   : "A code from an authenticator app on every sign-in. Available on paid editions."
               }
               control={
-                !isEnterpriseOrCloud() ? (
+                !features().paid ? (
                   <Button
                     as="a"
                     size="sm"

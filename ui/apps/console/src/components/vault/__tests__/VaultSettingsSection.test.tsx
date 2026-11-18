@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useVaultStore } from "@/stores/vaultStore";
-import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
+import { setEdition } from "@/tests/edition";
 import VaultSettingsSection from "../VaultSettingsSection";
 
 vi.mock("@/utils/vault-crypto", () => ({
@@ -30,7 +30,6 @@ vi.mock("@/utils/vault-backend-factory", () => ({
     clearLegacyKeys: vi.fn(),
     clear: vi.fn(),
   })),
-  isVaultServerEnabled: vi.fn(() => false),
 }));
 
 vi.mock("@/stores/authStore", () => {
@@ -80,7 +79,7 @@ beforeEach(() => {
     autoLockNonce: 0,
   });
   vi.clearAllMocks();
-  vi.mocked(isVaultServerEnabled).mockReturnValue(false);
+  setEdition("community");
 });
 
 describe("VaultSettingsSection", () => {
@@ -215,9 +214,9 @@ describe("VaultSettingsSection", () => {
 
   describe("Storage row", () => {
     it.each([true, false])(
-      "isVaultServerEnabled()=%s decides whether the row renders",
+      "a paid edition (%s) decides whether the row renders",
       (enabled) => {
-        vi.mocked(isVaultServerEnabled).mockReturnValue(enabled);
+        setEdition(enabled ? "enterprise" : "community");
         useVaultStore.setState({ storageMode: "local" });
         setUnlocked();
         renderSection();
@@ -231,7 +230,7 @@ describe("VaultSettingsSection", () => {
 
   describe("Storage row copy", () => {
     beforeEach(() => {
-      vi.mocked(isVaultServerEnabled).mockReturnValue(true);
+      setEdition("enterprise");
     });
 
     it.each([

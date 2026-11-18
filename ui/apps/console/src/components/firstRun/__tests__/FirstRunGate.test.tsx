@@ -12,7 +12,7 @@ import {
   mockNamespace,
   mockStats,
 } from "@/tests/factories";
-import { getConfig, defaultConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import FirstRunGate from "../FirstRunGate";
 
 vi.mock("@/components/layout/SessionMenu", () => ({
@@ -70,10 +70,8 @@ function renderAt(path: string) {
   );
 }
 
-const mockGetConfig = vi.mocked(getConfig);
-
 beforeEach(() => {
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   seedAuthStore({ tenant: TENANT, role: "owner" });
 });
 
@@ -417,7 +415,7 @@ describe("FirstRunGate pairing", () => {
   });
 
   it("explains a refusal for being over the device limit", async () => {
-    mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+    setEdition("enterprise");
     serveDashboard();
     serveCode("7K2M9QXR");
     server.use(

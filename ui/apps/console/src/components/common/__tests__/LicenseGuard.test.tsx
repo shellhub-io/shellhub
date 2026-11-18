@@ -5,12 +5,10 @@ import type { ComponentType, ReactNode } from "react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 import type { GetLicenseResponse } from "@/client";
+import { setEdition } from "@/tests/edition";
 import LicenseGuard from "../LicenseGuard";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function makeLicense(
   overrides: Partial<GetLicenseResponse> = {},
@@ -55,7 +53,7 @@ function renderGuard(Wrapper?: ComponentType<{ children: ReactNode }>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: true });
 });
 
@@ -131,7 +129,7 @@ describe("LicenseGuard", () => {
     it.each(["cloud", "community"] as const)(
       "renders the Outlet without calling getLicense on %s",
       async (edition) => {
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        setEdition(edition);
         let called = false;
         server.use(
           http.get("*/admin/api/license", () => {

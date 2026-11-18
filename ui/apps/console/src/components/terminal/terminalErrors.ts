@@ -1,4 +1,4 @@
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 
 interface ErrorEntry {
   title?: string;
@@ -259,7 +259,7 @@ export function resolveError(
     to: l.to.replace("$uid", encodeURIComponent(deviceUid)),
   }));
 
-  if (isEnterpriseOrCloud()) {
+  if (features().paid) {
     hints.push(
       isNewNamespace
         ? "An access policy may be blocking this connection."

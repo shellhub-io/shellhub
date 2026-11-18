@@ -3,14 +3,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { getConfig, defaultConfig } from "@/env";
 import type { GetLicenseResponse } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 import LicenseBanner from "../LicenseBanner";
 
 const DAY = 86400;
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function makeLicense(
   overrides: Partial<GetLicenseResponse> = {},
@@ -62,7 +60,7 @@ function renderBanner() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: true });
 });
 
@@ -96,10 +94,7 @@ describe("LicenseBanner", () => {
       [
         "the edition is cloud, so getLicense never fires",
         () =>
-          mockGetConfig.mockReturnValue({
-            ...defaultConfig,
-            edition: "cloud",
-          }),
+          setEdition("cloud"),
       ],
     ])("is hidden when %s", async (_label, arrange) => {
       arrange();

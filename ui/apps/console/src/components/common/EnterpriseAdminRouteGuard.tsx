@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { ADMIN_INSTANCE_PATH } from "@/utils/adminRoute";
 
 /**
@@ -7,7 +7,7 @@ import { ADMIN_INSTANCE_PATH } from "@/utils/adminRoute";
  * overview, replacing the history entry so Back does not return to it.
  */
 export default function EnterpriseAdminRouteGuard() {
-  if (!isEnterprise()) {
+  if (!features().instanceLicense) {
     return <Navigate to={ADMIN_INSTANCE_PATH} replace />;
   }
 

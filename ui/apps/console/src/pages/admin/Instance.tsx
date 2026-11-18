@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ServerIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@shellhub/design-system/primitives";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { useAdminStats } from "@/hooks/useAdminRequests";
 import { useAdminNamespaces } from "@/hooks/useAdminNamespaces";
 import PageHeader from "@/components/common/PageHeader";
@@ -68,7 +68,7 @@ function CloudInstance() {
  */
 export default function AdminInstance() {
   const [createUserOpen, setCreateUserOpen] = useState(false);
-  const enterprise = isEnterprise();
+  const enterprise = features().instanceLicense;
 
   return (
     <div>

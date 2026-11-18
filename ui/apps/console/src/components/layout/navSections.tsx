@@ -12,7 +12,7 @@ import {
   ShieldCheckIcon,
   FingerPrintIcon,
 } from "@heroicons/react/24/outline";
-import { getConfig, isEnterpriseOrCloud } from "@/env";
+import { getConfig } from "@/env";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useHasPermission } from "@/hooks/useHasPermission";
 
@@ -91,12 +91,13 @@ function buildSections(
     });
   }
 
-  if (config.webEndpoints && isEnterpriseOrCloud() && canListWebEndpoints) {
+  if (config.webEndpoints && canListWebEndpoints) {
     resources.push({
       to: "/web-endpoints",
       label: "Web Endpoints",
       icon: GlobeAltIcon,
       beta: true,
+      premium: true,
     });
   }
 

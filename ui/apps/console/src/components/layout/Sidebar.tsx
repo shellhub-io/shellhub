@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { useTerminalStore } from "@/stores/terminalStore";
 import SidebarShell from "./SidebarShell";
 import NavSectionList from "./NavSectionList";
@@ -23,7 +23,7 @@ function BetaBadge() {
 }
 
 function pickBadge(item: NavItem): ReactNode | undefined {
-  if (item.premium && !isEnterpriseOrCloud()) return <ProBadge />;
+  if (item.premium && !features().paid) return <ProBadge />;
   if (item.beta) return <BetaBadge />;
   return undefined;
 }

@@ -3,12 +3,10 @@ import { waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { renderHookWithClient } from "@/tests/wrapper";
-import { getConfig, defaultConfig } from "@/env";
 import { useAuthStore } from "@/stores/authStore";
 
+import { setEdition } from "@/tests/edition";
 import { useAdminLicense } from "../useAdminLicense";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function makeLicense(overrides: Record<string, unknown> = {}) {
   return {
@@ -28,7 +26,7 @@ function makeLicense(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   useAuthStore.setState({ isAdmin: true });
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+  setEdition("enterprise");
 });
 
 describe("useAdminLicense", () => {
@@ -122,7 +120,7 @@ describe("useAdminLicense", () => {
     it.each(["cloud", "community"] as const)(
       "does NOT call getLicense on %s",
       async (edition) => {
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        setEdition(edition);
         let called = false;
         server.use(
           http.get("*/admin/api/license", () => {
@@ -141,7 +139,7 @@ describe("useAdminLicense", () => {
     );
 
     it("returns isExpired false on cloud deployments", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
 
       const { result } = renderHookWithClient(() => useAdminLicense());
 

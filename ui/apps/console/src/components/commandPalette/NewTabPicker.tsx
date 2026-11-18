@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useUserInfo } from "@/hooks/useUserRequests";
 import { useWorkspaceTabs } from "@/hooks/useWorkspaceTabs";
-import { isEnterpriseOrCloud } from "@/env";
+import { useCanEnterAdminConsole } from "@/hooks/useCanEnterAdminConsole";
 import { canCreateNamespace } from "@/utils/namespaceCreation";
 import { isAdminPath } from "@/utils/adminRoute";
 import {
@@ -28,7 +28,7 @@ function NewTabList() {
   const close = useCommandPaletteStore((s) => s.close);
   const openCreateNamespace = useCreateNamespaceStore((s) => s.openDialog);
   const tenant = useAuthStore((s) => s.tenant);
-  const isAdmin = useAuthStore((s) => s.isAdmin);
+  const canEnterAdmin = useCanEnterAdminConsole();
   const { namespaces } = useNamespaces();
   const { data: userInfo } = useUserInfo();
   const workspace = useWorkspaceTabs();
@@ -44,7 +44,7 @@ function NewTabList() {
       t.kind === "namespace" ? [t.tenant] : [],
     ),
     showConnect: !adminContext,
-    showAdmin: isEnterpriseOrCloud() && isAdmin,
+    showAdmin: canEnterAdmin,
     canCreateNamespace: canCreateNamespace(userInfo),
     openNamespace: (namespaceTenant, name) => {
       close();

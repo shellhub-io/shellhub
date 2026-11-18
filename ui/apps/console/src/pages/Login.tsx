@@ -8,7 +8,7 @@ import {
 import { ArrowRightEndOnRectangleIcon } from "@heroicons/react/24/outline";
 import { Button, Callout, Spinner } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "../stores/authStore";
-import { isCloud, isEnterprise } from "../env";
+import { features } from "@/edition";
 import {
   clearPendingSsoLink,
   getSafeRedirect,
@@ -61,8 +61,7 @@ async function startSsoSignIn() {
  * parameter from the URL, so going back to the page later does not ask again.
  */
 export default function Login() {
-  const isCloudEdition = isCloud();
-  const isEnterpriseEdition = isEnterprise();
+  const { selfService, instanceLicense } = features();
   const location = useLocation();
   const { notice, signOut } = (location.state ?? {}) as {
     notice?: string;
@@ -176,8 +175,8 @@ export default function Login() {
     startSsoSignIn().catch(failSsoStart);
   };
 
-  const showLocalForm = !isEnterpriseEdition || authentication?.local === true;
-  const ssoOnly = isEnterpriseEdition && authentication?.local === false;
+  const showLocalForm = !instanceLicense || authentication?.local === true;
+  const ssoOnly = instanceLicense && authentication?.local === false;
 
   if (signedIn && !queryToken && !ssoComplete && !ssoLink && !signOut) {
     return <Navigate to="/" replace />;
@@ -231,7 +230,7 @@ export default function Login() {
         {error && <Callout variant="error">{error}</Callout>}
       </div>
 
-      {isEnterpriseEdition && authentication?.saml && (
+      {instanceLicense && authentication?.saml && (
         <div>
           <Button
             variant={ssoOnly ? "primary" : "secondary"}
@@ -263,7 +262,7 @@ export default function Login() {
         />
       )}
 
-      {isCloudEdition && (
+      {selfService && (
         <div className="mt-4">
           <AuthActions
             links={[

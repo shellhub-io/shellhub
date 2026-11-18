@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getConfig, defaultConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import { getAcceptErrorMessage } from "../acceptErrors";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 const msg = (
   err: unknown,
@@ -14,31 +12,22 @@ const msg = (
 describe("getAcceptErrorMessage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetConfig.mockReturnValue({ ...defaultConfig });
+    setEdition("community");
   });
 
   describe("402 Payment Required", () => {
     it("returns license copy for enterprise (non-cloud) on 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       expect(msg({ status: 402 })).toMatch(/license/i);
     });
 
     it("returns billing copy for cloud on 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       expect(msg({ status: 402 })).toMatch(/billing|subscription|plan/i);
     });
 
     it("separates a subscription block from a device-limit hit on cloud 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
 
       const limitMsg = msg({ status: 402 });
       const subscriptionMsg = msg({ status: 402 }, true);
@@ -59,10 +48,7 @@ describe("getAcceptErrorMessage", () => {
     });
 
     it("returns namespace copy even when enterprise is true (403 ignores enterprise flag)", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       expect(msg({ status: 403 })).toMatch(/namespace|permission/i);
     });
 
@@ -113,20 +99,14 @@ describe("getAcceptErrorMessage", () => {
 
   describe("entityType parameter", () => {
     it("interpolates 'container' into enterprise 402 copy", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       const result = msg({ status: 402 }, false, true, "container");
       expect(result).toMatch(/container limit/i);
       expect(result).not.toMatch(/device/i);
     });
 
     it("interpolates 'container' into cloud 402 billing copy", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       const result = msg({ status: 402 }, false, true, "container");
       expect(result).toMatch(/container limit/i);
       expect(result).not.toMatch(/device/i);
@@ -164,36 +144,24 @@ describe("getAcceptErrorMessage", () => {
 
   describe("canSubscribe parameter", () => {
     it("returns owner billing copy when canSubscribe is true on cloud 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       expect(msg({ status: 402 })).toMatch(/update your billing plan/i);
     });
 
     it("returns non-owner billing copy when canSubscribe is false on cloud 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       expect(msg({ status: 402 }, false, false)).toMatch(
         /ask the namespace owner/i,
       );
     });
 
     it("returns owner subscription copy when canSubscribe is true on cloud subscription-blocked 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       expect(msg({ status: 402 }, true, true)).toMatch(/open billing/i);
     });
 
     it("returns non-owner subscription copy when canSubscribe is false on cloud subscription-blocked 402", () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "cloud",
-      });
+      setEdition("cloud");
       expect(msg({ status: 402 }, true, false)).toMatch(
         /ask the namespace owner/i,
       );

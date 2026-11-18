@@ -7,10 +7,8 @@ import { server } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
 import { mockLicense } from "@/tests/factories";
 import { useAuthStore } from "@/stores/authStore";
-import { getConfig, defaultConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import AdminNavBar from "../AdminNavBar";
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function Pathname() {
   return <output aria-label="Current page">{useLocation().pathname}</output>;
@@ -28,7 +26,7 @@ function renderBar(compact: boolean, path = "/admin/users") {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "enterprise" });
+  setEdition("enterprise");
   useAuthStore.setState({ isAdmin: true });
   server.use(
     http.get("*/admin/api/license", () =>
@@ -63,7 +61,7 @@ describe("AdminNavBar", () => {
     });
 
     it("leaves License and Authentication out on cloud", async () => {
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
       renderBar(false);
 
       expect(

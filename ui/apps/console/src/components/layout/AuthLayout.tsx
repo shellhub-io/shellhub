@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { cn } from "@shellhub/design-system/cn";
 import { ShellHubLogo } from "@shellhub/design-system/primitives";
-import { isCommunity } from "@/env";
+import { features } from "@/edition";
 import AuthFooterLinks from "@/components/common/AuthFooterLinks";
 import { columnWidths, type ColumnWidth } from "@/components/layout/columnWidths";
 
@@ -30,7 +30,7 @@ export default function AuthLayout({ width = "md" }: AuthLayoutProps) {
         >
           <Outlet />
         </div>
-        {isCommunity() && <AuthFooterLinks />}
+        {!features().paid && <AuthFooterLinks />}
       </main>
     </div>
   );

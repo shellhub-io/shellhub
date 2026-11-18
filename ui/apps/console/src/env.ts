@@ -1,8 +1,8 @@
 import { nullOnFailure } from "@/utils/failure";
 
 /**
- * Which edition the server is running. It decides what the UI offers: web endpoints exist only
- * above community, SSO only on enterprise, and billing only on cloud.
+ * Which edition the server is running. What each edition offers is decided by features() in
+ * @/edition.
  */
 export type Edition = "community" | "enterprise" | "cloud";
 
@@ -69,33 +69,4 @@ export async function loadConfig(): Promise<ClientConfig> {
  */
 export function getConfig(): ClientConfig {
   return cached ?? defaultConfig;
-}
-
-/**
- * Whether this is the community edition.
- */
-export function isCommunity(): boolean {
-  return getConfig().edition === "community";
-}
-
-/**
- * Whether this is the enterprise edition.
- */
-export function isEnterprise(): boolean {
-  return getConfig().edition === "enterprise";
-}
-
-/**
- * Whether this is the cloud edition.
- */
-export function isCloud(): boolean {
-  return getConfig().edition === "cloud";
-}
-
-/**
- * Whether the edition has the paid features at all. Prefer this to testing the two editions
- * separately: a feature that exists in both should not have to name them.
- */
-export function isEnterpriseOrCloud(): boolean {
-  return getConfig().edition !== "community";
 }

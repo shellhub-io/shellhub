@@ -1,5 +1,5 @@
 import { Button } from "@shellhub/design-system/primitives";
-import { isCommunity } from "@/env";
+import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserInfo } from "@/hooks/useUserRequests";
 import { canCreateNamespace } from "@/utils/namespaceCreation";
@@ -43,7 +43,7 @@ export default function NamespaceTrail() {
   const { data: user, error, refetch } = useUserInfo();
   const eyebrow = `Welcome, ${name || email || "back"}`;
 
-  if (!isCommunity() && error) {
+  if (features().paid && error) {
     return (
       <FirstRunLayout
         eyebrow={eyebrow}
@@ -57,7 +57,7 @@ export default function NamespaceTrail() {
     );
   }
 
-  if (!isCommunity() && !user) return null;
+  if (features().paid && !user) return null;
 
   if (!canCreateNamespace(user)) {
     return (
@@ -68,7 +68,7 @@ export default function NamespaceTrail() {
         signedIn
         inConsole={false}
       >
-        {isCommunity() ? (
+        {!features().paid ? (
           <CommunityInstructions autoEnter />
         ) : (
           <AskAdministrator />

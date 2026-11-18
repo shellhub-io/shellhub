@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { isEnterprise } from "@/env";
+import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
 import {
   useOnboardingSurvey,
@@ -21,7 +21,9 @@ export default function OnboardingSurveyGate() {
   );
   const name = useAuthStore((s) => s.name);
   const email = useAuthStore((s) => s.email);
-  const { visible, survey } = useOnboardingSurvey(pending && !isEnterprise());
+  const { visible, survey } = useOnboardingSurvey(
+    pending && features().onboardingSurvey,
+  );
   const record = useRecordOnboardingSurvey();
 
   if (!visible) return <Outlet />;

@@ -1,4 +1,4 @@
-import { isEnterpriseOrCloud } from "@/env";
+import { features } from "@/edition";
 import { useCreateNamespaceStore } from "@/stores/createNamespaceStore";
 import CreateNamespaceDialog from "../common/CreateNamespaceDialog";
 import NamespaceUpsellDialog from "../common/NamespaceUpsellDialog";
@@ -11,7 +11,7 @@ export default function CreateNamespaceHost() {
   const open = useCreateNamespaceStore((s) => s.open);
   const close = useCreateNamespaceStore((s) => s.closeDialog);
 
-  return isEnterpriseOrCloud() ? (
+  return features().paid ? (
     <CreateNamespaceDialog open={open} onClose={close} />
   ) : (
     <NamespaceUpsellDialog open={open} onClose={close} />

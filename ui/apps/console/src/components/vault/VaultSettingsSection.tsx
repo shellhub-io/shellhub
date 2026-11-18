@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useVaultStore } from "@/stores/vaultStore";
-import { isVaultServerEnabled } from "@/utils/vault-backend-factory";
+import { features } from "@/edition";
 import VaultSyncDialog from "@/components/vault/VaultSyncDialog";
 import { ALLOWED_TIMEOUT_MINUTES } from "@/types/vault";
 import type { AllowedTimeoutMinutes } from "@/types/vault";
@@ -262,7 +262,7 @@ export default function VaultSettingsSection() {
             }
           />
 
-          {isVaultServerEnabled() && (
+          {features().paid && (
             <SettingsField title="Storage" description={storageDescription}>
               <Button
                 size="sm"

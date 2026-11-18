@@ -9,9 +9,9 @@ import { createTestWrapper } from "@/tests/wrapper";
 import { mockNamespace } from "@/tests/factories";
 import { defaultHandlers } from "@/tests/handlers";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
-import { getConfig, defaultConfig } from "@/env";
 import { useTerminalStore } from "@/stores/terminalStore";
 import { useAuthStore } from "@/stores/authStore";
+import { setEdition } from "@/tests/edition";
 import AppLayout from "../AppLayout";
 
 const viewport = vi.hoisted(() => ({ desktop: true, drawerOpen: false }));
@@ -52,14 +52,12 @@ vi.mock("@/components/common/LicenseBanner", () => ({
   default: () => <div data-testid="license-banner" />,
 }));
 
-const mockGetConfig = vi.mocked(getConfig);
-
 beforeEach(() => {
   vi.clearAllMocks();
   viewport.desktop = true;
   viewport.drawerOpen = false;
   useTerminalStore.setState({ sessions: [], recordings: [] });
-  mockGetConfig.mockReturnValue({ ...defaultConfig });
+  setEdition("community");
   seedAuthStore();
   server.use(...defaultHandlers);
   server.use(
@@ -111,7 +109,7 @@ describe("AppLayout", () => {
       async (_, desktop) => {
         viewport.desktop = desktop;
         seedAuthStore({ isAdmin: true });
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+        setEdition("cloud");
         renderLayout("/admin/instance");
 
         const menus = await screen.findAllByRole("button", {
@@ -126,7 +124,7 @@ describe("AppLayout", () => {
 
     it("gives way to the admin bar across the top on admin routes", async () => {
       seedAuthStore({ isAdmin: true });
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
       renderLayout("/admin/instance");
       expect(
         await screen.findByRole("link", { name: "Instance" }),
@@ -263,7 +261,7 @@ describe("AppLayout", () => {
     it("puts the window away when the admin logo is clicked on its own page", async () => {
       const user = userEvent.setup();
       seedAuthStore({ isAdmin: true });
-      mockGetConfig.mockReturnValue({ ...defaultConfig, edition: "cloud" });
+      setEdition("cloud");
       renderLayout("/admin/instance");
 
       const adminTab = await screen.findByRole("tab", {
@@ -366,10 +364,7 @@ describe("AppLayout", () => {
 
   describe("enterprise banners", () => {
     it("mounts LicenseBanner and DeviceLimitBanner in an enterprise instance", async () => {
-      mockGetConfig.mockReturnValue({
-        ...defaultConfig,
-        edition: "enterprise",
-      });
+      setEdition("enterprise");
       renderLayout();
       expect(
         await screen.findByTestId("device-limit-banner"),
@@ -380,7 +375,7 @@ describe("AppLayout", () => {
     it.each(["community", "cloud"] as const)(
       "does not mount the enterprise banners on a %s instance",
       async (edition) => {
-        mockGetConfig.mockReturnValue({ ...defaultConfig, edition });
+        setEdition(edition);
         renderLayout();
         await screen.findByRole("tablist", { name: "Open views" });
         expect(

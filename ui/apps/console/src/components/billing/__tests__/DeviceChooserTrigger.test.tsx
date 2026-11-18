@@ -9,7 +9,7 @@ import { mockStats, mockNamespace } from "@/tests/factories";
 import { seedAuthStore, VALID_JWT } from "@/tests/seedAuthStore";
 import type { Edition } from "@/env";
 
-import { getConfig } from "@/env";
+import { setEdition } from "@/tests/edition";
 import DeviceChooserTrigger from "../DeviceChooserTrigger";
 
 vi.mock("../DeviceChooserDialog", () => ({
@@ -26,8 +26,6 @@ vi.mock("../DeviceChooserDialog", () => ({
         )
       : null,
 }));
-
-const mockGetConfig = vi.mocked(getConfig);
 
 function setupMocks({
   edition = "cloud",
@@ -46,7 +44,7 @@ function setupMocks({
   statsLoading?: boolean;
   namespaceNull?: boolean;
 } = {}) {
-  mockGetConfig.mockReturnValue({ edition } as ReturnType<typeof getConfig>);
+  setEdition(edition);
   seedAuthStore({ role, isAdmin: role === "owner" });
 
   if (statsLoading) {

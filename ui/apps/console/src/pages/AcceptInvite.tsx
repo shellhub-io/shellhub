@@ -22,7 +22,7 @@ import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { inviteSchema, type InviteFormValues } from "./setup/schemas";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
-import { isCloud } from "@/env";
+import { features } from "@/edition";
 
 type Branch =
   | "loading"
@@ -156,7 +156,7 @@ export default function AcceptInvite() {
       return;
     }
 
-    if (isCloud()) {
+    if (features().selfService) {
       const confirm = new URLSearchParams({ identifier: inviteEmail });
       void navigate(`/confirm-account?${confirm.toString()}`);
       return;
