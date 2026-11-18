@@ -13,11 +13,8 @@ import (
 )
 
 // NamespaceFilterFields maps each filter field the namespace list endpoint accepts
-// to the set of operators valid for it. The "type" field maps to the "scope" column
-// in the database (see namespaceFilterColumns) and only supports equality operators
-// because it is an enum column. It declares the values it accepts for the same reason,
-// and declares them as the types the API names rather than the scopes the column stores,
-// because the rewrite to the column happens after validation.
+// to the set of operators valid for it. The "type" field is an enum, stored in the "scope"
+// column, so it supports only equality operators and declares the types it accepts.
 var NamespaceFilterFields = query.NewFieldConstraints(map[string][]string{
 	"name": {"contains", "eq", "ne"},
 	"type": {"eq", "ne"},
@@ -27,10 +24,6 @@ var NamespaceFilterFields = query.NewFieldConstraints(map[string][]string{
 		string(models.TypeTeam),
 	},
 })
-
-var namespaceFilterColumns = map[string]string{
-	"type": "scope",
-}
 
 // NamespaceService owns namespaces themselves: creating, editing and removing them, and the
 // settings that apply to everything inside one.
@@ -149,12 +142,6 @@ func (s *service) createNamespaceInTransaction(ctx context.Context, req *request
 }
 
 func (s *service) ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error) {
-	for p := range req.Filters.Properties() {
-		if col, found := namespaceFilterColumns[p.Name]; found {
-			p.Name = col
-		}
-	}
-
 	if req.UserID == "" && !req.IsAdmin {
 		if req.TenantID == "" {
 			return []models.Namespace{}, 0, nil

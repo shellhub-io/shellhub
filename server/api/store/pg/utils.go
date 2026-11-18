@@ -71,6 +71,10 @@ type ctxKey string
 // like the scope predicate, avoiding column ambiguity in queries with JOINs.
 const CtxTableAlias ctxKey = "table_alias"
 
+// CtxFilterColumns maps a filter field to the column it matches, for a table whose column is named
+// differently from the field a caller filters on.
+const CtxFilterColumns ctxKey = "filter_columns"
+
 // CtxNamespaceColumn overrides the column the scope predicate bounds on. Almost every table names it
 // namespace_id; membership_invitations is the exception, calling it tenant_id.
 const CtxNamespaceColumn ctxKey = "namespace_column"

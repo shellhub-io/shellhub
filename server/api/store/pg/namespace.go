@@ -155,6 +155,8 @@ func (pg *Pg) NamespaceList(ctx context.Context, opts ...store.QueryOption) ([]m
 	entities := make([]entity.Namespace, 0)
 	query := db.NewSelect().Model(&entities)
 
+	ctx = context.WithValue(ctx, CtxFilterColumns, map[string]string{"type": "scope"})
+
 	var err error
 	query, err = applyOptions(ctx, query, opts...)
 	if err != nil {

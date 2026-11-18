@@ -55,6 +55,27 @@ func (s *Suite) TestNamespaceList(t *testing.T) {
 		assert.Contains(t, names, "namespace-4")
 	})
 
+	t.Run("filters by the type a caller names", func(t *testing.T) {
+		require.NoError(t, s.provider.CleanDatabase(t))
+
+		personal := func(ns *models.Namespace) { ns.Type = models.TypePersonal }
+		s.CreateNamespace(t, WithNamespaceName("ns-personal"), personal)
+		s.CreateNamespace(t, WithNamespaceName("ns-team"), func(ns *models.Namespace) { ns.Type = models.TypeTeam })
+
+		namespaces, count, err := st.NamespaceList(ctx,
+			st.Options().Match(&query.Filters{Data: []query.Filter{{
+				Type:   query.FilterTypeProperty,
+				Params: &query.FilterProperty{Name: "type", Operator: "eq", Value: string(models.TypePersonal)},
+			}}}),
+			st.Options().Paginate(&query.Paginator{Page: -1, PerPage: -1}),
+		)
+
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+		require.Len(t, namespaces, 1)
+		assert.Equal(t, "ns-personal", namespaces[0].Name)
+	})
+
 	t.Run("returns only namespaces where user is member", func(t *testing.T) {
 		require.NoError(t, s.provider.CleanDatabase(t))
 
