@@ -13,44 +13,21 @@ import (
 // ErrLayer is the errors' level for service's error.
 const ErrLayer = "service"
 
+// The service layer's error codes, the kinds [errors.HTTPStatus] maps.
 const (
-	// ErrCodeNotFound is the error code for when a resource is not found.
-	ErrCodeNotFound = iota + 1
-	// ErrCodeDuplicated is the error code for when a resource is duplicated.
-	ErrCodeDuplicated
-	// ErrCodeLimit is the error code for when a resource is reached the limit.
-	ErrCodeLimit
-	// ErrCodeInvalid is the error code for when a resource is invalid.
-	ErrCodeInvalid
-	// ErrCodePayment is the error code for when a resource required payment.
-	ErrCodePayment
-	// ErrCodeUnauthorized is the error code for when the access to resource is unauthorized.
-	ErrCodeUnauthorized
-	// ErrCodeForbidden is the error code for when the access to resource is forbidden.
-	ErrCodeForbidden
-	// ErrCodeStore is the error code for when the store function fails. The store function is responsible for execute
-	// the main service action.
-	ErrCodeStore
-	// ErrCodeNoContentChange is the error that occurs when the store function does not change any resource. Generally used in
-	// update methods.
-	ErrCodeNoContentChange
-	// ErrCodeCreated is the error code to be used when the resource was created, but the following operations failed.
-	ErrCodeCreated
-	// ErrCodeNotImplemented is the error code for an authentication method this instance does not offer,
-	// whether turned off or unsupported by its edition (mapped to HTTP 501).
-	ErrCodeNotImplemented
-	// ErrCodeConflict is the error code for when the request conflicts with the resource's
-	// current state (mapped to HTTP 409).
-	ErrCodeConflict
-	// ErrCodeLocked is the error code for when the resource exists but is inert and can't be
-	// acted on yet (mapped to HTTP 423), e.g. an account awaiting administrator approval.
-	ErrCodeLocked
-	// ErrCodeInternal is the error code for a failure on the server's side that the caller can't
-	// fix, such as billing failing to answer (mapped to HTTP 500).
-	ErrCodeInternal
-	// ErrCodeTooManyRequests is the error code for a caller who must wait before trying again, such
-	// as one locked out after wrong passwords (mapped to HTTP 429).
-	ErrCodeTooManyRequests
+	ErrCodeNotFound        = errors.CodeNotFound
+	ErrCodeDuplicated      = errors.CodeDuplicated
+	ErrCodeLimit           = errors.CodeLimit
+	ErrCodeInvalid         = errors.CodeInvalid
+	ErrCodePayment         = errors.CodePayment
+	ErrCodeUnauthorized    = errors.CodeUnauthorized
+	ErrCodeForbidden       = errors.CodeForbidden
+	ErrCodeStore           = errors.CodeStore
+	ErrCodeNotImplemented  = errors.CodeNotImplemented
+	ErrCodeConflict        = errors.CodeConflict
+	ErrCodeLocked          = errors.CodeLocked
+	ErrCodeInternal        = errors.CodeInternal
+	ErrCodeTooManyRequests = errors.CodeTooManyRequests
 )
 
 // ErrDataNotFound structure should be used to add errors.Data to an error when the resource is not found.
@@ -82,7 +59,6 @@ var (
 	ErrLicenseBlocked                  = errors.New("license blocked the connection", ErrLayer, ErrCodePayment)
 	ErrLicenseNotAuthorized            = errors.New("license does not authorize this service", ErrLayer, ErrCodePayment)
 	ErrBillingBlocked                  = errors.New("billing blocked the connection", ErrLayer, ErrCodePayment)
-	ErrNoContentChange                 = errors.New("no content change", ErrLayer, ErrCodeNoContentChange)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)
 	ErrForbidden                       = errors.New("forbidden", ErrLayer, ErrCodeForbidden)
@@ -189,7 +165,7 @@ func NewErrDuplicated(err error, conflicts []string, next error) error {
 		fields[field] = "duplicated"
 	}
 
-	return errors.Wrap(errors.WithData(err, ErrDataInvalidFields{Fields: fields}), next)
+	return errors.Wrap(errors.WithData(err, errors.InvalidFields{Fields: fields}), next)
 }
 
 // NewErrLimit returns an error with the ErrDataLimit and wrap an error.
@@ -274,13 +250,6 @@ func NewErrProvisioningKeyForbidden() error {
 	return NewErrForbidden(ErrProvisioningKeyForbidden, nil)
 }
 
-// ErrDataInvalidFields carries the offending field(s) and why they are invalid, so the route can
-// answer with a per-field body ({"fields": {...}}) instead of a bare, bodyless 400. This mirrors the
-// shape the UI already consumes from the user/invitation endpoints.
-type ErrDataInvalidFields struct {
-	Fields map[string]string `json:"fields"`
-}
-
 // ErrDataLockout carries when a lockout ends, as a Unix timestamp in seconds, or 0 when the attempt
 // was refused for running alongside another one rather than for a lockout.
 type ErrDataLockout struct {
@@ -302,7 +271,7 @@ func NewErrFactorCheckUnavailable(next error) error {
 // NewErrInvalidFields tags an error with the offending request field(s) and why each was rejected,
 // so the HTTP error handler can answer with a per-field body.
 func NewErrInvalidFields(err error, fields map[string]string) error {
-	return errors.WithData(err, ErrDataInvalidFields{Fields: fields})
+	return errors.WithData(err, errors.InvalidFields{Fields: fields})
 }
 
 // NewErrAccessPolicyInvalidField returns a bad-request error tagging access policy field(s) with a

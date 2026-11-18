@@ -115,7 +115,6 @@ func TestNewErrors(t *testing.T) {
 		err          error
 		wantStatus   int
 		wantBody     responses.Error
-		wantNoBody   bool
 		wantHeaders  map[string]string
 		wantReported bool
 	}{
@@ -317,13 +316,6 @@ func TestNewErrors(t *testing.T) {
 			wantReported: false,
 		},
 		{
-			description:  "a service no-content-change error yields a bare 204",
-			err:          services.ErrNoContentChange,
-			wantStatus:   http.StatusNoContent,
-			wantNoBody:   true,
-			wantReported: false,
-		},
-		{
 			description:  "an error from an unrecognised layer yields a generic 500 body",
 			err:          scope.ErrEmptyTenantID,
 			wantStatus:   http.StatusInternalServerError,
@@ -346,13 +338,9 @@ func TestNewErrors(t *testing.T) {
 				assert.Equal(t, value, rec.Header().Get(name), "unexpected %s header", name)
 			}
 
-			if tc.wantNoBody {
-				assert.Empty(t, rec.Body.Bytes(), "expected no response body")
-			} else {
-				body := responses.Error{} //nolint:exhaustruct
-				require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "response body is not a JSON error")
-				assert.Equal(t, tc.wantBody, body, "unexpected response body")
-			}
+			body := responses.Error{} //nolint:exhaustruct
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body), "response body is not a JSON error")
+			assert.Equal(t, tc.wantBody, body, "unexpected response body")
 
 			if tc.wantReported {
 				got := spy.waitForEvent(500 * time.Millisecond)
