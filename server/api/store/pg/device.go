@@ -105,7 +105,7 @@ func (pg *Pg) DeviceLocations(ctx context.Context, sc scope.Scope, opts ...store
 		ColumnExpr("round(device.latitude, ?)::float8 AS latitude", models.DeviceLocationPrecision).
 		ColumnExpr("round(device.longitude, ?)::float8 AS longitude", models.DeviceLocationPrecision).
 		ColumnExpr("count(*) AS devices").
-		ColumnExpr("count(*) FILTER (WHERE device.disconnected_at IS NULL AND device.last_seen > ?) AS online", OnlineCutoff(pg.clock)).
+		ColumnExpr("count(*) FILTER (WHERE "+internal.DeviceOnline+") AS online", OnlineCutoff(pg.clock)).
 		Where("device.status = ?", models.DeviceStatusAccepted).
 		Where(internal.DeviceLocated).
 		GroupExpr("1, 2")
@@ -187,7 +187,7 @@ func (pg *Pg) DeviceListExpiredEphemeral(ctx context.Context, sc scope.Scope) ([
 	query, err := applyScopedOptions(ctx, db.NewSelect().
 		Model(&entities).
 		Where("ephemeral = TRUE").
-		Where("NOT (disconnected_at IS NULL AND last_seen > ?)", OnlineCutoff(pg.clock)).
+		Where("NOT "+internal.DeviceOnline, OnlineCutoff(pg.clock)).
 		Where("status = ? OR disconnected_at > status_updated_at", models.DeviceStatusAccepted).
 		Where("GREATEST(last_seen, status_updated_at) + make_interval(mins => ephemeral_timeout) < ?", now).
 		Limit(1000), sc)
@@ -623,11 +623,7 @@ func DeviceIsOnline(d *entity.Device, threshold time.Time) bool {
 }
 
 func deviceExprOnline(threshold time.Time) (string, time.Time) {
-	return `CASE
-		WHEN "device"."disconnected_at" IS NULL AND "device"."last_seen" > ?
-		THEN true
-		ELSE false
-		END AS "online"`, threshold
+	return internal.DeviceOnline + ` AS "online"`, threshold
 }
 
 func deviceExprAcceptable(mode store.DeviceAcceptable) string {
