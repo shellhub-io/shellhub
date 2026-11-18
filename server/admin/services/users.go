@@ -32,18 +32,9 @@ func (s *service) UserCreate(ctx context.Context, input *inputs.UserCreate) (*mo
 		return nil, fmt.Errorf("%w: %w", ErrSystemGet, err)
 	}
 
-	user := &models.User{
-		Origin:        models.UserOriginLocal,
-		UserData:      userData,
-		Password:      password,
-		Status:        models.UserStatusConfirmed,
-		CreatedAt:     s.clock.Now(),
-		MaxNamespaces: MaxNumberNamespacesCommunity,
-		Preferences: models.UserPreferences{
-			AuthMethods: []models.UserAuthMethod{models.UserAuthMethodLocal},
-		},
-		Admin: input.Admin || !system.Setup,
-	}
+	user := models.NewLocalUser(userData, password, models.UserStatusConfirmed, s.clock.Now())
+	user.MaxNamespaces = MaxNumberNamespacesCommunity
+	user.Admin = input.Admin || !system.Setup
 
 	if _, err := s.store.UserCreate(ctx, user); err != nil {
 		if errors.Is(err, store.ErrDuplicate) {

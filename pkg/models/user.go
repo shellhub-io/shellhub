@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
@@ -75,6 +76,25 @@ const (
 	// UserOnboardingSurveySkipped means the user chose not to answer.
 	UserOnboardingSurveySkipped UserOnboardingSurvey = "skipped"
 )
+
+// NewLocalUser returns a user who signs in with a password: data with its username and email
+// lowercased, password, status, created at now, and the local method as its only way in. The
+// caller sets the rest, such as the namespace ceiling and admin flag, before storing it.
+func NewLocalUser(data UserData, password UserPassword, status UserStatus, now time.Time) *User {
+	data.Username = strings.ToLower(data.Username)
+	data.Email = strings.ToLower(data.Email)
+
+	return &User{
+		Origin:    UserOriginLocal,
+		UserData:  data,
+		Password:  password,
+		Status:    status,
+		CreatedAt: now,
+		Preferences: UserPreferences{
+			AuthMethods: []UserAuthMethod{UserAuthMethodLocal},
+		},
+	}
+}
 
 // User is an account on the instance. It exists independently of any namespace: membership is
 // what ties a user to one, so a user with no memberships is valid and simply sees nothing.
