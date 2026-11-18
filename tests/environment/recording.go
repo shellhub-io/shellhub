@@ -94,6 +94,39 @@ func (s *Stack) SessionEventCountOfType(ctx context.Context, uid string, eventTy
 		map[string]string{"uid": uid, "type": string(eventType)})
 }
 
+// SeatEventCountOfType returns how many events of eventType the database holds for one seat of the
+// session uid, failing t when the count cannot be read. See [Stack.SeatEventCountOfType].
+func (dc *DockerCompose) SeatEventCountOfType(t *testing.T, uid string, seat int, eventType models.SessionEventType) int {
+	t.Helper()
+
+	count, err := dc.stack.SeatEventCountOfType(t.Context(), uid, seat, eventType)
+	require.NoError(t, err)
+
+	return count
+}
+
+// AwaitSeatEventOfType waits up to 30 seconds for the database to hold an event of eventType for one
+// seat of the session uid, failing t if it never does. The server writes a session's events in
+// batches, so one seat's events can reach the table before another's.
+func (dc *DockerCompose) AwaitSeatEventOfType(t *testing.T, uid string, seat int, eventType models.SessionEventType) {
+	t.Helper()
+
+	require.EventuallyWithT(t, func(tt *assert.CollectT) {
+		count, err := dc.stack.SeatEventCountOfType(t.Context(), uid, seat, eventType)
+		assert.NoError(tt, err)
+		assert.Positive(tt, count, "seat %d of session %s has no %s event yet", seat, uid, eventType)
+	}, 30*time.Second, time.Second)
+}
+
+// SeatEventCountOfType returns how many events of eventType the database holds for one seat of the
+// session uid, reading the table directly. ctx bounds the exec. It returns the errors
+// [Stack.SQLValue] does, and strconv.Atoi's error when the count psql prints is not an integer.
+func (s *Stack) SeatEventCountOfType(ctx context.Context, uid string, seat int, eventType models.SessionEventType) (int, error) {
+	return s.sqlInt(ctx,
+		"SELECT count(*) FROM session_events WHERE session_id = :'uid' AND seat = :'seat' AND type = :'type'",
+		map[string]string{"uid": uid, "seat": strconv.Itoa(seat), "type": string(eventType)})
+}
+
 // SessionConverted reports whether the archive job has marked the session uid converted, its
 // recording moved to object storage, failing t when the mark cannot be read. See
 // [Stack.SessionConverted].
