@@ -6,6 +6,7 @@ import {
   sessionTerminal,
   sessionTitle,
   sessionType,
+  terminalSeats,
 } from "@/utils/session";
 
 const session = (events: Session["events"]) => ({ events }) as Session;
@@ -104,5 +105,50 @@ describe("sessionTitle", () => {
     [{}, ""],
   ])("names %j as %j", (fields, title) => {
     expect(sessionTitle(fields as Session)).toBe(title);
+  });
+});
+
+describe("terminalSeats", () => {
+  const event = (type: string, seat: number) => ({
+    type,
+    seat,
+    timestamp: "2024-01-01T00:00:00Z",
+    data: {},
+  });
+
+  it.each([
+    { name: "no timeline", items: undefined, seats: [0, 1], expected: [] },
+    {
+      name: "one terminal",
+      items: [event("pty-req", 0)],
+      seats: [0],
+      expected: [0],
+    },
+    {
+      name: "two terminals, listed out of order",
+      items: [event("pty-req", 1), event("pty-req", 0)],
+      seats: [0, 1],
+      expected: [0, 1],
+    },
+    {
+      name: "a command with no terminal",
+      items: [event("exec", 0)],
+      seats: [0],
+      expected: [],
+    },
+    {
+      name: "a seat the capped timeline does not show",
+      items: [event("pty-req", 0)],
+      seats: [0, 1],
+      expected: [0, 1],
+    },
+    {
+      name: "a seat whose terminal request fell past the cap",
+      items: [event("pty-req", 0), event("auth-agent-req@openssh.com", 1)],
+      seats: [0, 1],
+      expected: [0, 1],
+    },
+  ])("offers the seats of $name", ({ items, seats, expected }) => {
+    expect(terminalSeats(session({ items, seats }))).toEqual(expected);
   });
 });

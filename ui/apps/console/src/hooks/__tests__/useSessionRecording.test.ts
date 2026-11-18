@@ -96,85 +96,6 @@ function serveSeats(bodies: Record<string, string>) {
   );
 }
 
-describe("useSessionRecording per seat", () => {
-  it("opens the seat it is asked for in a tab of its own", async () => {
-    serveSeats({ 0: "first", 1: "second" });
-    const { result } = renderHook(() => useSessionRecording());
-
-    await act(async () => {
-      await result.current.play(session, 0);
-      await result.current.play(session, 1);
-    });
-
-    expect(
-      useTerminalStore
-        .getState()
-        .recordings.map((r) => [r.id, r.sessionUid, r.seat, r.logs]),
-    ).toEqual([
-      ["session-1", "session-1", 0, "first"],
-      ["session-1#1", "session-1", 1, "second"],
-    ]);
-  });
-
-  it("fetches another seat from the server even when the browser holds seat zero's copy", async () => {
-    serveSeats({ 1: "from-server" });
-    holdInBrowser("from-browser");
-    const { result } = renderHook(() => useSessionRecording());
-
-    await act(async () => {
-      await result.current.play(session, 1);
-    });
-
-    expect(openRecordings()).toEqual([["session-1#1", "from-server", true]]);
-  });
-
-  it("saves the seat it is asked for", async () => {
-    serveSeats({ 0: "first", 1: "second" });
-    const saved = captureDownloads();
-    const { result } = renderHook(() => useSessionRecording());
-
-    await act(() =>
-      result.current.download(
-        mockSession({
-          uid: "session-1",
-          device: mockDevice({ name: "Web 01" }),
-          started_at: "2024-01-01T00:00:00Z",
-        }),
-        1,
-      ),
-    );
-
-    expect(await saved.blob?.text()).toBe("second");
-    expect(saved.filename).toBe("shellhub-web-01-20240101-000000-seat-1.cast");
-  });
-
-  it("marks a seat as deleted when the server has no recording for it", async () => {
-    serveSeats({ 0: "first" });
-    const { result } = renderHook(() => useSessionRecording());
-
-    await act(async () => {
-      await result.current.play(session, 1);
-    });
-
-    expect(result.current.deleted).toEqual(["session-1#1"]);
-  });
-
-  it("marks nothing as deleted when the server fails for another reason", async () => {
-    server.use(
-      http.get("*/api/sessions/:uid/records/:seat", () =>
-        HttpResponse.json({}, { status: 500 }),
-      ),
-    );
-    const { result } = renderHook(() => useSessionRecording());
-
-    await act(async () => {
-      await result.current.play(session, 1);
-    });
-
-    expect(result.current.deleted).toEqual([]);
-  });
-});
-
 describe("useSessionRecording", () => {
   it("opens the recording of seat 0 in its own tab", async () => {
     serveRecording("asciicast");
@@ -241,6 +162,33 @@ describe("useSessionRecording", () => {
     await play(result);
 
     expect(result.current.error).toBeNull();
+  });
+
+  it("tells whose recording failed when an earlier play fails after a later download", async () => {
+    let failPlay!: () => void;
+    const playGate = new Promise<void>((resolve) => (failPlay = resolve));
+    server.use(
+      http.get("*/api/sessions/:uid/records/:seat", async ({ params }) => {
+        if (params.seat === "0") return HttpResponse.text("asciicast");
+        await playGate;
+        return HttpResponse.json({}, { status: 500 });
+      }),
+    );
+    captureDownloads();
+    const { result } = renderHook(() => useSessionRecording());
+
+    let playing!: Promise<boolean>;
+    act(() => {
+      playing = result.current.play(session, 1);
+    });
+    await act(() => result.current.download(session, 0));
+    await act(async () => {
+      failPlay();
+      await playing;
+    });
+
+    expect(result.current.error).toBe("Failed to load recording");
+    expect(result.current.failedRecording).toBe("session-1#1");
   });
 
   it("saves the recording as a .cast named after the device and start time", async () => {
@@ -361,5 +309,86 @@ describe("useSessionRecording", () => {
     await act(() => result.current.download(session));
 
     expect(result.current.error).toBe("Failed to download recording");
+  });
+
+  describe("per seat", () => {
+    it("opens the seat it is asked for in a tab of its own", async () => {
+      serveSeats({ 0: "first", 1: "second" });
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(async () => {
+        await result.current.play(session, 0);
+        await result.current.play(session, 1);
+      });
+
+      expect(
+        useTerminalStore
+          .getState()
+          .recordings.map((r) => [r.id, r.sessionUid, r.seat, r.logs]),
+      ).toEqual([
+        ["session-1", "session-1", 0, "first"],
+        ["session-1#1", "session-1", 1, "second"],
+      ]);
+    });
+
+    it("fetches another seat from the server even when the browser holds seat zero's copy", async () => {
+      serveSeats({ 1: "from-server" });
+      holdInBrowser("from-browser");
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(async () => {
+        await result.current.play(session, 1);
+      });
+
+      expect(openRecordings()).toEqual([["session-1#1", "from-server", true]]);
+    });
+
+    it("saves the seat it is asked for", async () => {
+      serveSeats({ 0: "first", 1: "second" });
+      const saved = captureDownloads();
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(() =>
+        result.current.download(
+          mockSession({
+            uid: "session-1",
+            device: mockDevice({ name: "Web 01" }),
+            started_at: "2024-01-01T00:00:00Z",
+          }),
+          1,
+        ),
+      );
+
+      expect(await saved.blob?.text()).toBe("second");
+      expect(saved.filename).toBe(
+        "shellhub-web-01-20240101-000000-seat-1.cast",
+      );
+    });
+
+    it("marks a seat as deleted when the server has no recording for it", async () => {
+      serveSeats({ 0: "first" });
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(async () => {
+        await result.current.play(session, 1);
+      });
+
+      expect(result.current.deleted).toEqual(["session-1#1"]);
+    });
+
+    it("marks nothing as deleted when the server fails for another reason", async () => {
+      server.use(
+        http.get("*/api/sessions/:uid/records/:seat", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
+      const { result } = renderHook(() => useSessionRecording());
+
+      await act(async () => {
+        await result.current.play(session, 1);
+      });
+
+      expect(result.current.deleted).toEqual([]);
+    });
   });
 });

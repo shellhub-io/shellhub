@@ -51,13 +51,19 @@ function recordingFilename(session: Session, seat: number): string {
  * the page would pull it for every listed session. play resolves false, with error set, when the
  * recording could not be read. deleted lists the recordingId of every seat the server
  * answered 404 for, which is how a seat whose recording was deleted is told apart, since the server
- * keeps no per-seat flag. Both refuse a session that is still active, whatever copy exists, because
- * its recording is partial.
+ * keeps no per-seat flag. error is the message of the last play or download to fail, and
+ * failedRecording the recordingId it was for, so a page showing one seat can tell whether the error
+ * is that seat's. A play or download clears both when it starts, so one that was already in flight
+ * can still set them after it. Both refuse a session that is still active,
+ * whatever copy exists, because its recording is partial.
  */
 export function useSessionRecording() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{
+    id: string;
+    message: string;
+  } | null>(null);
   const [deleted, setDeleted] = useState<string[]>([]);
 
   const noteDeleted = (err: unknown, id: string) => {
@@ -67,21 +73,21 @@ export function useSessionRecording() {
   };
 
   const play = async (session: Session, seat = 0): Promise<boolean> => {
+    const id = recordingId(session.uid, seat);
     if (session.active) {
-      setError(STILL_ACTIVE);
+      setFailure({ id, message: STILL_ACTIVE });
       return false;
     }
 
-    const id = recordingId(session.uid, seat);
     const terminals = useTerminalStore.getState();
     if (terminals.recordings.some((r) => r.id === id)) {
-      setError(null);
+      setFailure(null);
       terminals.showRecording(id);
       return true;
     }
 
     setIsLoading(true);
-    setError(null);
+    setFailure(null);
     try {
       const logs = await readSessionRecording(session.uid, seat);
       useTerminalStore.getState().openRecording({
@@ -97,7 +103,10 @@ export function useSessionRecording() {
       return true;
     } catch (err: unknown) {
       noteDeleted(err, id);
-      setError(failureMessage(err, "Failed to load recording"));
+      setFailure({
+        id,
+        message: failureMessage(err, "Failed to load recording"),
+      });
       return false;
     } finally {
       setIsLoading(false);
@@ -105,25 +114,37 @@ export function useSessionRecording() {
   };
 
   const download = async (session: Session, seat = 0): Promise<void> => {
+    const id = recordingId(session.uid, seat);
     if (session.active) {
-      setError(STILL_ACTIVE);
+      setFailure({ id, message: STILL_ACTIVE });
       return;
     }
 
     setIsDownloading(true);
-    setError(null);
+    setFailure(null);
     try {
       saveRecording(
         await readSessionRecording(session.uid, seat),
         recordingFilename(session, seat),
       );
     } catch (err: unknown) {
-      noteDeleted(err, recordingId(session.uid, seat));
-      setError(failureMessage(err, "Failed to download recording"));
+      noteDeleted(err, id);
+      setFailure({
+        id,
+        message: failureMessage(err, "Failed to download recording"),
+      });
     } finally {
       setIsDownloading(false);
     }
   };
 
-  return { isLoading, isDownloading, error, deleted, play, download };
+  return {
+    isLoading,
+    isDownloading,
+    error: failure?.message ?? null,
+    failedRecording: failure?.id ?? null,
+    deleted,
+    play,
+    download,
+  };
 }
