@@ -6,6 +6,7 @@ import (
 
 	"github.com/shellhub-io/shellhub/pkg/errors"
 	"github.com/shellhub-io/shellhub/pkg/models"
+	"github.com/shellhub-io/shellhub/server/api/store"
 )
 
 // ErrLayer is an error level. Each error defined at this level, is container to it.
@@ -88,7 +89,6 @@ var (
 	ErrUserNotFound                    = errors.New("user not found", ErrLayer, ErrCodeNotFound)
 	ErrUserInvalid                     = errors.New("user invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserDuplicated                  = errors.New("user duplicated", ErrLayer, ErrCodeDuplicated)
-	ErrUserUnhandledDuplicate          = errors.New("unhandled duplicated field for the user", ErrLayer, ErrCodeDuplicated)
 	ErrUserPasswordInvalid             = errors.New("user password invalid", ErrLayer, ErrCodeInvalid)
 	ErrUserPasswordNotMatch            = errors.New("user password does not match to the current password", ErrLayer, ErrCodeForbidden)
 	ErrFactorLockedOut                 = errors.New("too many wrong attempts", ErrLayer, ErrCodeTooManyRequests)
@@ -372,11 +372,20 @@ func NewErrUserDuplicated(values []string, next error) error {
 	return NewErrDuplicated(ErrUserDuplicated, values, next)
 }
 
-// NewErrUserUnhandledDuplicate returns an error to be used when a duplicate-key violation
-// is returned by the store for a user field that is not explicitly handled by the caller.
-// It carries ErrCodeDuplicated so the echo handler maps it to HTTP 409.
-func NewErrUserUnhandledDuplicate() error {
-	return errors.Wrap(ErrUserUnhandledDuplicate, nil)
+// UserConflict maps a store error from writing a user. When err is [store.ErrDuplicate] it returns
+// the taken field, or none when the store could not name one, and [NewErrUserDuplicated] naming
+// them. For any other err, nil included, it returns nil and nil.
+func UserConflict(err error) ([]string, error) {
+	if !stderrors.Is(err, store.ErrDuplicate) {
+		return nil, nil
+	}
+
+	fields := []string{}
+	if field, ok := store.DuplicatedField(err); ok {
+		fields = append(fields, field)
+	}
+
+	return fields, NewErrUserDuplicated(fields, err)
 }
 
 // NewErrUserPasswordInvalid returns an error when the user's password is invalid.

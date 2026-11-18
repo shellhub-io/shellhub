@@ -44,12 +44,8 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (
 }
 
 func registrationCreateError(err error) error {
-	if errors.Is(err, store.ErrDuplicate) {
-		if field, ok := store.DuplicatedField(err); ok {
-			return NewErrUserDuplicated([]string{field}, err)
-		}
-
-		return NewErrUserDuplicated([]string{}, err)
+	if _, conflict := UserConflict(err); conflict != nil {
+		return conflict
 	}
 
 	return NewErrUserCreate(err)

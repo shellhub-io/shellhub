@@ -53,7 +53,7 @@ type UserService interface {
 	// hashed. When an [Hooks.EmailCheck] hook refuses a changed email or recovery email it returns
 	// [ErrBadRequest] whose fields map "email" or "recovery_email" to the hook's reason. Since some
 	// attributes must be unique per user, a value already taken yields [ErrUserDuplicated] carrying
-	// the conflicting field name(s), or [ErrUserUnhandledDuplicate] when the store cannot name it; a
+	// the conflicting field name, or no field when the store cannot name it; a
 	// new email that is held back or would spend an MFA code, and a new username that would spend
 	// one, are checked against other accounts before anything is saved. It returns [ErrUserUpdate]
 	// when the user cannot be saved, when on a password change the tokens cannot be revoked, leaving
@@ -72,8 +72,7 @@ type UserService interface {
 	// [ErrBadRequest] for a field other than [EmailFieldEmail] and [EmailFieldRecoveryEmail],
 	// [ErrBadRequest] when email equals the user's other address or an [Hooks.EmailCheck] hook refuses
 	// it, its fields mapping field to the reason, [ErrUserDuplicated] when another account took the
-	// email since it was requested, [ErrUserUnhandledDuplicate] when the store cannot name the
-	// duplicated field, and [ErrUserUpdate] when the user cannot be saved. Every store call runs
+	// email since it was requested, naming no field when the store cannot name it, and [ErrUserUpdate] when the user cannot be saved. Every store call runs
 	// under ctx.
 	ConfirmEmailChange(ctx context.Context, userID string, field EmailField, email string) error
 
@@ -307,12 +306,8 @@ func (s *service) userValueAvailable(ctx context.Context, user *models.User, res
 }
 
 func userSaveError(user *models.User, err error) error {
-	if errors.Is(err, store.ErrDuplicate) {
-		if field, ok := store.DuplicatedField(err); ok {
-			return NewErrUserDuplicated([]string{field}, err)
-		}
-
-		return NewErrUserUnhandledDuplicate()
+	if _, conflict := UserConflict(err); conflict != nil {
+		return conflict
 	}
 
 	return NewErrUserUpdate(user, err)

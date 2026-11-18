@@ -2,9 +2,11 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	pkgerrors "github.com/shellhub-io/shellhub/pkg/errors"
+	"github.com/shellhub-io/shellhub/server/api/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,33 +33,27 @@ func TestErrDeviceLicenseLimit(t *testing.T) {
 	}
 }
 
-// TestErrUserUnhandledDuplicate verifies that ErrUserUnhandledDuplicate is a sentinel
-// with ErrCodeDuplicated so the echo handler maps it to HTTP 409, and that
-// NewErrUserUnhandledDuplicate returns an error that wraps that sentinel.
-func TestErrUserUnhandledDuplicate(t *testing.T) {
-	t.Run("sentinel has ErrCodeDuplicated code", func(t *testing.T) {
-		var e pkgerrors.Error
-		if !pkgerrors.As(ErrUserUnhandledDuplicate, &e) {
-			t.Fatal("ErrUserUnhandledDuplicate is not a pkgerrors.Error")
-		}
+func TestUserConflict(t *testing.T) {
+	cases := []struct {
+		description string
+		err         error
+		fields      []string
+	}{
+		{description: "names the field the store reports", err: fmt.Errorf("%w: %w", store.ErrDuplicate, store.DuplicateFieldError{Field: "email"}), fields: []string{"email"}},
+		{description: "names no field when the store reports none", err: store.ErrDuplicate, fields: []string{}},
+	}
 
-		if e.Code != ErrCodeDuplicated {
-			t.Errorf("expected code %d (ErrCodeDuplicated), got %d", ErrCodeDuplicated, e.Code)
-		}
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			fields, err := UserConflict(tc.err)
+			assert.Equal(t, tc.fields, fields)
+			assert.Equal(t, NewErrUserDuplicated(tc.fields, tc.err), err)
+		})
+	}
 
-		if e.Layer != ErrLayer {
-			t.Errorf("expected layer %q, got %q", ErrLayer, e.Layer)
-		}
-	})
-
-	t.Run("NewErrUserUnhandledDuplicate wraps ErrUserUnhandledDuplicate", func(t *testing.T) {
-		err := NewErrUserUnhandledDuplicate()
-		if err == nil {
-			t.Fatal("NewErrUserUnhandledDuplicate returned nil")
-		}
-
-		if !errors.Is(err, ErrUserUnhandledDuplicate) {
-			t.Error("NewErrUserUnhandledDuplicate result does not wrap ErrUserUnhandledDuplicate")
-		}
+	t.Run("ignores any other error", func(t *testing.T) {
+		fields, err := UserConflict(errors.New("connection reset"))
+		assert.Nil(t, fields)
+		assert.NoError(t, err)
 	})
 }

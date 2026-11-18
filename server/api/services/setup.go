@@ -29,8 +29,8 @@ type SetupService interface {
 	// the instance to that namespace and signs the user in. Concurrent calls are serialized, so
 	// only the first one sets the instance up. It returns ErrSetupCompleted once the instance is
 	// set up; ErrUserInvalid or ErrUserPasswordInvalid for a request that fails validation;
-	// ErrUserDuplicated or ErrUserUnhandledDuplicate when the user conflicts with an existing
-	// one; ErrNamespaceDuplicated or ErrNamespaceCreateStore when the namespace cannot be
+	// ErrUserDuplicated, naming the taken field when the store reports one, when the user
+	// conflicts with an existing one; ErrNamespaceDuplicated or ErrNamespaceCreateStore when the namespace cannot be
 	// created; and the store's error when the transaction cannot begin or commit, the lock
 	// cannot be taken, the system row cannot be read or written or the user cannot be stored.
 	// Any failure leaves nothing written. When no token can be issued for the new user, it
@@ -112,12 +112,8 @@ func (s *service) setupInTransaction(ctx context.Context, req requests.Setup) (s
 
 	insertedID, err := s.store.UserCreate(ctx, user)
 	if err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
-			if field, ok := store.DuplicatedField(err); ok {
-				return "", NewErrUserDuplicated([]string{field}, err)
-			}
-
-			return "", NewErrUserUnhandledDuplicate()
+		if _, conflict := UserConflict(err); conflict != nil {
+			return "", conflict
 		}
 
 		return "", err
