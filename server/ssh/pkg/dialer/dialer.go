@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shellhub-io/shellhub/pkg/clock"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	log "github.com/sirupsen/logrus"
 )
@@ -63,12 +62,10 @@ type Dialer struct {
 
 const defaultDialTimeout = 30 * time.Second
 
-// NewDialer returns a [Dialer] that marks a device offline through devices when its last
-// tunnel closes, and refreshes its liveness through heartbeater while one is held. Its tunnels read
-// clk for their write deadlines.
-func NewDialer(devices DeviceStatuser, heartbeater Heartbeater, clk clock.Clock) *Dialer {
-	m := NewManager(clk)
-
+// NewDialer returns a [Dialer] over the tunnels m holds, which marks a device offline through
+// devices when its last tunnel closes and refreshes its liveness through heartbeater while one is
+// held. It replaces m's callbacks.
+func NewDialer(m *Manager, devices DeviceStatuser, heartbeater Heartbeater) *Dialer {
 	m.DialerDoneCallback = func(key string) {
 		parts := strings.Split(key, ":")
 		if len(parts) != 2 {

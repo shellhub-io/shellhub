@@ -10,29 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFireNamespaceDelete(t *testing.T) {
-	override(t, &namespaceDeleteHooks, nil)
+func TestHooks_namespaceDelete(t *testing.T) {
+	hooks := &Hooks{}
 
 	ctx := context.Background()
 	ns := &models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Name: "test"}
 
-	t.Run("nil hook panics", func(t *testing.T) {
-		namespaceDeleteHooks = nil
-		assert.PanicsWithValue(t, "services: OnNamespaceDelete called with nil hook", func() {
-			OnNamespaceDelete(nil)
-		})
-	})
-
 	t.Run("no hooks registered", func(t *testing.T) {
-		namespaceDeleteHooks = nil
-		assert.NoError(t, fireNamespaceDelete(ctx, ns))
+		*hooks = Hooks{}
+		assert.NoError(t, hooks.namespaceDelete(ctx, ns))
 	})
 
 	t.Run("single hook called with correct args", func(t *testing.T) {
-		namespaceDeleteHooks = nil
+		*hooks = Hooks{}
 
 		var called bool
-		OnNamespaceDelete(func(gotCtx context.Context, gotNS *models.Namespace) error {
+		hooks.NamespaceDelete = append(hooks.NamespaceDelete, func(gotCtx context.Context, gotNS *models.Namespace) error {
 			called = true
 			assert.Equal(t, ctx, gotCtx)
 			assert.Equal(t, ns, gotNS)
@@ -40,45 +33,45 @@ func TestFireNamespaceDelete(t *testing.T) {
 			return nil
 		})
 
-		require.NoError(t, fireNamespaceDelete(ctx, ns))
+		require.NoError(t, hooks.namespaceDelete(ctx, ns))
 		assert.True(t, called)
 	})
 
 	t.Run("error aborts remaining hooks", func(t *testing.T) {
-		namespaceDeleteHooks = nil
+		*hooks = Hooks{}
 		hookErr := errors.New("hook failed")
 
-		OnNamespaceDelete(func(context.Context, *models.Namespace) error {
+		hooks.NamespaceDelete = append(hooks.NamespaceDelete, func(context.Context, *models.Namespace) error {
 			return hookErr
 		})
 
 		var secondCalled bool
-		OnNamespaceDelete(func(context.Context, *models.Namespace) error {
+		hooks.NamespaceDelete = append(hooks.NamespaceDelete, func(context.Context, *models.Namespace) error {
 			secondCalled = true
 
 			return nil
 		})
 
-		require.ErrorIs(t, fireNamespaceDelete(ctx, ns), hookErr)
+		require.ErrorIs(t, hooks.namespaceDelete(ctx, ns), hookErr)
 		assert.False(t, secondCalled)
 	})
 
 	t.Run("multiple hooks run in order", func(t *testing.T) {
-		namespaceDeleteHooks = nil
+		*hooks = Hooks{}
 
 		var order []int
-		OnNamespaceDelete(func(context.Context, *models.Namespace) error {
+		hooks.NamespaceDelete = append(hooks.NamespaceDelete, func(context.Context, *models.Namespace) error {
 			order = append(order, 1)
 
 			return nil
 		})
-		OnNamespaceDelete(func(context.Context, *models.Namespace) error {
+		hooks.NamespaceDelete = append(hooks.NamespaceDelete, func(context.Context, *models.Namespace) error {
 			order = append(order, 2)
 
 			return nil
 		})
 
-		require.NoError(t, fireNamespaceDelete(ctx, ns))
+		require.NoError(t, hooks.namespaceDelete(ctx, ns))
 		assert.Equal(t, []int{1, 2}, order)
 	})
 }

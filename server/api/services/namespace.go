@@ -37,6 +37,11 @@ var namespaceFilterColumns = map[string]string{
 // NamespaceService owns namespaces themselves: creating, editing and removing them, and the
 // settings that apply to everything inside one.
 type NamespaceService interface {
+	// DeleteNamespacesEndingDevices runs deleteNamespaces, which deletes the namespaces of
+	// tenantIDs, and then ends every device they held as a device removal does, closing the
+	// tunnels this process holds. See the package function of the same name for its errors.
+	DeleteNamespacesEndingDevices(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error) error
+
 	ListNamespaces(ctx context.Context, req *requests.NamespaceList) ([]models.Namespace, int64, error)
 	// CreateNamespace creates a namespace owned by the requesting user, under a tenant ID the store
 	// issues. For a user with a namespace limit, concurrent calls count and insert one at a time,
@@ -242,7 +247,7 @@ func (s *service) DeleteNamespace(ctx context.Context, sc scope.Scope, tenantID 
 		return err
 	}
 
-	err = DeleteNamespacesEndingDevices(ctx, s.store, s.cache, []string{n.TenantID}, func(ctx context.Context) error {
+	err = s.DeleteNamespacesEndingDevices(ctx, []string{n.TenantID}, func(ctx context.Context) error {
 		return s.deleteNamespace(ctx, n)
 	})
 	if errors.Is(err, store.ErrNamespaceInstanceProtected) {
@@ -263,7 +268,7 @@ func (s *service) deleteNamespace(ctx context.Context, n *models.Namespace) erro
 		}
 	}
 
-	if err := fireNamespaceDelete(ctx, n); err != nil {
+	if err := s.hooks.namespaceDelete(ctx, n); err != nil {
 		return err
 	}
 

@@ -71,8 +71,8 @@ type InvitationService interface {
 	AcceptInvite(ctx context.Context, req *requests.AcceptInvite) error
 
 	// GenerateInvitationLink creates (or refreshes) a membership invitation and returns the copyable
-	// accept-invite link. When an existing account is added and direct membership is enabled
-	// (enterprise), the member is added directly and an empty link is returned. It returns
+	// accept-invite link. When an existing account is added and the service was built with
+	// [WithDirectMembership], the member is added directly and an empty link is returned. It returns
 	// ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded to another
 	// namespace or the namespace carrying req.TenantID cannot be resolved, whatever the store's error;
 	// ErrNamespaceMemberNotFound when req.UserID is not a member; ErrRoleForbidden when that member

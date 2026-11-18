@@ -52,12 +52,13 @@ type deviceHeartbeat struct {
 // stamped it.
 //
 // A beat for a device that was deleted or removed, or that is not in the namespace
-// the beat names, fires the device-removed hooks, which close its tunnel. That is how
+// the beat names, calls removed, which closes its tunnel. That is how
 // a tunnel learns of a removal made by another process or replica, which no hook in
 // this one saw.
 type DeviceHeartbeater struct {
 	store   store.Store
 	clock   clock.Clock
+	removed func(ctx context.Context, tenantID, uid string)
 	queue   chan deviceHeartbeat
 	done    chan struct{}
 	wg      sync.WaitGroup
@@ -67,11 +68,14 @@ type DeviceHeartbeater struct {
 }
 
 // NewDeviceHeartbeater returns a running heartbeater that stamps each beat with c's time, for
-// tunnels that beat every beatInterval. Call Shutdown to flush what is pending and stop it.
-func NewDeviceHeartbeater(s store.Store, c clock.Clock, beatInterval time.Duration) *DeviceHeartbeater {
+// tunnels that beat every beatInterval, and calls removed for each beating device the store no
+// longer holds in its namespace, unless removed is nil. Call Shutdown to flush what is pending and
+// stop it.
+func NewDeviceHeartbeater(s store.Store, c clock.Clock, beatInterval time.Duration, removed func(ctx context.Context, tenantID, uid string)) *DeviceHeartbeater {
 	h := &DeviceHeartbeater{
 		store:      s,
 		clock:      c,
+		removed:    removed,
 		queue:      make(chan deviceHeartbeat, deviceHeartbeatQueueSize),
 		done:       make(chan struct{}),
 		skipWithin: deviceHeartbeatSkipWithin(beatInterval),
@@ -184,7 +188,9 @@ func (h *DeviceHeartbeater) flush(batch *deviceHeartbeatBatch) {
 		log.WithFields(log.Fields{"tenant_id": latestByUID[uid].tenantID, "device_uid": uid}).
 			Info("a device holding a tunnel was deleted, removed or is not in its namespace; closing its tunnel")
 
-		fireDeviceRemoved(ctx, latestByUID[uid].tenantID, uid)
+		if h.removed != nil {
+			h.removed(ctx, latestByUID[uid].tenantID, uid)
+		}
 	}
 }
 

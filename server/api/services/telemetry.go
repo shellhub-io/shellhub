@@ -35,7 +35,7 @@ type TelemetryService interface {
 	// TelemetryStatus returns the administrator's setting, whether the environment keeps
 	// telemetry off (SHELLHUB_TELEMETRY is false, or the server has no client to send with), and
 	// the events the next heartbeat would send, built whether or not it is on. It returns the store's error when the system row or the counts cannot be read, and the
-	// error of an [OnTelemetryHeartbeat] or [OnTelemetryInstanceProperties] hook that fails.
+	// error of an [Hooks.TelemetryHeartbeat] or [Hooks.TelemetryInstanceProperties] hook that fails.
 	TelemetryStatus(ctx context.Context) (*responses.TelemetryStatus, error)
 
 	// TelemetryInstanceStarted sends the instance started event when telemetry is on, and logs
@@ -44,7 +44,7 @@ type TelemetryService interface {
 	TelemetryInstanceStarted(ctx context.Context) error
 
 	// TelemetryHeartbeat sends the instance heartbeat, with the properties the
-	// [OnTelemetryInstanceProperties] hooks add, and the events the [OnTelemetryHeartbeat] hooks
+	// [Hooks.TelemetryInstanceProperties] hooks add, and the events the [Hooks.TelemetryHeartbeat] hooks
 	// add, when telemetry is on. Server replicas sharing a cache send
 	// it once per UTC day: the first to claim the day sends, the others return nil. Its handler
 	// returns the store's error, the cache's error when the day cannot be claimed, a failing
@@ -185,7 +185,7 @@ func (s *service) telemetryHeartbeatEvents(ctx context.Context, system *models.S
 	properties["sessions"] = usage.Sessions
 	addUsageBreakdown(properties, usage)
 
-	extra, err := fireTelemetryInstanceProperties(ctx, since)
+	extra, err := s.hooks.telemetryInstanceProperties(ctx, since)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (s *service) telemetryHeartbeatEvents(ctx context.Context, system *models.S
 		}
 	}
 
-	hooked, err := fireTelemetryHeartbeat(ctx, since)
+	hooked, err := s.hooks.telemetryHeartbeat(ctx, since)
 	if err != nil {
 		return nil, err
 	}

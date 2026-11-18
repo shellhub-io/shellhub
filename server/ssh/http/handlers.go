@@ -26,8 +26,8 @@ import (
 //
 // Dialer reaches a device that already holds a tunnel; Tunnels is the registry the agent
 // endpoints put one into. They are separate fields so that the dial can be substituted in a
-// test without standing up a registry. What stops an out-of-tree caller registering a tunnel
-// is [TunnelExtension] taking the interface, not this split.
+// test without standing up a registry. What stops an extension registering a tunnel is
+// app.Mount handing it only a [dialer.TunnelDialer], not this split.
 type Handlers struct {
 	Config  *Config
 	Dialer  dialer.TunnelDialer

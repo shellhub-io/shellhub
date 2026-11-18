@@ -14,10 +14,10 @@ import (
 
 // RegisterUser creates a user account. When the registration carries a valid invitation (an invite
 // code via req.Sig, or a pending user_invitation matching the email), it completes the invited
-// account and, if the code resolves to that invitee, joins the namespace in the same step. Open
-// self-registration is a capability (cloud only); community and enterprise are invite-only. The
+// account and, if the code resolves to that invitee, joins the namespace in the same step. Without
+// [WithOpenSignup] registration is invite-only. The
 // invite code never proves control of the email, since the inviter holds it too: when an email
-// confirmation is wired through OnUserRegistered, every new account waits for it and no token is
+// confirmation is wired through [Hooks.UserRegistered], every new account waits for it and no token is
 // returned.
 func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (*models.UserAuthResponse, error) {
 	req.DeviceCode = pairingcode.Normalize(req.DeviceCode)
@@ -32,7 +32,7 @@ func (s *service) RegisterUser(ctx context.Context, req requests.RegisterUser) (
 		}
 	}
 
-	if !openSignupAllowed() || req.Email == "" {
+	if !s.openSignup || req.Email == "" {
 		return nil, NewErrAuthForbidden()
 	}
 
@@ -81,7 +81,7 @@ func (s *service) newRegistrationUser(req *requests.RegisterUser, email string) 
 
 func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser) (*models.UserAuthResponse, error) {
 	email := strings.ToLower(req.Email)
-	if reason := checkEmail(ctx, email); reason != "" {
+	if reason := s.hooks.checkEmail(ctx, email); reason != "" {
 		return nil, NewErrInvalidFields(ErrBadRequest, map[string]string{"email": reason})
 	}
 
@@ -94,7 +94,7 @@ func (s *service) createNewUser(ctx context.Context, req *requests.RegisterUser)
 		return nil, registrationCreateError(err)
 	}
 
-	if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
+	if err := s.hooks.userRegistered(ctx, user, req.DeviceCode); err != nil {
 		log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email")
 	}
 
@@ -128,9 +128,9 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 			return nil, err
 		default:
 			grant = &g
-			user.Status = invitedAccountStatus()
+			user.Status = s.invitedAccountStatus()
 
-			if nonAdminProvisioningAllowed() {
+			if s.nonAdminProvisioning {
 				if invitedBy, err := s.store.UserResolve(ctx, store.UserIDResolver, g.invitation.InvitedBy); err == nil && !invitedBy.Admin {
 					user.AwaitingApproval = true
 				}
@@ -178,7 +178,7 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 
 		return res, nil
 	case models.UserStatusNotConfirmed:
-		if err := fireUserRegistered(ctx, user, req.DeviceCode); err != nil {
+		if err := s.hooks.userRegistered(ctx, user, req.DeviceCode); err != nil {
 			log.WithError(err).WithField("user_id", user.ID).Error("Failed to send verification email for invited user")
 		}
 
@@ -188,8 +188,8 @@ func (s *service) createInvitedUser(ctx context.Context, req *requests.RegisterU
 	}
 }
 
-func invitedAccountStatus() models.UserStatus {
-	if !emailConfirmationWired() {
+func (s *service) invitedAccountStatus() models.UserStatus {
+	if len(s.hooks.UserRegistered) == 0 {
 		return models.UserStatusConfirmed
 	}
 

@@ -143,7 +143,7 @@ func (s *service) NamespaceDelete(ctx context.Context, input *inputs.NamespaceDe
 		return ErrNamespaceNotFound
 	}
 
-	if err := apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, []string{ns.TenantID}, func(ctx context.Context) error {
+	if err := apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, nil, []string{ns.TenantID}, func(ctx context.Context) error {
 		return s.store.NamespaceDelete(ctx, ns)
 	}); err != nil {
 		if errors.Is(err, store.ErrNamespaceInstanceProtected) {

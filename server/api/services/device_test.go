@@ -1438,8 +1438,6 @@ func TestOfflineDevice(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus(t *testing.T) {
-	override(t, &deviceMergeHooks, nil)
-
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
 
@@ -2136,7 +2134,6 @@ func TestUpdateDeviceStatus(t *testing.T) {
 
 func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 	errLicenseStore := errors.New("license store unavailable", "", 0)
-	override(t, &deviceMergeHooks, nil)
 
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
@@ -2524,8 +2521,6 @@ func TestUpdateDeviceStatus_licenseEvaluator(t *testing.T) {
 }
 
 func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
-	override(t, &deviceMergeHooks, nil)
-
 	now := time.Date(2025, 1, 15, 12, 0, 0, 0, time.UTC)
 	clk := clock.NewFixed(now)
 
@@ -2601,8 +2596,6 @@ func TestUpdateDeviceStatus_keylessDeviceSpendsNoKey(t *testing.T) {
 type transactionKey struct{}
 
 func TestUpdateDeviceStatus_acceptLocksBeforeReadingTheLimits(t *testing.T) {
-	override(t, &deviceMergeHooks, nil)
-
 	const tenantID = "00000000-0000-0000-0000-000000000000"
 
 	cases := []struct {

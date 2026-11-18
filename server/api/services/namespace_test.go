@@ -1586,19 +1586,21 @@ func TestNamespaceFilterFields(t *testing.T) {
 }
 
 func TestDeleteNamespaceFiresNoHookWhenItsDevicesCannotBeListed(t *testing.T) {
+	var testOpts []Option
+
 	ctx := context.TODO()
 
 	const tenantID = "00000000-0000-4000-0000-000000000000"
 
 	var fired bool
-	override(t, &namespaceDeleteHooks, []NamespaceDeleteHookFn{func(context.Context, *models.Namespace) error {
+	testOpts = append(testOpts, WithHooks(Hooks{NamespaceDelete: []NamespaceDeleteHookFn{func(context.Context, *models.Namespace) error {
 		fired = true
 
 		return nil
-	}})
-	override(t, &deviceRemovedHooks, []DeviceRemovedHookFn{func(context.Context, string, string) {
+	}}}))
+	testOpts = append(testOpts, WithHooks(Hooks{DeviceRemoved: []DeviceRemovedHookFn{func(context.Context, string, string) {
 		fired = true
-	}})
+	}}}))
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -1610,22 +1612,24 @@ func TestDeleteNamespaceFiresNoHookWhenItsDevicesCannotBeListed(t *testing.T) {
 		Return(nil, int64(0), errors.New("error")).
 		Once()
 
-	s := NewService(storeMock, privateKey, publicKey, cachemock.NewMockCache(t))
+	s := NewService(storeMock, privateKey, publicKey, cachemock.NewMockCache(t), withAll(testOpts...))
 
 	assert.Equal(t, errors.New("error"), s.DeleteNamespace(ctx, scope.MustBounded(tenantID), tenantID))
 	assert.False(t, fired)
 }
 
 func TestDeleteNamespaceEndsEachDeviceItHeld(t *testing.T) {
+	var testOpts []Option
+
 	ctx := context.TODO()
 
 	const tenantID = "00000000-0000-4000-0000-000000000000"
 
 	var removed []string
-	override(t, &deviceRemovedHooks, []DeviceRemovedHookFn{func(_ context.Context, tenant, uid string) {
+	testOpts = append(testOpts, WithHooks(Hooks{DeviceRemoved: []DeviceRemovedHookFn{func(_ context.Context, tenant, uid string) {
 		assert.Equal(t, tenantID, tenant)
 		removed = append(removed, uid)
-	}})
+	}}}))
 
 	namespace := &models.Namespace{TenantID: tenantID}
 	storeMock := storemock.NewMockStore(t)
@@ -1642,7 +1646,7 @@ func TestDeleteNamespaceEndsEachDeviceItHeld(t *testing.T) {
 		Return(nil).
 		Once()
 
-	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(storeMock, privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...))
 
 	require.NoError(t, s.DeleteNamespace(ctx, scope.MustBounded(tenantID), tenantID))
 	assert.Equal(t, []string{"uid-1", "uid-2"}, removed)

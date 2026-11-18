@@ -473,9 +473,10 @@ func setupDepartureE2E(t *testing.T) *departureE2E {
 
 	e := setupOwnershipE2E(t)
 	cache := newMemoryCache()
-	e.svc = NewService(e.st, privateKey, publicKey, cache, WithClock(e.clock))
+	removals, onRemoved := recordDeviceRemovals()
+	e.svc = NewService(e.st, privateKey, publicKey, cache, WithClock(e.clock), WithHooks(Hooks{DeviceRemoved: []DeviceRemovedHookFn{onRemoved}}))
 
-	return &departureE2E{ownershipE2E: e, cache: cache, removals: recordDeviceRemovals(t)}
+	return &departureE2E{ownershipE2E: e, cache: cache, removals: removals}
 }
 
 func (e *departureE2E) cached(t *testing.T, key string) bool {

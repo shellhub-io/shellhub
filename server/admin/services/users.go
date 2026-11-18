@@ -90,7 +90,7 @@ func (s *service) UserDelete(ctx context.Context, input *inputs.UserDelete) erro
 		ownedNamespaces[i] = namespace.TenantID
 	}
 
-	return apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, ownedNamespaces, func(ctx context.Context) error {
+	return apiservices.DeleteNamespacesEndingDevices(ctx, s.store, s.cache, nil, ownedNamespaces, func(ctx context.Context) error {
 		return s.deleteUser(ctx, user, userInfo, ownedNamespaces)
 	})
 }

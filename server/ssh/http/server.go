@@ -14,7 +14,6 @@ import (
 	"github.com/shellhub-io/shellhub/server/api/services"
 	"github.com/shellhub-io/shellhub/server/ssh/pkg/dialer"
 	"github.com/shellhub-io/shellhub/server/ssh/session"
-	log "github.com/sirupsen/logrus"
 )
 
 // Message is the JSON body returned to an agent whose tunnel request was refused.
@@ -88,8 +87,4 @@ func Register(router *echo.Echo, authn *routesmiddleware.Authenticator, d *diale
 	authn.AllowAnonymous(http.MethodGet, HandleRevdialPath)
 
 	router.POST(HandleSSHClosePath, handlers.HandleSSHClose)
-
-	if err := applyTunnelExtensions(router, authn, d); err != nil {
-		log.WithError(err).Error("failed to register the tunnel extensions")
-	}
 }

@@ -63,7 +63,7 @@ func (m MembershipInvitation) IsPending() bool {
 
 // MembershipInvitationNotification is the typed, email-relevant snapshot of a membership
 // invitation event. It is assembled once by the membership-intake flow and carried — via the
-// OnMembershipInvited hook and the internal client — to the worker that renders and sends the
+// Hooks.MembershipInvited hook and the internal client — to the worker that renders and sends the
 // invitation email, which reads it without a single store round-trip.
 //
 // It is the single contract across the shellhub↔cloud seam: JSON-encoded over the worker's

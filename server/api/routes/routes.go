@@ -178,10 +178,6 @@ func NewRouter(service services.Service, opts ...Option) (*echo.Echo, error) {
 
 	SetupMCPRoutes(router)
 
-	if err := applyExtensions(router, handler.authn, service); err != nil {
-		logrus.WithError(err).Error("failed to apply route extensions")
-	}
-
 	router.Pre(echoMiddleware.Rewrite(map[string]string{
 		"/api/containers":   "/api/devices?connector=true",
 		"/api/containers?*": "/api/devices?connector=true&$1",

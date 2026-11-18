@@ -52,7 +52,7 @@ func authenticatedRouter(t *testing.T) (*echo.Echo, *routesmiddleware.Authentica
 func TestAllowlistsMatchRegisteredRoutes(t *testing.T) {
 	router, authn, service := authenticatedRouter(t)
 
-	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil, clock.New()), service, session.NewRegistry(), &sshhttp.Config{})
+	sshhttp.Register(router, authn, dialer.NewDialer(dialer.NewManager(clock.New()), nil, nil), service, session.NewRegistry(), &sshhttp.Config{})
 
 	assert.Empty(t, authn.UnregisteredRoutes(router.Router().Routes()))
 }

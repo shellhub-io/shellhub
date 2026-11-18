@@ -471,12 +471,16 @@ func TestService_GenerateInvitationLink(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			override(t, &directMembershipEnabled, tc.directMembership)
+			var testOpts []Option
+
+			if tc.directMembership {
+				testOpts = append(testOpts, WithDirectMembership())
+			}
 
 			fixUUID(t)
 			tc.requiredMocks()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), WithIssuer("https://shellhub.example.com"))
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), WithIssuer("https://shellhub.example.com"), withAll(testOpts...))
 
 			link, err := s.GenerateInvitationLink(ctx, scope.MustBounded(req.TenantID), req)
 			assert.Equal(t, tc.expected.err, err)

@@ -2,31 +2,7 @@ package services
 
 import (
 	"context"
-
-	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/server/api/store"
 )
-
-// LicenseEvaluatorFactoryFunc constructs a LicenseEvaluator using
-// the core store and cache. It is called during server setup when the enterprise binary
-// is built. Enterprise packages register a factory via RegisterLicenseEvaluator in their
-// init() functions.
-type LicenseEvaluatorFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache) (LicenseEvaluator, error)
-
-var licenseEvaluatorFactory LicenseEvaluatorFactoryFunc
-
-// RegisterLicenseEvaluator registers the factory function that creates the license
-// evaluator. This must be called before the server's Setup() is invoked — typically
-// from an enterprise package's init() function.
-func RegisterLicenseEvaluator(f LicenseEvaluatorFactoryFunc) {
-	licenseEvaluatorFactory = f
-}
-
-// LicenseEvaluatorFactory returns the registered LicenseEvaluatorFactoryFunc, or nil
-// in Community Edition builds.
-func LicenseEvaluatorFactory() LicenseEvaluatorFactoryFunc {
-	return licenseEvaluatorFactory
-}
 
 // LicenseEvaluator defines the interface for license-based device acceptance checks.
 //

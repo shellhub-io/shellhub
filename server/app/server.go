@@ -250,6 +250,8 @@ type Server struct {
 	clock         clock.Clock
 	publicURL     string
 	gatewayConfig *gateway.GatewayConfig
+	extensions    []Extension
+	features      []Features
 }
 
 const (
@@ -266,8 +268,16 @@ func newHTTPServer(handler http.Handler, headerTimeout time.Duration) *http.Serv
 	return &http.Server{Handler: handler, ReadHeaderTimeout: headerTimeout}
 }
 
-// Setup initializes all server components including database connections, cache, services, API routes, and background workers.
-// It prepares the server for starting but does not actually begin serving requests.
+// Setup builds every component the server runs: the cache, the store, the task queue client, the
+// extensions, the services, the router, the worker and the SSH server. It serves nothing;
+// [Server.Start] does. It returns the first error among: the public URL failing to resolve, the
+// gateway configuration failing to load, the cache, the store or the task queue client failing to
+// open, an extension failing to open, the instance binding failing to reconcile, the GeoIP locator
+// failing to start, the trusted proxies failing to parse, the Sentry client failing to start, a
+// strict OpenAPI validation without a valid schema, the token key pair failing to load, the router
+// failing to build, and the SSH server failing to set up, which covers the web SSH bridge, an
+// extension's routes failing to mount and a route mounted outside a route table. It does not
+// release what it opened before the error.
 func (s *Server) Setup(ctx context.Context) error {
 	log.Info("Setting up server components")
 
@@ -294,33 +304,27 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Debug("Redis cache initialized successfully")
 
-	wrapperFactory := store.StoreWrapper()
-
 	uri := pg.URI(s.env.PostgresHost, s.env.PostgresPort, s.env.PostgresUsername, s.env.PostgresPassword, s.env.PostgresDatabase)
 
-	store, err := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate(), pgoptions.WithClock(s.clock))
+	coreStore, err := pg.New(ctx, uri, pgoptions.Log("INFO", true), pgoptions.Migrate(), pgoptions.WithClock(s.clock))
 	if err != nil {
-		log.
-			WithError(err).
-			Fatal("failed to create the store")
+		return fmt.Errorf("failed to create the store: %w", err)
 	}
 
 	log.Info("store connected successfully")
 
-	if wrapperFactory != nil {
-		store, err = wrapperFactory(store, cache)
-		if err != nil {
-			return errors.Join(errors.New("failed to wrap store"), err)
-		}
-
-		log.Info("Store wrapper applied")
+	features, store, err := openExtensions(ctx, s.extensions, Infra{Env: *s.env, Store: coreStore, Cache: cache, Clock: s.clock})
+	if err != nil {
+		return fmt.Errorf("failed to open the server's extensions: %w", err)
 	}
+
+	s.features = features
 
 	if err := reconcileInstanceBinding(ctx, store); err != nil {
 		return errors.Join(errors.New("failed to reconcile instance binding"), err)
 	}
 
-	located, err := s.chooseLocator(ctx)
+	located, err := s.chooseLocator(ctx, maxMindOf(features))
 	if err != nil {
 		return err
 	}
@@ -329,50 +333,19 @@ func (s *Server) Setup(ctx context.Context) error {
 		go located.keepFresh(ctx)
 	}
 
-	servicesOptions := []services.Option{services.WithLocator(located.locator)}
+	tunnels := dialer.NewManager(s.clock)
+	evictTunnel := func(_ context.Context, tenantID, uid string) { tunnels.Evict(tenantID, uid) }
 
-	if factory := services.BillingFactory(); factory != nil {
-		log.Info("Billing provider factory registered; initializing billing provider")
+	servicesOptions := []services.Option{
+		services.WithLocator(located.locator),
+		services.WithHooks(services.Hooks{DeviceRemoved: []services.DeviceRemovedHookFn{evictTunnel}}),
+	}
 
-		billing, err := factory(ctx, store, cache)
-		if err != nil {
-			return errors.Join(errors.New("failed to initialize billing provider"), err)
+	for _, f := range features {
+		if f.Services != nil {
+			servicesOptions = append(servicesOptions, f.Services(located.locator)...)
 		}
-
-		if billing != nil {
-			servicesOptions = append(servicesOptions, services.WithBilling(billing))
-		}
-
-		log.Info("Billing provider initialized and injected into service")
 	}
-
-	leOpts, err := s.licenseEvaluatorOption(ctx, store, cache)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, leOpts...)
-
-	feOpts, err := s.firewallEvaluatorOption(ctx, store, cache, located.locator)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, feOpts...)
-
-	dsOpts, err := s.deviceSelectorSourceOption(ctx, store, cache)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, dsOpts...)
-
-	rpOpts, err := s.sessionRecordingPrunerOption(ctx, store, cache)
-	if err != nil {
-		return err
-	}
-
-	servicesOptions = append(servicesOptions, rpOpts...)
 
 	routerOptions, err := s.routerOptions(ctx, located.source)
 	if err != nil {
@@ -428,11 +401,15 @@ func (s *Server) Setup(ctx context.Context) error {
 		log.Warn("session retention disabled; sessions and their events are kept indefinitely")
 	}
 
-	routes.ApplyWorkerExtensions(s.worker, store, cache)
+	for _, f := range features {
+		if f.Workers != nil {
+			f.Workers(s.worker)
+		}
+	}
 
-	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock, dialer.EffectivePingInterval(time.Duration(s.sshEnv.TunnelPingInterval)))
+	s.heartbeater = services.NewDeviceHeartbeater(store, s.clock, dialer.EffectivePingInterval(time.Duration(s.sshEnv.TunnelPingInterval)), evictTunnel)
 
-	if err := s.setupSSH(service); err != nil {
+	if err := s.setupSSH(service, tunnels); err != nil {
 		return errors.Join(errors.New("failed to setup the ssh server"), err)
 	}
 
@@ -474,15 +451,12 @@ func reconcileInstanceBinding(ctx context.Context, st store.Store) error {
 	return st.SystemSet(ctx, system)
 }
 
-func (s *Server) setupSSH(service services.Service) error {
+func (s *Server) setupSSH(service services.Service, tunnels *dialer.Manager) error {
 	env := s.sshEnv
 
-	d := dialer.NewDialer(service, s.heartbeater, s.clock)
+	d := dialer.NewDialer(tunnels, service, s.heartbeater)
 	s.tunnels = d.Manager
 	d.Manager.PingInterval = time.Duration(env.TunnelPingInterval)
-	services.OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
-		d.Manager.Evict(tenantID, uid)
-	})
 
 	if err := prometheus.Register(dialer.NewCollector(d.Manager)); err != nil {
 		log.WithError(err).Warning("failed to register the dialer connection metrics")
@@ -501,6 +475,16 @@ func (s *Server) setupSSH(service services.Service) error {
 	config := &web.Config{HostKeyFile: env.HostKeyFile, Issuer: s.publicURL}
 	if err := web.NewSSHServerBridge(s.router, s.authn, service, handoff, config); err != nil {
 		return err
+	}
+
+	for _, f := range s.features {
+		if f.Routes == nil {
+			continue
+		}
+
+		if err := f.Routes(Mount{Router: s.router, Authn: s.authn, Service: service, Tunnels: d}); err != nil {
+			return fmt.Errorf("failed to mount an extension's routes: %w", err)
+		}
 	}
 
 	if err := requireDeclaredRoutes(s.router); err != nil {
@@ -679,10 +663,10 @@ func (s *Server) telemetryWriteKey() (string, bool) {
 	}
 }
 
-func (s *Server) chooseLocator(ctx context.Context) (chosenLocator, error) {
+func (s *Server) chooseLocator(ctx context.Context, maxMind func(context.Context) (geoip.Locator, error)) (chosenLocator, error) {
 	chosen, err := newLocator(ctx, locatorConfig{
 		database:    s.env.GeoIPDatabase,
-		factory:     services.LocatorFactory(),
+		factory:     maxMind,
 		downloadDir: geoipDownloadDir,
 		bakedDir:    geoipBakedDir,
 		update:      s.env.GeoIPUpdate,
@@ -694,78 +678,6 @@ func (s *Server) chooseLocator(ctx context.Context) (chosenLocator, error) {
 	}
 
 	return chosen, nil
-}
-
-func (s *Server) licenseEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
-	factory := services.LicenseEvaluatorFactory()
-	if factory == nil {
-		return nil, nil
-	}
-
-	le, err := factory(ctx, st, c)
-	if err != nil {
-		return nil, errors.Join(errors.New("init license evaluator"), err)
-	}
-
-	if le != nil {
-		return []services.Option{services.WithLicenseEvaluator(le)}, nil
-	}
-
-	return nil, nil
-}
-
-func (s *Server) sessionRecordingPrunerOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
-	factory := services.SessionRecordingPrunerFactory()
-	if factory == nil {
-		return nil, nil
-	}
-
-	rp, err := factory(ctx, st, c)
-	if err != nil {
-		return nil, errors.Join(errors.New("init session recording pruner"), err)
-	}
-
-	if rp != nil {
-		return []services.Option{services.WithSessionRecordingPruner(rp)}, nil
-	}
-
-	return nil, nil
-}
-
-func (s *Server) deviceSelectorSourceOption(ctx context.Context, st store.Store, c cache.Cache) ([]services.Option, error) {
-	factory := services.DeviceSelectorSourceFactory()
-	if factory == nil {
-		return nil, nil
-	}
-
-	source, err := factory(ctx, st, c)
-	if err != nil {
-		return nil, errors.Join(errors.New("init device selector source"), err)
-	}
-
-	if source != nil {
-		return []services.Option{services.WithDeviceSelectorSource(source)}, nil
-	}
-
-	return nil, nil
-}
-
-func (s *Server) firewallEvaluatorOption(ctx context.Context, st store.Store, c cache.Cache, locator geoip.Locator) ([]services.Option, error) {
-	factory := services.FirewallEvaluatorFactory()
-	if factory == nil {
-		return nil, nil
-	}
-
-	fe, err := factory(ctx, st, c, locator)
-	if err != nil {
-		return nil, errors.Join(errors.New("init firewall evaluator"), err)
-	}
-
-	if fe != nil {
-		return []services.Option{services.WithFirewallEvaluator(fe)}, nil
-	}
-
-	return nil, nil
 }
 
 func openAPIValidationSkipper(ctx *echo.Context) bool {
