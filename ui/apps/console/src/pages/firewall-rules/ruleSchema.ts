@@ -1,14 +1,6 @@
 import { z } from "zod";
 import type { FirewallRulesRequest, FirewallRulesResponse } from "@/client";
-
-function isValidRegex(pattern: string): boolean {
-  try {
-    new RegExp(pattern);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { validatePattern } from "@/utils/validation";
 
 /**
  * Validates the firewall rule form, including the parts that depend on each other: a rule
@@ -49,51 +41,18 @@ export const ruleSchema = z
     }
 
     if (values.sourceIpOption === "restrict") {
-      if (!values.sourceIp.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["sourceIp"],
-          message: "Source IP pattern is required",
-        });
-      } else if (!isValidRegex(values.sourceIp)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["sourceIp"],
-          message: "Source IP must be a valid regular expression",
-        });
-      }
+      const message = validatePattern(values.sourceIp, "Source IP");
+      if (message) ctx.addIssue({ code: "custom", path: ["sourceIp"], message });
     }
 
     if (values.usernameOption === "restrict") {
-      if (!values.username.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["username"],
-          message: "Username pattern is required",
-        });
-      } else if (!isValidRegex(values.username)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["username"],
-          message: "Username must be a valid regular expression",
-        });
-      }
+      const message = validatePattern(values.username, "Username");
+      if (message) ctx.addIssue({ code: "custom", path: ["username"], message });
     }
 
     if (values.filterOption === "hostname") {
-      if (!values.hostname.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["hostname"],
-          message: "Hostname pattern is required",
-        });
-      } else if (!isValidRegex(values.hostname)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["hostname"],
-          message: "Hostname must be a valid regular expression",
-        });
-      }
+      const message = validatePattern(values.hostname, "Hostname");
+      if (message) ctx.addIssue({ code: "custom", path: ["hostname"], message });
     }
 
     if (values.filterOption === "tags") {

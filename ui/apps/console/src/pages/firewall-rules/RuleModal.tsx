@@ -1,5 +1,6 @@
 import { useWatch } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
+import { INVALID_PATTERN_MESSAGE, isSdkError } from "@/api/errors";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import {
   createFirewallRuleMutation,
@@ -90,8 +91,8 @@ export default function RuleModal({
     } catch (err: unknown) {
       setError("root", {
         message:
-          err instanceof Error
-            ? err.message
+          isSdkError(err) && err.status === 400
+            ? INVALID_PATTERN_MESSAGE
             : `Failed to ${isEdit ? "update" : "create"} rule`,
       });
     }

@@ -1,6 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useWatch } from "react-hook-form";
-import { isSdkError } from "@/api/errors";
+import {
+  INVALID_KEY_OR_PATTERN_MESSAGE,
+  INVALID_PATTERN_MESSAGE,
+  isSdkError,
+} from "@/api/errors";
 import {
   UserGroupIcon,
   UserIcon,
@@ -95,10 +99,11 @@ export default function KeyModal({
       if (!isEdit && isSdkError(err) && err.status === 409) {
         setError("data", { message: "This public key already exists." });
       } else {
+        const invalidMessage = isEdit ? INVALID_PATTERN_MESSAGE : INVALID_KEY_OR_PATTERN_MESSAGE;
         setError("root", {
           message:
-            err instanceof Error
-              ? err.message
+            isSdkError(err) && err.status === 400
+              ? invalidMessage
               : `Failed to ${isEdit ? "update" : "create"} public key`,
         });
       }
