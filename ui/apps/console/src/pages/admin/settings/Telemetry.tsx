@@ -2,7 +2,7 @@ import { ChartBarIcon } from "@heroicons/react/24/outline";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Callout, Toggle } from "@shellhub/design-system/primitives";
 import { configureTelemetryMutation, getTelemetryOptions } from "@/client";
-import { adminQueryDefaults } from "@/hooks/useAdminRequests";
+import { adminQueryDefaults } from "@/hooks/adminQueryDefaults";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import PageHeader from "@/components/common/PageHeader";

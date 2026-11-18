@@ -2,8 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Squares2X2Icon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { Card } from "@shellhub/design-system/primitives";
-import { useNamespace, useStats } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace, useStats } from "@/hooks/useNamespaceRequests";
 import { useDeviceLocations } from "@/hooks/useDeviceRequests";
 import PageHeader from "@/components/common/PageHeader";
 import CopyButton from "@/components/common/CopyButton";
@@ -91,8 +90,7 @@ function FigureStrip({
  */
 export default function Dashboard() {
   const navigate = useNavigate();
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace: currentNamespace } = useNamespace(tenantId);
+  const { namespace: currentNamespace } = useCurrentNamespace();
   const { stats, isLoading: statsLoading } = useStats();
   const {
     locations,

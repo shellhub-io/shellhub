@@ -11,7 +11,7 @@ import {
   getAuthenticationSettingsOptions,
 } from "@/client";
 import { isSdkError } from "@/api/errors";
-import { adminQueryDefaults } from "@/hooks/useAdminRequests";
+import { adminQueryDefaults } from "@/hooks/adminQueryDefaults";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import SettingsSwitchCard from "@/components/settings/SettingsSwitchCard";
 import SettingsField from "@/components/settings/SettingsField";

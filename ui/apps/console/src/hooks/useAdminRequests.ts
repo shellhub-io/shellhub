@@ -1,21 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { adminDeleteUserMutation, getStatsOptions } from "@/client";
 import { useAuthStore } from "@/stores/authStore";
-import { isSdkError } from "@/api/errors";
+import { adminQueryDefaults } from "@/hooks/adminQueryDefaults";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
-
-/**
- * What every admin query shares: five minutes before it counts as stale, one retry except after a
- * 401, and no refetch when the window regains focus.
- */
-export const adminQueryDefaults = {
-  staleTime: 5 * 60 * 1000,
-  retry: /** Retries an admin query once unless the session has expired. */ (
-    count: number,
-    err: unknown,
-  ) => isSdkError(err) && err.status === 401 ? false : count < 1,
-  refetchOnWindowFocus: false,
-};
 
 /**
  * Instance-wide counts for the admin dashboard and the device limit banner. Idle unless the

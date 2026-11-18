@@ -1,8 +1,7 @@
 import { Card } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import CopyButton from "@/components/common/CopyButton";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { buildSshid } from "@/utils/sshid";
 import { LABEL_BASE } from "@/utils/styles";
 
@@ -17,8 +16,7 @@ interface SshidCardProps {
  * until the namespace's name has loaded.
  */
 export default function SshidCard({ uid, name, className }: SshidCardProps) {
-  const tenantId = useAuthStore((s) => s.tenant) ?? "";
-  const { namespace } = useNamespace(tenantId);
+  const { namespace } = useCurrentNamespace();
   const sshid = namespace?.name ? buildSshid(namespace.name, name) : uid;
 
   return (

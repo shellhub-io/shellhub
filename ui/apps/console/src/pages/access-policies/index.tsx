@@ -29,10 +29,9 @@ import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useEditModal } from "@/hooks/useEditModal";
 import { useRowAction } from "@/hooks/useRowAction";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useNamespaceLegacy } from "@/hooks/useNamespaceLegacy";
 import { useApiKeys } from "@/hooks/useApiKeyRequests";
-import { useAuthStore } from "@/stores/authStore";
 import { deleteAccessPolicyMutation, type AccessPolicy } from "@/client";
 import { roleSubjectCount as countRoleSubject } from "./subjectCount";
 import PageHeader from "@/components/common/PageHeader";
@@ -236,8 +235,7 @@ function ActionCell({ policy }: { policy: AccessPolicy }) {
 export default function AccessPolicies() {
   const sectionTitle = useNavSectionTitle("/access-policies");
   const { policies, isLoading, error } = useAccessPolicies();
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace: ns } = useNamespace(tenantId ?? "");
+  const { namespace: ns } = useCurrentNamespace();
   const isNewNamespace = useNamespaceLegacy() !== true;
 
   const apiKeys = useApiKeys();

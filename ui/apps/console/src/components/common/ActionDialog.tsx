@@ -20,8 +20,7 @@ import type {
   EntityOperation,
 } from "@/hooks/useActionDialog";
 import { getAcceptErrorMessage } from "@/utils/acceptErrors";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { isSubscriptionBlocked } from "@/utils/billing";
 import { capitalize } from "@/utils/string";
 import DialogHeader from "@/components/common/DialogHeader";
@@ -78,8 +77,7 @@ export default function ActionDialog({
   runAction: (entity: EntityBase, operation: EntityOperation) => Promise<void>;
 }) {
   const navigate = useNavigate();
-  const tenant = useAuthStore((s) => s.tenant);
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const hasSubscription = isSubscriptionBlocked(namespace?.billing);
   const canSubscribe = useHasPermission("BillingCreateSubscription");
   const billingTitleId = useId();

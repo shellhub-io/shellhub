@@ -7,7 +7,7 @@ import {
 import { getConfig } from "@/env";
 import { features } from "@/edition";
 import { useAuthStore } from "@/stores/authStore";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useSupportIdentifier } from "@/hooks/useSupportIdentifier";
 import { hasActiveSubscription } from "@/utils/billing";
 import {
@@ -52,7 +52,7 @@ export function useChatwoot(): ChatwootHandle {
   const userName = useAuthStore((s) => s.name);
   const tenant = useAuthStore((s) => s.tenant);
 
-  const { namespace } = useNamespace(tenant ?? "");
+  const { namespace } = useCurrentNamespace();
   const namespaceName = namespace?.name ?? "";
   const hasActiveBilling = hasActiveSubscription(namespace?.billing);
 

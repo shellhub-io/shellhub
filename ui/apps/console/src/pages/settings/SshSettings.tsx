@@ -16,7 +16,7 @@ import { Button } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import {
   useEditNamespace,
-  useNamespace,
+  useCurrentNamespace,
 } from "@/hooks/useNamespaceRequests";
 import { isLegacyNamespace } from "@/hooks/useNamespaceLegacy";
 import { useAccessPolicies } from "@/hooks/useAccessPolicyRequests";
@@ -25,7 +25,6 @@ import { formatCount } from "@/utils/count";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { useSettingSave } from "@/hooks/useSettingSave";
 import { useDrawerForm } from "@/hooks/useDrawerForm";
-import { useAuthStore } from "@/stores/authStore";
 import {
   ansiColor,
   useTerminalThemeStore,
@@ -588,8 +587,7 @@ function BannerCard({ ns }: { ns: Namespace }) {
  * in its own dialog, or read in one by a role that may not edit it.
  */
 export default function SshSettings() {
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace: ns } = useNamespace(tenantId ?? "");
+  const { namespace: ns } = useCurrentNamespace();
 
   if (!ns) return <PageLoader label="Loading settings" padding="lg" />;
 

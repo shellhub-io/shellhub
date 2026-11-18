@@ -20,8 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { getConfig } from "@/env";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
-import { useAuthStore } from "@/stores/authStore";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import {
   useAttachPaymentMethod,
   useCreateCustomer,
@@ -100,8 +99,7 @@ function BillingPaymentInner({
 }: BillingPaymentProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace, refetch: refetchNamespace } = useNamespace(tenantId ?? "");
+  const { namespace, refetch: refetchNamespace } = useCurrentNamespace();
   const hasCustomer = !!namespace?.billing?.customer_id;
   const {
     customer,

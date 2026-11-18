@@ -4,9 +4,8 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { useAuthStore } from "@/stores/authStore";
 import { useHasPermission } from "@/hooks/useHasPermission";
-import { useNamespace } from "@/hooks/useNamespaceRequests";
+import { useCurrentNamespace } from "@/hooks/useNamespaceRequests";
 import { useOpenBillingPortal, useSubscription } from "@/hooks/useBilling";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { formatExpiry } from "@/utils/date";
@@ -181,8 +180,7 @@ function formatCurrency(amountCents: number, currency: string): string {
  */
 export default function BillingSection() {
   const canSubscribe = useHasPermission("BillingCreateSubscription");
-  const { tenant: tenantId } = useAuthStore();
-  const { namespace } = useNamespace(tenantId ?? "");
+  const { namespace } = useCurrentNamespace();
   const billing = namespace?.billing;
   const hasSubscription = !!billing?.customer_id && !!billing?.subscription?.id;
   const { subscription, isLoading } = useSubscription(hasSubscription);
