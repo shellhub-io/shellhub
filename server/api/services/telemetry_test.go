@@ -45,13 +45,13 @@ func telemetrySystem(enabled bool) *models.System {
 	}
 }
 
-func newTelemetryService(t *testing.T, storeMock *storemock.MockStore, sender TelemetrySender, disabledByEnvironment bool) *APIService {
+func newTelemetryService(t *testing.T, storeMock *storemock.MockStore, sender TelemetrySender, disabledByEnvironment bool, extra ...Option) *APIService {
 	t.Helper()
 
-	return newTelemetryServiceWithCache(t, storeMock, sender, disabledByEnvironment, cache.NewNullCache())
+	return newTelemetryServiceWithCache(t, storeMock, sender, disabledByEnvironment, cache.NewNullCache(), extra...)
 }
 
-func newTelemetryServiceWithCache(t *testing.T, storeMock *storemock.MockStore, sender TelemetrySender, disabledByEnvironment bool, c cache.Cache) *APIService {
+func newTelemetryServiceWithCache(t *testing.T, storeMock *storemock.MockStore, sender TelemetrySender, disabledByEnvironment bool, c cache.Cache, extra ...Option) *APIService {
 	t.Helper()
 
 	options := []Option{
@@ -64,7 +64,7 @@ func newTelemetryServiceWithCache(t *testing.T, storeMock *storemock.MockStore, 
 		options = append(options, WithTelemetryDisabledByEnvironment())
 	}
 
-	return NewService(storeMock, privateKey, publicKey, c, options...)
+	return NewService(storeMock, privateKey, publicKey, c, append(options, extra...)...)
 }
 
 func expectedInstanceHeartbeat() telemetry.Event {
@@ -176,9 +176,6 @@ func instanceUsage() *models.InstanceUsage {
 }
 
 func TestService_TelemetryHeartbeat(t *testing.T) {
-	override(t, &telemetryHeartbeatHooks, nil)
-	override(t, &telemetryInstancePropertiesHooks, nil)
-
 	ctx := context.Background()
 	since := telemetryNow.Add(-24 * time.Hour)
 
@@ -225,20 +222,18 @@ func TestService_TelemetryHeartbeat(t *testing.T) {
 	})
 
 	t.Run("appends the events a hook adds, attributed to the instance", func(t *testing.T) {
-		override(t, &telemetryHeartbeatHooks, nil)
-
-		OnTelemetryHeartbeat(func(_ context.Context, gotSince time.Time) ([]telemetry.Event, error) {
+		hook := WithHooks(Hooks{TelemetryHeartbeat: []TelemetryHeartbeatHookFn{func(_ context.Context, gotSince time.Time) ([]telemetry.Event, error) {
 			assert.Equal(t, since, gotSince)
 
 			return []telemetry.Event{{Name: "namespace heartbeat", Groups: map[string]string{"namespace": "hashed"}}}, nil
-		})
+		}}})
 
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil).Once()
 		storeMock.On("InstanceUsage", ctx, since).Return(instanceUsage(), nil).Once()
 
 		sender := new(recordingSender)
-		require.NoError(t, newTelemetryService(t, storeMock, sender, false).TelemetryHeartbeat()(ctx))
+		require.NoError(t, newTelemetryService(t, storeMock, sender, false, hook).TelemetryHeartbeat()(ctx))
 
 		assert.Equal(t, []telemetry.Event{
 			expectedInstanceHeartbeat(),
@@ -247,20 +242,18 @@ func TestService_TelemetryHeartbeat(t *testing.T) {
 	})
 
 	t.Run("adds the properties a hook adds, never replacing the core ones", func(t *testing.T) {
-		override(t, &telemetryInstancePropertiesHooks, nil)
-
-		OnTelemetryInstanceProperties(func(_ context.Context, gotSince time.Time) (map[string]any, error) {
+		hook := WithHooks(Hooks{TelemetryInstanceProperties: []TelemetryInstancePropertiesHookFn{func(_ context.Context, gotSince time.Time) (map[string]any, error) {
 			assert.Equal(t, since, gotSince)
 
 			return map[string]any{"firewall_rules": int64(5), "users": int64(999)}, nil
-		})
+		}}})
 
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil).Once()
 		storeMock.On("InstanceUsage", ctx, since).Return(instanceUsage(), nil).Once()
 
 		sender := new(recordingSender)
-		require.NoError(t, newTelemetryService(t, storeMock, sender, false).TelemetryHeartbeat()(ctx))
+		require.NoError(t, newTelemetryService(t, storeMock, sender, false, hook).TelemetryHeartbeat()(ctx))
 
 		expected := expectedInstanceHeartbeat()
 		expected.Properties["firewall_rules"] = int64(5)
@@ -268,29 +261,25 @@ func TestService_TelemetryHeartbeat(t *testing.T) {
 	})
 
 	t.Run("a failing properties hook sends nothing", func(t *testing.T) {
-		override(t, &telemetryInstancePropertiesHooks, nil)
-
 		hookErr := errors.New("cloud store down")
-		OnTelemetryInstanceProperties(func(context.Context, time.Time) (map[string]any, error) {
+		hook := WithHooks(Hooks{TelemetryInstanceProperties: []TelemetryInstancePropertiesHookFn{func(context.Context, time.Time) (map[string]any, error) {
 			return nil, hookErr
-		})
+		}}})
 
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil).Once()
 		storeMock.On("InstanceUsage", ctx, since).Return(instanceUsage(), nil).Once()
 
 		sender := new(recordingSender)
-		require.ErrorIs(t, newTelemetryService(t, storeMock, sender, false).TelemetryHeartbeat()(ctx), hookErr)
+		require.ErrorIs(t, newTelemetryService(t, storeMock, sender, false, hook).TelemetryHeartbeat()(ctx), hookErr)
 		assert.Empty(t, sender.sent)
 	})
 
 	t.Run("a failing hook sends nothing and releases the day for the retry", func(t *testing.T) {
-		override(t, &telemetryHeartbeatHooks, nil)
-
 		hookErr := errors.New("store down")
-		OnTelemetryHeartbeat(func(context.Context, time.Time) ([]telemetry.Event, error) {
+		hook := WithHooks(Hooks{TelemetryHeartbeat: []TelemetryHeartbeatHookFn{func(context.Context, time.Time) ([]telemetry.Event, error) {
 			return nil, hookErr
-		})
+		}}})
 
 		storeMock := storemock.NewMockStore(t)
 		storeMock.On("SystemGet", ctx).Return(telemetrySystem(true), nil)
@@ -298,11 +287,11 @@ func TestService_TelemetryHeartbeat(t *testing.T) {
 
 		shared := newMemoryCache()
 		sender := new(recordingSender)
-		require.ErrorIs(t, newTelemetryServiceWithCache(t, storeMock, sender, false, shared).TelemetryHeartbeat()(ctx), hookErr)
+		require.ErrorIs(t, newTelemetryServiceWithCache(t, storeMock, sender, false, shared, hook).TelemetryHeartbeat()(ctx), hookErr)
 		assert.Empty(t, sender.sent)
 
 		hookErr = nil
-		require.NoError(t, newTelemetryServiceWithCache(t, storeMock, sender, false, shared).TelemetryHeartbeat()(ctx))
+		require.NoError(t, newTelemetryServiceWithCache(t, storeMock, sender, false, shared, hook).TelemetryHeartbeat()(ctx))
 		assert.Equal(t, []telemetry.Event{expectedInstanceHeartbeat()}, sender.sent)
 	})
 
@@ -399,8 +388,6 @@ func TestService_TelemetryInstanceStarted(t *testing.T) {
 }
 
 func TestService_TelemetryStatus(t *testing.T) {
-	override(t, &telemetryHeartbeatHooks, nil)
-
 	ctx := context.Background()
 	since := telemetryNow.Add(-24 * time.Hour)
 
@@ -438,10 +425,4 @@ func TestService_TelemetryStatus(t *testing.T) {
 			}, status)
 		})
 	}
-}
-
-func TestOnTelemetryInstanceProperties(t *testing.T) {
-	override(t, &telemetryInstancePropertiesHooks, nil)
-
-	assert.PanicsWithValue(t, "services: OnTelemetryInstanceProperties called with nil hook", func() { OnTelemetryInstanceProperties(nil) })
 }

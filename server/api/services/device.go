@@ -334,30 +334,40 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		return err
 	}
 
-	endRemovedDevice(ctx, s.cache, tenant, device.UID)
+	s.endRemovedDevice(ctx, tenant, device.UID)
 
 	return nil
 }
 
-func endRemovedDevice(ctx context.Context, c cache.Cache, tenantID, uid string) {
+func (s *service) endRemovedDevice(ctx context.Context, tenantID, uid string) {
+	endRemovedDevice(ctx, s.cache, s.hooks.deviceRemoved, tenantID, uid)
+}
+
+func endRemovedDevice(ctx context.Context, c cache.Cache, removed DeviceRemovedHookFn, tenantID, uid string) {
 	evictDeviceAuthorization(ctx, c, tenantID, uid)
 
-	fireDeviceRemoved(ctx, tenantID, uid)
+	if removed != nil {
+		removed(ctx, tenantID, uid)
+	}
+}
+
+func (s *service) DeleteNamespacesEndingDevices(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
+	return DeleteNamespacesEndingDevices(ctx, s.store, s.cache, s.hooks.deviceRemoved, tenantIDs, deleteNamespaces)
 }
 
 // DeleteNamespacesEndingDevices lists the devices of the namespaces of tenantIDs through st, runs
 // deleteNamespaces, which deletes those namespaces, and then ends every device listed as a device
 // removal does: it evicts from c the device's cached authorization, so its agent's next
 // authorization reads the database instead of getting a token for a namespace that is gone, and
-// fires the device removed hooks, which close the device's tunnel when this process holds it. A
-// process without those hooks, such as the admin CLI, leaves the tunnel to close on its next
-// beat. It returns ErrForbidden for a tenant ID
+// calls removed, which closes the device's tunnel when this process holds it. A process
+// without tunnels, such as the admin CLI, passes a nil removed and leaves the tunnel to close
+// on its next beat. It returns ErrForbidden for a tenant ID
 // that is not a valid scope, and the store's error when a namespace's devices cannot be listed, both before
 // deleteNamespaces runs; deleteNamespaces's error is returned unchanged with nothing evicted. A
 // failed eviction is logged with the tenant and the device UID and does not fail the call. ctx
 // bounds the listing, is handed to deleteNamespaces and bounds the evictions, so a ctx cancelled
 // after the deletion leaves every entry to expire on its own.
-func DeleteNamespacesEndingDevices(ctx context.Context, st store.DeviceStore, c cache.Cache, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
+func DeleteNamespacesEndingDevices(ctx context.Context, st store.DeviceStore, c cache.Cache, removed DeviceRemovedHookFn, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
 	devices := make(map[string][]models.Device, len(tenantIDs))
 	for _, tenantID := range tenantIDs {
 		sc, err := BoundTo(tenantID)
@@ -379,7 +389,7 @@ func DeleteNamespacesEndingDevices(ctx context.Context, st store.DeviceStore, c 
 
 	for tenantID, held := range devices {
 		for _, device := range held {
-			endRemovedDevice(ctx, c, tenantID, device.UID)
+			endRemovedDevice(ctx, c, removed, tenantID, device.UID)
 		}
 	}
 
@@ -794,7 +804,7 @@ func (s *service) mergeDevice(ctx context.Context, tenantID string, oldDevice *m
 	sc := scope.MustBounded(tenantID)
 
 	log.WithFields(logFields).Debug("firing device merge hooks")
-	if err := fireDeviceMerge(ctx, tenantID, oldDevice, newDevice); err != nil {
+	if err := s.hooks.deviceMerge(ctx, tenantID, oldDevice, newDevice); err != nil {
 		log.WithError(err).WithFields(logFields).Error("device merge hook failed")
 
 		return err

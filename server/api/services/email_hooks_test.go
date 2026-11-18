@@ -29,65 +29,60 @@ func refuseDomain(domain, reason string) EmailCheckHookFn {
 }
 
 func TestCheckEmail(t *testing.T) {
-	override(t, &emailCheckHooks, nil)
+	hooks := &Hooks{}
 
 	ctx := context.Background()
 
-	t.Run("nil hook panics", func(t *testing.T) {
-		emailCheckHooks = nil
-		assert.PanicsWithValue(t, "services: OnEmailCheck called with nil hook", func() {
-			OnEmailCheck(nil)
-		})
-	})
-
 	t.Run("accepts every address when no hook is registered", func(t *testing.T) {
-		emailCheckHooks = nil
-		assert.Empty(t, checkEmail(ctx, "alice@listed.test"))
+		*hooks = Hooks{}
+		assert.Empty(t, hooks.checkEmail(ctx, "alice@listed.test"))
 	})
 
 	t.Run("passes the context and the address to the hook", func(t *testing.T) {
-		emailCheckHooks = nil
+		*hooks = Hooks{}
 
 		type requestKey struct{}
 		requestCtx := context.WithValue(ctx, requestKey{}, "request")
 
 		var gotRequest any
 		var gotEmail string
-		OnEmailCheck(func(ctx context.Context, email string) string {
+		hooks.EmailCheck = append(hooks.EmailCheck, func(ctx context.Context, email string) string {
 			gotRequest, gotEmail = ctx.Value(requestKey{}), email
 
 			return ""
 		})
 
-		assert.Empty(t, checkEmail(requestCtx, "alice@shellhub.test"))
+		assert.Empty(t, hooks.checkEmail(requestCtx, "alice@shellhub.test"))
 		assert.Equal(t, "request", gotRequest)
 		assert.Equal(t, "alice@shellhub.test", gotEmail)
 	})
 
 	t.Run("returns the first refusal and skips the remaining hooks", func(t *testing.T) {
-		emailCheckHooks = nil
+		*hooks = Hooks{}
 
 		var secondCalled bool
-		OnEmailCheck(refuseDomain("@listed.test", "disposable"))
-		OnEmailCheck(func(context.Context, string) string {
+		hooks.EmailCheck = append(hooks.EmailCheck, refuseDomain("@listed.test", "disposable"))
+		hooks.EmailCheck = append(hooks.EmailCheck, func(context.Context, string) string {
 			secondCalled = true
 
 			return "unreachable"
 		})
 
-		s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache())
+		s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache(), WithHooks(*hooks))
 		assert.Equal(t, "disposable", s.CheckEmail(ctx, "alice@listed.test"))
 		assert.False(t, secondCalled)
 	})
 }
 
 func TestRegisterUserEmailCheck(t *testing.T) {
+	var testOpts []Option
+
 	ctx := context.TODO()
 	now := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 
-	override(t, &openSignupEnabled, true)
-	override(t, &userRegisteredHooks, nil)
-	override(t, &emailCheckHooks, []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")})
+	testOpts = append(testOpts, WithOpenSignup())
+
+	testOpts = append(testOpts, WithHooks(Hooks{EmailCheck: []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")}}))
 
 	const hashed = "$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi"
 
@@ -141,7 +136,7 @@ func TestRegisterUserEmailCheck(t *testing.T) {
 			hash.Set(t, hashMock)
 			tc.requiredMocks(storeMock, hashMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), withAll(testOpts...))
 
 			res, err := s.RegisterUser(ctx, requests.RegisterUser{
 				Name: "Alice", Username: "alice", Email: tc.email, Password: "secret123",
@@ -154,7 +149,9 @@ func TestRegisterUserEmailCheck(t *testing.T) {
 }
 
 func TestUpdateUserEmailCheck(t *testing.T) {
-	override(t, &emailCheckHooks, []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")})
+	var testOpts []Option
+
+	testOpts = append(testOpts, WithHooks(Hooks{EmailCheck: []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")}}))
 
 	hashMock := hashmock.NewMockHasher(t)
 	hash.Set(t, hashMock)
@@ -234,7 +231,7 @@ func TestUpdateUserEmailCheck(t *testing.T) {
 				storeMock.On("UserUpdate", ctx, "000000000000000000000000", mock.AnythingOfType("*models.UserChanges")).Return(nil).Once()
 			}
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...))
 
 			assert.Equal(t, tc.expected, s.UpdateUser(ctx, tc.req))
 		})
@@ -269,9 +266,9 @@ func TestNotifyEmailsChanged(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			changes := recordEmailsChanged(t)
+			changes, recordChanges := recordEmailsChanged()
 
-			s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storemock.NewMockStore(t)), privateKey, publicKey, storecache.NewNullCache(), recordChanges)
 			s.NotifyEmailsChanged(ctx, EmailsChange{Before: before, After: tc.after})
 
 			if tc.fired {
@@ -281,15 +278,4 @@ func TestNotifyEmailsChanged(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestOnMFACodeCheck(t *testing.T) {
-	override(t, &mfaCodeCheckHooks, nil)
-
-	assert.PanicsWithValue(t, "services: OnMFACodeCheck called with nil hook", func() {
-		OnMFACodeCheck(nil)
-	})
-
-	OnMFACodeCheck(func(context.Context, *models.User, string) (string, error) { return "", nil })
-	assert.Len(t, mfaCodeCheckHooks, 1)
 }

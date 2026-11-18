@@ -1,98 +1,16 @@
 package app
 
 import (
-	"context"
-	"errors"
 	"testing"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
-	cachemock "github.com/shellhub-io/shellhub/pkg/cache/mocks"
 	"github.com/shellhub-io/shellhub/pkg/envs"
 	"github.com/shellhub-io/shellhub/pkg/telemetry"
 	"github.com/shellhub-io/shellhub/server/api/pkg/origin"
-	"github.com/shellhub-io/shellhub/server/api/services"
-	"github.com/shellhub-io/shellhub/server/api/store"
-	storemock "github.com/shellhub-io/shellhub/server/api/store/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TestLicenseEvaluatorWiring verifies the license-evaluator factory wiring in server setup.
-// It exercises licenseEvaluatorOption, the helper extracted from Setup() so the logic is
-// testable without a live database or Redis connection.
-func TestLicenseEvaluatorWiring(t *testing.T) {
-	original := services.LicenseEvaluatorFactory()
-	t.Cleanup(func() { services.RegisterLicenseEvaluator(original) })
-
-	t.Run("no factory registered: returns empty option slice", func(t *testing.T) {
-		services.RegisterLicenseEvaluator(nil)
-
-		s := &Server{env: &Env{}}
-		mockStore := storemock.NewMockStore(t)
-		mockCache := cachemock.NewMockCache(t)
-
-		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
-		require.NoError(t, err)
-		assert.Empty(t, opts)
-	})
-
-	t.Run("factory returns non-nil evaluator: option is appended", func(t *testing.T) {
-		stub := &stubLicenseEvaluator{}
-
-		services.RegisterLicenseEvaluator(func(_ context.Context, _ store.Store, _ cache.Cache) (services.LicenseEvaluator, error) {
-			return stub, nil
-		})
-
-		s := &Server{env: &Env{}}
-		mockStore := storemock.NewMockStore(t)
-		mockCache := cachemock.NewMockCache(t)
-
-		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
-		require.NoError(t, err)
-		assert.Len(t, opts, 1)
-	})
-
-	t.Run("factory returns untyped nil evaluator: option is NOT appended", func(t *testing.T) {
-		services.RegisterLicenseEvaluator(func(_ context.Context, _ store.Store, _ cache.Cache) (services.LicenseEvaluator, error) {
-			return nil, nil
-		})
-
-		s := &Server{env: &Env{}}
-		mockStore := storemock.NewMockStore(t)
-		mockCache := cachemock.NewMockCache(t)
-
-		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
-		require.NoError(t, err)
-		assert.Empty(t, opts)
-	})
-
-	t.Run("factory returns error: error is propagated", func(t *testing.T) {
-		factoryErr := errors.New("license init failed")
-
-		services.RegisterLicenseEvaluator(func(_ context.Context, _ store.Store, _ cache.Cache) (services.LicenseEvaluator, error) {
-			return nil, factoryErr
-		})
-
-		s := &Server{env: &Env{}}
-		mockStore := storemock.NewMockStore(t)
-		mockCache := cachemock.NewMockCache(t)
-
-		opts, err := s.licenseEvaluatorOption(context.Background(), mockStore, mockCache)
-		require.Error(t, err)
-		assert.Empty(t, opts)
-	})
-}
-
-type stubLicenseEvaluator struct{}
-
-func (s *stubLicenseEvaluator) CanAcceptDevice(_ context.Context) (bool, error) {
-	return true, nil
-}
-
-func (s *stubLicenseEvaluator) CanConnectDevice(_ context.Context) (bool, error) {
-	return true, nil
-}
 
 func TestTunnelPingInterval(t *testing.T) {
 	parse := func(values map[string]string) (*sshEnv, error) {

@@ -59,8 +59,8 @@ func (s *service) requireInviterAuthority(ctx context.Context, invitation *model
 	return err
 }
 
-func directGrant(userID, tenantID string, role authorizer.Role) (membershipGrant, bool) {
-	if !directMembershipAllowed() {
+func (s *service) directGrant(userID, tenantID string, role authorizer.Role) (membershipGrant, bool) {
+	if !s.directMembership {
 		return membershipGrant{}, false
 	}
 

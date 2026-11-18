@@ -263,52 +263,6 @@ func (_c *MockService_AddNamespaceMember_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
-// AllowSignInMethod provides a mock function for the type MockService
-func (_mock *MockService) AllowSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error) {
-	_mock.Called(method, enabled)
-	return
-}
-
-// MockService_AllowSignInMethod_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AllowSignInMethod'
-type MockService_AllowSignInMethod_Call struct {
-	*mock.Call
-}
-
-// AllowSignInMethod is a helper method to define mock.On call
-//   - method models.UserAuthMethod
-//   - enabled func(ctx context.Context) error
-func (_e *MockService_Expecter) AllowSignInMethod(method any, enabled any) *MockService_AllowSignInMethod_Call {
-	return &MockService_AllowSignInMethod_Call{Call: _e.mock.On("AllowSignInMethod", method, enabled)}
-}
-
-func (_c *MockService_AllowSignInMethod_Call) Run(run func(method models.UserAuthMethod, enabled func(ctx context.Context) error)) *MockService_AllowSignInMethod_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 models.UserAuthMethod
-		if args[0] != nil {
-			arg0 = args[0].(models.UserAuthMethod)
-		}
-		var arg1 func(ctx context.Context) error
-		if args[1] != nil {
-			arg1 = args[1].(func(ctx context.Context) error)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_AllowSignInMethod_Call) Return() *MockService_AllowSignInMethod_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockService_AllowSignInMethod_Call) RunAndReturn(run func(method models.UserAuthMethod, enabled func(ctx context.Context) error)) *MockService_AllowSignInMethod_Call {
-	_c.Run(run)
-	return _c
-}
-
 // AuthAPIKey provides a mock function for the type MockService
 func (_mock *MockService) AuthAPIKey(ctx context.Context, key string) (*models.APIKey, error) {
 	ret := _mock.Called(ctx, key)
@@ -2730,6 +2684,69 @@ func (_c *MockService_DeleteNamespace_Call) Return(err error) *MockService_Delet
 }
 
 func (_c *MockService_DeleteNamespace_Call) RunAndReturn(run func(ctx context.Context, sc scope.Scope, tenantID string) error) *MockService_DeleteNamespace_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteNamespacesEndingDevices provides a mock function for the type MockService
+func (_mock *MockService) DeleteNamespacesEndingDevices(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error) error {
+	ret := _mock.Called(ctx, tenantIDs, deleteNamespaces)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteNamespacesEndingDevices")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, []string, func(context.Context) error) error); ok {
+		r0 = returnFunc(ctx, tenantIDs, deleteNamespaces)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_DeleteNamespacesEndingDevices_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteNamespacesEndingDevices'
+type MockService_DeleteNamespacesEndingDevices_Call struct {
+	*mock.Call
+}
+
+// DeleteNamespacesEndingDevices is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantIDs []string
+//   - deleteNamespaces func(context.Context) error
+func (_e *MockService_Expecter) DeleteNamespacesEndingDevices(ctx any, tenantIDs any, deleteNamespaces any) *MockService_DeleteNamespacesEndingDevices_Call {
+	return &MockService_DeleteNamespacesEndingDevices_Call{Call: _e.mock.On("DeleteNamespacesEndingDevices", ctx, tenantIDs, deleteNamespaces)}
+}
+
+func (_c *MockService_DeleteNamespacesEndingDevices_Call) Run(run func(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error)) *MockService_DeleteNamespacesEndingDevices_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 []string
+		if args[1] != nil {
+			arg1 = args[1].([]string)
+		}
+		var arg2 func(context.Context) error
+		if args[2] != nil {
+			arg2 = args[2].(func(context.Context) error)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_DeleteNamespacesEndingDevices_Call) Return(err error) *MockService_DeleteNamespacesEndingDevices_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_DeleteNamespacesEndingDevices_Call) RunAndReturn(run func(ctx context.Context, tenantIDs []string, deleteNamespaces func(context.Context) error) error) *MockService_DeleteNamespacesEndingDevices_Call {
 	_c.Call.Return(run)
 	return _c
 }

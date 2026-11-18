@@ -45,7 +45,7 @@ func TestDeviceHeartbeater_writesEachDeviceOnce(t *testing.T) {
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, nil)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-b")
@@ -69,7 +69,7 @@ func TestDeviceHeartbeater_writesEachDeviceAtItsLatestBeat(t *testing.T) {
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, nil)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-b")
@@ -91,7 +91,7 @@ func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *tes
 		Return([]string{}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, nil)
 
 	h.Submit("tenant", "device-a")
 	h.Submit("tenant", "device-a")
@@ -103,7 +103,7 @@ func TestDeviceHeartbeater_keepsTheLatestBeatWhenAnOlderOneArrivesAfterIt(t *tes
 
 func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 	clk := sequence(now)
-	removed := recordDeviceRemovals(t)
+	removed, onRemoved := recordDeviceRemovals()
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -111,7 +111,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 		Return([]string{"device-b"}, nil).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, onRemoved)
 
 	h.Submit("tenant-a", "device-a")
 	h.Submit("tenant-b", "device-b")
@@ -124,7 +124,7 @@ func TestDeviceHeartbeater_endsTheDevicesThatAreGone(t *testing.T) {
 
 func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 	clk := sequence(now)
-	removed := recordDeviceRemovals(t)
+	removed, onRemoved := recordDeviceRemovals()
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.
@@ -132,7 +132,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 		Return(nil, errors.New("error")).
 		Once()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, onRemoved)
 
 	h.Submit("tenant", "device-a")
 
@@ -146,7 +146,7 @@ func TestDeviceHeartbeater_survivesAStoreFailure(t *testing.T) {
 func TestDeviceHeartbeater_ignoresEmptyUID(t *testing.T) {
 	storeMock := storemock.NewMockStore(t)
 
-	h := NewDeviceHeartbeater(storeMock, clock.New(), 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clock.New(), 35*time.Second, nil)
 
 	h.Submit("tenant", "")
 
@@ -162,7 +162,7 @@ func TestDeviceHeartbeater_submitDoesNotBlockWhenTheQueueIsFull(t *testing.T) {
 		Return([]string{}, nil).
 		Maybe()
 
-	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second)
+	h := NewDeviceHeartbeater(storeMock, clk, 35*time.Second, nil)
 
 	done := make(chan struct{})
 	go func() {
@@ -201,7 +201,7 @@ func TestDeviceHeartbeater_passesTheStoreASkipThresholdFromTheBeatInterval(t *te
 				Return([]string{}, nil).
 				Once()
 
-			h := NewDeviceHeartbeater(storeMock, sequence(now), tc.interval)
+			h := NewDeviceHeartbeater(storeMock, sequence(now), tc.interval, nil)
 
 			h.Submit("tenant", "device-a")
 

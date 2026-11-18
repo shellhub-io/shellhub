@@ -49,7 +49,7 @@ func assembledRouter(t *testing.T, edition envs.Edition) *echo.Echo {
 	router, err := routes.NewRouter(service, routes.WithAuthentication(authn), routes.WithEdition(edition))
 	require.NoError(t, err)
 
-	sshhttp.Register(router, authn, dialer.NewDialer(nil, nil, clock.New()), service, session.NewRegistry(), &sshhttp.Config{})
+	sshhttp.Register(router, authn, dialer.NewDialer(dialer.NewManager(clock.New()), nil, nil), service, session.NewRegistry(), &sshhttp.Config{})
 	require.NoError(t, web.NewSSHServerBridge(router, authn, service, webhandoff.NewStore(), &web.Config{HostKeyFile: writeHostKey(t)}))
 
 	return router

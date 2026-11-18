@@ -15,10 +15,9 @@ import (
 type UserService interface {
 	// RegisterUser creates a user account. When the registration carries a valid invitation (an
 	// invite code or a pending user_invitation for the email), it completes the invited account
-	// and joins the namespace. Open self-registration is cloud-only; community and enterprise are
-	// invite-only. Returns the auth response (when the account goes live) and an error if any. A
+	// and joins the namespace. Without [WithOpenSignup] registration is invite-only. Returns the auth response (when the account goes live) and an error if any. A
 	// value already taken yields [ErrUserDuplicated], carrying the conflicting field name(s). An
-	// open sign-up whose email an [OnEmailCheck] hook refuses yields [ErrBadRequest] whose fields
+	// open sign-up whose email an [Hooks.EmailCheck] hook refuses yields [ErrBadRequest] whose fields
 	// map "email" to the hook's reason; an invited account is not checked, since the invitation
 	// fixed its email. An invited account signs in locally, so while the instance has local
 	// sign-in off it yields [ErrAuthMethodNotAllowed] before anything is created, and the store's
@@ -34,24 +33,24 @@ type UserService interface {
 	// UpdateUser updates the user's data, such as email and username, and a password change revokes
 	// every token the user holds. Changing the password, the email or the recovery email requires
 	// req.CurrentPassword to match, so an account with no password, one that signs in only through
-	// SAML, cannot change them here. With an [OnMFACodeCheck] hook registered, an account with MFA
+	// SAML, cannot change them here. With an [Hooks.MFACodeCheck] hook registered, an account with MFA
 	// enabled changes the password, the email or the recovery email only with req.MFACode accepted
 	// by every hook. The code is checked after every other check, a new email or username already
 	// taken included, right before the save, so a hook that uses a code up spends it only on a
 	// change about to be written; a username or email another account takes in between still fails
-	// the save after the code is spent. With an [OnEmailChangeRequested] hook registered, a new
+	// the save after the code is spent. With an [Hooks.EmailChangeRequested] hook registered, a new
 	// email or recovery email is not written: the rest of the change is saved and the hook is
 	// handed each new address, which takes effect when [UserService.ConfirmEmailChange] applies it.
 	// Every saved request that changes an address, a held one included, fires the
-	// [OnUserEmailsChanged] hooks.
+	// [Hooks.UserEmailsChanged] hooks.
 	//
 	// It returns [ErrUserNotFound] when the user cannot be resolved, [ErrBadRequest] when the
 	// recovery email equals the current or the new email or a new email equals the recovery email,
 	// [ErrUserPasswordNotMatch] when a change that needs the current password carries a wrong one,
 	// the errors of [VerifySignedInPassword], which checks it, for a lockout or an unavailable
 	// check, [ErrBadRequest] whose fields map "mfa_code" to the reason when the MFA code is missing or an
-	// [OnMFACodeCheck] hook refuses it, and the hashing error when the new password cannot be
-	// hashed. When an [OnEmailCheck] hook refuses a changed email or recovery email it returns
+	// [Hooks.MFACodeCheck] hook refuses it, and the hashing error when the new password cannot be
+	// hashed. When an [Hooks.EmailCheck] hook refuses a changed email or recovery email it returns
 	// [ErrBadRequest] whose fields map "email" or "recovery_email" to the hook's reason. Since some
 	// attributes must be unique per user, a value already taken yields [ErrUserDuplicated] carrying
 	// the conflicting field name(s), or [ErrUserUnhandledDuplicate] when the store cannot name it; a
@@ -59,31 +58,31 @@ type UserService interface {
 	// one, are checked against other accounts before anything is saved. It returns [ErrUserUpdate]
 	// when the user cannot be saved, when on a password change the tokens cannot be revoked, leaving
 	// the password unchanged, when one of those values cannot be looked up, and when the
-	// [OnEmailChangeRequested] hook fails, the rest of the change then already saved and its
-	// [OnUserEmailsChanged] hooks fired, or when an [OnMFACodeCheck] hook cannot check the code.
+	// [Hooks.EmailChangeRequested] hook fails, the rest of the change then already saved and its
+	// [Hooks.UserEmailsChanged] hooks fired, or when an [Hooks.MFACodeCheck] hook cannot check the code.
 	// Every store call runs under ctx, so a cancelled ctx surfaces as [ErrUserNotFound] or
 	// [ErrUserUpdate], depending on the call it interrupts.
 	UpdateUser(ctx context.Context, req *requests.UpdateUser) (err error)
 
 	// ConfirmEmailChange sets the user's address field names to email, an address its owner proved
-	// to control through an [OnEmailChangeRequested] hook, writing that address alone so a change
-	// saved since the request, a new password included, is kept. The [OnUserEmailsChanged] hooks
+	// to control through an [Hooks.EmailChangeRequested] hook, writing that address alone so a change
+	// saved since the request, a new password included, is kept. The [Hooks.UserEmailsChanged] hooks
 	// already fired when the change was requested and do not fire again. It checks nothing about
 	// who calls it: the caller is the hook's confirmation, never a request the user sends directly. It returns [ErrUserNotFound] when the user cannot be resolved,
 	// [ErrBadRequest] for a field other than [EmailFieldEmail] and [EmailFieldRecoveryEmail],
-	// [ErrBadRequest] when email equals the user's other address or an [OnEmailCheck] hook refuses
+	// [ErrBadRequest] when email equals the user's other address or an [Hooks.EmailCheck] hook refuses
 	// it, its fields mapping field to the reason, [ErrUserDuplicated] when another account took the
 	// email since it was requested, [ErrUserUnhandledDuplicate] when the store cannot name the
 	// duplicated field, and [ErrUserUpdate] when the user cannot be saved. Every store call runs
 	// under ctx.
 	ConfirmEmailChange(ctx context.Context, userID string, field EmailField, email string) error
 
-	// CheckEmail runs the [OnEmailCheck] hooks on email, under ctx, and returns the reason the
+	// CheckEmail runs the [Hooks.EmailCheck] hooks on email, under ctx, and returns the reason the
 	// first one refuses it, or "" when every hook accepts it or none is registered. It is for a path
 	// outside UpdateUser that writes an address, such as an administrator's edit.
 	CheckEmail(ctx context.Context, email string) string
 
-	// NotifyEmailsChanged runs the [OnUserEmailsChanged] hooks, under ctx, when change changes an
+	// NotifyEmailsChanged runs the [Hooks.UserEmailsChanged] hooks, under ctx, when change changes an
 	// address, and does nothing otherwise. It is for a path outside UpdateUser that writes an
 	// address, such as an administrator's edit, and must be called once the change is saved.
 	NotifyEmailsChanged(ctx context.Context, change EmailsChange)
@@ -112,11 +111,11 @@ func (s *service) RecordOnboardingSurvey(ctx context.Context, req *requests.Reco
 }
 
 func (s *service) CheckEmail(ctx context.Context, email string) string {
-	return checkEmail(ctx, email)
+	return s.hooks.checkEmail(ctx, email)
 }
 
 func (s *service) NotifyEmailsChanged(ctx context.Context, change EmailsChange) {
-	fireUserEmailsChanged(ctx, change)
+	s.hooks.userEmailsChanged(ctx, change)
 }
 
 func (s *service) RevokeUserTokens(ctx context.Context, userID string) error {
@@ -162,7 +161,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		updatedUser.Password = hashedPassword
 	}
 
-	spendsMFACode := credentialsChange && mfaCodeRequired(user)
+	spendsMFACode := credentialsChange && s.hooks.mfaCodeRequired(user)
 
 	if updatedUser.Email != user.Email {
 		if err := refuseRecoveryEmailAsEmail(updatedUser.Email, updatedUser.RecoveryEmail); err != nil {
@@ -170,11 +169,11 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		}
 	}
 
-	if refused := refusedEmails(ctx, user, updatedUser); len(refused) > 0 {
+	if refused := s.refusedEmails(ctx, user, updatedUser); len(refused) > 0 {
 		return NewErrInvalidFields(ErrBadRequest, refused)
 	}
 
-	if updatedUser.Email != user.Email && (spendsMFACode || emailChangeConfirmationWired()) {
+	if updatedUser.Email != user.Email && (spendsMFACode || s.hooks.emailChangeConfirmationWired()) {
 		if err := s.userValueAvailable(ctx, user, store.UserEmailResolver, "email", updatedUser.Email); err != nil {
 			return err
 		}
@@ -187,7 +186,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 	}
 
 	heldEmail, heldRecoveryEmail := "", ""
-	if emailChangeConfirmationWired() {
+	if s.hooks.emailChangeConfirmationWired() {
 		if updatedUser.Email != user.Email {
 			heldEmail = updatedUser.Email
 			updatedUser.Email = user.Email
@@ -200,7 +199,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 	}
 
 	if credentialsChange {
-		if err := checkMFACode(ctx, user, req.MFACode); err != nil {
+		if err := s.hooks.checkMFACode(ctx, user, req.MFACode); err != nil {
 			return err
 		}
 	}
@@ -223,7 +222,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 		requested.RecoveryEmail = heldRecoveryEmail
 	}
 
-	fireUserEmailsChanged(ctx, EmailsChange{
+	s.hooks.userEmailsChanged(ctx, EmailsChange{
 		Before:            user,
 		After:             &requested,
 		EmailHeld:         heldEmail != "",
@@ -240,7 +239,7 @@ func (s *service) UpdateUser(ctx context.Context, req *requests.UpdateUser) erro
 			continue
 		}
 
-		if err := fireEmailChangeRequested(ctx, updatedUser, h.field, h.email); err != nil {
+		if err := s.hooks.emailChangeRequested(ctx, updatedUser, h.field, h.email); err != nil {
 			return NewErrUserUpdate(user, err)
 		}
 	}
@@ -274,7 +273,7 @@ func (s *service) ConfirmEmailChange(ctx context.Context, userID string, field E
 		return NewErrBadRequest(nil)
 	}
 
-	if reason := checkEmail(ctx, email); reason != "" {
+	if reason := s.hooks.checkEmail(ctx, email); reason != "" {
 		return NewErrInvalidFields(ErrBadRequest, map[string]string{string(field): reason})
 	}
 
@@ -337,17 +336,17 @@ func profileChanges(currentUser, updatedUser *models.User) *models.UserChanges {
 	}
 }
 
-func refusedEmails(ctx context.Context, currentUser, updatedUser *models.User) map[string]string {
+func (s *service) refusedEmails(ctx context.Context, currentUser, updatedUser *models.User) map[string]string {
 	refused := map[string]string{}
 
 	if updatedUser.Email != currentUser.Email {
-		if reason := checkEmail(ctx, updatedUser.Email); reason != "" {
+		if reason := s.hooks.checkEmail(ctx, updatedUser.Email); reason != "" {
 			refused["email"] = reason
 		}
 	}
 
 	if updatedUser.RecoveryEmail != currentUser.RecoveryEmail {
-		if reason := checkEmail(ctx, updatedUser.RecoveryEmail); reason != "" {
+		if reason := s.hooks.checkEmail(ctx, updatedUser.RecoveryEmail); reason != "" {
 			refused["recovery_email"] = reason
 		}
 	}

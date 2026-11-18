@@ -54,6 +54,11 @@ type service struct {
 
 	telemetry                      TelemetrySender
 	telemetryDisabledByEnvironment bool
+
+	hooks                Hooks
+	openSignup           bool
+	directMembership     bool
+	nonAdminProvisioning bool
 }
 
 // Service is the whole service layer, composed from the per-resource interfaces above. A
@@ -198,6 +203,37 @@ func WithTelemetryDisabledByEnvironment() Option {
 	}
 }
 
+// WithHooks adds hooks to the lists the service runs on its events, after any added before.
+func WithHooks(hooks Hooks) Option {
+	return func(service *APIService) {
+		service.hooks.add(hooks)
+	}
+}
+
+// WithOpenSignup lets anyone register an account. Without it registration needs an invitation.
+func WithOpenSignup() Option {
+	return func(service *APIService) {
+		service.openSignup = true
+	}
+}
+
+// WithDirectMembership lets a namespace administrator add an existing user as a member without an
+// invitation the user accepts.
+func WithDirectMembership() Option {
+	return func(service *APIService) {
+		service.directMembership = true
+	}
+}
+
+// WithNonAdminProvisioning lets a namespace administrator who is not an instance administrator
+// provision accounts: an account registered from such a member's invitation waits for an instance
+// administrator's approval before it can sign in.
+func WithNonAdminProvisioning() Option {
+	return func(service *APIService) {
+		service.nonAdminProvisioning = true
+	}
+}
+
 // NewService builds the service layer over store, signing tokens with the given key pair, which
 // the caller loads with LoadKeys. It panics when privKey is nil, or when no owner holds a
 // [DeviceSelectorSource]'s EditPermission or every role that moves tags or renames devices holds
@@ -205,18 +241,14 @@ func WithTelemetryDisabledByEnvironment() Option {
 func NewService(store store.Store, privKey *rsa.PrivateKey, pubKey *rsa.PublicKey, cache cache.Cache, options ...Option) *APIService {
 	service := &APIService{
 		service: &service{
-			store:             store,
-			privKey:           privKey,
-			pubKey:            pubKey,
-			cache:             cache,
-			locator:           geoip.NewNullGeoLite(),
-			validator:         validator.New(),
-			billing:           nil, // injected via WithBilling option
-			licenseEvaluator:  nil, // injected via WithLicenseEvaluator option
-			firewallEvaluator: nil, // injected via WithFirewallEvaluator option
-			recordingPruner:   nil, // injected via WithSessionRecordingPruner option
-			edition:           envs.Community,
-			clock:             clock.New(),
+			store:     store,
+			privKey:   privKey,
+			pubKey:    pubKey,
+			cache:     cache,
+			locator:   geoip.NewNullGeoLite(),
+			validator: validator.New(),
+			edition:   envs.Community,
+			clock:     clock.New(),
 		},
 	}
 

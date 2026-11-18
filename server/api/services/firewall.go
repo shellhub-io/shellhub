@@ -3,32 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/cache"
-	"github.com/shellhub-io/shellhub/pkg/geoip"
 	"github.com/shellhub-io/shellhub/pkg/models"
-	"github.com/shellhub-io/shellhub/server/api/store"
 )
-
-// FirewallEvaluatorFactoryFunc constructs a FirewallEvaluator from the core store, the cache and
-// the locator the server places connections with, the one SHELLHUB_GEOIP_DATABASE chose. The
-// locator is never nil: with no database to open it answers an empty country. Enterprise packages
-// register a factory via RegisterFirewallEvaluator in their init() functions; it runs during
-// server setup.
-type FirewallEvaluatorFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache, locator geoip.Locator) (FirewallEvaluator, error)
-
-var firewallEvaluatorFactory FirewallEvaluatorFactoryFunc
-
-// RegisterFirewallEvaluator registers the factory that creates the firewall evaluator.
-// It must be called before the server's Setup() runs.
-func RegisterFirewallEvaluator(f FirewallEvaluatorFactoryFunc) {
-	firewallEvaluatorFactory = f
-}
-
-// FirewallEvaluatorFactory returns the registered factory, or nil in Community Edition
-// builds.
-func FirewallEvaluatorFactory() FirewallEvaluatorFactoryFunc {
-	return firewallEvaluatorFactory
-}
 
 // FirewallEvaluator reports whether the legacy firewall (a key/username/source-IP
 // blocklist) lets an SSH connection through. It is enterprise-only and is bypassed

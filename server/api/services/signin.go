@@ -46,7 +46,7 @@ type SignInService interface {
 	// as the user's last login, and the token carries the namespace AuthLocalUser's would.
 	//
 	// It returns [ErrAuthMethodNotAllowed] when the instance has method off, or when method is
-	// not local and no edition allowed it through [SignInService.AllowSignInMethod]; the error
+	// not local and the service was not built with [WithSignInMethod] for it; the error
 	// that edition's check returns; the store's error as is when the system settings cannot be
 	// read; [ErrUserNotFound] when the user cannot be resolved; [ErrAuthUnathorized] when the user
 	// does not sign in with method; [ErrUserNotConfirmed] and [ErrUserAwaitingApproval] as
@@ -83,21 +83,21 @@ type SignInService interface {
 	// what [SignInService.RenewUserToken] returns for a request without a tenant. ctx bounds the
 	// store and cache calls.
 	Impersonate(ctx context.Context, userID string) (*models.UserAuthResponse, error)
-	// AllowSignInMethod lets [SignInService.SignIn] sign users in by method, a method other than
-	// local that an edition implements, while enabled returns nil. enabled is called with the
-	// caller's ctx on each sign-in and each renewal it gates. It must be called before the server
-	// serves requests; a method no edition allowed is refused.
-	AllowSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error)
 }
 
 const pendingMFASignInTTL = 30 * time.Minute
 
-func (s *service) AllowSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error) {
-	if s.signInMethods == nil {
-		s.signInMethods = map[models.UserAuthMethod]func(ctx context.Context) error{}
-	}
+// WithSignInMethod lets [SignInService.SignIn] sign users in by method, a method other than local
+// that an edition implements, while enabled returns nil. enabled is called with the caller's ctx
+// on each sign-in and each renewal it gates. A method no option allowed is refused.
+func WithSignInMethod(method models.UserAuthMethod, enabled func(ctx context.Context) error) Option {
+	return func(service *APIService) {
+		if service.signInMethods == nil {
+			service.signInMethods = map[models.UserAuthMethod]func(ctx context.Context) error{}
+		}
 
-	s.signInMethods[method] = enabled
+		service.signInMethods[method] = enabled
+	}
 }
 
 func (s *service) AuthLocalUser(ctx context.Context, req *requests.AuthLocalUser, sourceIP string) (*models.UserAuthResponse, int64, string, error) {

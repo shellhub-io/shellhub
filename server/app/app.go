@@ -1,9 +1,7 @@
 // Package app provides the ShellHub server as an importable library.
 //
-// Community Edition builds use this package directly via server/main.go.
-// Enterprise builds use a separate main in the cloud repo that blank-imports
-// cloud extension packages before calling [Run], so their init() functions
-// register routes, workers, billing providers, and store wrappers.
+// Community Edition builds call [Run] with no extension from server/main.go; the enterprise
+// build in the cloud repo passes its [Extension].
 package app
 
 import (
@@ -24,8 +22,8 @@ import (
 // shutdown has finished, so the process exits with status 0. A second signal during the shutdown
 // ends the process at once. When the environment does not parse, or the server fails to set up,
 // to start or to serve, Run logs the error and exits the process with status 1 without shutting
-// the server down.
-func Run() {
+// the server down. The server opens extensions in order during setup.
+func Run(extensions ...Extension) {
 	loglevel.UseEnvs(envs.OS())
 
 	rootCmd := &cobra.Command{Use: "server"}
@@ -49,7 +47,7 @@ func Run() {
 				return err
 			}
 
-			server := &Server{env: env, sshEnv: ssh}
+			server := &Server{env: env, sshEnv: ssh, extensions: extensions}
 
 			if err := server.Setup(cmd.Context()); err != nil {
 				log.WithError(err).

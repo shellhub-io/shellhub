@@ -8,7 +8,6 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/scope"
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/pkg/models"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
@@ -50,24 +49,6 @@ type DeviceSelectorSource interface {
 	// listed. A store read through ctx joins the caller's transaction when there is one, and an
 	// error fails the change being checked.
 	DeviceSelectors(ctx context.Context, sc scope.Scope) ([]DeviceSelector, error)
-}
-
-// DeviceSelectorSourceFactoryFunc constructs a DeviceSelectorSource from the core store and cache,
-// returning nil when the build has none to add. Enterprise packages register one through
-// [RegisterDeviceSelectorSource] in their init functions; it runs during server setup.
-type DeviceSelectorSourceFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache) (DeviceSelectorSource, error)
-
-var deviceSelectorSourceFactory DeviceSelectorSourceFactoryFunc
-
-// RegisterDeviceSelectorSource registers the factory of the rules the core store does not know
-// of. It must be called before the server's Setup runs.
-func RegisterDeviceSelectorSource(f DeviceSelectorSourceFactoryFunc) {
-	deviceSelectorSourceFactory = f
-}
-
-// DeviceSelectorSourceFactory returns the registered factory, or nil in Community Edition builds.
-func DeviceSelectorSourceFactory() DeviceSelectorSourceFactoryFunc {
-	return deviceSelectorSourceFactory
 }
 
 // WithDeviceSelectorSource adds a kind of rule that picks devices to those the core store holds.

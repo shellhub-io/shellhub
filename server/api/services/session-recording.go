@@ -3,28 +3,8 @@ package services
 import (
 	"context"
 
-	"github.com/shellhub-io/shellhub/pkg/cache"
 	"github.com/shellhub-io/shellhub/server/api/store"
 )
-
-// SessionRecordingPrunerFactoryFunc constructs a SessionRecordingPruner from the core store and
-// cache. Enterprise packages register a factory via RegisterSessionRecordingPruner in their
-// init() functions; it runs during server setup.
-type SessionRecordingPrunerFactoryFunc func(ctx context.Context, store store.Store, cache cache.Cache) (SessionRecordingPruner, error)
-
-var sessionRecordingPrunerFactory SessionRecordingPrunerFactoryFunc
-
-// RegisterSessionRecordingPruner registers the factory that creates the recording pruner.
-// It must be called before the server's Setup() runs.
-func RegisterSessionRecordingPruner(f SessionRecordingPrunerFactoryFunc) {
-	sessionRecordingPrunerFactory = f
-}
-
-// SessionRecordingPrunerFactory returns the registered factory, or nil in Community Edition
-// builds.
-func SessionRecordingPrunerFactory() SessionRecordingPrunerFactoryFunc {
-	return sessionRecordingPrunerFactory
-}
 
 // SessionRecordingPruner discards the stored recordings of sessions that retention is about to
 // delete.

@@ -20,17 +20,12 @@ type removedDevice struct {
 	uid      string
 }
 
-func recordDeviceRemovals(t *testing.T) *[]removedDevice {
-	t.Helper()
-
-	override(t, &deviceRemovedHooks, nil)
-
+func recordDeviceRemovals() (*[]removedDevice, DeviceRemovedHookFn) {
 	removed := &[]removedDevice{}
-	OnDeviceRemoved(func(_ context.Context, tenantID, uid string) {
-		*removed = append(*removed, removedDevice{tenantID: tenantID, uid: uid})
-	})
 
-	return removed
+	return removed, func(_ context.Context, tenantID, uid string) {
+		*removed = append(*removed, removedDevice{tenantID: tenantID, uid: uid})
+	}
 }
 
 func TestDeleteDeviceEndsTheDevice(t *testing.T) {
@@ -71,7 +66,7 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			removals := recordDeviceRemovals(t)
+			removals, onRemoved := recordDeviceRemovals()
 
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("DeviceResolve", ctx, sc, store.DeviceUIDResolver, "uid").Return(tc.device, nil).Once()
@@ -80,7 +75,7 @@ func TestDeleteDeviceEndsTheDevice(t *testing.T) {
 			cacheMock := cachemock.NewMockCache(t)
 			cacheMock.On("Delete", ctx, "auth_device/uid").Return(nil).Once()
 
-			service := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock, WithClock(clk))
+			service := NewService(store.Store(storeMock), privateKey, publicKey, cacheMock, WithClock(clk), WithHooks(Hooks{DeviceRemoved: []DeviceRemovedHookFn{onRemoved}}))
 			require.NoError(t, service.DeleteDevice(ctx, "uid", "tenant"))
 
 			assert.Equal(t, []removedDevice{{tenantID: "tenant", uid: "uid"}}, *removals)

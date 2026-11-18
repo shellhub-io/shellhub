@@ -29,9 +29,9 @@ type MemberService interface {
 	//
 	// The member is invited: a pending membership invitation is created (plus a placeholder
 	// user_invitation for a brand-new email) and a copyable /accept-invite link is returned for the
-	// invitee to accept or set up their account. Cloud also emails the invitation. When direct
-	// membership is enabled (enterprise) and the target already has an account, the member is added
-	// to the namespace directly instead, with no invitation.
+	// invitee to accept or set up their account. A [Hooks.MembershipInvited] hook can also deliver
+	// the invitation. When the service was built with [WithDirectMembership] and the target already
+	// has an account, the member is added to the namespace directly instead, with no invitation.
 	//
 	// The role assigned to the new member must not grant more authority than the user adding them
 	// (e.g., an administrator cannot add a member with a higher role such as an owner). Owners cannot
@@ -172,7 +172,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 		}
 
 		if userExists {
-			if grant, ok := directGrant(passiveUser.ID, namespace.TenantID, role); ok {
+			if grant, ok := s.directGrant(passiveUser.ID, namespace.TenantID, role); ok {
 				return s.admitMember(ctx, grant)
 			}
 		}
@@ -210,7 +210,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 			RecipientName:  recipientName,
 		}
 
-		if err := fireMembershipInvited(ctx, notification); err != nil {
+		if err := s.hooks.membershipInvited(ctx, notification); err != nil {
 			log.WithError(err).WithField("tenant-id", namespace.TenantID).Warn("failed to deliver membership invitation")
 		}
 	}
@@ -467,7 +467,7 @@ func (s *service) SettleMemberDeparture(ctx context.Context, departed *models.Me
 	fields := log.Fields{"tenant_id": departed.TenantID, "user_id": departed.MemberID}
 
 	for _, uid := range departed.RemovedDevices {
-		endRemovedDevice(ctx, s.cache, departed.TenantID, uid)
+		s.endRemovedDevice(ctx, departed.TenantID, uid)
 	}
 
 	if err := s.AuthUncacheToken(ctx, departed.TenantID, departed.MemberID); err != nil {

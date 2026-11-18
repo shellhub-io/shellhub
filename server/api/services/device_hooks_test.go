@@ -10,31 +10,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFireDeviceMerge(t *testing.T) {
-	override(t, &deviceMergeHooks, nil)
+func TestHooks_deviceMerge(t *testing.T) {
+	hooks := &Hooks{}
 
 	ctx := context.Background()
 	oldDev := &models.Device{UID: "old-uid"}
 	newDev := &models.Device{UID: "new-uid"}
 	tenant := "tenant-id"
 
-	t.Run("nil hook panics", func(t *testing.T) {
-		deviceMergeHooks = nil
-		assert.PanicsWithValue(t, "services: OnDeviceMerge called with nil hook", func() {
-			OnDeviceMerge(nil)
-		})
-	})
-
 	t.Run("no hooks registered", func(t *testing.T) {
-		deviceMergeHooks = nil
-		assert.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
+		*hooks = Hooks{}
+		assert.NoError(t, hooks.deviceMerge(ctx, tenant, oldDev, newDev))
 	})
 
 	t.Run("single hook called with correct args", func(t *testing.T) {
-		deviceMergeHooks = nil
+		*hooks = Hooks{}
 
 		var called bool
-		OnDeviceMerge(func(gotCtx context.Context, tid string, o, n *models.Device) error {
+		hooks.DeviceMerge = append(hooks.DeviceMerge, func(gotCtx context.Context, tid string, o, n *models.Device) error {
 			called = true
 			assert.Equal(t, ctx, gotCtx)
 			assert.Equal(t, tenant, tid)
@@ -44,45 +37,45 @@ func TestFireDeviceMerge(t *testing.T) {
 			return nil
 		})
 
-		require.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
+		require.NoError(t, hooks.deviceMerge(ctx, tenant, oldDev, newDev))
 		assert.True(t, called)
 	})
 
 	t.Run("error aborts remaining hooks", func(t *testing.T) {
-		deviceMergeHooks = nil
+		*hooks = Hooks{}
 		hookErr := errors.New("hook failed")
 
-		OnDeviceMerge(func(context.Context, string, *models.Device, *models.Device) error {
+		hooks.DeviceMerge = append(hooks.DeviceMerge, func(context.Context, string, *models.Device, *models.Device) error {
 			return hookErr
 		})
 
 		var secondCalled bool
-		OnDeviceMerge(func(context.Context, string, *models.Device, *models.Device) error {
+		hooks.DeviceMerge = append(hooks.DeviceMerge, func(context.Context, string, *models.Device, *models.Device) error {
 			secondCalled = true
 
 			return nil
 		})
 
-		require.ErrorIs(t, fireDeviceMerge(ctx, tenant, oldDev, newDev), hookErr)
+		require.ErrorIs(t, hooks.deviceMerge(ctx, tenant, oldDev, newDev), hookErr)
 		assert.False(t, secondCalled)
 	})
 
 	t.Run("multiple hooks run in order", func(t *testing.T) {
-		deviceMergeHooks = nil
+		*hooks = Hooks{}
 
 		var order []int
-		OnDeviceMerge(func(context.Context, string, *models.Device, *models.Device) error {
+		hooks.DeviceMerge = append(hooks.DeviceMerge, func(context.Context, string, *models.Device, *models.Device) error {
 			order = append(order, 1)
 
 			return nil
 		})
-		OnDeviceMerge(func(context.Context, string, *models.Device, *models.Device) error {
+		hooks.DeviceMerge = append(hooks.DeviceMerge, func(context.Context, string, *models.Device, *models.Device) error {
 			order = append(order, 2)
 
 			return nil
 		})
 
-		require.NoError(t, fireDeviceMerge(ctx, tenant, oldDev, newDev))
+		require.NoError(t, hooks.deviceMerge(ctx, tenant, oldDev, newDev))
 		assert.Equal(t, []int{1, 2}, order)
 	})
 }

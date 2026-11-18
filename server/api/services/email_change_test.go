@@ -37,17 +37,14 @@ func emailChangeUser() *models.User {
 	}
 }
 
-func recordEmailsChanged(t *testing.T) *[]EmailsChange {
-	t.Helper()
-
+func recordEmailsChanged() (*[]EmailsChange, Option) {
 	var changes []EmailsChange
-	override(t, &userEmailsChangedHooks, []UserEmailsChangedHookFn{
+
+	return &changes, WithHooks(Hooks{UserEmailsChanged: []UserEmailsChangedHookFn{
 		func(_ context.Context, change EmailsChange) {
 			changes = append(changes, change)
 		},
-	})
-
-	return &changes
+	}})
 }
 
 func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
@@ -201,21 +198,23 @@ func TestUpdateUserHoldsANewEmailForConfirmation(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			var testOpts []Option
+
 			var requested []requestedEmailChange
-			override(t, &emailChangeRequestedHooks, []EmailChangeRequestedHookFn{
+			testOpts = append(testOpts, WithHooks(Hooks{EmailChangeRequested: []EmailChangeRequestedHookFn{
 				func(_ context.Context, user *models.User, field EmailField, email string) error {
 					requested = append(requested, requestedEmailChange{user: user, field: field, email: email})
 
 					return tc.hookErr
 				},
-			})
-			changes := recordEmailsChanged(t)
+			}}))
+			changes, recordChanges := recordEmailsChanged()
 
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
 			tc.mocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...), recordChanges)
 
 			err := s.UpdateUser(ctx, tc.req)
 			if tc.errorIs != nil {
@@ -238,8 +237,7 @@ func TestUpdateUserWritesNewAddressesWithoutAConfirmationHook(t *testing.T) {
 	hash.Set(t, hashMock)
 	hashMock.On("CompareWith", "secret", emailChangeHash).Return(true).Once()
 
-	override(t, &emailChangeRequestedHooks, nil)
-	changes := recordEmailsChanged(t)
+	changes, recordChanges := recordEmailsChanged()
 
 	saved := emailChangeUser()
 	saved.Email = "james@example.test"
@@ -249,7 +247,7 @@ func TestUpdateUserWritesNewAddressesWithoutAConfirmationHook(t *testing.T) {
 	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(emailChangeUser(), nil).Once()
 	storeMock.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test"), RecoveryEmail: new("backup@example.test")}).Return(nil).Once()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), recordChanges)
 
 	require.NoError(t, s.UpdateUser(ctx, &requests.UpdateUser{
 		UserID: "000000000000000000000000", Email: "james@example.test", RecoveryEmail: "backup@example.test", CurrentPassword: "secret",
@@ -258,9 +256,11 @@ func TestUpdateUserWritesNewAddressesWithoutAConfirmationHook(t *testing.T) {
 }
 
 func TestConfirmEmailChange(t *testing.T) {
+	var testOpts []Option
+
 	ctx := context.Background()
 
-	override(t, &emailCheckHooks, []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")})
+	testOpts = append(testOpts, WithHooks(Hooks{EmailCheck: []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")}}))
 
 	saveErr := stderrors.New("store down")
 
@@ -372,12 +372,12 @@ func TestConfirmEmailChange(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			changes := recordEmailsChanged(t)
+			changes, recordChanges := recordEmailsChanged()
 
 			storeMock := storemock.NewMockStore(t)
 			tc.mocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...), recordChanges)
 
 			field := tc.field
 			if field == "" {
@@ -549,24 +549,26 @@ func TestUpdateUserAsksForTheMFACode(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			var testOpts []Option
+
 			var checked []string
-			override(t, &mfaCodeCheckHooks, []MFACodeCheckHookFn{
+			testOpts = append(testOpts, WithHooks(Hooks{MFACodeCheck: []MFACodeCheckHookFn{
 				func(_ context.Context, user *models.User, code string) (string, error) {
 					assert.Equal(t, "000000000000000000000000", user.ID)
 					checked = append(checked, code)
 
 					return tc.reason, tc.checkErr
 				},
-			})
-			override(t, &emailChangeRequestedHooks, nil)
-			recordEmailsChanged(t)
+			}}))
+
+			_, recordChanges := recordEmailsChanged()
 
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(tc.user, nil).Once()
 			storeMock.On("UserResolve", ctx, store.UserEmailResolver, "james@example.test").Return(nil, store.ErrNoDocuments).Maybe()
 			tc.mocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...), recordChanges)
 
 			err := s.UpdateUser(ctx, tc.req)
 			if tc.errorIs != nil {
@@ -641,28 +643,30 @@ func TestUpdateUserSpendsNoMFACodeOnARefusedChange(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
+			var testOpts []Option
+
 			checked := false
-			override(t, &mfaCodeCheckHooks, []MFACodeCheckHookFn{
+			testOpts = append(testOpts, WithHooks(Hooks{MFACodeCheck: []MFACodeCheckHookFn{
 				func(context.Context, *models.User, string) (string, error) {
 					checked = true
 
 					return "", nil
 				},
-			})
-			override(t, &emailCheckHooks, []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")})
-			override(t, &emailChangeRequestedHooks, nil)
+			}}))
+			testOpts = append(testOpts, WithHooks(Hooks{EmailCheck: []EmailCheckHookFn{refuseDomain("@listed.test", "disposable")}}))
+
 			if tc.confirms {
-				override(t, &emailChangeRequestedHooks, []EmailChangeRequestedHookFn{
+				testOpts = append(testOpts, WithHooks(Hooks{EmailChangeRequested: []EmailChangeRequestedHookFn{
 					func(context.Context, *models.User, EmailField, string) error { return nil },
-				})
+				}}))
 			}
-			recordEmailsChanged(t)
+			_, recordChanges := recordEmailsChanged()
 
 			storeMock := storemock.NewMockStore(t)
 			storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(withMFA(), nil).Once()
 			tc.mocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...), recordChanges)
 
 			err := s.UpdateUser(ctx, &requests.UpdateUser{
 				UserID: "000000000000000000000000", Email: tc.email, Username: tc.username, Password: tc.password,
@@ -681,9 +685,7 @@ func TestUpdateUserAsksNoMFACodeWithoutAnMFACheckHook(t *testing.T) {
 	hash.Set(t, hashMock)
 	hashMock.On("CompareWith", "secret", emailChangeHash).Return(true).Once()
 
-	override(t, &mfaCodeCheckHooks, nil)
-	override(t, &emailChangeRequestedHooks, nil)
-	recordEmailsChanged(t)
+	_, recordChanges := recordEmailsChanged()
 
 	user := emailChangeUser()
 	user.MFA.Enabled = true
@@ -692,7 +694,7 @@ func TestUpdateUserAsksNoMFACodeWithoutAnMFACheckHook(t *testing.T) {
 	storeMock.On("UserResolve", ctx, store.UserIDResolver, "000000000000000000000000").Return(user, nil).Once()
 	storeMock.On("UserUpdate", ctx, "000000000000000000000000", &models.UserChanges{Email: new("james@example.test")}).Return(nil).Once()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), recordChanges)
 
 	require.NoError(t, s.UpdateUser(ctx, &requests.UpdateUser{
 		UserID: "000000000000000000000000", Email: "james@example.test", CurrentPassword: "secret",

@@ -10,16 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOnMembershipInvited(t *testing.T) {
-	override(t, &membershipInvitedHooks, nil)
-
-	t.Run("panics on nil hook", func(t *testing.T) {
-		assert.Panics(t, func() { OnMembershipInvited(nil) })
-	})
-}
-
-func TestFireMembershipInvited(t *testing.T) {
-	override(t, &membershipInvitedHooks, nil)
+func TestHooks_membershipInvited(t *testing.T) {
+	hooks := &Hooks{}
 
 	notification := &models.MembershipInvitationNotification{
 		Signature:      "ABCDEF123456",
@@ -27,64 +19,64 @@ func TestFireMembershipInvited(t *testing.T) {
 	}
 
 	t.Run("no hooks registered", func(t *testing.T) {
-		membershipInvitedHooks = nil
+		*hooks = Hooks{}
 
-		err := fireMembershipInvited(context.Background(), notification)
+		err := hooks.membershipInvited(context.Background(), notification)
 		assert.NoError(t, err)
 	})
 
 	t.Run("single hook succeeds", func(t *testing.T) {
-		membershipInvitedHooks = nil
+		*hooks = Hooks{}
 
 		called := false
-		OnMembershipInvited(func(_ context.Context, got *models.MembershipInvitationNotification) error {
+		hooks.MembershipInvited = append(hooks.MembershipInvited, func(_ context.Context, got *models.MembershipInvitationNotification) error {
 			called = true
 			assert.Equal(t, notification, got)
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), notification)
+		err := hooks.membershipInvited(context.Background(), notification)
 		require.NoError(t, err)
 		assert.True(t, called)
 	})
 
 	t.Run("first hook error aborts execution", func(t *testing.T) {
-		membershipInvitedHooks = nil
+		*hooks = Hooks{}
 
 		errHook := errors.New("hook failed")
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
+		hooks.MembershipInvited = append(hooks.MembershipInvited, func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			return errHook
 		})
 
 		secondCalled := false
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
+		hooks.MembershipInvited = append(hooks.MembershipInvited, func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			secondCalled = true
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), notification)
+		err := hooks.membershipInvited(context.Background(), notification)
 		require.ErrorIs(t, err, errHook)
 		assert.False(t, secondCalled)
 	})
 
 	t.Run("multiple hooks run in order", func(t *testing.T) {
-		membershipInvitedHooks = nil
+		*hooks = Hooks{}
 
 		var order []int
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
+		hooks.MembershipInvited = append(hooks.MembershipInvited, func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			order = append(order, 1)
 
 			return nil
 		})
-		OnMembershipInvited(func(_ context.Context, _ *models.MembershipInvitationNotification) error {
+		hooks.MembershipInvited = append(hooks.MembershipInvited, func(_ context.Context, _ *models.MembershipInvitationNotification) error {
 			order = append(order, 2)
 
 			return nil
 		})
 
-		err := fireMembershipInvited(context.Background(), notification)
+		err := hooks.membershipInvited(context.Background(), notification)
 		require.NoError(t, err)
 		assert.Equal(t, []int{1, 2}, order)
 	})

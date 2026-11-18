@@ -299,24 +299,30 @@ func TestService_RegisterUser(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			override(t, &openSignupEnabled, tc.openSignup)
-			override(t, &nonAdminProvisioningEnabled, tc.nonAdminProvisioning)
+			var testOpts []Option
+
+			if tc.openSignup {
+				testOpts = append(testOpts, WithOpenSignup())
+			}
+			if tc.nonAdminProvisioning {
+				testOpts = append(testOpts, WithNonAdminProvisioning())
+			}
 
 			confirmationsSent := 0
-			override(t, &userRegisteredHooks, nil)
+
 			if tc.emailConfirmation {
-				OnUserRegistered(func(context.Context, *models.User, string) error {
+				testOpts = append(testOpts, WithHooks(Hooks{UserRegistered: []UserRegisteredHookFn{func(context.Context, *models.User, string) error {
 					confirmationsSent++
 
 					return nil
-				})
+				}}}))
 			}
 
 			fixUUID(t)
 			storeMock := storemock.NewMockStore(t)
 			tc.requiredMocks(storeMock)
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), withAll(testOpts...))
 
 			res, err := s.RegisterUser(ctx, tc.req)
 			assert.Equal(t, tc.expected.err, err)
@@ -334,6 +340,8 @@ func TestService_RegisterUser(t *testing.T) {
 }
 
 func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.T) {
+	var testOpts []Option
+
 	hashMock := hashmock.NewMockHasher(t)
 	hash.Set(t, hashMock)
 	hashMock.On("Do", "secret123").Return("$2a$10$V/6N1wsjheBVvWosPfv02uf4WAOb9lmp8YVVCIa2UYuFV4OJby7Yi", nil)
@@ -341,14 +349,14 @@ func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.
 	ctx := context.TODO()
 
 	var received string
-	override(t, &openSignupEnabled, true)
-	override(t, &userRegisteredHooks, []UserRegisteredHookFn{
+	testOpts = append(testOpts, WithOpenSignup())
+	testOpts = append(testOpts, WithHooks(Hooks{UserRegistered: []UserRegisteredHookFn{
 		func(_ context.Context, _ *models.User, deviceCode string) error {
 			received = deviceCode
 
 			return nil
 		},
-	})
+	}}))
 
 	storeMock := storemock.NewMockStore(t)
 	storeMock.On("UserInvitationGet", ctx, store.UserInvitationEmailResolver, "alice@test.com").
@@ -356,7 +364,7 @@ func TestService_RegisterUser_passesTheDeviceCodeToTheRegisteredHook(t *testing.
 	storeMock.On("UserCreate", ctx, mock.AnythingOfType("*models.User")).
 		Return("alice", nil).Once()
 
-	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+	s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), withAll(testOpts...))
 
 	_, err := s.RegisterUser(ctx, requests.RegisterUser{
 		Name: "Alice", Username: "alice", Email: "alice@test.com", Password: "secret123", DeviceCode: "wxyz-2k7q",
@@ -413,8 +421,10 @@ func TestService_RegisterUser_accountDefaults(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.description, func(t *testing.T) {
-			override(t, &openSignupEnabled, true)
-			override(t, &userRegisteredHooks, nil)
+			var testOpts []Option
+
+			testOpts = append(testOpts, WithOpenSignup())
+
 			hashMock := hashmock.NewMockHasher(t)
 			hash.Set(t, hashMock)
 			hashMock.On("Do", "secret123").Return("hashed-password", nil).Once()
@@ -438,7 +448,7 @@ func TestService_RegisterUser_accountDefaults(t *testing.T) {
 					}, user)
 				}).Return("created-user", nil).Once()
 
-			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)))
+			s := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache(), WithClock(clock.NewFixed(now)), withAll(testOpts...))
 			_, err := s.RegisterUser(ctx, req)
 			require.NoError(t, err)
 		})

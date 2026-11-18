@@ -61,18 +61,18 @@ func TestSignIn(t *testing.T) { //nolint:tparallel // the subtests run in order 
 
 	samlEnabled := true
 	samlBroken := false
-	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), WithClock(provider.Clock()))
-	svc.AllowSignInMethod(models.UserAuthMethodSAML, func(context.Context) error {
-		if samlBroken {
-			return errors.New("the identity provider's metadata cannot be parsed")
-		}
+	svc := NewService(st, privateKey, publicKey, storecache.NewNullCache(), WithClock(provider.Clock()),
+		WithSignInMethod(models.UserAuthMethodSAML, func(context.Context) error {
+			if samlBroken {
+				return errors.New("the identity provider's metadata cannot be parsed")
+			}
 
-		if !samlEnabled {
-			return NewErrAuthMethodNotAllowed(models.UserAuthMethodSAML.String())
-		}
+			if !samlEnabled {
+				return NewErrAuthMethodNotAllowed(models.UserAuthMethodSAML.String())
+			}
 
-		return nil
-	})
+			return nil
+		}))
 
 	cases := []struct {
 		description string
