@@ -143,15 +143,7 @@ func testRecordingPlayback(t *testing.T, fixture *recordingFixture) {
 	compose := fixture.compose
 
 	t.Run("each seat of a connection plays back only its own terminal", func(t *testing.T) {
-		uid := fixture.finish(t, func(t *testing.T, conn *ssh.Client, _ string) {
-			t.Helper()
-
-			first := openShell(t, conn)
-			second := openShell(t, conn)
-
-			first.prints(t, "first-seat")
-			second.prints(t, "second-seat")
-		})
+		uid := fixture.recordTwoSeats(t, "first-seat", "second-seat")
 
 		assert.ElementsMatch(t, []int{0, 1}, sessionDetail(t, t.Context(), compose, uid).Events.Seats)
 
@@ -240,15 +232,7 @@ func testRecordingArchive(t *testing.T, fixture *recordingFixture) {
 	})
 
 	t.Run("each seat is archived to an object of its own", func(t *testing.T) {
-		uid := fixture.finish(t, func(t *testing.T, conn *ssh.Client, _ string) {
-			t.Helper()
-
-			first := openShell(t, conn)
-			second := openShell(t, conn)
-
-			first.prints(t, "first-archived")
-			second.prints(t, "second-archived")
-		})
+		uid := fixture.recordTwoSeats(t, "first-archived", "second-archived")
 
 		compose.RunCron(t, recordingArchiveCron)
 		fixture.awaitArchived(t, uid, "0.asciinema", "1.asciinema")
@@ -267,7 +251,7 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 	t.Run("deleting a recording removes its object and clears the recorded flag", func(t *testing.T) {
 		uid := fixture.archived(t, "deleted")
 
-		fixture.requireDeleted(t, uid)
+		fixture.requireLastSeatDeleted(t, uid, 0)
 
 		assert.Empty(t, compose.RecordingObjects(t, uid))
 		fixture.requireNoPlayback(t, uid, 0)
@@ -278,7 +262,7 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 
 		compose.RemoveRecordingObject(t, uid, 0)
 
-		fixture.requireDeleted(t, uid)
+		fixture.requireLastSeatDeleted(t, uid, 0)
 	})
 
 	t.Run("deleting a recording before it is archived removes its terminal output", func(t *testing.T) {
@@ -296,7 +280,7 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 
 		require.Empty(t, compose.RecordingObjects(t, uid), "the archive job ran while the cron queue was paused")
 
-		fixture.requireDeleted(t, uid)
+		fixture.requireLastSeatDeleted(t, uid, 0)
 
 		unpauseCron()
 
@@ -305,6 +289,39 @@ func testRecordingDeletion(t *testing.T, fixture *recordingFixture) {
 
 		assert.Empty(t, compose.RecordingObjects(t, uid))
 		fixture.requireNoPlayback(t, uid, 0)
+	})
+
+	t.Run("deleting each archived seat in turn keeps the session recorded until the last one", func(t *testing.T) {
+		uid := fixture.recordTwoSeats(t, "first-deleted", "second-deleted")
+
+		compose.RunCron(t, recordingArchiveCron)
+		fixture.awaitArchived(t, uid, "0.asciinema", "1.asciinema")
+
+		fixture.deleteSeat(t, uid, 0)
+
+		assert.True(t, getSession(t, t.Context(), compose, uid).Recorded)
+		assert.Equal(t, []string{"1.asciinema"}, compose.RecordingObjects(t, uid))
+		fixture.requireNoPlayback(t, uid, 0)
+		assert.Contains(t, fixture.playback(t, uid, 1), "recorded-second-deleted")
+
+		fixture.requireLastSeatDeleted(t, uid, 1)
+		assert.Empty(t, compose.RecordingObjects(t, uid))
+	})
+
+	t.Run("deleting each seat in turn before they are archived removes each seat's output", func(t *testing.T) {
+		unpauseCron := compose.PauseCron(t)
+		defer unpauseCron()
+
+		uid := fixture.recordTwoSeats(t, "first-unarchived", "second-unarchived")
+
+		fixture.deleteSeat(t, uid, 0)
+
+		assert.True(t, getSession(t, t.Context(), compose, uid).Recorded)
+		assert.Zero(t, compose.SeatEventCountOfType(t, uid, 0, models.SessionEventTypePtyOutput))
+		assert.Positive(t, compose.SeatEventCountOfType(t, uid, 1, models.SessionEventTypePtyOutput),
+			"the other seat's output stays until it is deleted")
+
+		fixture.requireLastSeatDeleted(t, uid, 1)
 	})
 
 	t.Run("deleting the recording of an active session is refused", func(t *testing.T) {
@@ -412,6 +429,23 @@ func (f *recordingFixture) record(t *testing.T, word string) string {
 	})
 }
 
+func (f *recordingFixture) recordTwoSeats(t *testing.T, first, second string) string {
+	t.Helper()
+
+	return f.finish(t, func(t *testing.T, conn *ssh.Client, uid string) {
+		t.Helper()
+
+		firstShell := openShell(t, conn)
+		secondShell := openShell(t, conn)
+
+		firstShell.prints(t, first)
+		secondShell.prints(t, second)
+
+		f.compose.AwaitSeatEventOfType(t, uid, 0, models.SessionEventTypePtyOutput)
+		f.compose.AwaitSeatEventOfType(t, uid, 1, models.SessionEventTypePtyOutput)
+	})
+}
+
 func (f *recordingFixture) archived(t *testing.T, word string) string {
 	t.Helper()
 
@@ -448,12 +482,18 @@ func (f *recordingFixture) requireNoPlayback(t *testing.T, uid string, seat int)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode(), resp.String())
 }
 
-func (f *recordingFixture) requireDeleted(t *testing.T, uid string) {
+func (f *recordingFixture) deleteSeat(t *testing.T, uid string, seat int) {
 	t.Helper()
 
-	resp, err := f.compose.DeleteSessionRecord(t.Context(), uid, 0)
+	resp, err := f.compose.DeleteSessionRecord(t.Context(), uid, seat)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
+}
+
+func (f *recordingFixture) requireLastSeatDeleted(t *testing.T, uid string, seat int) {
+	t.Helper()
+
+	f.deleteSeat(t, uid, seat)
 
 	assert.False(t, getSession(t, t.Context(), f.compose, uid).Recorded)
 	assert.Zero(t, f.compose.SessionEventCountOfType(t, uid, models.SessionEventTypePtyOutput),
