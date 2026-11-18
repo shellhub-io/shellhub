@@ -15,8 +15,8 @@ import (
 )
 
 // Extension adds an edition's features to the server. [Run] opens each one once, during setup,
-// after the store, the cache and the clock exist and before anything that serves requests is
-// built. An error stops the server from starting.
+// after the store, the cache, the clock and the task queue client exist and before anything that
+// serves requests is built. An error stops the server from starting.
 type Extension func(ctx context.Context, infra Infra) (Features, error)
 
 // Infra is what the server has built before it opens its extensions. An extension uses these
@@ -26,6 +26,8 @@ type Infra struct {
 	Store store.Store
 	Cache cache.Cache
 	Clock clock.Clock
+	// Tasks submits tasks to the worker queue the server runs.
+	Tasks worker.Client
 }
 
 // Features is what an extension adds. A zero field adds nothing.

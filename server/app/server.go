@@ -244,6 +244,7 @@ type Server struct {
 	operator      *http.Server
 	authn         *middleware.Authenticator
 	worker        worker.Server
+	tasks         worker.Client
 	ssh           *sshserver.Server
 	heartbeater   *services.DeviceHeartbeater
 	tunnels       *dialer.Manager
@@ -314,7 +315,12 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	log.Info("store connected successfully")
 
-	features, store, err := openExtensions(ctx, s.extensions, Infra{Env: *s.env, Store: coreStore, Cache: cache, Clock: s.clock})
+	s.tasks, err = asynq.NewClient(s.env.RedisURI)
+	if err != nil {
+		return fmt.Errorf("failed to open the task queue client: %w", err)
+	}
+
+	features, store, err := openExtensions(ctx, s.extensions, Infra{Env: *s.env, Store: coreStore, Cache: cache, Clock: s.clock, Tasks: s.tasks})
 	if err != nil {
 		return fmt.Errorf("failed to open the server's extensions: %w", err)
 	}
@@ -588,6 +594,12 @@ func (s *Server) Shutdown() {
 	log.Info("Gracefully shutting down server")
 
 	s.worker.Shutdown()
+
+	if s.tasks != nil {
+		if err := s.tasks.Close(); err != nil {
+			log.WithError(err).Warn("the task queue client did not close cleanly")
+		}
+	}
 
 	s.stopGateway()
 
