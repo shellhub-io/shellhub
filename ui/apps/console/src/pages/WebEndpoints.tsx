@@ -26,7 +26,7 @@ import CheckboxField from "@/components/common/fields/CheckboxField";
 import RadioGroupField from "@/components/common/fields/RadioGroupField";
 import RadioPill from "@/components/common/fields/RadioPill";
 import FormRootError from "@/components/common/fields/FormRootError";
-import { formatRelative, formatDateShort } from "@/utils/date";
+import { formatRelative, formatDateShort, isUnsetTime } from "@/utils/date";
 import { LABEL, LABEL_BASE } from "@/utils/styles";
 import {
   XMarkIcon,
@@ -57,10 +57,8 @@ import { PER_PAGE } from "@/utils/pagination";
 import { useNavSectionTitle } from "@/components/layout/navSections";
 import ObjectName from "@/components/common/ObjectName";
 
-const GO_ZERO_TIME = "0001-01-01T00:00:00Z";
-
 function neverExpires(expiresIn: string): boolean {
-  return !expiresIn || expiresIn === GO_ZERO_TIME;
+  return isUnsetTime(expiresIn);
 }
 
 function isExpired(expiresIn: string): boolean {

@@ -4,6 +4,7 @@ import { Spinner } from "@shellhub/design-system/primitives";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import FramedShell from "@/components/layout/FramedShell";
 import ScreenIntro from "@/components/layout/ScreenIntro";
+import ScreenLoader from "./ScreenLoader";
 
 function ApiUnavailablePage() {
   return (
@@ -35,14 +36,7 @@ export default function ConnectivityGuard() {
   }, [initialCheckDone, checkInitial]);
 
   if (!initialCheckDone) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex items-center gap-3">
-          <Spinner />
-          <span className="text-xs font-mono text-text-muted">Connecting…</span>
-        </div>
-      </div>
-    );
+    return <ScreenLoader label="Connecting…" />;
   }
 
   if (!initialGatePassed) {

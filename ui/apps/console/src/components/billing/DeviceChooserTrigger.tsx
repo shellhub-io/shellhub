@@ -13,10 +13,9 @@ const DeviceChooserDialog = lazy(() => import("./DeviceChooserDialog"));
 export const FREE_TIER_DEVICE_LIMIT = 3;
 
 /**
- * Mounts the DeviceChooserDialog when a Cloud namespace owner has more than
- * three accepted devices and no active subscription. The dialog reopens on
- * every fresh mount: dismissing it doesn't persist anywhere — matches the Vue
- * behavior so the user keeps seeing it until they subscribe or pick three.
+ * Mounts the DeviceChooserDialog when a Cloud namespace owner has more accepted devices than the
+ * free tier keeps and no active subscription. Dismissing it is not remembered, so it reopens on
+ * every mount until the owner subscribes or picks the devices to keep.
  */
 export default function DeviceChooserTrigger() {
   if (!features().billing) return null;

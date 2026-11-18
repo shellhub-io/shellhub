@@ -7,8 +7,7 @@ import { propertyFilter, toBase64Json } from "@/utils/encoding";
 export type InvitationStatus = MembershipInvitation["status"];
 
 /**
- * Builds the base64-encoded filter query used by the backend's invitation list
- * endpoints. Mirrors the encoding from the legacy Vue UI (ui/src/utils/invitations.ts).
+ * Builds the base64-encoded filter query the invitation list endpoints take.
  */
 export function invitationStatusFilter(status: InvitationStatus): string {
   return toBase64Json([propertyFilter("status", "eq", status)]);

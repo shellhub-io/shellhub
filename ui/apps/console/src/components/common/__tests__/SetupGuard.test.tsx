@@ -86,7 +86,7 @@ describe("SetupGuard", () => {
       await waitFor(() => expect(check.signals[0].aborted).toBe(true));
       await waitFor(() => expect(check.signals).toHaveLength(2));
 
-      expect(screen.getByText("Loading...")).toBeInTheDocument();
+      expect(screen.getByText("Loading…")).toBeInTheDocument();
       expect(screen.queryByText("devices page")).not.toBeInTheDocument();
     } finally {
       await check.release();
@@ -131,7 +131,7 @@ describe("SetupGuard", () => {
     });
     renderAt("/");
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
     expect(screen.queryByText("app content")).not.toBeInTheDocument();
     expect(await screen.findByText("app content")).toBeInTheDocument();
   });

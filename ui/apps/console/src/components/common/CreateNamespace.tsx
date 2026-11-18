@@ -5,6 +5,7 @@ import CopyButton from "@/components/common/CopyButton";
 import NamespaceNameField from "@/components/common/fields/NamespaceNameField";
 import { NAMESPACE_NAME_MIN_LENGTH } from "@/utils/validation";
 import { Button, Spinner } from "@shellhub/design-system/primitives";
+import { PRICING_URL } from "@/edition";
 
 /**
  * The namespace name form. Validates as the user types against the same rules the server holds,
@@ -105,7 +106,7 @@ export function CommunityInstructions({
         <p className="text-2xs text-text-secondary leading-relaxed">
           <span className="font-medium text-text-primary">Tip:</span>{" "}
           <a
-            href="https://www.shellhub.io/pricing"
+            href={PRICING_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:text-primary-400 transition-colors"

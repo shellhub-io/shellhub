@@ -3,7 +3,7 @@ import {
   LockClosedIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { features } from "@/edition";
+import { features, PRICING_URL } from "@/edition";
 import { Button } from "@shellhub/design-system/primitives";
 import EmptyState from "@/components/common/EmptyState";
 
@@ -37,7 +37,7 @@ export default function FeatureGate({
     >
       <Button
         as="a"
-        href="https://www.shellhub.io/pricing"
+        href={PRICING_URL}
         target="_blank"
         rel="noopener noreferrer"
         size="lg"

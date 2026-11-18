@@ -245,15 +245,6 @@ export function getUsageInfo(key: ProvisioningKey): UsageInfo {
 }
 
 /**
- * The expiry field of a create request. An empty or non-positive value means no expiry, which is
- * sent by omitting the field rather than by sending a zero.
- */
-export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
-  const days = Number(expiresIn);
-  return days > 0 ? { expires_in: days } : {};
-}
-
-/**
  * The expiry field of an update request. Unlike create, clearing an expiry has to be said out
  * loud: null means "remove it", where omitting the field would mean "leave it alone".
  */
@@ -277,38 +268,6 @@ export function getRemainingDays(expiresAt: string | null | undefined): {
   const remaining = differenceInCalendarDays(new Date(expiresAt), new Date());
   if (remaining < 1) return { days: "1", expired };
   return { days: String(remaining), expired: false };
-}
-
-/**
- * How loudly an expiry should read, from a fact to a warning.
- */
-export type ExpiryTone = "muted" | "normal" | "warning" | "danger";
-
-/**
- * An expiry as it is shown: the phrase, and how loudly to say it.
- */
-export interface ExpiryInfo {
-  label: string;
-  tone: ExpiryTone;
-}
-
-/**
- * Absolute, urgency-aware expiry for a card. Non-expiring keys (null
- * `expires_at`) read as a muted "Never"; otherwise the concrete date is always
- * shown, with urgency carried by colour: danger once elapsed, a warning within
- * the last week, normal beyond that.
- */
-export function getExpiryInfo(
-  expiresAt: string | null | undefined,
-): ExpiryInfo {
-  if (expiresAt == null) return { label: "Never", tone: "muted" };
-  const expiry = new Date(expiresAt);
-  const label = formatDateShort(expiresAt);
-  if (expiry.getTime() <= Date.now()) return { label, tone: "danger" };
-  const tone: ExpiryTone =
-    differenceInCalendarDays(expiry, new Date()) <= 7 ? "warning" : "normal";
-
-  return { label, tone };
 }
 
 /**
@@ -350,8 +309,8 @@ export function keyModeInfo(key: ProvisioningKey) {
  */
 export function expiryPhrase(key: ProvisioningKey): string {
   if (!key.expires_at) return "never expires";
-  const { label } = getExpiryInfo(key.expires_at);
-  return getKeyBlockers(key).expired ? `expired ${label}` : `expires ${label}`;
+  const date = formatDateShort(key.expires_at);
+  return getKeyBlockers(key).expired ? `expired ${date}` : `expires ${date}`;
 }
 
 /**

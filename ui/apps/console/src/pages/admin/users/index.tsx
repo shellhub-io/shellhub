@@ -25,6 +25,7 @@ import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import DataTable, { type Column } from "@/components/common/DataTable";
 import SearchField from "@/components/common/fields/SearchField";
 import UserStatusChip from "./UserStatusChip";
+import { userStatus } from "./userStatus";
 import CreateUserModal from "./CreateUserModal";
 import EditUserModal from "./EditUserModal";
 import DeleteUserDialog from "./DeleteUserDialog";
@@ -136,11 +137,7 @@ export default function AdminUsers() {
     {
       key: "status",
       header: "Status",
-      render: (user) => (
-        <UserStatusChip
-          status={user.awaiting_approval ? "awaiting_approval" : user.status}
-        />
-      ),
+      render: (user) => <UserStatusChip status={userStatus(user)} />,
     },
     {
       key: "actions",

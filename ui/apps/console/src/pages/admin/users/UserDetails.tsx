@@ -14,10 +14,11 @@ import { useAdminUser } from "@/hooks/useAdminUsers";
 import Breadcrumb from "@/components/common/Breadcrumb";
 import { useLoginAsUser } from "@/hooks/useLoginAsUser";
 import UserStatusChip from "./UserStatusChip";
+import { userStatus } from "./userStatus";
 import EditUserModal from "./EditUserModal";
 import ResetPasswordDialog from "./ResetPasswordDialog";
 import DeleteUserDialog from "./DeleteUserDialog";
-import { formatDateFull } from "@/utils/date";
+import { formatDateFull, isUnsetTime } from "@/utils/date";
 import InfoItem from "@/components/common/InfoItem";
 import PageLoader from "@/components/common/PageLoader";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
@@ -27,8 +28,6 @@ import {
   Card,
   IconButton,
 } from "@shellhub/design-system/primitives";
-
-const ZERO_DATE = "0001-01-01T00:00:00Z";
 
 function formatMaxNamespaces(value: number): string {
   if (value < 0) return "Unlimited";
@@ -71,8 +70,7 @@ export default function UserDetails() {
   const isSamlOnly =
     user.preferences.auth_methods.length === 1 &&
     user.preferences.auth_methods[0] === "saml";
-  const userStatus = user.status;
-  const lastLogin = user.last_login === ZERO_DATE ? null : user.last_login;
+  const lastLogin = isUnsetTime(user.last_login) ? null : user.last_login;
 
   return (
     <div className="animate-fade-in">
@@ -93,7 +91,7 @@ export default function UserDetails() {
               {user.name}
             </h1>
             <div className="flex items-center gap-2 mt-1.5">
-              <UserStatusChip status={userStatus} />
+              <UserStatusChip status={userStatus(user)} />
               {user.admin && <Badge color="yellow">Admin</Badge>}
             </div>
           </div>
@@ -155,7 +153,7 @@ export default function UserDetails() {
               value={user.recovery_email}
             />
             <InfoItem label="Status">
-              <UserStatusChip status={userStatus} />
+              <UserStatusChip status={userStatus(user)} />
             </InfoItem>
           </dl>
         </Card>

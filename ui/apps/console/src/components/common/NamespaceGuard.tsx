@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { Button, Spinner } from "@shellhub/design-system/primitives";
+import { Button } from "@shellhub/design-system/primitives";
 import { useInitRole, useNamespaces } from "@/hooks/useNamespaceRequests";
 import { useConnectivityStore } from "@/stores/connectivityStore";
 import { isAdminPath } from "@/utils/adminRoute";
@@ -11,6 +11,7 @@ import NamespaceTrail from "@/components/firstRun/NamespaceTrail";
 import FramedShell from "@/components/layout/FramedShell";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import AuthActions from "@/components/auth/AuthActions";
+import ScreenLoader from "./ScreenLoader";
 
 function FetchErrorPage({
   error,
@@ -72,14 +73,7 @@ export default function NamespaceGuard() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex items-center gap-3">
-          <Spinner />
-          <span className="text-xs font-mono text-text-muted">Loading…</span>
-        </div>
-      </div>
-    );
+    return <ScreenLoader label="Loading…" />;
   }
 
   if (

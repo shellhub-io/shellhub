@@ -59,3 +59,6 @@ const FEATURES: Record<Edition, EditionFeatures> = {
 export function features(): EditionFeatures {
   return FEATURES[getConfig().edition];
 }
+
+/** The public pricing page every upgrade prompt links to. */
+export const PRICING_URL = "https://www.shellhub.io/pricing";

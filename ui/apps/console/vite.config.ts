@@ -36,14 +36,6 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "src"),
     },
   },
-  build: {
-    rolldownOptions: {
-      input: {
-        main: path.resolve(import.meta.dirname, "index.html"),
-        migrate: path.resolve(import.meta.dirname, "migrate.html"),
-      },
-    },
-  },
   test: {
     environment: "jsdom",
     setupFiles: [path.resolve(import.meta.dirname, "./src/tests/setup.ts")],

@@ -56,3 +56,22 @@ export function formatDuration(
   const m = Math.floor((secs % 3600) / 60);
   return `${h}h ${m}m`;
 }
+
+const GO_ZERO_TIME = "0001-01-01T00:00:00Z";
+
+/**
+ * Whether a timestamp from the server is unset: absent, empty, or Go's zero time, which the
+ * server sends for a time it never recorded.
+ */
+export function isUnsetTime(value?: string | null): boolean {
+  return !value || value === GO_ZERO_TIME;
+}
+
+/**
+ * The expiry field of a create request from a days value. An empty or non-positive value means no
+ * expiry, which is sent by omitting the field rather than by sending a zero.
+ */
+export function keyExpiryPayload(expiresIn: string): { expires_in?: number } {
+  const days = Number(expiresIn);
+  return days > 0 ? { expires_in: days } : {};
+}
