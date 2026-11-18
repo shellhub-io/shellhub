@@ -114,7 +114,7 @@ func (pg *Pg) NamespaceDepartMember(ctx context.Context, sc scope.Scope, memberI
 		return pg.NamespaceDeleteMembership(ctx, sc, &models.Member{ID: memberID})
 	}
 
-	if err := pg.inTransaction(ctx, depart); err != nil {
+	if err := pg.WithTransaction(ctx, depart); err != nil {
 		return nil, err
 	}
 

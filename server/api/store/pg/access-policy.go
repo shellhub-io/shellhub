@@ -23,7 +23,7 @@ func (pg *Pg) AccessPolicyCreate(ctx context.Context, accessPolicy *models.Acces
 
 	e := entity.AccessPolicyFromModel(accessPolicy)
 
-	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
 		if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {

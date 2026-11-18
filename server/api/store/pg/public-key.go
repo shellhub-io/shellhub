@@ -15,7 +15,7 @@ func (pg *Pg) PublicKeyCreate(ctx context.Context, publicKey *models.PublicKey) 
 	publicKey.CreatedAt = pg.clock.Now()
 	e := entity.PublicKeyFromModel(publicKey)
 
-	err := pg.inTransaction(ctx, func(ctx context.Context) error {
+	err := pg.WithTransaction(ctx, func(ctx context.Context) error {
 		db := pg.GetConnection(ctx)
 
 		if _, err := db.NewInsert().Model(e).Exec(ctx); err != nil {
