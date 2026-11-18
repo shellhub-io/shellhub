@@ -22,7 +22,7 @@ func TestEnterpriseLicensing(t *testing.T) {
 	ctx := context.Background()
 
 	startup := environment.FullLicense()
-	compose := newEnterpriseEnvironment(t, ctx, environment.New(t, run).WithLicense(startup).WithEveryAddressIn("BR"))
+	compose := newEnterpriseEnvironment(t, ctx, environment.New(t, run).WithLicense(startup).WithEveryAddressAt(environment.Location{Country: "BR"}))
 
 	t.Run("license file", func(t *testing.T) { testLicenseFile(t, compose, startup) })
 	t.Run("signature", func(t *testing.T) { testLicenseSignature(t, compose) })

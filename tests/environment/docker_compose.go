@@ -185,20 +185,6 @@ func (dc *DockerCompose) DeleteNamespace(t *testing.T, name string) {
 	require.NoError(t, dc.stack.DeleteNamespace(t.Context(), name))
 }
 
-// GetNamespace reads the namespace tenant through the API, as the bearer of the JWT set with
-// [DockerCompose.JWT], failing t unless the server answers 200.
-func (dc *DockerCompose) GetNamespace(t *testing.T, tenant string) *models.Namespace {
-	t.Helper()
-
-	namespace := new(models.Namespace)
-
-	resp, err := dc.R(t.Context()).SetResult(namespace).Get("/api/namespaces/" + tenant)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode(), resp.String())
-
-	return namespace
-}
-
 // PostNamespaceUpgrade asks the server to upgrade the legacy namespace tenant to a new one, as
 // the bearer of the JWT set with [DockerCompose.JWT], and returns the response. It
 // returns the error only for a request that never got an answer. The server answers 403 unless

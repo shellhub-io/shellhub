@@ -299,10 +299,6 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, err
 	}
 
-	if err := onlyPostgresAllowed(merged["SHELLHUB_DATABASE"]); err != nil {
-		return nil, err
-	}
-
 	built := imageBuild{run: cfg.Run.ID(), edition: cfg.Edition}
 
 	stackImages.Lock()
@@ -542,14 +538,8 @@ func (s *Stack) Files() []string { return slices.Clone(s.files) }
 // Envs returns a copy of the environment the stack was started with.
 func (s *Stack) Envs() map[string]string { return maps.Clone(s.envs) }
 
-// HTTPPort returns the host port the gateway publishes HTTP on.
-func (s *Stack) HTTPPort() string { return s.envs["SHELLHUB_HTTP_PORT"] }
-
-// SSHPort returns the host port the gateway publishes SSH on.
-func (s *Stack) SSHPort() string { return s.envs["SHELLHUB_SSH_PORT"] }
-
 // BaseURL returns the HTTP base URL for the running stack.
-func (s *Stack) BaseURL() string { return "http://localhost:" + s.HTTPPort() }
+func (s *Stack) BaseURL() string { return "http://localhost:" + s.envs["SHELLHUB_HTTP_PORT"] }
 
 // HTTPSAddress returns the host:port the gateway publishes HTTPS on. Only a stack started with
 // [Config.SuppliedCertificate], [Config.ACME] or [Config.AutoSSL] publishes it.
@@ -566,7 +556,7 @@ func (s *Stack) MailpitURL() string {
 }
 
 // SSHAddress returns the host:port the gateway's SSH listener is reachable at.
-func (s *Stack) SSHAddress() string { return "localhost:" + s.SSHPort() }
+func (s *Stack) SSHAddress() string { return "localhost:" + s.envs["SHELLHUB_SSH_PORT"] }
 
 // Service returns the container handle for the named compose service, or nil when the
 // service was not found (which is normal after [Attach] if the stack is not running).
