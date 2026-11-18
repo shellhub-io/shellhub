@@ -32,10 +32,10 @@ func TestStackArtifactsCoverWhatUpWrites(t *testing.T) {
 	}
 }
 
-func TestOnlyACloudStackReceivesStripeEvents(t *testing.T) {
+func TestConfigValidateRefusesStripeEventsOutsideCloud(t *testing.T) {
 	for _, edition := range []Edition{EditionCommunity, EditionEnterprise} {
 		t.Run(string(edition), func(t *testing.T) {
-			_, err := Up(t.Context(), Config{Edition: edition, StripeEvents: true, Run: &Run{}})
+			err := Config{Edition: edition, StripeEvents: true, Run: &Run{}}.validate()
 			require.ErrorIs(t, err, errStripeEventsOutsideCloud)
 		})
 	}
