@@ -159,7 +159,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		return nil, errors.New("the stack config has no run to own its images")
 	}
 
-	if cfg.StripeEvents && cfg.Edition != EditionCloud {
+	if cfg.StripeEvents && !cfg.Edition.profile().cloud {
 		return nil, errStripeEventsOutsideCloud
 	}
 
@@ -175,7 +175,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	files := build.composeFiles
 
 	var billingEnvs map[string]string
-	if cfg.Edition == EditionCloud {
+	if cfg.Edition.profile().cloud {
 		if billingEnvs, err = stripeEnvs(ctx, cfg.CloudDir); err != nil {
 			return nil, err
 		}
@@ -192,7 +192,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	var mailpitPort string
-	if cfg.Edition == EditionCloud {
+	if cfg.Edition.profile().cloud {
 		ports = append(ports, &mailpitPort)
 	}
 
@@ -231,7 +231,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 		}
 	}()
 
-	if cfg.Edition != EditionCommunity {
+	if cfg.Edition.profile().paid {
 		if licenseVars, artifacts, err = cfg.licensingEnvs(); err != nil {
 			return nil, err
 		}
@@ -352,7 +352,7 @@ func Up(ctx context.Context, cfg Config) (_ *Stack, err error) {
 	}
 
 	services := []Service{ServiceRelay, ServiceServer, ServicePostgres, ServiceRedis}
-	if cfg.Edition != EditionCommunity {
+	if cfg.Edition.profile().paid {
 		services = append(services, ServiceObjectStorage)
 	}
 
@@ -405,7 +405,7 @@ func newStackBuild(edition Edition, cloudDir string, run *Run) (stackBuild, erro
 		return stackBuild{}, err
 	}
 
-	if issuer := run.LicenseIssuer(); edition != EditionCommunity && issuer != nil {
+	if issuer := run.LicenseIssuer(); edition.profile().paid && issuer != nil {
 		flags, err := issuer.ldflags()
 		if err != nil {
 			return stackBuild{}, err
@@ -890,7 +890,7 @@ func (s *Stack) NewLegacyNamespace(ctx context.Context, owner, name, tenant stri
 	}
 
 	maxDevices := -1
-	if edition == EditionCloud {
+	if edition.profile().cloud {
 		maxDevices = 3
 	}
 
