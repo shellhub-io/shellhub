@@ -508,7 +508,7 @@ func Attach(ctx context.Context, name string, files []string, envs map[string]st
 		}
 	}
 
-	for _, svc := range []Service{ServiceRelay, ServiceServer, ServicePostgres, ServiceRedis} {
+	for _, svc := range knownServices {
 		c, err := tcDc.ServiceContainer(ctx, string(svc))
 		if err == nil {
 			s.services[svc] = c

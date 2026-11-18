@@ -27,6 +27,15 @@ const (
 	ServiceTelemetryCollector Service = "telemetry-collector"
 )
 
+var knownServices = []Service{
+	ServiceServer,
+	ServiceRelay,
+	ServicePostgres,
+	ServiceRedis,
+	ServiceObjectStorage,
+	ServiceTelemetryCollector,
+}
+
 // ReservePort reserves a port through [testport.Reserve] and releases it when the test ends.
 func ReservePort(t *testing.T) string {
 	t.Helper()
