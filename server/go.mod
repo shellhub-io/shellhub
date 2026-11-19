@@ -1,6 +1,6 @@
 module github.com/shellhub-io/shellhub/server
 
-go 1.26.10
+go 1.26.11
 
 require (
 	code.dny.dev/ssrf v0.3.0
