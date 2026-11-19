@@ -44,13 +44,13 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		key, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		legacy, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", false), "")
+		legacy, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", false), "", "")
 		require.NoError(t, err)
 		assert.Nil(t, stored(t, legacy.UID).KeyVerifiedAt, "an unsigned request proves nothing")
 
 		stale := stored(t, legacy.UID)
 
-		verified, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", true), "")
+		verified, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", true), "", "")
 		require.NoError(t, err)
 		require.Equal(t, legacy.UID, verified.UID, "the signature authenticates the same device")
 		assert.NotNil(t, stored(t, verified.UID).KeyVerifiedAt)
@@ -58,10 +58,10 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		require.NoError(t, e.st.DeviceUpdate(ctx, scope.MustBounded(stale.TenantID), stale))
 		assert.NotNil(t, stored(t, verified.UID).KeyVerifiedAt, "a write from a snapshot read before the verification cannot clear it")
 
-		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", false), "")
+		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", false), "", "")
 		require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 
-		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", true), "")
+		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:01", true), "", "")
 		assert.NoError(t, err, "the device itself keeps authenticating")
 	})
 
@@ -69,11 +69,11 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		key, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:02", true), "")
+		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:02", true), "", "")
 		require.NoError(t, err)
 		assert.NotNil(t, stored(t, res.UID).KeyVerifiedAt)
 
-		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:02", false), "")
+		_, err = e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:02", false), "", "")
 		require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 	})
 
@@ -81,7 +81,7 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		key, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:05", true), "")
+		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:05", true), "", "")
 		require.NoError(t, err)
 		require.NoError(t, e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{
 			TenantID: e.tenantID, UID: res.UID, Status: string(models.DeviceStatusAccepted),
@@ -90,7 +90,7 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		require.NoError(t, e.svc.DeleteDevice(ctx, models.UID(res.UID), e.tenantID))
 		assert.Nil(t, stored(t, res.UID).KeyVerifiedAt, "removal clears the verification")
 
-		again, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:05", false), "")
+		again, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:05", false), "", "")
 		require.NoError(t, err)
 		require.Equal(t, res.UID, again.UID)
 		assert.Equal(t, models.DeviceStatusPending, stored(t, again.UID).Status, "the operator accepts it again")
@@ -100,11 +100,11 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 		key, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:06", false), "")
+		res, err := e.svc.AuthDevice(ctx, request(t, key, "aa:00:00:00:00:06", false), "", "")
 		require.NoError(t, err)
 
-		assert.NoError(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: res.UID}))
-		assert.ErrorIs(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: "unknown"}), ErrAuthUnathorized)
+		assert.NoError(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: res.UID}, ""))
+		assert.ErrorIs(t, e.svc.AuthDeviceToken(ctx, &authorizer.DeviceClaims{UID: "unknown"}, ""), ErrAuthUnathorized)
 	})
 
 	deviceClaims := func(t *testing.T, token string) *authorizer.DeviceClaims {
@@ -133,18 +133,18 @@ func TestDeviceKeyVerificationE2E(t *testing.T) { //nolint:tparallel // the subt
 
 			var legacyToken string
 			if tc.legacyFirst {
-				legacy, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, false), "")
+				legacy, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, false), "", "")
 				require.NoError(t, err)
 
 				legacyToken = legacy.Token
 			}
 
-			verified, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, true), "")
+			verified, err := e.svc.AuthDevice(ctx, request(t, key, tc.mac, true), "", "")
 			require.NoError(t, err)
-			require.NoError(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, verified.Token)))
+			require.NoError(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, verified.Token), ""))
 
 			if tc.legacyFirst {
-				require.ErrorIs(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, legacyToken)), ErrAuthUnathorized)
+				require.ErrorIs(t, e.svc.AuthDeviceToken(ctx, deviceClaims(t, legacyToken), ""), ErrAuthUnathorized)
 			}
 		})
 	}
@@ -222,7 +222,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				t.Parallel()
 				e := setup(t)
 
-				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, key(t), "bb:00:00:00:00:01", false), "")
+				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, key(t), "bb:00:00:00:00:01", false), "", "")
 				require.NoError(t, err)
 				assert.Equal(t, models.DeviceStatusPending, e.status(t, res.UID))
 			})
@@ -234,7 +234,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				k := key(t)
 
 				req := e.deviceAuthRequest(t, k, "bb:00:00:00:00:02", false)
-				_, err := e.svc.AuthDevice(ctx, req, "192.0.2.1")
+				_, err := e.svc.AuthDevice(ctx, req, "192.0.2.1", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 				assert.Zero(t, e.deviceCount(t), "a refused agent leaves no device behind")
 
@@ -242,7 +242,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				e.clock.Set(later)
 
 				req.Info.Version = "v0.26.1"
-				_, err = e.svc.AuthDevice(ctx, req, "192.0.2.2")
+				_, err = e.svc.AuthDevice(ctx, req, "192.0.2.2", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 
 				events := e.tenantRegistrations(t)
@@ -259,7 +259,7 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				e.requireVerifiedDeviceKey(t, false)
 				e.clock.Set(later.Add(time.Minute))
 
-				res, err := e.svc.AuthDevice(ctx, req, "")
+				res, err := e.svc.AuthDevice(ctx, req, "", "")
 				require.NoError(t, err, "the next attempt after the requirement is lifted enrolls")
 				assert.Equal(t, models.DeviceStatusPending, e.status(t, res.UID))
 
@@ -279,16 +279,16 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				e.requireVerifiedDeviceKey(t, true)
 				k := key(t)
 
-				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", true), "")
+				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", true), "", "")
 				require.NoError(t, err)
 				assert.Equal(t, models.DeviceStatusPending, e.status(t, res.UID))
 
-				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", false), "")
+				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", false), "", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 
 				e.requireVerifiedDeviceKey(t, false)
 
-				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", false), "")
+				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:03", false), "", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused, "a verified device stays verified whatever the setting")
 
 				for _, event := range e.tenantRegistrations(t) {
@@ -301,20 +301,20 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				e := setup(t)
 				k := key(t)
 
-				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:04", false), "")
+				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:04", false), "", "")
 				require.NoError(t, err)
 
 				claims, err := jwttoken.ClaimsFromBearerToken(publicKey, res.Token)
 				require.NoError(t, err)
 				deviceClaims, ok := claims.(*authorizer.DeviceClaims)
 				require.True(t, ok)
-				require.NoError(t, e.svc.AuthDeviceToken(ctx, deviceClaims))
+				require.NoError(t, e.svc.AuthDeviceToken(ctx, deviceClaims, ""))
 
 				e.requireVerifiedDeviceKey(t, true)
 
-				require.ErrorIs(t, e.svc.AuthDeviceToken(ctx, deviceClaims), ErrAuthUnathorized)
+				require.ErrorIs(t, e.svc.AuthDeviceToken(ctx, deviceClaims, ""), ErrAuthUnathorized)
 
-				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:04", false), "")
+				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:04", false), "", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 
 				for _, event := range e.tenantRegistrations(t) {
@@ -329,13 +329,13 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				req := e.deviceAuthRequest(t, key(t), "bb:00:00:00:00:06", false)
 
 				for range 2 {
-					_, err := e.svc.AuthDevice(ctx, req, "")
+					_, err := e.svc.AuthDevice(ctx, req, "", "")
 					require.NoError(t, err)
 				}
 
 				e.requireVerifiedDeviceKey(t, true)
 
-				_, err := e.svc.AuthDevice(ctx, req, "")
+				_, err := e.svc.AuthDevice(ctx, req, "", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 			})
 
@@ -344,14 +344,14 @@ func TestNamespaceRequiresVerifiedDeviceKeyE2E(t *testing.T) {
 				e := setup(t)
 				k := key(t)
 
-				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:05", false), "")
+				res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:05", false), "", "")
 				require.NoError(t, err)
 				require.NoError(t, e.accept(ctx, res.UID))
 				require.NoError(t, e.svc.DeleteDevice(ctx, models.UID(res.UID), e.tenantID))
 
 				e.requireVerifiedDeviceKey(t, true)
 
-				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:05", false), "")
+				_, err = e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, k, "bb:00:00:00:00:05", false), "", "")
 				require.ErrorIs(t, err, ErrDeviceKeyVerificationRefused)
 
 				var refused []models.ProvisioningKeyEvent
@@ -381,7 +381,7 @@ func TestListDevicesByKeyVerification(t *testing.T) {
 		key, err := rsa.GenerateKey(rand.Reader, 2048)
 		require.NoError(t, err)
 
-		res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, key, mac, signed), "")
+		res, err := e.svc.AuthDevice(ctx, e.deviceAuthRequest(t, key, mac, signed), "", "")
 		require.NoError(t, err)
 
 		return res.UID

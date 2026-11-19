@@ -340,7 +340,7 @@ func TestAuthenticatorMiddlewareDeviceToken(t *testing.T) {
 			service.On("PublicKey").Return(&privateKey.PublicKey).Once()
 			service.On("AuthDeviceToken", mock.Anything, mock.MatchedBy(func(claims *authorizer.DeviceClaims) bool {
 				return claims.UID == deviceUID
-			})).Return(nil).Once()
+			}), mock.Anything).Return(nil).Once()
 
 			c, rec := authenticatedRequest(echo.New(), bearer)
 
@@ -404,7 +404,7 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenTheServiceNoLongerHonours(t *
 
 	service := mocks.NewMockService(t)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
-	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(services.NewErrAuthUnathorized(nil)).Once()
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(services.NewErrAuthUnathorized(nil)).Once()
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
 
@@ -430,7 +430,7 @@ func TestAuthenticatorMiddlewareRefusesADeviceTokenItCannotCheck(t *testing.T) {
 
 	service := mocks.NewMockService(t)
 	service.On("PublicKey").Return(&privateKey.PublicKey).Once()
-	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(errors.New("store down")).Once()
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("store down")).Once()
 
 	c, rec := authenticatedRequest(echo.New(), bearer)
 

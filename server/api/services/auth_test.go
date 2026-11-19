@@ -886,7 +886,7 @@ func TestAuthDevice(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			authRes, err := service.AuthDevice(ctx, tc.req, "127.0.0.1")
+			authRes, err := service.AuthDevice(ctx, tc.req, "127.0.0.1", "")
 			require.Equal(tt, tc.expected.res, authRes)
 			require.Equal(tt, tc.expected.err, err)
 		})
@@ -3187,7 +3187,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: "aa:bb:cc:dd:ee:ff"},
 			PublicKey: "public-key",
 			Sessions:  []string{},
-		}, oversizedIP)
+		}, oversizedIP, "")
 
 		require.NoError(t, err)
 		require.Equal(t, &models.DeviceAuthResponse{
@@ -3242,7 +3242,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: ""},
 			PublicKey: "",
 			Sessions:  []string{},
-		}, "203.0.113.10")
+		}, "203.0.113.10", "")
 
 		require.NoError(t, err)
 		require.Equal(t, "reconnect-device", res.Name)
@@ -3290,7 +3290,7 @@ func TestAuthDevice_RemoteAddr(t *testing.T) {
 			Identity:  &requests.DeviceIdentity{MAC: ""},
 			PublicKey: "",
 			Sessions:  []string{},
-		}, oversizedIP)
+		}, oversizedIP, "")
 
 		require.NoError(t, err)
 		require.Equal(t, "reconnect-device", res.Name)
@@ -3405,7 +3405,8 @@ func TestAuthDevice_WritesAnExistingDeviceOnlyWhenTheAuthenticationChangesIt(t *
 				Identity: &requests.DeviceIdentity{MAC: ""},
 				Info:     &info,
 				Sessions: []string{},
-			}, "127.0.0.1")
+			}, "127.0.0.1", "")
+
 			require.NoError(t, err)
 			assert.Equal(t, expected.Status, res.Status)
 		})

@@ -315,6 +315,26 @@ get:
                     - ZM
                     - ZW
                 example: []
+              domains:
+                description: |-
+                  Hostnames devices may authenticate under
+
+                  An entry starting with `*.` matches any subdomain of the rest. Loopback names
+                  always pass. Absent or empty means any hostname.
+                type: array
+                items:
+                  type: string
+                example:
+                  - shellhub.example.com
+                  - '*.example.internal'
+              request_host:
+                description: The Host this request reached the server under
+                type: string
+                example: shellhub.example.com
+              domain_allowed:
+                description: Whether the license lets devices authenticate under `request_host`
+                type: boolean
+                example: true
               customer:
                 description: License's customer
                 type: object
@@ -392,6 +412,8 @@ get:
               - starts_at
               - expires_at
               - allowed_regions
+              - request_host
+              - domain_allowed
               - customer
               - features
     '401':

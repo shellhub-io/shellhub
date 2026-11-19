@@ -464,7 +464,7 @@ func TestDeviceAcceptE2E_ConcurrentAutomaticEnrollmentsStayWithinMaxDevices(t *t
 	enrollments := make([]func() error, 8)
 	for i := range enrollments {
 		enrollments[i] = func() error {
-			_, err := e.svc.AuthDevice(context.Background(), e.authRequest(fmt.Sprintf("aa:bb:cc:dd:54:%02x", i), plaintextFor(0x54)), "203.0.113.7")
+			_, err := e.svc.AuthDevice(context.Background(), e.authRequest(fmt.Sprintf("aa:bb:cc:dd:54:%02x", i), plaintextFor(0x54)), "203.0.113.7", "")
 
 			return err
 		}
@@ -514,7 +514,7 @@ func TestDeviceAcceptE2E_ConcurrentAutomaticEnrollmentsAcrossNamespacesStayWithi
 		namespace := namespaces[i%2]
 		request := namespace.authRequest(fmt.Sprintf("aa:bb:cc:dd:60:%02x", i), plaintextFor(byte(0x60+i%2)))
 		enrollments[i] = func() error {
-			_, err := namespace.svc.AuthDevice(context.Background(), request, "203.0.113.7")
+			_, err := namespace.svc.AuthDevice(context.Background(), request, "203.0.113.7", "")
 
 			return err
 		}
@@ -615,4 +615,12 @@ func TestDeviceAcceptE2E_MixedBurstDoesNotDeadlock(t *testing.T) {
 		require.Equal(t, 8, namespace.acceptedCount(t))
 		require.Equal(t, int64(8), namespace.deviceCounts(t).DevicesAcceptedCount)
 	}
+}
+
+func (l *registeredDeviceLicense) AllowsDeviceHost(context.Context, string) (bool, error) {
+	return true, nil
+}
+
+func (l *unreadableLicense) AllowsDeviceHost(context.Context, string) (bool, error) {
+	return true, nil
 }

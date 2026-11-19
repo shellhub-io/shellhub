@@ -141,7 +141,7 @@ func (e *enrollmentE2E) enrollAs(t *testing.T, hostname, mac, publicKey, provisi
 		req.ProvisioningKey = provisioningKey
 	}
 
-	res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7")
+	res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7", "")
 	require.NoError(t, err)
 
 	return res.UID
@@ -281,7 +281,7 @@ func TestEnrollmentE2E_Modes(t *testing.T) { //nolint:tparallel // the subtests 
 			Info:            &requests.DeviceInfo{ID: "debian", PrettyName: "Debian", Version: "v0.1.0", Arch: "amd64", Platform: "docker"},
 			PublicKey:       "pk-status",
 			ProvisioningKey: plaintextFor(0x04),
-		}, "203.0.113.7")
+		}, "203.0.113.7", "")
 
 		require.NoError(t, err)
 		require.Equal(t, models.DeviceStatusAccepted, res.Status)
@@ -619,7 +619,7 @@ func TestEnrollmentE2E_UsageLimitUnderConcurrency(t *testing.T) {
 			}
 
 			<-start // release all racers together to maximize the overlap on the last slot
-			res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7")
+			res, err := e.svc.AuthDevice(context.Background(), req, "203.0.113.7", "")
 			if errs[i] = err; err == nil {
 				uids[i] = res.UID
 			}
@@ -827,7 +827,7 @@ func TestEnrollmentE2E_AMergeOnAuthenticationKeepsTheOldName(t *testing.T) { //n
 			Identity:        &requests.DeviceIdentity{MAC: mac},
 			PublicKey:       "pk-new",
 			ProvisioningKey: plaintextFor(0x76),
-		}, "")
+		}, "", "")
 
 		require.NoError(t, err)
 

@@ -116,6 +116,17 @@ describe("LicenseBanner", () => {
         /your license has expired\. this instance won't function/i,
       ],
       [
+        "devices reach the server under a host the license does not allow",
+        () =>
+          setLicense({
+            domains: ["shellhub.acme.com"],
+            request_host: "shellhub.other.com",
+            domain_allowed: false,
+          }),
+        "alert",
+        /license is for shellhub\.acme\.com.*reached as shellhub\.other\.com.*devices cannot connect/i,
+      ],
+      [
         "the license is in the grace period",
         () => setLicense({ expired: true, grace_period: true }),
         "status",

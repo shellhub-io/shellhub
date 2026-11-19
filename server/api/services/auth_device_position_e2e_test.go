@@ -70,11 +70,11 @@ func TestAuthDevicePositionOnReconnect(t *testing.T) {
 			ctx := context.Background()
 			request := e.authRequest("aa:00:00:00:93:01", "")
 
-			registered, err := e.svc.AuthDevice(ctx, request, "203.0.113.7")
+			registered, err := e.svc.AuthDevice(ctx, request, "203.0.113.7", "")
 			require.NoError(t, err)
 			require.NoError(t, e.svc.UpdateDeviceStatus(ctx, &requests.DeviceUpdateStatus{TenantID: e.tenantID, UID: registered.UID, Status: string(models.DeviceStatusAccepted)}))
 
-			_, err = e.svc.AuthDevice(ctx, request, tc.reconnectIP)
+			_, err = e.svc.AuthDevice(ctx, request, tc.reconnectIP, "")
 			require.NoError(t, err)
 
 			device, err := e.st.DeviceResolve(ctx, scope.MustBounded(e.tenantID), store.DeviceUIDResolver, registered.UID)

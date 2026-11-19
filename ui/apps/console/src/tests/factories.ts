@@ -350,6 +350,8 @@ export function mockLicense(
     id: "license-1",
     expired: false,
     about_to_expire: false,
+    request_host: "shellhub.example.com",
+    domain_allowed: true,
     grace_period: false,
     issued_at: 1704067200,
     starts_at: 1704067200,

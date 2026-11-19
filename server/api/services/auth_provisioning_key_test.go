@@ -139,7 +139,7 @@ func TestAuthDevice_ProvisioningKey(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			res, err := service.AuthDevice(ctx, tc.req, "")
+			res, err := service.AuthDevice(ctx, tc.req, "", "")
 			require.Equal(tt, tc.expected.res, res)
 			require.Equal(tt, tc.expected.err, err)
 		})
@@ -351,7 +351,7 @@ func TestAuthDevice_ProvisioningKeyWithoutTenant(t *testing.T) {
 			ctx := context.TODO()
 			tc.requiredMocks(ctx)
 
-			res, err := service.AuthDevice(ctx, tc.req, "")
+			res, err := service.AuthDevice(ctx, tc.req, "", "")
 			require.Equal(tt, tc.expected.res, res)
 			require.Equal(tt, tc.expected.err, err)
 		})
