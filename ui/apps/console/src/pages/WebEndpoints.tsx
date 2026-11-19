@@ -2,6 +2,7 @@ import { useState, FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiErrorMessage, isSdkError } from "@/api/errors";
 import { useResetOnOpen } from "@/hooks/useResetOnOpen";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePagedList } from "@/hooks/usePagedList";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
 import { useRowAction } from "@/hooks/useRowAction";
@@ -107,6 +108,7 @@ function isValidFQDN(domain: string): boolean {
 }
 
 const MAX_CUSTOM_TTL = 9223372036;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function DeviceSelector({
   selected,
@@ -117,20 +119,14 @@ function DeviceSelector({
   onChange: (device: NormalizedDevice | null) => void;
   error?: string;
 }) {
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const { devices, isLoading: loading } = useDevices({
     page: 1,
     perPage: 20,
     status: "accepted",
+    search: debouncedSearch,
   });
-  const [search, setSearch] = useState("");
-
-  const filtered = search
-    ? devices.filter(
-        (dev) =>
-          dev.name.toLowerCase().includes(search.toLowerCase()) ||
-          dev.uid.toLowerCase().includes(search.toLowerCase()),
-      )
-    : devices;
 
   return (
     <div>
@@ -181,12 +177,12 @@ function DeviceSelector({
               <div className="px-3 py-2 text-xs text-text-muted">
                 Loading devices...
               </div>
-            ) : filtered.length === 0 ? (
+            ) : devices.length === 0 ? (
               <div className="px-3 py-2 text-xs text-text-muted">
                 No devices found
               </div>
             ) : (
-              filtered.map((dev) => (
+              devices.map((dev) => (
                 <Dropdown.Item
                   key={dev.uid}
                   label={dev.name}
