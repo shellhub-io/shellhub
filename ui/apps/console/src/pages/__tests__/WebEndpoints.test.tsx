@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server, jsonWithTotal } from "@/tests/msw";
 import { createTestWrapper } from "@/tests/wrapper";
-import { mockWebEndpoint } from "@/tests/factories";
+import { mockDevice, mockWebEndpoint } from "@/tests/factories";
 import { seedAuthStore } from "@/tests/seedAuthStore";
 import { defaultHandlers } from "@/tests/handlers";
 import { decodeB64url } from "@/tests/decodeB64url";
@@ -173,5 +173,54 @@ describe("WebEndpoints — role", () => {
       await screen.findByText(/only members who can connect to devices/i),
     ).toBeInTheDocument();
     expect(lastRequestUrl).toBeNull();
+  });
+});
+
+describe("WebEndpoints — device search", () => {
+  let lastDevicesUrl: URL | null;
+
+  beforeEach(() => {
+    lastDevicesUrl = null;
+    server.use(
+      http.get("*/api/devices", ({ request }) => {
+        lastDevicesUrl = new URL(request.url);
+        return jsonWithTotal(
+          lastDevicesUrl.searchParams.has("filter")
+            ? [mockDevice({ uid: "matched-uid", name: "custom-field-match" })]
+            : [],
+        );
+      }),
+    );
+  });
+
+  async function searchDevices(text: string) {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: /create your first endpoint/i }),
+    );
+    await user.type(screen.getByPlaceholderText("Search devices..."), text);
+  }
+
+  it("asks the server for devices matching the trimmed search", async () => {
+    await searchDevices("  far  ");
+
+    await waitFor(() =>
+      expect(
+        decodeB64url(lastDevicesUrl?.searchParams.get("filter") ?? ""),
+      ).toContainEqual(
+        expect.objectContaining({
+          params: expect.objectContaining({ value: "far" }),
+        }),
+      ),
+    );
+  });
+
+  it("lists a device the server finds, even one whose name lacks the search", async () => {
+    await searchDevices("far");
+
+    expect(
+      await screen.findByRole("option", { name: /custom-field-match/ }),
+    ).toBeInTheDocument();
   });
 });
