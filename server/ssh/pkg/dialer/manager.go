@@ -196,9 +196,9 @@ func EffectivePingInterval(configured time.Duration) time.Duration {
 const pendingStreamOpens = 32
 
 // Bind stores conn as a reverse tunnel for the device and returns. It closes the tunnel when a
-// ping fails and reports the device offline when no other tunnel is left, which includes a conn
-// already closed when Bind is called. It returns an error when the yamux session cannot be
-// created.
+// ping fails or when the device opens a stream toward the server, and reports the device offline
+// when no other tunnel is left, which includes a conn already closed when Bind is called. It
+// returns an error when the yamux session cannot be created.
 func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) error {
 	key := NewKey(tenant, uid)
 
@@ -230,7 +230,25 @@ func (m *Manager) Bind(tenant string, uid string, conn *wsconnadapter.Adapter) e
 
 	tunnel.bind(session)
 
+	go closeOnInboundStream(key, session)
+
 	return nil
+}
+
+func closeOnInboundStream(key string, session *yamux.Session) {
+	_, err := session.Accept()
+	if err != nil && session.IsClosed() {
+		return
+	}
+
+	logger := log.WithField("key", key)
+	if err != nil {
+		logger = logger.WithError(err)
+	}
+
+	logger.Warning("closing a tunnel whose device opened a stream toward the server")
+
+	closeConnections(key, []any{session})
 }
 
 type boundTunnel struct {
