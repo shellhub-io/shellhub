@@ -175,6 +175,41 @@ describe("AdminLicense", () => {
       expect(await screen.findByText(expected)).toBeInTheDocument();
     });
 
+    it.each([
+      [undefined, "Any"],
+      [
+        ["shellhub.acme.com", "*.acme.internal"],
+        "shellhub.acme.com, *.acme.internal",
+      ],
+    ])("domains=%j renders as '%s'", async (domains, expected) => {
+      setLicense({
+        ...validLicense,
+        domains,
+        request_host: "shellhub.acme.com",
+        domain_allowed: true,
+      });
+      renderPage();
+      expect(await screen.findByText(expected)).toBeInTheDocument();
+      expect(
+        screen.queryByText(/devices cannot connect/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it("says devices cannot connect under a host the license does not allow", async () => {
+      setLicense({
+        ...validLicense,
+        domains: ["shellhub.acme.com"],
+        request_host: "shellhub.other.com",
+        domain_allowed: false,
+      });
+      renderPage();
+      expect(
+        await screen.findByText(
+          /devices cannot connect under shellhub\.other\.com/i,
+        ),
+      ).toBeInTheDocument();
+    });
+
     it("displays customer fields", async () => {
       setLicense(validLicense);
       renderPage();

@@ -21,3 +21,9 @@ func (m *mockLicenseEvaluator) CanConnectDevice(ctx context.Context) (bool, erro
 
 	return args.Bool(0), args.Error(1)
 }
+
+func (m *mockLicenseEvaluator) AllowsDeviceHost(ctx context.Context, host string) (bool, error) {
+	args := m.Called(ctx, host)
+
+	return args.Bool(0), args.Error(1)
+}

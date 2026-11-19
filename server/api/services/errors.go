@@ -58,6 +58,7 @@ var (
 	ErrFirewallBlocked                 = errors.New("firewall blocked the connection", ErrLayer, ErrCodeForbidden)
 	ErrLicenseBlocked                  = errors.New("license blocked the connection", ErrLayer, ErrCodePayment)
 	ErrLicenseNotAuthorized            = errors.New("license does not authorize this service", ErrLayer, ErrCodePayment)
+	ErrLicenseHostNotAllowed           = errors.New("license does not allow devices under this host", ErrLayer, ErrCodePayment)
 	ErrBillingBlocked                  = errors.New("billing blocked the connection", ErrLayer, ErrCodePayment)
 	ErrNotFound                        = errors.New("not found", ErrLayer, ErrCodeNotFound)
 	ErrBadRequest                      = errors.New("bad request", ErrLayer, ErrCodeInvalid)

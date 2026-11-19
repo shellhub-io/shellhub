@@ -31,6 +31,11 @@ type LicenseEvaluator interface {
 	// cannot grow. It returns ErrLicenseNotAuthorized when the installed license does not
 	// authorize this edition, and another error when the check itself fails.
 	CanConnectDevice(ctx context.Context) (bool, error)
+
+	// AllowsDeviceHost reports whether the license lets devices authenticate when they reach the
+	// server under host, the request's Host header. It returns an error when the license cannot be
+	// read; ctx bounds that read.
+	AllowsDeviceHost(ctx context.Context, host string) (bool, error)
 }
 
 // LicenseService answers whether the instance's licence permits an action. The community
@@ -64,6 +69,23 @@ func (s *service) EvaluateLicense(ctx context.Context) error {
 
 	if !canConnect {
 		return ErrLicenseBlocked
+	}
+
+	return nil
+}
+
+func (s *service) requireLicensedDeviceHost(ctx context.Context, host string) error {
+	if s.licenseEvaluator == nil {
+		return nil
+	}
+
+	allowed, err := s.licenseEvaluator.AllowsDeviceHost(ctx, host)
+	if err != nil {
+		return err
+	}
+
+	if !allowed {
+		return ErrLicenseHostNotAllowed
 	}
 
 	return nil

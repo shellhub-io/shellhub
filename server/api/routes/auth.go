@@ -42,7 +42,7 @@ func (h *Handler) AuthDevice(c *gateway.Context) error {
 		return err
 	}
 
-	res, err := h.service.AuthDevice(c.Ctx(), req, c.RealIP())
+	res, err := h.service.AuthDevice(c.Ctx(), req, c.RealIP(), c.Request().Host)
 	if err != nil {
 		return err
 	}

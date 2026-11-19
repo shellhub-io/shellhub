@@ -70,8 +70,11 @@ type AuthService interface {
 	// [ErrAuthDeviceNoIdentity] and [ErrAuthDeviceNoIdentityAndHostname] for a request that names no
 	// device, [ErrTokenSigned] when the token cannot be signed and [ErrDeviceCreate] when a new
 	// device cannot be stored. It returns the store's error when the device, the namespace's pairing
-	// or legacy key, or its counters cannot be read or written.
-	AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error)
+	// or legacy key, or its counters cannot be read or written. Before any of that, it returns
+	// [ErrLicenseHostNotAllowed] when the license does not let devices authenticate under host, the
+	// Host the request reached the server under, and the license evaluator's error when the license
+	// cannot be read.
+	AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP, host string) (*models.DeviceAuthResponse, error)
 	// AuthDeviceToken reports whether a device token may still be used. Claims without a tenant,
 	// which servers before 0.15 minted and agents of that era reuse for the life of their process,
 	// resolve the device by UID across namespaces and read its namespace off the device. It returns
@@ -80,8 +83,10 @@ type AuthService interface {
 	// without a signature to a device that has verified its key, and for any token of a device that
 	// never verified it while its namespace requires verification, or whose namespace is gone. ctx
 	// bounds the store reads, and the store's error is returned when the device or its namespace
-	// cannot be read.
-	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
+	// cannot be read. Before any of that, it returns [ErrLicenseHostNotAllowed] when the license
+	// does not let devices authenticate under host, the Host the request reached the server under,
+	// and the license evaluator's error when the license cannot be read.
+	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims, host string) error
 	// ResolveNamespaceRole returns the namespace tenantID names, as [store.NamespaceStore.NamespaceResolve]
 	// returns it — memberships included — together with userID's role in it.
 	//
@@ -277,7 +282,11 @@ func (s *service) provisioningKeyTenant(ctx context.Context, provisioningKey str
 	return sk.TenantID, nil
 }
 
-func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP string) (*models.DeviceAuthResponse, error) {
+func (s *service) AuthDevice(ctx context.Context, req requests.DeviceAuth, clientIP, host string) (*models.DeviceAuthResponse, error) {
+	if err := s.requireLicensedDeviceHost(ctx, host); err != nil {
+		return nil, err
+	}
+
 	auth := deviceAuth{DeviceAuth: req, clientIP: clientIP}
 
 	verification, err := s.verifyDeviceKey(auth)
@@ -293,7 +302,11 @@ type deviceAuth struct {
 	clientIP string
 }
 
-func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error {
+func (s *service) AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims, host string) error {
+	if err := s.requireLicensedDeviceHost(ctx, host); err != nil {
+		return err
+	}
+
 	sc := scope.NewUnbounded(reasonTenantlessDeviceToken)
 	if claims.TenantID != "" {
 		sc = scope.MustBounded(claims.TenantID)

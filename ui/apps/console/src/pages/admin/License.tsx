@@ -134,6 +134,18 @@ function LicenseDetails({ license }: { license: GetLicenseResponse }) {
             {regionText}
           </span>
         </DetailRow>
+        <DetailRow label="Domains">
+          <span className="flex flex-col items-end gap-0.5">
+            <span>
+              {license.domains?.length ? license.domains.join(", ") : "Any"}
+            </span>
+            {license.domain_allowed === false && (
+              <span className="text-xs font-normal text-accent-red">
+                Devices cannot connect under {license.request_host}
+              </span>
+            )}
+          </span>
+        </DetailRow>
       </div>
     </section>
   );

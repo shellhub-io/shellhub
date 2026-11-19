@@ -192,7 +192,7 @@ func TestMountOpensOnlyDeviceTokenRoutesToADevice(t *testing.T) {
 
 	service := servicemocks.NewMockService(t)
 	service.On("PublicKey").Return(&privateKey.PublicKey)
-	service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(nil)
+	service.On("AuthDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	authn := middleware.NewAuthenticator(service)
 

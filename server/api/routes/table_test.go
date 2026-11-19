@@ -315,7 +315,7 @@ func TestEveryRouteButADeviceRouteRefusesADevice(t *testing.T) {
 	for _, edition := range editions {
 		service := serviceMocks.NewMockService(t)
 		service.On("PublicKey").Return(&privateKey.PublicKey).Maybe()
-		service.On("AuthDeviceToken", mock.Anything, mock.Anything).Return(nil).Maybe()
+		service.On("AuthDeviceToken", mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 
 		var reached bool
 

@@ -24,7 +24,7 @@ type AuthnService interface {
 	AuthInstanceAPIKey(ctx context.Context, key string) (*models.InstanceAPIKey, error)
 	ResolveNamespaceRole(ctx context.Context, tenantID, userID string) (*models.Namespace, string, error)
 	AuthUserClaims(ctx context.Context, claims *authorizer.UserClaims) (*models.User, error)
-	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims) error
+	AuthDeviceToken(ctx context.Context, claims *authorizer.DeviceClaims, host string) error
 	PublicKey() *rsa.PublicKey
 }
 
@@ -172,11 +172,14 @@ func (a *Authenticator) Resolve(c *echo.Context) *identity.Identity {
 
 	switch claims := claims.(type) {
 	case *authorizer.DeviceClaims:
-		if err := a.service.AuthDeviceToken(c.Request().Context(), claims); err != nil {
+		if err := a.service.AuthDeviceToken(c.Request().Context(), claims, c.Request().Host); err != nil {
 			entry := log.WithError(err).WithFields(log.Fields{"device_uid": claims.UID, "tenant_id": claims.TenantID})
-			if errors.Is(err, services.ErrAuthUnathorized) {
+			switch {
+			case errors.Is(err, services.ErrLicenseHostNotAllowed):
+				entry.Debug("refused a device token under a host the license does not allow")
+			case errors.Is(err, services.ErrAuthUnathorized):
 				entry.Warn("refused a device token")
-			} else {
+			default:
 				entry.Error("failed to check a device token")
 			}
 

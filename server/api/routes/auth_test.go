@@ -54,7 +54,7 @@ func TestAuthDevice(t *testing.T) {
 			requiredMocks: func() {
 				mock.On("AuthDevice", gomock.Anything, gomock.MatchedBy(func(req requests.DeviceAuth) bool {
 					return req.Challenge == strings.Repeat("c", 75) && req.Signature == strings.Repeat("s", 3000)
-				}), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
+				}), "192.0.2.1", "example.com").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -76,7 +76,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1", "example.com").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -98,7 +98,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1", "example.com").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
@@ -122,7 +122,7 @@ func TestAuthDevice(t *testing.T) {
 				TenantID:  "your_tenant_id",
 			},
 			requiredMocks: func() {
-				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1").Return(&models.DeviceAuthResponse{}, nil).Once()
+				mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1", "example.com").Return(&models.DeviceAuthResponse{}, nil).Once()
 			},
 			expected: Expected{
 				expectedResponse: &models.DeviceAuthResponse{},
