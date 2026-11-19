@@ -1,4 +1,4 @@
-FROM golang:1.26.10-trixie AS go-toolchain
+FROM golang:1.26.11-trixie AS go-toolchain
 
 FROM node:24.22.1-trixie
 COPY --from=go-toolchain /usr/local/go /usr/local/go
