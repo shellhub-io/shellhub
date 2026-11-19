@@ -4,6 +4,7 @@ package selfupdater
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/shellhub-io/shellhub/agent/pkg/agentd"
 	"github.com/shellhub-io/shellhub/pkg/dockerutils"
 )
 
@@ -34,7 +36,8 @@ func (c *dockerContainer) splitImageVersion() (image, version string) {
 }
 
 type dockerUpdater struct {
-	api client.APIClient
+	api         client.APIClient
+	containerID func() (string, error)
 }
 
 func (d *dockerUpdater) CurrentVersion() (*semver.Version, error) {
@@ -124,6 +127,8 @@ func (d *dockerUpdater) CompleteUpdate() error {
 		}
 	}
 
+	parent.info.Config.Env = allowInsecureServerForExistingHTTP(parent.info.Config.Env)
+
 	err = d.updateContainer(parent, container.info.Config.Image, parent.info.Name, false)
 	if err != nil {
 		return err
@@ -148,7 +153,7 @@ func (d *dockerUpdater) getContainer(id string) (*dockerContainer, error) {
 }
 
 func (d *dockerUpdater) currentContainer() (*dockerContainer, error) {
-	id, err := dockerutils.CurrentContainerID()
+	id, err := d.containerID()
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +234,30 @@ func NewUpdater(version string) (Updater, error) {
 
 	api.NegotiateAPIVersion(context.Background())
 
-	return &dockerUpdater{api: api}, nil
+	return &dockerUpdater{api: api, containerID: dockerutils.CurrentContainerID}, nil
+}
+
+func allowInsecureServerForExistingHTTP(env []string) []string {
+	values := make(map[string]string, len(env))
+	for _, e := range env {
+		key, value, _ := strings.Cut(e, "=")
+		values[key] = value
+	}
+
+	if allow := values[agentd.AllowInsecureServerEnv]; strings.EqualFold(allow, "true") || strings.EqualFold(allow, "false") {
+		return env
+	}
+
+	address, ok := values["SHELLHUB_SERVER_ADDRESS"]
+	if !ok {
+		address = values["SERVER_ADDRESS"]
+	}
+
+	if !errors.Is(agentd.ValidateServerAddress(address, false), agentd.ErrPlaintextServerAddress) {
+		return env
+	}
+
+	return replaceOrAppendEnvValues(env, []string{agentd.AllowInsecureServerEnv + "=true"})
 }
 
 func replaceOrAppendEnvValues(defaults, overrides []string) []string {
