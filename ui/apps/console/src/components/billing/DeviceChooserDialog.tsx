@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  KeyboardEvent,
-  startTransition,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { startTransition, useId, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,6 +13,7 @@ import DistroIcon from "../common/DistroIcon";
 import OnlineDot from "../common/OnlineDot";
 import LastSeenCell from "../common/LastSeenCell";
 import SearchField from "@/components/common/fields/SearchField";
+import SegmentedTabs from "@/components/common/SegmentedTabs";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import { useDevices, type NormalizedDevice } from "@/hooks/useDevices";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -138,7 +132,6 @@ export default function DeviceChooserDialog({
   };
 
   const handleTabChange = (next: TabId) => {
-    if (next === "suggested" && suggestedEmpty) return;
     setError(null);
     if (next === "suggested") setSelected([]);
     startTransition(() => setUserTab(next));
@@ -197,14 +190,25 @@ export default function DeviceChooserDialog({
         descriptionId={descriptionId}
       />
 
-      <TabBar
-        tab={tab}
+      <SegmentedTabs
+        variant="underline"
+        className="px-6 mt-4"
+        label="Device chooser tabs"
+        value={tab}
         onChange={handleTabChange}
-        suggestedDisabled={suggestedEmpty}
-        suggestedTabId={suggestedTabId}
-        allTabId={allTabId}
-        suggestedPanelId={suggestedPanelId}
-        allPanelId={allPanelId}
+        tabs={[
+          {
+            label: "Suggested",
+            value: "suggested",
+            disabled: suggestedEmpty,
+            panel: { tabId: suggestedTabId, panelId: suggestedPanelId },
+          },
+          {
+            label: "All",
+            value: "all",
+            panel: { tabId: allTabId, panelId: allPanelId },
+          },
+        ]}
       />
 
       <main className="flex-auto overflow-y-auto px-6 min-h-0">
@@ -308,131 +312,6 @@ export default function DeviceChooserDialog({
     </BaseDialog>
   );
 }
-
-interface TabBarProps {
-  tab: TabId;
-  onChange: (next: TabId) => void;
-  suggestedDisabled: boolean;
-  suggestedTabId: string;
-  allTabId: string;
-  suggestedPanelId: string;
-  allPanelId: string;
-}
-
-function TabBar({
-  tab,
-  onChange,
-  suggestedDisabled,
-  suggestedTabId,
-  allTabId,
-  suggestedPanelId,
-  allPanelId,
-}: TabBarProps) {
-  const suggestedRef = useRef<HTMLButtonElement>(null);
-  const allRef = useRef<HTMLButtonElement>(null);
-
-  const focusTab = (id: TabId) => {
-    if (id === "suggested") suggestedRef.current?.focus();
-    if (id === "all") allRef.current?.focus();
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const order: TabId[] = ["suggested", "all"];
-    const enabled = order.filter(
-      (id) => id !== "suggested" || !suggestedDisabled,
-    );
-    const idx = enabled.indexOf(tab);
-    let next: TabId | null = null;
-    if (event.key === "ArrowRight") next = enabled[(idx + 1) % enabled.length];
-    else if (event.key === "ArrowLeft")
-      next = enabled[(idx - 1 + enabled.length) % enabled.length];
-    else if (event.key === "Home") next = enabled[0];
-    else if (event.key === "End") next = enabled[enabled.length - 1];
-    if (!next) return;
-    event.preventDefault();
-    onChange(next);
-    focusTab(next);
-  };
-
-  return (
-    <div
-      role="tablist"
-      aria-label="Device chooser tabs"
-      className="px-6 mt-4 border-b border-border flex items-center gap-1"
-    >
-      <TabButton
-        ref={suggestedRef}
-        id={suggestedTabId}
-        controls={suggestedPanelId}
-        selected={tab === "suggested"}
-        disabled={suggestedDisabled}
-        onSelect={() => onChange("suggested")}
-        onKeyDown={handleKeyDown}
-      >
-        Suggested
-      </TabButton>
-      <TabButton
-        ref={allRef}
-        id={allTabId}
-        controls={allPanelId}
-        selected={tab === "all"}
-        disabled={false}
-        onSelect={() => onChange("all")}
-        onKeyDown={handleKeyDown}
-      >
-        All
-      </TabButton>
-    </div>
-  );
-}
-
-interface TabButtonProps {
-  id: string;
-  controls: string;
-  selected: boolean;
-  disabled: boolean;
-  onSelect: () => void;
-  onKeyDown: (e: KeyboardEvent<HTMLButtonElement>) => void;
-  children: React.ReactNode;
-}
-
-const TabButton = forwardRef<HTMLButtonElement, TabButtonProps>(
-  function TabButton(
-    { id, controls, selected, disabled, onSelect, onKeyDown, children },
-    ref,
-  ) {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        role="tab"
-        id={id}
-        aria-controls={controls}
-        aria-selected={selected}
-        aria-disabled={disabled || undefined}
-        tabIndex={selected ? 0 : -1}
-        disabled={disabled}
-        onClick={onSelect}
-        onKeyDown={onKeyDown}
-        className={cn(
-          "relative px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/50 rounded-t-md",
-          selected
-            ? "text-text-primary"
-            : "text-text-muted hover:text-text-secondary",
-          disabled && "opacity-40 cursor-not-allowed hover:text-text-muted",
-        )}
-      >
-        {children}
-        {selected && (
-          <span
-            aria-hidden="true"
-            className="absolute left-2 right-2 -bottom-px h-0.5 bg-primary rounded-full"
-          />
-        )}
-      </button>
-    );
-  },
-);
 
 function SuggestedTab({
   devices,
