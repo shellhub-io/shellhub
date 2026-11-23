@@ -136,7 +136,8 @@ func (h *Handler) DeleteTag(c *gateway.Context) error {
 
 // PushTagToDevice attaches an existing tag to a device and answers 204. It returns the binding or
 // validation error for a malformed request, ErrNamespaceNotFound, ErrTagNameNotFound,
-// store.ErrNoDocuments when the device does not exist, and the store's error from attaching the tag.
+// ErrDeviceNotFound when the device does not exist or the tag is deleted while it is being
+// attached, and the store's error from attaching the tag.
 func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 	req := new(requests.PushTag)
 
@@ -159,8 +160,8 @@ func (h *Handler) PushTagToDevice(c *gateway.Context) error {
 
 // PullTagFromDevice detaches a tag from a device, leaving the tag itself in place, and answers 204.
 // It returns the binding or validation error for a malformed request, ErrNamespaceNotFound,
-// ErrTagNameNotFound, store.ErrNoDocuments when the device does not exist or does not carry the
-// tag, and the store's error from detaching the tag.
+// ErrTagNameNotFound when the tag does not exist or the device does not exist or does not carry
+// it, and the store's error from detaching the tag.
 func (h *Handler) PullTagFromDevice(c *gateway.Context) error {
 	req := new(requests.PullTag)
 
