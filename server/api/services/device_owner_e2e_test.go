@@ -690,6 +690,20 @@ func TestMakingAPairedDeviceATeamDevice(t *testing.T) {
 
 		require.ErrorIs(t, e.svc.MakeTeamDevice(ctx, e.tenantID, pending), ErrDeviceNotFound)
 	})
+
+	t.Run("is not found for a device deleted after it was read", func(t *testing.T) {
+		e := setupDepartureE2E(t)
+		member := e.member(t, "member", authorizer.RoleOperator)
+		owned := e.pair(t, member, "aa:bb:cc:dd:ee:01", "pk-1")
+
+		racing := &departsAfterRead{Store: e.st, uid: owned.UID, depart: func() {
+			_, err := e.db.NewRaw("DELETE FROM devices WHERE id = ?", owned.UID).Exec(ctx)
+			require.NoError(t, err)
+		}}
+		svc := NewService(racing, privateKey, publicKey, newMemoryCache(), WithClock(e.clock))
+
+		require.ErrorIs(t, svc.MakeTeamDevice(ctx, e.tenantID, owned.UID), ErrDeviceNotFound)
+	})
 }
 
 type departsAfterRead struct {

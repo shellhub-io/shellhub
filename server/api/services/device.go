@@ -156,8 +156,9 @@ type DeviceService interface {
 	UpdateDeviceStatus(ctx context.Context, req *requests.DeviceUpdateStatus) error
 
 	// MakeTeamDevice clears the owner of an accepted device, so it stays in the namespace whoever
-	// leaves. Nothing else about the device changes. It returns ErrDeviceNotFound for a device that
-	// is not accepted in the namespace, and nil for one that already has no owner.
+	// leaves. Nothing else about the device changes. It returns ErrForbidden for an empty tenantID,
+	// ErrDeviceNotFound for a device that is not accepted in the namespace or is deleted before its
+	// owner is cleared, nil for one that already has no owner, and the store's error otherwise.
 	MakeTeamDevice(ctx context.Context, tenantID, uid string) error
 
 	// SetDeviceCustomField sets or updates a single custom_fields entry on the device. Adding a new
@@ -412,7 +413,7 @@ func (s *service) MakeTeamDevice(ctx context.Context, tenantID, uid string) erro
 		return nil
 	}
 
-	return s.store.DeviceSetOwner(ctx, sc, uid, "")
+	return deviceStoreError(models.UID(uid), s.store.DeviceSetOwner(ctx, sc, uid, ""))
 }
 
 func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
