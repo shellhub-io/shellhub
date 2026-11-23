@@ -41,7 +41,9 @@ type TagsService interface {
 	// PushTagTo adds an existing tag in a namespace to a target document (e.g. Device, PublicKey, FirewallRule).
 	//
 	// Returns [ErrForbidden] for an empty tenant, ErrNamespaceNotFound if namespace not found,
-	// ErrTagNotFound if tag not found, and ErrDeviceSelectorOutOfReach when the target is a device and
+	// ErrTagNameNotFound if tag not found, ErrDeviceNotFound or ErrPublicKeyNotFound when the target does
+	// not exist in the namespace or the tag is deleted while it is being attached, and
+	// ErrDeviceSelectorOutOfReach when the target is a device and
 	// a [DeviceSelector] holds the tag whose source's EditPermission the role of the caller identity
 	// on ctx lacks. A ctx carrying no identity holds no permission. Any failure listing those rules,
 	// or other errors if the operation fails, is returned unchanged.
@@ -50,7 +52,9 @@ type TagsService interface {
 	// PullTagFrom removes a tag from a target document in a namespace. The tag itself is not deleted.
 	// If no other documents reference the tag, it becomes orphaned but remains available for future use.
 	//
-	// It fails as [TagsService.PushTagTo] does, ErrDeviceSelectorOutOfReach included.
+	// It fails as [TagsService.PushTagTo] does, ErrDeviceSelectorOutOfReach included, except that
+	// ErrTagNameNotFound replaces ErrDeviceNotFound and ErrPublicKeyNotFound: it is returned when the
+	// target does not exist, does not carry the tag, or the tag is deleted while it is being detached.
 	PullTagFrom(ctx context.Context, target store.TagTarget, req *requests.PullTag) (err error)
 
 	// ListTags retrieves a batch of tags that belong to the given namespace.
@@ -129,7 +133,22 @@ func (s *service) PushTagTo(ctx context.Context, target store.TagTarget, req *re
 		return NewErrTagNotFound(req.Name, err)
 	}
 
-	return s.attachTag(ctx, sc, target, tag.ID, req.TargetID)
+	if err := s.attachTag(ctx, sc, target, tag.ID, req.TargetID); err != nil {
+		return tagTargetStoreError(target, req.TargetID, err)
+	}
+
+	return nil
+}
+
+func tagTargetStoreError(target store.TagTarget, targetID string, err error) error {
+	switch target {
+	case store.TagTargetDevice:
+		return deviceStoreError(models.UID(targetID), err)
+	case store.TagTargetPublicKey:
+		return publicKeyStoreError(targetID, err)
+	default:
+		return err
+	}
 }
 
 func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *requests.PullTag) (err error) {
@@ -147,7 +166,15 @@ func (s *service) PullTagFrom(ctx context.Context, target store.TagTarget, req *
 		return NewErrTagNotFound(req.Name, err)
 	}
 
-	return s.detachTag(ctx, sc, target, tag.ID, req.TargetID)
+	if err := s.detachTag(ctx, sc, target, tag.ID, req.TargetID); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrTagNotFound(req.Name, err)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) ListTags(ctx context.Context, req *requests.ListTags) ([]models.Tag, int64, error) {

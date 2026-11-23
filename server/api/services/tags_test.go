@@ -214,6 +214,30 @@ func TestService_PushTagTo(t *testing.T) {
 			expected: errors.New("error"),
 		},
 		{
+			description: "fails with device not found when the device does not exist",
+			target:      store.TagTargetDevice,
+			req: &requests.PushTag{
+				Name:     "production",
+				TenantID: "tenant1",
+				TargetID: "device_00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
+					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Once()
+				storeMock.
+					On("TagPushToTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, "device_00000000-0000-4000-0000-000000000000").
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound("device_00000000-0000-4000-0000-000000000000", store.ErrNoDocuments),
+		},
+		{
 			description: "succeeds pushing tag",
 			target:      store.TagTargetDevice,
 			req: &requests.PushTag{
@@ -328,6 +352,30 @@ func TestService_PullTagFrom(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("error"),
+		},
+		{
+			description: "fails with tag not found when the device does not carry the tag",
+			target:      store.TagTargetDevice,
+			req: &requests.PullTag{
+				Name:     "production",
+				TenantID: "tenant1",
+				TargetID: "device_00000000-0000-4000-0000-000000000000",
+			},
+			requiredMocks: func() {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
+					Return(&models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000"}, nil).
+					Once()
+				storeMock.
+					On("TagPullFromTarget", ctx, "tag_00000000-0000-4000-0000-000000000000", store.TagTargetDevice, []string{"device_00000000-0000-4000-0000-000000000000"}).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrTagNotFound("production", store.ErrNoDocuments),
 		},
 		{
 			description: "succeeds pulling tag",
