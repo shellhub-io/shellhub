@@ -4,36 +4,7 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
-env_override=${ENV_OVERRIDE:-./.env.override}
-cloud_dir=${CLOUD_DIR:-../cloud}
-
-SHELLHUB_EDITION=$(
-    . ./.env 2>/dev/null
-    [ -f "$env_override" ] && . "$env_override"
-    eval "printf '%s' \"\${SHELLHUB_EDITION:-community}\""
-)
-
-SHELLHUB_EDITION=$(printf '%s' "$SHELLHUB_EDITION" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
-
-case "$SHELLHUB_EDITION" in
-    community|enterprise|cloud) ;;
-    *)
-        echo "🚫 ERROR: invalid SHELLHUB_EDITION '$SHELLHUB_EDITION': must be community, enterprise, or cloud." >&2
-        exit 1
-        ;;
-esac
-
-env_var() {
-    var=$1; default=$2
-    edition=$SHELLHUB_EDITION
-    (
-        . ./.env 2>/dev/null
-        [ "$edition" != "community" ] && [ -f "$cloud_dir/.env" ] \
-            && . "$cloud_dir/.env"
-        [ -f "$env_override" ] && . "$env_override"
-        eval "printf '%s' \"\${${var}:-${default}}\""
-    )
-}
+. ./bin/lib/env.sh
 
 SHELLHUB_ENV=$(env_var SHELLHUB_ENV production)
 SHELLHUB_AUTO_SSL=$(env_var SHELLHUB_AUTO_SSL false)
