@@ -19,6 +19,7 @@ import { adminNavSectionTitle } from "@/components/layout/adminNav";
 import CopyButton from "@/components/common/CopyButton";
 import { useAdminLicense } from "@/hooks/useAdminLicense";
 import { useInvalidateByIds } from "@/hooks/useInvalidateQueries";
+import { formatExpiry } from "@/utils/date";
 import {
   formatLicenseTimestamp,
   formatDeviceCount,
@@ -122,7 +123,7 @@ function LicenseDetails({ license }: { license: GetLicenseResponse }) {
           {formatLicenseTimestamp(license.starts_at)}
         </DetailRow>
         <DetailRow label="Expires at">
-          {formatLicenseTimestamp(license.expires_at)}
+          {formatExpiry(license.expires_at)}
         </DetailRow>
         <DetailRow label="Allowed regions">
           <span className="inline-flex items-center gap-1.5">

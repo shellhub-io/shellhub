@@ -2,12 +2,11 @@ import { formatExpiry } from "./date";
 import type { GetLicenseResponse } from "../client";
 
 /**
- * Formats a license timestamp. -1 is the sentinel for a boundary already passed, and renders as
- * "Now" rather than as a date in 1969.
+ * Formats a license issue or start timestamp. Any value at or below zero is a date the license
+ * does not set, and renders as "Not set" rather than as a date around 1970.
  */
 export function formatLicenseTimestamp(value: number): string {
-  if (value === -1) return "Now";
-  return formatExpiry(value);
+  return value > 0 ? formatExpiry(value) : "Not set";
 }
 
 /**
