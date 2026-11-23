@@ -667,6 +667,38 @@ func TestService_UpdateTag(t *testing.T) {
 			},
 		},
 		{
+			description: "reports not found when a parallel request deletes the tag before the update",
+			req: &requests.UpdateTag{
+				Name:     "production",
+				NewName:  "staging",
+				TenantID: "tenant1",
+			},
+			requiredMocks: func() {
+				tag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "production"}
+				updatedTag := &models.Tag{ID: "tag_00000000-0000-4000-0000-000000000000", Name: "staging"}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "tenant1").
+					Return(&models.Namespace{}, nil).
+					Once()
+				storeMock.
+					On("TagResolve", ctx, mock.Anything, store.TagNameResolver, "production").
+					Return(tag, nil).
+					Once()
+				storeMock.
+					On("TagConflicts", ctx, scope.MustBounded("tenant1"), &models.TagConflicts{Name: "staging"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("TagUpdate", ctx, updatedTag).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				err: NewErrTagNotFound("production", store.ErrNoDocuments),
+			},
+		},
+		{
 			description: "fails when reading back the renamed tag fails",
 			req: &requests.UpdateTag{
 				Name:     "production",
