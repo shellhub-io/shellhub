@@ -37,7 +37,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_HTTP_PORT` | `80` | HTTP port |
 | `SHELLHUB_HTTPS_PORT` | `443` | HTTPS port. **Only bound when `SHELLHUB_AUTO_SSL=true`** |
 | `SHELLHUB_SSH_PORT` | `22` | SSH port. Published by the server, not the gateway |
-| `SHELLHUB_DOMAIN` | `localhost` | Public domain. Required for auto-SSL |
+| `SHELLHUB_DOMAIN` | `localhost` | Public domain name or IPv4 address. Auto-SSL needs a domain name, unless `SHELLHUB_TLS_CERT_FILE` supplies the certificate |
 | `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
 | `SHELLHUB_NETWORK_EXTERNAL` | `false` | Join `SHELLHUB_NETWORK` as an existing network instead of creating it. It must exist before the stack starts, and `down` leaves it in place |
 | `SHELLHUB_GATEWAY` | `true` | Run the gateway inside the server: it listens on the HTTP and HTTPS ports, obtains certificates, and serves the API, agent tunnels and web terminal with no proxy hop. Set `false` when a load balancer or Kubernetes ingress fronts the server, which then reaches it on port `8080` |
