@@ -21,8 +21,9 @@ type MemberService interface {
 	// EditNamespace changes the name and settings of the namespace carrying req.Tenant and returns it
 	// as stored. It returns ErrForbidden when sc was never constructed, ErrNamespaceNotFound when sc
 	// is bounded to another namespace or the namespace carrying req.Tenant cannot be resolved,
-	// whatever the store's error, ErrNamespaceDuplicated when the name is taken, and the store's error
-	// otherwise.
+	// whatever the store's error, also when a parallel request deletes it before the update or before
+	// it is read back, ErrNamespaceDuplicated when the name is taken, and the store's error otherwise.
+	// A ctx cancelled or past its deadline fails the step it reaches with that step's error.
 	EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error)
 
 	// AddNamespaceMember adds a member to a namespace by email.
