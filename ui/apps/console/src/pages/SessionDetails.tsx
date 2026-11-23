@@ -41,7 +41,11 @@ import ResourceNotFound from "@/components/common/ResourceNotFound";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import SegmentedTabs from "@/components/common/SegmentedTabs";
 import { AVAILABLE_WHEN_SESSION_ENDS, recordingId } from "@/utils/recordings";
-import { sessionTerminal, terminalSeats } from "@/utils/session";
+import {
+  sessionDeviceName,
+  sessionTerminal,
+  terminalSeats,
+} from "@/utils/session";
 import ObjectName from "@/components/common/ObjectName";
 import { getSessionOptions } from "@/client";
 import { useCloseSession } from "@/hooks/useSessionRequests";
@@ -543,10 +547,7 @@ export default function SessionDetails() {
                 </h3>
                 <DeviceChip
                   uid={session.device.uid}
-                  name={
-                    session.device.name ??
-                    (session.device_uid ?? "").substring(0, 8)
-                  }
+                  name={sessionDeviceName(session)}
                   online={session.device.online}
                   osId={session.device.info?.id}
                 />
@@ -603,8 +604,7 @@ export default function SessionDetails() {
           <>
             <ObjectName>{session.username}</ObjectName> is disconnected from{" "}
             <ObjectName>
-              {session.device?.name ??
-                (session.device_uid ?? "").substring(0, 8)}
+              {sessionDeviceName(session)}
             </ObjectName>
             .
           </>

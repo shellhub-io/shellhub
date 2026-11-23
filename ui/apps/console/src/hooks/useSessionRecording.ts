@@ -3,7 +3,7 @@ import { isSdkError } from "@/api/errors";
 import { getSessionRecord, type Session } from "@/client";
 import { heldByBrowser, useRecordingsStore } from "@/stores/recordingsStore";
 import { useTerminalStore } from "@/stores/terminalStore";
-import { sessionTitle } from "@/utils/session";
+import { sessionDeviceName } from "@/utils/session";
 import {
   castFilename,
   readRecording,
@@ -94,7 +94,7 @@ export function useSessionRecording() {
         id,
         sessionUid: session.uid,
         seat,
-        title: sessionTitle(session),
+        title: sessionDeviceName(session),
         tenant: session.tenant_id,
         logs,
         filename: recordingFilename(session, seat),

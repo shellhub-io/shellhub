@@ -4,7 +4,7 @@ import type { Session } from "@/client";
 import {
   sessionHasTerminal,
   sessionTerminal,
-  sessionTitle,
+  sessionDeviceName,
   sessionType,
   terminalSeats,
 } from "@/utils/session";
@@ -98,13 +98,13 @@ describe("sessionTerminal", () => {
   });
 });
 
-describe("sessionTitle", () => {
+describe("sessionDeviceName", () => {
   it.each([
     [{ device: { name: "web-01" }, device_uid: "abcdef0123456789" }, "web-01"],
     [{ device_uid: "abcdef0123456789" }, "abcdef01"],
     [{}, ""],
-  ])("names %j as %j", (fields, title) => {
-    expect(sessionTitle(fields as Session)).toBe(title);
+  ])("names %j as %j", (fields, name) => {
+    expect(sessionDeviceName(fields as Session)).toBe(name);
   });
 });
 
