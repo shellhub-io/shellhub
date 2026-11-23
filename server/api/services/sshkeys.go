@@ -28,7 +28,19 @@ type SSHKeysService interface {
 	ListPublicKeys(ctx context.Context, req *requests.ListPublicKeys) ([]models.PublicKey, int64, error)
 	GetPublicKey(ctx context.Context, fingerprint, tenant string) (*models.PublicKey, error)
 	CreatePublicKey(ctx context.Context, req requests.PublicKeyCreate, tenant string) (*responses.PublicKeyCreate, error)
+	// UpdatePublicKey replaces the name, username and filter of the public key carrying fingerprint
+	// in the namespace tenant and returns it as stored. It returns ErrForbidden for an empty tenant,
+	// ErrPublicKeyNotFound when the key cannot be resolved, whatever the store's error, also when a
+	// parallel request deletes it before the update or before it is read back, ErrNoTags when the
+	// namespace's tags cannot be listed, ErrTagNameNotFound for a tag name the namespace does not
+	// hold, and the store's error otherwise. A ctx cancelled or past its deadline fails the step it
+	// reaches with that step's error.
 	UpdatePublicKey(ctx context.Context, fingerprint, tenant string, key requests.PublicKeyUpdate) (*models.PublicKey, error)
+	// DeletePublicKey deletes the public key carrying fingerprint from the namespace tenant. It
+	// returns ErrForbidden for an empty tenant, ErrNamespaceNotFound when the namespace cannot be
+	// resolved, ErrPublicKeyNotFound when the key cannot be resolved, whatever the store's error,
+	// also when a parallel request deletes it first, and the store's error otherwise. A ctx
+	// cancelled or past its deadline fails the step it reaches with that step's error.
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
 	// MintDeviceSigner generates the key the SSH gateway logs in to device with, and keeps it for a
 	// minute, bound to device, so the device's agent can have [AuthService.AuthPublicKey] vouch for
@@ -70,11 +82,7 @@ func (s *service) GetPublicKey(ctx context.Context, fingerprint, tenant string) 
 
 	publicKey, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
 	if err != nil {
-		if errors.Is(err, store.ErrNoDocuments) {
-			return nil, NewErrPublicKeyNotFound(fingerprint, err)
-		}
-
-		return nil, err
+		return nil, publicKeyStoreError(fingerprint, err)
 	}
 
 	return publicKey, nil
@@ -211,10 +219,15 @@ func (s *service) UpdatePublicKey(ctx context.Context, fingerprint, tenant strin
 	publicKey.Filter.Tags = nil
 
 	if err := s.store.PublicKeyUpdate(ctx, publicKey); err != nil {
-		return nil, err
+		return nil, publicKeyStoreError(fingerprint, err)
 	}
 
-	return s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
+	updated, err := s.store.PublicKeyResolve(ctx, sc, store.PublicKeyFingerprintResolver, fingerprint)
+	if err != nil {
+		return nil, publicKeyStoreError(fingerprint, err)
+	}
+
+	return updated, nil
 }
 
 func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant string) error {
@@ -232,5 +245,17 @@ func (s *service) DeletePublicKey(ctx context.Context, fingerprint, tenant strin
 		return NewErrPublicKeyNotFound(fingerprint, err)
 	}
 
-	return s.store.PublicKeyDelete(ctx, publicKey)
+	if err := s.store.PublicKeyDelete(ctx, publicKey); err != nil {
+		return publicKeyStoreError(fingerprint, err)
+	}
+
+	return nil
+}
+
+func publicKeyStoreError(fingerprint string, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrPublicKeyNotFound(fingerprint, err)
+	}
+
+	return err
 }

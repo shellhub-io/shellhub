@@ -628,6 +628,33 @@ func TestUpdatePublicKeys(t *testing.T) {
 				},
 			}, nil},
 		},
+		{
+			description: "reports not found when a parallel request deletes the key before the update",
+			fingerprint: "fingerprint",
+			tenantID:    "tenant",
+			keyUpdate:   requests.PublicKeyUpdate{Filter: requests.PublicKeyFilter{Hostname: ".*"}},
+			requiredMocks: func() {
+				existingKey := &models.PublicKey{Fingerprint: "fingerprint", TenantID: "tenant"}
+
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("PublicKeyUpdate", ctx, mock.Anything).Return(store.ErrNoDocuments).Once()
+			},
+			expected: Expected{nil, NewErrPublicKeyNotFound("fingerprint", store.ErrNoDocuments)},
+		},
+		{
+			description: "reports not found when a parallel request deletes the key before it is read back",
+			fingerprint: "fingerprint",
+			tenantID:    "tenant",
+			keyUpdate:   requests.PublicKeyUpdate{Filter: requests.PublicKeyFilter{Hostname: ".*"}},
+			requiredMocks: func() {
+				existingKey := &models.PublicKey{Fingerprint: "fingerprint", TenantID: "tenant"}
+
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(existingKey, nil).Once()
+				storeMock.On("PublicKeyUpdate", ctx, mock.Anything).Return(nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").Return(nil, store.ErrNoDocuments).Once()
+			},
+			expected: Expected{nil, NewErrPublicKeyNotFound("fingerprint", store.ErrNoDocuments)},
+		},
 	}
 
 	for _, tc := range cases {
@@ -733,6 +760,22 @@ func TestDeletePublicKeys(t *testing.T) {
 				storeMock.On("PublicKeyDelete", ctx, publicKey).Return(nil).Once()
 			},
 			expected: Expected{nil},
+		},
+		{
+			description: "reports not found when a parallel request deletes the key first",
+			ctx:         ctx,
+			fingerprint: "fingerprint",
+			tenantID:    "tenant1",
+			requiredMocks: func() {
+				namespace := &models.Namespace{TenantID: "tenant1"}
+				publicKey := &models.PublicKey{Fingerprint: "fingerprint", TenantID: "tenant1"}
+
+				storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, namespace.TenantID).Return(namespace, nil).Once()
+				storeMock.On("PublicKeyResolve", ctx, mock.Anything, store.PublicKeyFingerprintResolver, "fingerprint").
+					Return(publicKey, nil).Once()
+				storeMock.On("PublicKeyDelete", ctx, publicKey).Return(store.ErrNoDocuments).Once()
+			},
+			expected: Expected{NewErrPublicKeyNotFound("fingerprint", store.ErrNoDocuments)},
 		},
 	}
 
