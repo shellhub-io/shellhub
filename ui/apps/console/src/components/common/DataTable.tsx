@@ -26,7 +26,9 @@ export interface Column<T> {
 
 /**
  * Props of DataTable. rowKey has to be stable across renders — React keys off it, and an index
- * would remount every row when the list is sorted or paged.
+ * would remount every row when the list is sorted or paged. onRowClick puts each row in the tab
+ * order and also fires on Enter or Space pressed on the row itself; a link or button inside a row
+ * keeps its own keys, but has to stop its click from reaching the row.
  */
 export interface DataTableProps<T> {
   columns: Column<T>[];
@@ -224,7 +226,10 @@ export default function DataTable<T>({
                       onKeyDown={
                         clickHandler
                           ? (e) => {
-                              if (e.key === "Enter" || e.key === " ") {
+                              if (
+                                e.target === e.currentTarget &&
+                                (e.key === "Enter" || e.key === " ")
+                              ) {
                                 e.preventDefault();
                                 clickHandler(row);
                               }

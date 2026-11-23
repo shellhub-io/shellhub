@@ -149,6 +149,38 @@ describe("DataTable", () => {
       if (activates) expect(onRowClick).toHaveBeenCalledWith(ROWS[0]);
       else expect(onRowClick).not.toHaveBeenCalled();
     });
+
+    it("leaves Enter on a control inside the row to that control", async () => {
+      const user = userEvent.setup();
+      const onRowClick = vi.fn();
+      const onOpen = vi.fn();
+      renderTable({
+        onRowClick,
+        columns: [
+          {
+            key: "open",
+            header: "Open",
+            render: (row) => (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen(row);
+                }}
+              >
+                Open {row.name}
+              </button>
+            ),
+          },
+        ],
+      });
+
+      screen.getByRole("button", { name: "Open Alice" }).focus();
+      await user.keyboard("{Enter}");
+
+      expect(onOpen).toHaveBeenCalledWith(ROWS[0]);
+      expect(onRowClick).not.toHaveBeenCalled();
+    });
   });
 
   it("applies the class returned by rowClassName to each row", () => {
