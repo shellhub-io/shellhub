@@ -99,16 +99,25 @@ type DeviceService interface {
 	// It returns the resolved device and any error encountered.
 	ResolveDevice(ctx context.Context, req *requests.ResolveDevice) (*models.Device, error)
 
+	// DeleteDevice deletes the device uid from the namespace tenant. An accepted device is marked
+	// removed and loses its owner; any other device, a removed one included, is deleted outright. It
+	// returns ErrForbidden for an empty tenant, ErrDeviceNotFound when the device cannot be resolved,
+	// whatever the store's error, also when a parallel request deletes its row between the lookup and
+	// one of the writes, and the store's error otherwise. Marking removed does not delete the row, so
+	// two parallel calls on the same accepted device can both succeed. A ctx cancelled or past its
+	// deadline fails the step it reaches with that step's error.
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 
 	// RenameDevice stores name, lowercased, as the name of the device uid in the namespace tenant. A
-	// name that differs only in case is left as it is. It returns ErrDeviceNotFound when the
-	// namespace has no device uid, ErrDeviceDuplicated when another accepted device in the
-	// namespace holds the name, and ErrDeviceSelectorOutOfReach when the new name moves the device
-	// into or out of the name pattern of a [DeviceSelector] whose source's EditPermission the role
-	// of the caller identity on ctx lacks. A ctx carrying no identity holds no permission. Any
-	// failure listing those rules is returned unchanged. This method is deprecated, use
-	// [DeviceService#UpdateDevice] instead.
+	// name that differs only in case is left as it is. It returns ErrForbidden for an empty tenant,
+	// ErrDeviceNotFound when the device cannot be resolved, whatever the store's error, also when a
+	// parallel request deletes its row before the update, ErrDeviceDuplicated when another accepted
+	// device in the namespace holds the name, ErrDeviceSelectorOutOfReach when the new name moves the
+	// device into or out of the name pattern of a [DeviceSelector] whose source's EditPermission the
+	// role of the caller identity on ctx lacks, and the store's error otherwise. A device another
+	// request has only marked removed is still renamed. A ctx carrying no identity holds no
+	// permission. Any failure listing those rules is returned unchanged. This method is deprecated,
+	// use [DeviceService#UpdateDevice] instead.
 	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
 
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
@@ -163,7 +172,9 @@ type DeviceService interface {
 	// written.
 	SetDeviceCustomField(ctx context.Context, req *requests.DeviceSetCustomField) error
 	// DeleteDeviceCustomField removes a single custom_fields entry from the device.
-	// It is idempotent: removing a non-existent key is not an error.
+	// It is idempotent: removing a non-existent key is not an error. It returns ErrForbidden for a
+	// request without a tenant, ErrDeviceNotFound when no device in that namespace carries req.UID,
+	// and the store's error otherwise, ctx's cancellation included.
 	DeleteDeviceCustomField(ctx context.Context, req *requests.DeviceDeleteCustomField) error
 }
 
@@ -289,14 +300,6 @@ func (s *service) ResolveDevice(ctx context.Context, req *requests.ResolveDevice
 	return device, nil
 }
 
-// DeleteDevice deletes a device from a namespace.
-//
-// It receives a context, used to "control" the request flow and, the device UID from models.Device and the tenant ID
-// from models.Namespace.
-//
-// It can return an error if the device is not found, NewErrDeviceNotFound(uid, err), if the namespace is not found,
-// NewErrNamespaceNotFound(tenant, err), if the usage cannot be reported, ErrReport or if the store function that
-// delete the device fails.
 func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant string) error {
 	sc, err := BoundTo(tenant)
 	if err != nil {
@@ -315,17 +318,17 @@ func (s *service) DeleteDevice(ctx context.Context, uid models.UID, tenant strin
 		deviceCopy.Status = models.DeviceStatusRemoved
 		deviceCopy.RemovedAt = &now
 		if err := s.store.DeviceUpdate(ctx, sc, &deviceCopy); err != nil {
-			return err
+			return deviceStoreError(uid, err)
 		}
 
 		if device.OwnerID != "" {
 			if err := s.store.DeviceSetOwner(ctx, sc, device.UID, ""); err != nil {
-				return err
+				return deviceStoreError(uid, err)
 			}
 		}
 	} else {
 		if err := s.store.DeviceDelete(ctx, sc, device); err != nil {
-			return err
+			return deviceStoreError(uid, err)
 		}
 	}
 
@@ -460,10 +463,18 @@ func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *mode
 			return NewErrDeviceDuplicated(name, err)
 		}
 
-		return err
+		return deviceStoreError(models.UID(device.UID), err)
 	}
 
 	return nil
+}
+
+func deviceStoreError(uid models.UID, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrDeviceNotFound(uid, err)
+	}
+
+	return err
 }
 
 // LookupDevice looks for a device in a namespace.
@@ -492,11 +503,7 @@ func (s *service) OfflineDevice(ctx context.Context, tenant string, uid models.U
 	}
 
 	if err := s.store.DeviceOffline(ctx, sc, string(uid), s.clock.Now()); err != nil {
-		if errors.Is(err, store.ErrNoDocuments) {
-			return NewErrDeviceNotFound(uid, err)
-		}
-
-		return err
+		return deviceStoreError(uid, err)
 	}
 
 	return nil
@@ -779,11 +786,7 @@ func (s *service) DeleteDeviceCustomField(ctx context.Context, req *requests.Dev
 	}
 
 	if err := s.store.DeviceDeleteCustomField(ctx, sc, req.UID, req.Key); err != nil {
-		if errors.Is(err, store.ErrNoDocuments) {
-			return NewErrDeviceNotFound(models.UID(req.UID), err)
-		}
-
-		return err
+		return deviceStoreError(models.UID(req.UID), err)
 	}
 
 	return nil

@@ -967,6 +967,71 @@ func TestDeleteDevice(t *testing.T) {
 			expected: errors.New("error", "", 0),
 		},
 		{
+			description: "reports not found when a parallel request deletes a pending device first",
+			uid:         models.UID("uid"),
+			tenant:      "tenant",
+			requiredMocks: func() {
+				device := &models.Device{UID: "uid", Status: models.DeviceStatusPending, TenantID: "tenant"}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceDelete", ctx, scope.MustBounded("tenant"), device).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
+		},
+		{
+			description: "reports not found when a parallel request deletes an accepted device first",
+			uid:         models.UID("uid"),
+			tenant:      "tenant",
+			requiredMocks: func() {
+				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant"}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+
+				expectedDevice := *device
+				expectedDevice.Status = models.DeviceStatusRemoved
+				expectedDevice.RemovedAt = &now
+
+				storeMock.
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
+		},
+		{
+			description: "reports not found when a parallel request deletes an accepted device before its owner is cleared",
+			uid:         models.UID("uid"),
+			tenant:      "tenant",
+			requiredMocks: func() {
+				device := &models.Device{UID: "uid", Status: models.DeviceStatusAccepted, TenantID: "tenant", OwnerID: "owner"}
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+
+				expectedDevice := *device
+				expectedDevice.Status = models.DeviceStatusRemoved
+				expectedDevice.RemovedAt = &now
+
+				storeMock.
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), &expectedDevice).
+					Return(nil).
+					Once()
+				storeMock.
+					On("DeviceSetOwner", ctx, scope.MustBounded("tenant"), "uid", "").
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
+		},
+		{
 			description: "succeeds",
 			uid:         models.UID("uid"),
 			tenant:      "tenant",
@@ -1188,6 +1253,30 @@ func TestRenameDevice(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("error", "", 0),
+		},
+		{
+			name:          "reports not found when a parallel request deletes the device before the update",
+			uid:           models.UID("uid"),
+			deviceNewName: "newname",
+			tenant:        "tenant",
+			mocks: func(ctx context.Context) {
+				device := &models.Device{UID: "uid", Name: "name", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+				updatedDevice := &models.Device{UID: "uid", Name: "newname", TenantID: "tenant", Identity: &models.DeviceIdentity{MAC: "00:00:00:00:00:00"}, Status: "accepted"}
+
+				storeMock.
+					On("DeviceResolve", ctx, mock.Anything, store.DeviceUIDResolver, "uid").
+					Return(device, nil).
+					Once()
+				storeMock.
+					On("DeviceConflicts", ctx, mock.Anything, &models.DeviceConflicts{Name: "newname"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("DeviceUpdate", ctx, scope.MustBounded("tenant"), updatedDevice).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrDeviceNotFound(models.UID("uid"), store.ErrNoDocuments),
 		},
 		{
 			name:          "succeeds",
