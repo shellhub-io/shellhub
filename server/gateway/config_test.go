@@ -78,3 +78,56 @@ func TestLoadGatewayConfigTrustsNoProxyUnlessListed(t *testing.T) {
 		assert.Empty(t, cfg.ProxyTrustedIPs)
 	})
 }
+
+func TestLoadGatewayConfigAcceptsAHostnameOrAnIPv4Domain(t *testing.T) {
+	for _, domain := range []string{"shellhub.example", "localhost", "172.17.0.1"} {
+		t.Run(domain, func(t *testing.T) {
+			t.Setenv("SHELLHUB_DOMAIN", domain)
+
+			cfg, err := LoadGatewayConfig(t.Context())
+			require.NoError(t, err)
+			assert.Equal(t, domain, cfg.Domain)
+		})
+	}
+}
+
+func TestLoadGatewayConfigRefusesADomainThatIsNeitherAHostnameNorAnIPv4(t *testing.T) {
+	for _, domain := range []string{"::1", "2001:db8::1", "shell hub.example", "-shellhub.example"} {
+		t.Run(domain, func(t *testing.T) {
+			t.Setenv("SHELLHUB_DOMAIN", domain)
+
+			_, err := LoadGatewayConfig(t.Context())
+
+			var invalid validator.ValidationErrors
+			require.ErrorAs(t, err, &invalid)
+			require.Len(t, invalid, 1)
+			assert.Equal(t, "Domain", invalid[0].Field())
+		})
+	}
+}
+
+func TestLoadGatewayConfigRefusesAutoSSLForAnIPv4Domain(t *testing.T) {
+	t.Setenv("SHELLHUB_DOMAIN", "172.17.0.1")
+	t.Setenv("SHELLHUB_AUTO_SSL", "true")
+
+	_, err := LoadGatewayConfig(t.Context())
+	require.ErrorIs(t, err, ErrAutoSSLNeedsADomainName)
+}
+
+func TestLoadGatewayConfigAcceptsAutoSSLForAnIPv4DomainWithASuppliedCertificate(t *testing.T) {
+	t.Setenv("SHELLHUB_DOMAIN", "172.17.0.1")
+	t.Setenv("SHELLHUB_AUTO_SSL", "true")
+	t.Setenv("SHELLHUB_TLS_CERT_FILE", "/etc/shellhub/certs/fullchain.pem")
+	t.Setenv("SHELLHUB_TLS_KEY_FILE", "/etc/shellhub/certs/privkey.pem")
+
+	_, err := LoadGatewayConfig(t.Context())
+	require.NoError(t, err)
+}
+
+func TestLoadGatewayConfigAcceptsAutoSSLForAHostname(t *testing.T) {
+	t.Setenv("SHELLHUB_DOMAIN", "shellhub.example")
+	t.Setenv("SHELLHUB_AUTO_SSL", "true")
+
+	_, err := LoadGatewayConfig(t.Context())
+	require.NoError(t, err)
+}

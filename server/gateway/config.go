@@ -2,6 +2,8 @@ package gateway
 
 import (
 	"context"
+	"errors"
+	"net/netip"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sethvargo/go-envconfig"
@@ -24,7 +26,7 @@ const (
 type GatewayConfig struct {
 	Env                     string       `env:"SHELLHUB_ENV"`
 	Edition                 envs.Edition `env:"SHELLHUB_EDITION"`
-	Domain                  string       `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	Domain                  string       `env:"SHELLHUB_DOMAIN,required" validate:"hostname|ipv4"`
 	WebEndpoints            bool         `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
 	WebEndpointsDomain      string       `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
 	WebEndpointsDNSProvider DNSProvider  `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`
@@ -52,11 +54,18 @@ type GatewayConfig struct {
 
 var validate = validator.New()
 
+// ErrAutoSSLNeedsADomainName is returned when SHELLHUB_AUTO_SSL is on and SHELLHUB_DOMAIN is an IP
+// address with no certificate supplied, since automatic HTTPS can obtain a certificate only for a
+// domain name.
+var ErrAutoSSLNeedsADomainName = errors.New("SHELLHUB_AUTO_SSL needs a domain name in SHELLHUB_DOMAIN, not an IP address, unless SHELLHUB_TLS_CERT_FILE supplies the certificate")
+
 // LoadGatewayConfig reads the gateway's configuration from the environment, fills in the
 // defaults and validates it. It returns an error wrapping envconfig.ErrMissingRequired when
 // SHELLHUB_DOMAIN is unset, the envconfig error for a variable that does not parse, the edition's
 // error for an unknown SHELLHUB_EDITION, and validator.ValidationErrors for a value that parses
-// but is not allowed, SHELLHUB_PROXY on with no SHELLHUB_PROXY_TRUSTED_IPS among them.
+// but is not allowed, SHELLHUB_PROXY on with no SHELLHUB_PROXY_TRUSTED_IPS or a SHELLHUB_DOMAIN that
+// is neither a hostname nor an IPv4 address among them. It returns ErrAutoSSLNeedsADomainName when
+// SHELLHUB_AUTO_SSL is on for an IP address with no SHELLHUB_TLS_CERT_FILE.
 func LoadGatewayConfig(ctx context.Context) (*GatewayConfig, error) {
 	var config GatewayConfig
 	if err := envconfig.Process(ctx, &config); err != nil {
@@ -69,5 +78,15 @@ func LoadGatewayConfig(ctx context.Context) (*GatewayConfig, error) {
 		return nil, err
 	}
 
+	if config.EnableAutoSSL && config.TLSCertFile == "" && isIPAddress(config.Domain) {
+		return nil, ErrAutoSSLNeedsADomainName
+	}
+
 	return &config, nil
+}
+
+func isIPAddress(domain string) bool {
+	_, err := netip.ParseAddr(domain)
+
+	return err == nil
 }

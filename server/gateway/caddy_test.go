@@ -50,6 +50,13 @@ func configurations() map[string]*GatewayConfig {
 		"development":    with(func(c *GatewayConfig) { c.Env = "development"; c.EnableEnterprise = true }),
 		"dev community":  with(func(c *GatewayConfig) { c.Env = "development" }),
 		"no access logs": with(func(c *GatewayConfig) { c.EnableAccessLogs = false }),
+		"ipv4 domain":    with(func(c *GatewayConfig) { c.Domain = "172.17.0.1" }),
+		"ipv4 supplied certificate": with(func(c *GatewayConfig) {
+			c.Domain = "172.17.0.1"
+			c.EnableAutoSSL = true
+			c.TLSCertFile = "/etc/shellhub/certs/fullchain.pem"
+			c.TLSKeyFile = "/etc/shellhub/certs/privkey.pem"
+		}),
 		"supplied certificate": with(func(c *GatewayConfig) {
 			c.EnableAutoSSL = true
 			c.TLSCertFile = "/etc/shellhub/certs/fullchain.pem"
@@ -80,6 +87,22 @@ func TestCaddyfileTLSFollowsTheFlagAlone(t *testing.T) {
 
 	assert.Contains(t, string(rendered), "https://shellhub.example")
 	assert.NotContains(t, string(rendered), "auto_https off")
+}
+
+func TestCaddyfileServesAnIPv4DomainOverPlainHTTP(t *testing.T) {
+	rendered, err := Caddyfile(configurations()["ipv4 domain"])
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "http://172.17.0.1 {")
+	assert.Contains(t, string(rendered), "auto_https off")
+}
+
+func TestCaddyfileServesTheSuppliedCertificateForAnIPv4Domain(t *testing.T) {
+	rendered, err := Caddyfile(configurations()["ipv4 supplied certificate"])
+	require.NoError(t, err)
+
+	assert.Contains(t, string(rendered), "https://172.17.0.1 {")
+	assert.Contains(t, string(rendered), "tls /etc/shellhub/certs/fullchain.pem /etc/shellhub/certs/privkey.pem")
 }
 
 func TestTheFallbackIsTheLastRouteOnPortEighty(t *testing.T) {
