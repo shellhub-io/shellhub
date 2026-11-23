@@ -5,6 +5,7 @@ import EmptyCell from "@/components/common/EmptyCell";
 import SessionLogin from "@/components/sessions/SessionLogin";
 import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
 import { formatRelative } from "@/utils/date";
+import { sessionDeviceName } from "@/utils/session";
 import type { Session } from "@/client";
 
 /**
@@ -46,14 +47,14 @@ export const sessionColumns = {
       s.device?.uid ? (
         <DeviceChip
           uid={s.device.uid}
-          name={s.device.name ?? (s.device_uid ?? "").substring(0, 8)}
+          name={sessionDeviceName(s)}
           online={s.device.online}
           osId={s.device.info?.id}
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
         <span className="text-xs font-mono text-text-primary">
-          {s.device?.name ?? (s.device_uid ?? "").substring(0, 8)}
+          {sessionDeviceName(s)}
         </span>
       ),
   },
