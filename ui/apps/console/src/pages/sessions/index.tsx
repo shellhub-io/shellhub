@@ -7,7 +7,6 @@ import {
   IconButton,
   Spinner,
 } from "@shellhub/design-system/primitives";
-import { cn } from "@shellhub/design-system/cn";
 import { usePagedList } from "@/hooks/usePagedList";
 import { useCloseSession } from "@/hooks/useSessionRequests";
 import { useSessionRecording } from "@/hooks/useSessionRecording";
@@ -16,18 +15,19 @@ import { useRecordingPermissions } from "@/hooks/useRecordingPermissions";
 import { getSessions, getSessionsQueryKey, type Session } from "@/client";
 import { paginatedQueryOptions } from "@/api/pagination";
 import PageHeader from "@/components/common/PageHeader";
-import DeviceChip from "@/components/common/DeviceChip";
 import DataTable, { type Column } from "@/components/common/DataTable";
+import {
+  sessionColumns,
+  sessionRowClassName,
+} from "@/components/sessions/sessionColumns";
 import RecordingPaywallDialog from "@/components/sessions/RecordingPaywallDialog";
 import RestrictedAction from "@/components/common/RestrictedAction";
 import RecordingActionsMenu from "@/components/sessions/RecordingActionsMenu";
-import { formatRelative, formatDuration } from "@/utils/date";
+import { formatDuration } from "@/utils/date";
 import { AVAILABLE_WHEN_SESSION_ENDS } from "@/utils/recordings";
 import { sessionHasTerminal } from "@/utils/session";
 import { usePrincipalName } from "@/hooks/usePrincipalName";
 import SessionPrincipal from "@/components/sessions/SessionPrincipal";
-import SessionTypeBadge from "@/components/sessions/SessionTypeBadge";
-import SessionLogin from "@/components/sessions/SessionLogin";
 import EmptyCell from "@/components/common/EmptyCell";
 import { features } from "@/edition";
 import { apiErrorMessage } from "@/api/errors";
@@ -184,50 +184,9 @@ export default function Sessions() {
   };
 
   const columns: Column<Session>[] = [
-    {
-      key: "active",
-      header: "Active",
-      headerClassName: "w-14",
-      render: (s) => (
-        <span
-          className={cn(
-            "w-2 h-2 rounded-full inline-block",
-            s.active
-              ? "bg-accent-green shadow-[0_0_6px_rgba(130,165,104,0.4)]"
-              : "bg-text-muted/40",
-          )}
-        />
-      ),
-    },
-    {
-      key: "type",
-      header: "Type",
-      render: (s) => (
-        <SessionTypeBadge
-          session={s}
-          shape="rounded"
-          fallback={<EmptyCell />}
-        />
-      ),
-    },
-    {
-      key: "device",
-      header: "Device",
-      render: (s) =>
-        s.device?.uid ? (
-          <DeviceChip
-            uid={s.device.uid}
-            name={s.device.name ?? (s.device_uid ?? "").substring(0, 8)}
-            online={s.device.online}
-            osId={s.device.info?.id}
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <span className="text-xs font-mono text-text-primary">
-            {s.device?.name ?? (s.device_uid ?? "").substring(0, 8)}
-          </span>
-        ),
-    },
+    sessionColumns.active,
+    sessionColumns.type,
+    sessionColumns.device,
     {
       key: "principal",
       header: "Principal",
@@ -241,11 +200,7 @@ export default function Sessions() {
           <EmptyCell />
         ),
     },
-    {
-      key: "username",
-      header: "Login",
-      render: (s) => <SessionLogin session={s} />,
-    },
+    sessionColumns.username,
     {
       key: "ip",
       header: "IP Address",
@@ -255,15 +210,7 @@ export default function Sessions() {
         </code>
       ),
     },
-    {
-      key: "started",
-      header: "Started",
-      render: (s) => (
-        <span className="text-xs text-text-secondary">
-          {formatRelative(s.started_at)}
-        </span>
-      ),
-    },
+    sessionColumns.started,
     {
       key: "duration",
       header: "Duration",
@@ -324,11 +271,7 @@ export default function Sessions() {
         {...pagination}
         itemLabel="session"
         onRowClick={(s) => void navigate(`/sessions/${s.uid}`)}
-        rowClassName={(s) =>
-          !s.authenticated
-            ? "bg-accent-red/[0.03] hover:bg-accent-red/[0.06] border-l-2 border-l-accent-red/50"
-            : "border-l-2 border-l-transparent"
-        }
+        rowClassName={sessionRowClassName}
         emptyState={
           <div className="text-center">
             <CommandLineIcon
