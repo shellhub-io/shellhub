@@ -1,5 +1,3 @@
-name: shellhub
-
 services:
   server:
     image: shellhubio/server:${SHELLHUB_VERSION}
