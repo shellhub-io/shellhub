@@ -5,6 +5,30 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 cd "$SCRIPT_DIR/.."
 
+. ./bin/lib/env.sh
+
+instance_url() {
+  public_url=$(env_var SHELLHUB_PUBLIC_URL "")
+  if [ -n "$public_url" ]; then
+    printf '%s' "${public_url%/}"
+    return
+  fi
+
+  if [ "$(env_var SHELLHUB_AUTO_SSL false)" = "true" ]; then
+    scheme=https
+    port=$(env_var SHELLHUB_HTTPS_PORT 443)
+    default_port=443
+  else
+    scheme=http
+    port=$(env_var SHELLHUB_HTTP_PORT 80)
+    default_port=80
+  fi
+
+  url="$scheme://$(env_var SHELLHUB_DOMAIN localhost)"
+  [ "$port" = "$default_port" ] || url="$url:$port"
+  printf '%s' "$url"
+}
+
 open_url() {
   url="$1"
 
@@ -29,22 +53,23 @@ open_url() {
 echo "🌟 Welcome to the ShellHub Setup Script"
 echo ""
 
-SERVICES=$(docker compose ps -q | grep -v INFO: | xargs docker inspect -f '{{.State.Running}}' 2>/dev/null | grep -c 'true' || true)
-[ "$SERVICES" -le 0 ] && { echo "🚫 ERROR: ShellHub is not running. Exiting."; exit 1; }
+if ! ./bin/docker-compose ps --status running --services | grep -qx server; then
+  echo "🚫 ERROR: ShellHub is not running. Exiting."
+  exit 1
+fi
 
-if curl -s http://localhost/info | grep -q '"setup":true'; then
+URL=$(instance_url)
+
+if curl -s --max-time 10 "$URL/info" | grep -q '"setup":true'; then
   echo "✅ Setup has already been completed. No further action is required."
   exit 0
 fi
 
 echo "📋 This script will open the setup URL for your ShellHub instance."
-echo "❗ Important: The ShellHub instance cannot be on localhost. Please ensure you provide a valid public IP address or hostname."
 echo ""
 
-URL="http://localhost/setup"
-
-echo "🔗 Generated Setup URL: $URL"
-open_url "$URL"
+echo "🔗 Generated Setup URL: $URL/setup"
+open_url "$URL/setup"
 
 echo ""
-echo "✅ Please ensure your ShellHub server is running and accessible from an external address."
+echo "✅ Please ensure your ShellHub server is running and reachable at $URL."
