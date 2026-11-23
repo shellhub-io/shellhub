@@ -313,26 +313,16 @@ export default function DeviceChooserDialog({
   );
 }
 
-function SuggestedTab({
-  devices,
-  isLoading,
-}: {
-  devices: NormalizedDevice[];
-  isLoading: boolean;
-}) {
-  const columns: Column<NormalizedDevice>[] = [
+function deviceColumns(
+  selectCell: (d: NormalizedDevice) => React.ReactNode,
+  sortable: boolean,
+): Column<NormalizedDevice>[] {
+  return [
     {
       key: "selected",
       header: "",
       headerClassName: "w-10",
-      render: () => (
-        <span
-          aria-hidden="true"
-          className="inline-flex items-center justify-center w-4 h-4 rounded border border-primary bg-primary text-white"
-        >
-          <CheckIcon className="w-3 h-3" />
-        </span>
-      ),
+      render: selectCell,
     },
     {
       key: "online",
@@ -343,6 +333,7 @@ function SuggestedTab({
     {
       key: "name",
       header: "Hostname",
+      sortable,
       render: (d) => (
         <span className="text-sm font-medium text-text-primary">{d.name}</span>
       ),
@@ -355,9 +346,30 @@ function SuggestedTab({
     {
       key: "last_seen",
       header: "Last Seen",
+      sortable,
       render: (d) => <LastSeenCell value={d.last_seen} />,
     },
   ];
+}
+
+function SuggestedTab({
+  devices,
+  isLoading,
+}: {
+  devices: NormalizedDevice[];
+  isLoading: boolean;
+}) {
+  const columns = deviceColumns(
+    () => (
+      <span
+        aria-hidden="true"
+        className="inline-flex items-center justify-center w-4 h-4 rounded border border-primary bg-primary text-white"
+      >
+        <CheckIcon className="w-3 h-3" />
+      </span>
+    ),
+    false,
+  );
 
   return (
     <DataTable<NormalizedDevice>
@@ -403,52 +415,20 @@ function AllTab({
     selected.some((s) => s.uid === d.uid);
   const atLimit = selected.length >= FREE_TIER_DEVICE_LIMIT;
 
-  const columns: Column<NormalizedDevice>[] = [
-    {
-      key: "selected",
-      header: "",
-      headerClassName: "w-10",
-      render: (d) => {
-        const checked = isSelected(d);
-        const disabled = !checked && atLimit;
-        return (
-          <CheckboxField
-            id={`device-select-${d.uid}`}
-            label={`Select ${d.name ?? "device"}`}
-            hideLabel
-            checked={checked}
-            disabled={disabled}
-            onChange={() => onToggle(d)}
-          />
-        );
-      },
-    },
-    {
-      key: "online",
-      header: "",
-      headerClassName: "w-8",
-      render: (d) => <OnlineDot online={d.online} />,
-    },
-    {
-      key: "name",
-      header: "Hostname",
-      sortable: true,
-      render: (d) => (
-        <span className="text-sm font-medium text-text-primary">{d.name}</span>
-      ),
-    },
-    {
-      key: "os",
-      header: "Operating System",
-      render: (d) => <OsCell info={d.info} />,
-    },
-    {
-      key: "last_seen",
-      header: "Last Seen",
-      sortable: true,
-      render: (d) => <LastSeenCell value={d.last_seen} />,
-    },
-  ];
+  const columns = deviceColumns((d) => {
+    const checked = isSelected(d);
+    const disabled = !checked && atLimit;
+    return (
+      <CheckboxField
+        id={`device-select-${d.uid}`}
+        label={`Select ${d.name ?? "device"}`}
+        hideLabel
+        checked={checked}
+        disabled={disabled}
+        onChange={() => onToggle(d)}
+      />
+    );
+  }, true);
 
   return (
     <DataTable<NormalizedDevice>
