@@ -724,6 +724,16 @@ func TestDeleteSSHIdentity(t *testing.T) {
 			},
 			expectedErr: nil,
 		},
+		{
+			description: "reports not found when a parallel request deletes the identity first",
+			req:         &requests.SSHIdentityDelete{SSHIdentityIDParam: requests.SSHIdentityIDParam{ID: idOwn}, TenantID: tenantID, UserID: userID, Manage: false},
+			requireMocks: func(storeMock *storemock.MockStore, queryOptionsMock *storemock.MockQueryOptions) {
+				storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, idOwn).
+					Return(&models.SSHIdentity{ID: idOwn, PrincipalID: userID, TenantID: tenantID}, nil).Once()
+				storeMock.On("SSHIdentityDelete", ctx, mock.Anything).Return(store.ErrNoDocuments).Once()
+			},
+			expectedErr: NewErrSSHIdentityNotFound(idOwn, store.ErrNoDocuments),
+		},
 	}
 
 	for _, tc := range cases {
@@ -742,4 +752,29 @@ func TestDeleteSSHIdentity(t *testing.T) {
 			storeMock.AssertExpectations(t)
 		})
 	}
+}
+
+func TestRenameSSHIdentityReportsAnIdentityDeletedMidway(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		userID   = "user1"
+		id       = "id-own"
+	)
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("SSHIdentityResolve", ctx, mock.Anything, store.SSHIdentityIDResolver, id).
+		Return(&models.SSHIdentity{ID: id, PrincipalID: userID, TenantID: tenantID}, nil).Once()
+	storeMock.On("SSHIdentityUpdate", ctx, mock.Anything).Return(store.ErrNoDocuments).Once()
+
+	service := NewService(storeMock, privateKey, publicKey, nil)
+
+	_, err := service.RenameSSHIdentity(ctx, &requests.SSHIdentityUpdate{
+		SSHIdentityIDParam: requests.SSHIdentityIDParam{ID: id},
+		TenantID:           tenantID,
+		UserID:             userID,
+		Name:               "laptop",
+	})
+	require.Equal(t, NewErrSSHIdentityNotFound(id, store.ErrNoDocuments), err)
 }
