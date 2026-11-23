@@ -73,4 +73,45 @@ describe("SegmentedTabs", () => {
 
     expect(tab("pending")).toHaveAttribute("tabindex", "0");
   });
+
+  describe("with a disabled tab", () => {
+    const disabling = (status: DeviceStatus) =>
+      STATUSES.map((tab) =>
+        tab.value === status ? { ...tab, disabled: true } : tab,
+      );
+
+    it("does not select it on click", async () => {
+      const user = userEvent.setup();
+      render(<Tabs tabs={disabling("pending")} />);
+
+      await user.click(tab("pending"));
+
+      expect(tab("pending")).toBeDisabled();
+      expect(tab("accepted")).toHaveAttribute("aria-selected", "true");
+    });
+
+    it.each([
+      { start: "accepted", key: "{ArrowRight}", lands: "rejected" },
+      { start: "rejected", key: "{ArrowLeft}", lands: "accepted" },
+    ] as const)("passes over a disabled Pending tab from $start with $key", async ({ start, key, lands }) => {
+      render(<Tabs tabs={disabling("pending")} initial={start} />);
+
+      await pressOn(start, key);
+
+      expect(tab(lands)).toHaveAttribute("aria-selected", "true");
+      expect(tab(lands)).toHaveFocus();
+    });
+
+    it.each([
+      { position: "first", disabled: "accepted", start: "rejected", key: "{Home}" },
+      { position: "last", disabled: "rejected", start: "accepted", key: "{End}" },
+    ] as const)("skips it with $key when it is the $position tab", async ({ disabled, start, key }) => {
+      render(<Tabs tabs={disabling(disabled)} initial={start} />);
+
+      await pressOn(start, key);
+
+      expect(tab("pending")).toHaveAttribute("aria-selected", "true");
+      expect(tab("pending")).toHaveFocus();
+    });
+  });
 });
