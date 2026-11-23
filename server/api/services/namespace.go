@@ -58,7 +58,8 @@ type NamespaceService interface {
 	//
 	// It returns ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded
 	// to another namespace or the namespace carrying tenantID cannot be resolved, whatever the store's
-	// error; ErrBillingReportNamespaceDelete when billing refuses the deletion; a namespace delete
+	// error, also when a parallel request deletes it before the deletion;
+	// ErrBillingReportNamespaceDelete when billing refuses the deletion; a namespace delete
 	// hook's error; ErrNamespaceInstanceProtected for the instance's namespace; and the store's error
 	// when the namespace's devices cannot be listed or the namespace cannot be deleted. None of them
 	// evicts anything. The devices are listed before billing hears of the deletion and before the
@@ -68,7 +69,9 @@ type NamespaceService interface {
 	DeleteNamespace(ctx context.Context, sc scope.Scope, tenantID string) error
 	// EditSessionRecordStatus turns session recording on or off in the namespace carrying tenantID. It
 	// returns ErrForbidden when sc was never constructed, ErrNamespaceNotFound when sc is bounded to
-	// another namespace or no namespace carries tenantID, and the store's error otherwise.
+	// another namespace or no namespace carries tenantID, also when a parallel request deletes it
+	// before the update, and the store's error otherwise. A ctx cancelled or past its deadline fails
+	// the step it reaches with that step's error.
 	EditSessionRecordStatus(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error
 	// UpgradeNamespace upgrades a legacy namespace to a new one, once and for good. The flag and the
 	// owner's starter Access Policy, skipped when the namespace already has one, are written in one
@@ -220,7 +223,19 @@ func (s *service) deleteNamespace(ctx context.Context, n *models.Namespace) erro
 		return err
 	}
 
-	return s.store.NamespaceDelete(ctx, n)
+	if err := s.store.NamespaceDelete(ctx, n); err != nil {
+		return namespaceStoreError(n.TenantID, err)
+	}
+
+	return nil
+}
+
+func namespaceStoreError(tenantID string, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrNamespaceNotFound(tenantID, err)
+	}
+
+	return err
 }
 
 func (s *service) EditNamespace(ctx context.Context, sc scope.Scope, req *requests.NamespaceEdit) (*models.Namespace, error) {
@@ -250,10 +265,15 @@ func (s *service) EditNamespace(ctx context.Context, sc scope.Scope, req *reques
 			return nil, NewErrNamespaceDuplicated(err)
 		}
 
-		return nil, err
+		return nil, namespaceStoreError(req.Tenant, err)
 	}
 
-	return s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
+	updated, err := s.store.NamespaceResolve(ctx, store.NamespaceTenantIDResolver, req.Tenant)
+	if err != nil {
+		return nil, namespaceStoreError(req.Tenant, err)
+	}
+
+	return updated, nil
 }
 
 func (s *service) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, sessionRecord bool, tenantID string) error {
@@ -264,7 +284,7 @@ func (s *service) EditSessionRecordStatus(ctx context.Context, sc scope.Scope, s
 
 	n.Settings.SessionRecord = sessionRecord
 	if err := s.store.NamespaceUpdate(ctx, n); err != nil {
-		return err
+		return namespaceStoreError(tenantID, err)
 	}
 
 	return nil

@@ -1049,6 +1049,64 @@ func TestEditNamespace(t *testing.T) {
 			},
 		},
 		{
+			description:   "reports not found when a parallel request deletes the namespace before the update",
+			tenantID:      "xxxxx",
+			namespaceName: "newname",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{SessionRecord: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Name = "newname"
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrNamespaceNotFound("xxxxx", store.ErrNoDocuments),
+			},
+		},
+		{
+			description:   "reports not found when a parallel request deletes the namespace before it is read back",
+			tenantID:      "xxxxx",
+			namespaceName: "newname",
+			requiredMocks: func() {
+				namespace := &models.Namespace{
+					TenantID: "xxxxx",
+					Name:     "oldname",
+					Settings: &models.NamespaceSettings{SessionRecord: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Name = "newname"
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(nil).
+					Once()
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxxx").
+					Return(nil, store.ErrNoDocuments).
+					Once()
+			},
+			expected: Expected{
+				nil,
+				NewErrNamespaceNotFound("xxxxx", store.ErrNoDocuments),
+			},
+		},
+		{
 			description:   "succeeds changing the name to lowercase",
 			namespaceName: "newName",
 			tenantID:      "xxxxx",
@@ -1153,6 +1211,29 @@ func TestEditSessionRecord(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("error"),
+		},
+		{
+			name:          "reports not found when a parallel request deletes the namespace first",
+			sessionRecord: true,
+			tenantID:      "xxxx",
+			mocks: func(ctx context.Context) {
+				namespace := &models.Namespace{
+					TenantID: "xxxx",
+					Settings: &models.NamespaceSettings{SessionRecord: false},
+				}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "xxxx").
+					Return(namespace, nil).
+					Once()
+
+				expectedNamespace := *namespace
+				expectedNamespace.Settings.SessionRecord = true
+				storeMock.
+					On("NamespaceUpdate", ctx, &expectedNamespace).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound("xxxx", store.ErrNoDocuments),
 		},
 		{
 			name:          "succeeds",
@@ -1389,6 +1470,27 @@ func TestDeleteNamespace(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("error"),
+		},
+		{
+			description: "reports not found when a parallel request deletes the namespace first",
+			edition:     envs.Community,
+			tenantID:    tenantID,
+			requiredMocks: func(storeMock *storemock.MockStore, _ *cachemock.MockCache) {
+				namespace := &models.Namespace{TenantID: tenantID}
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+					Return(namespace, nil).
+					Once()
+				storeMock.
+					On("DeviceList", ctx, scope.MustBounded(tenantID), store.DeviceAcceptableAsFalse).
+					Return([]models.Device{{UID: "uid-1"}}, int64(1), nil).
+					Once()
+				storeMock.
+					On("NamespaceDelete", ctx, namespace).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceNotFound(tenantID, store.ErrNoDocuments),
 		},
 		{
 			description: "succeeds and evicts each device's authorization after the delete",
