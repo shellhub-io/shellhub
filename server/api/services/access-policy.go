@@ -60,11 +60,15 @@ type AccessPolicyService interface {
 	CreateAccessPolicy(ctx context.Context, req *requests.AccessPolicyCreate) (*models.AccessPolicy, error)
 
 	// UpdateAccessPolicy replaces an access policy in the namespace and returns it as stored. It
-	// returns [ErrAccessPolicyNotFound] when the policy does not exist, and otherwise fails as
+	// returns [ErrAccessPolicyNotFound] when the policy does not exist, also when a parallel request
+	// deletes it before the update or before it is read back, and otherwise fails as
 	// [AccessPolicyService.CreateAccessPolicy] does.
 	UpdateAccessPolicy(ctx context.Context, req *requests.AccessPolicyUpdate) (*models.AccessPolicy, error)
 
-	// DeleteAccessPolicy removes an access policy from the namespace.
+	// DeleteAccessPolicy removes an access policy from the namespace. It returns [ErrForbidden] for an
+	// empty tenant, [ErrAccessPolicyNotFound] when the policy cannot be resolved, whatever the store's
+	// error, also when a parallel request deletes it first, and the store's error otherwise. A ctx
+	// cancelled or past its deadline fails the step it reaches with that step's error.
 	DeleteAccessPolicy(ctx context.Context, req *requests.AccessPolicyDelete) error
 }
 
@@ -530,12 +534,12 @@ func (s *service) UpdateAccessPolicy(ctx context.Context, req *requests.AccessPo
 	}
 
 	if err := s.store.AccessPolicyUpdate(ctx, policy); err != nil {
-		return nil, err
+		return nil, accessPolicyStoreError(req.ID, err)
 	}
 
 	updated, err := s.store.AccessPolicyResolve(ctx, sc, store.AccessPolicyIDResolver, req.ID)
 	if err != nil {
-		return nil, err
+		return nil, accessPolicyStoreError(req.ID, err)
 	}
 
 	updated.SubjectMatches = subjectMatchesAnyPrincipal(namespace, apiKeys, updated.Subject, s.clock.Now())
@@ -553,7 +557,19 @@ func (s *service) DeleteAccessPolicy(ctx context.Context, req *requests.AccessPo
 		return NewErrAccessPolicyNotFound(req.ID, err)
 	}
 
-	return s.store.AccessPolicyDelete(ctx, &models.AccessPolicy{ID: req.ID, TenantID: req.TenantID})
+	if err := s.store.AccessPolicyDelete(ctx, &models.AccessPolicy{ID: req.ID, TenantID: req.TenantID}); err != nil {
+		return accessPolicyStoreError(req.ID, err)
+	}
+
+	return nil
+}
+
+func accessPolicyStoreError(id string, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrAccessPolicyNotFound(id, err)
+	}
+
+	return err
 }
 
 func (s *service) resolveAccessPolicyFilter(ctx context.Context, sc scope.Scope, reqFilter requests.AccessPolicyFilter) (models.AccessPolicyFilter, error) {

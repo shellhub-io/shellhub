@@ -1103,6 +1103,88 @@ func TestUpdateAccessPolicyValidatesTheSubject(t *testing.T) {
 	})
 }
 
+func TestUpdateAccessPolicyReportsAPolicyDeletedMidway(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		memberID = "11111111-1111-4111-1111-111111111111"
+		policyID = "policy-1"
+	)
+
+	namespace := &models.Namespace{
+		TenantID: tenantID,
+		Members:  []models.Member{{ID: memberID, Role: authorizer.RoleOperator}},
+	}
+
+	req := &requests.AccessPolicyUpdate{
+		AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+		TenantID:            tenantID,
+		Name:                "rule",
+		Subject:             requests.AccessPolicySubject{Type: "role", Value: authorizer.RoleOperator.String()},
+		Filter:              requests.AccessPolicyFilter{All: true},
+		Logins:              []string{"root"},
+	}
+
+	newStoreMock := func(t *testing.T) *storemock.MockStore {
+		t.Helper()
+
+		storeMock := storemock.NewMockStore(t)
+		storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+			Return(&models.AccessPolicy{ID: policyID}, nil).Once()
+		storeMock.On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, tenantID).
+			Return(namespace, nil).Once()
+		storeMock.On("APIKeyList", ctx, mock.Anything).Return([]models.APIKey{}, int64(0), nil).Maybe()
+
+		return storeMock
+	}
+
+	t.Run("before the update", func(t *testing.T) {
+		storeMock := newStoreMock(t)
+		storeMock.On("AccessPolicyUpdate", ctx, mock.Anything).Return(store.ErrNoDocuments).Once()
+
+		service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+		_, err := service.UpdateAccessPolicy(ctx, req)
+		require.Equal(t, NewErrAccessPolicyNotFound(policyID, store.ErrNoDocuments), err)
+	})
+
+	t.Run("between the update and the read back", func(t *testing.T) {
+		storeMock := newStoreMock(t)
+		storeMock.On("AccessPolicyUpdate", ctx, mock.Anything).Return(nil).Once()
+		storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+			Return(nil, store.ErrNoDocuments).Once()
+
+		service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+		_, err := service.UpdateAccessPolicy(ctx, req)
+		require.Equal(t, NewErrAccessPolicyNotFound(policyID, store.ErrNoDocuments), err)
+	})
+}
+
+func TestDeleteAccessPolicyReportsAPolicyDeletedMidway(t *testing.T) {
+	ctx := context.TODO()
+
+	const (
+		tenantID = "00000000-0000-4000-0000-000000000000"
+		policyID = "policy-1"
+	)
+
+	storeMock := storemock.NewMockStore(t)
+	storeMock.On("AccessPolicyResolve", ctx, mock.Anything, store.AccessPolicyIDResolver, policyID).
+		Return(&models.AccessPolicy{ID: policyID}, nil).Once()
+	storeMock.On("AccessPolicyDelete", ctx, &models.AccessPolicy{ID: policyID, TenantID: tenantID}).
+		Return(store.ErrNoDocuments).Once()
+
+	service := NewService(store.Store(storeMock), privateKey, publicKey, storecache.NewNullCache())
+
+	err := service.DeleteAccessPolicy(ctx, &requests.AccessPolicyDelete{
+		AccessPolicyIDParam: requests.AccessPolicyIDParam{ID: policyID},
+		TenantID:            tenantID,
+	})
+	require.Equal(t, NewErrAccessPolicyNotFound(policyID, store.ErrNoDocuments), err)
+}
+
 func TestCreateAccessPolicyStoresTheFilter(t *testing.T) {
 	ctx := context.TODO()
 
