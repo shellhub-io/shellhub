@@ -52,8 +52,9 @@ type MemberService interface {
 	// It returns ErrForbidden when sc was never constructed; ErrNamespaceNotFound when sc is bounded
 	// to another namespace or the namespace carrying req.TenantID cannot be resolved, whatever the
 	// store's error, or the membership is gone before a demotion departs it;
-	// ErrNamespaceMemberNotFound when req.UserID or req.MemberID is not a member; ErrAuthForbidden
-	// when they are the same member; ErrRoleForbidden when the acting member lacks
+	// ErrNamespaceMemberNotFound when req.UserID or req.MemberID is not a member, or the member leaves
+	// before the update is written; ErrAuthForbidden when they are the same member; ErrRoleForbidden
+	// when the acting member lacks
 	// NamespaceEditMember, keeps devices without ProvisioningKeyCreate, or holds no authority over the
 	// member or the new role; ErrDeviceNotOwned when a kept device is not the member's; and the
 	// store's error otherwise.
@@ -278,6 +279,14 @@ func (s *service) resendMembershipInvitation(ctx context.Context, invitation *mo
 	return nil
 }
 
+func membershipStoreError(memberID string, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrNamespaceMemberNotFound(memberID, err)
+	}
+
+	return err
+}
+
 func (s *service) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req *requests.NamespaceUpdateMember) error {
 	namespace, active, err := s.resolveActingMember(ctx, sc, req.TenantID, req.UserID, authorizer.RoleInvalid, authorizer.NamespaceEditMember)
 	if err != nil {
@@ -314,7 +323,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req
 	if member.Role.HasPermission(authorizer.DeviceStatusUpdate) {
 		if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
 			if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
-				return err
+				return membershipStoreError(member.ID, err)
 			}
 
 			if member.Role.HasPermission(authorizer.NamespaceAddMember) {
@@ -337,7 +346,7 @@ func (s *service) UpdateNamespaceMember(ctx context.Context, sc scope.Scope, req
 	var departed *models.MemberDeparted
 	if err := s.store.WithTransaction(ctx, func(ctx context.Context) error {
 		if err := s.store.NamespaceUpdateMembership(ctx, bounded, member); err != nil {
-			return err
+			return membershipStoreError(member.ID, err)
 		}
 
 		departed, err = s.departMember(ctx, namespace.TenantID, member.ID, store.MemberDeparture{KeepMembership: true, KeepDevices: req.KeepDevices})

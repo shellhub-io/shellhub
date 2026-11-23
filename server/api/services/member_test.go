@@ -517,6 +517,82 @@ func TestService_UpdateNamespaceMember(t *testing.T) {
 			expected: errors.New("error"),
 		},
 		{
+			description: "[community|enterprise|cloud] fails with member not found when the member leaves before the update",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleAdministrator,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleAdministrator}).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000001", store.ErrNoDocuments),
+		},
+		{
+			description: "[community|enterprise|cloud] fails with member not found when a demoted member leaves before the update",
+			req: &requests.NamespaceUpdateMember{
+				UserID:     "000000000000000000000000",
+				TenantID:   "00000000-0000-4000-0000-000000000000",
+				MemberID:   "000000000000000000000001",
+				MemberRole: authorizer.RoleObserver,
+			},
+			requiredMocks: func(ctx context.Context) {
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{
+						TenantID: "00000000-0000-4000-0000-000000000000",
+						Name:     "namespace",
+						Owner:    "000000000000000000000000",
+						Members: []models.Member{
+							{
+								ID:   "000000000000000000000000",
+								Role: authorizer.RoleOwner,
+							},
+							{
+								ID:   "000000000000000000000001",
+								Role: authorizer.RoleAdministrator,
+							},
+						},
+					}, nil).
+					Once()
+				storeMock.
+					On("WithTransaction", ctx, mock.AnythingOfType("store.TransactionCb")).
+					Return(func(ctx context.Context, cb store.TransactionCb) error { return cb(ctx) }).
+					Once()
+				storeMock.
+					On("NamespaceUpdateMembership", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.Member{ID: "000000000000000000000001", Role: authorizer.RoleObserver}).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrNamespaceMemberNotFound("000000000000000000000001", store.ErrNoDocuments),
+		},
+		{
 			description: "[community|enterprise|cloud] succeeds",
 			req: &requests.NamespaceUpdateMember{
 				UserID:     "000000000000000000000000",
