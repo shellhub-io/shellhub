@@ -51,18 +51,21 @@ type APIKeyService interface {
 	// never constructed; ErrNamespaceNotFound when sc is bounded to another namespace or the namespace
 	// carrying req.TenantID cannot be resolved, whatever the store's error; ErrNamespaceMemberNotFound
 	// when req.UserID is not a member; ErrRoleForbidden when that member lacks APIKeyUpdate or holds
-	// no authority over req.Role; ErrAPIKeyNotFound when no key carries req.CurrentName;
-	// ErrAPIKeyDuplicated when req.Name is taken, also when a parallel request takes it between the
-	// conflict check and the update; and the store's or the cache's error otherwise. A ctx cancelled or
-	// past its deadline fails the step it reaches with that step's error. An error from the
-	// invalidation means the key may still authenticate with its previous role until apiKeyCacheTTL
-	// lapses, so the caller must not report the update as applied.
+	// no authority over req.Role; ErrAPIKeyNotFound when no key carries req.CurrentName, also when a
+	// parallel request deletes it before the update; ErrAPIKeyDuplicated when req.Name is taken, also
+	// when a parallel request takes it between the conflict check and the update; and the store's or
+	// the cache's error otherwise. A ctx cancelled or past its deadline fails the step it reaches with
+	// that step's error. An error from the invalidation means the key may still authenticate with its
+	// previous role until apiKeyCacheTTL lapses, so the caller must not report the update as applied.
 	UpdateAPIKey(ctx context.Context, sc scope.Scope, req *requests.UpdateAPIKey) (err error)
 
 	// DeleteAPIKey deletes an API key with the provided tenant ID and name, dropping the key's cached
-	// document so the key stops authenticating at once. It returns an error, if any; an error from the
-	// invalidation means the key may still authenticate until apiKeyCacheTTL lapses, so the caller must not
-	// report the revocation as complete.
+	// document so the key stops authenticating at once. It returns ErrForbidden for an empty tenant,
+	// ErrAPIKeyNotFound when no key carries req.Name, also when a parallel request deletes it first,
+	// and the store's or the cache's error otherwise. A ctx cancelled or past its deadline fails the
+	// step it reaches with that step's error. An error from the invalidation means the key may still
+	// authenticate until apiKeyCacheTTL lapses, so the caller must not report the revocation as
+	// complete.
 	DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) (err error)
 }
 
@@ -200,11 +203,14 @@ func (s *service) UpdateAPIKey(ctx context.Context, sc scope.Scope, req *request
 	}
 
 	if err := s.store.APIKeyUpdate(ctx, apiKey); err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
+		switch {
+		case errors.Is(err, store.ErrDuplicate):
 			return NewErrAPIKeyDuplicated([]string{"name"})
+		case errors.Is(err, store.ErrNoDocuments):
+			return NewErrAPIKeyNotFound(req.CurrentName, err)
+		default:
+			return err
 		}
-
-		return err
 	}
 
 	return s.cache.Delete(ctx, apiKeyCacheKey(apiKey.Digest))
@@ -227,6 +233,10 @@ func (s *service) DeleteAPIKey(ctx context.Context, req *requests.DeleteAPIKey) 
 	}
 
 	if err := s.store.APIKeyDelete(ctx, apiKey); err != nil {
+		if errors.Is(err, store.ErrNoDocuments) {
+			return NewErrAPIKeyNotFound(req.Name, err)
+		}
+
 		return err
 	}
 

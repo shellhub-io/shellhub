@@ -809,6 +809,49 @@ func TestUpdateAPIKey(t *testing.T) {
 			expected: NewErrAPIKeyDuplicated([]string{"name"}),
 		},
 		{
+			description: "fails with not found when a concurrent delete removes the key first",
+			req: &requests.UpdateAPIKey{
+				UserID:      "000000000000000000000000",
+				TenantID:    "00000000-0000-4000-0000-000000000000",
+				CurrentName: "dev",
+				Name:        "newName",
+				Role:        "administrator",
+			},
+			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					Digest:   "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				updatedAPIKey := &models.APIKey{
+					Digest:   "existing-id",
+					Name:     "newName",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "administrator",
+				}
+
+				storeMock.
+					On("NamespaceResolve", ctx, store.NamespaceTenantIDResolver, "00000000-0000-4000-0000-000000000000").
+					Return(&models.Namespace{TenantID: "00000000-0000-4000-0000-000000000000", Members: []models.Member{{ID: "000000000000000000000000", Role: "owner"}}}, nil).
+					Once()
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyConflicts", ctx, scope.MustBounded("00000000-0000-4000-0000-000000000000"), &models.APIKeyConflicts{Name: "newName"}).
+					Return([]string{}, false, nil).
+					Once()
+				storeMock.
+					On("APIKeyUpdate", ctx, updatedAPIKey).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrAPIKeyNotFound("dev", store.ErrNoDocuments),
+		},
+		{
 			description: "succeeds",
 			req: &requests.UpdateAPIKey{
 				UserID:      "000000000000000000000000",
@@ -1056,6 +1099,31 @@ func TestDeleteAPIKey(t *testing.T) {
 					Once()
 			},
 			expected: errors.New("delete error"),
+		},
+		{
+			description: "fails with not found when a concurrent delete removes the key first",
+			req: &requests.DeleteAPIKey{
+				TenantID: "00000000-0000-4000-0000-000000000000",
+				Name:     "dev",
+			},
+			requiredMocks: func(ctx context.Context) {
+				existingAPIKey := &models.APIKey{
+					Digest:   "existing-id",
+					Name:     "dev",
+					TenantID: "00000000-0000-4000-0000-000000000000",
+					Role:     "operator",
+				}
+
+				storeMock.
+					On("APIKeyResolve", ctx, mock.Anything, store.APIKeyNameResolver, "dev").
+					Return(existingAPIKey, nil).
+					Once()
+				storeMock.
+					On("APIKeyDelete", ctx, existingAPIKey).
+					Return(store.ErrNoDocuments).
+					Once()
+			},
+			expected: NewErrAPIKeyNotFound("dev", store.ErrNoDocuments),
 		},
 		{
 			description: "succeeds",
