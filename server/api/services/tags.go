@@ -63,7 +63,8 @@ type TagsService interface {
 	// as stored after the update, with the updated_at the store set.
 	//
 	// It returns [ErrForbidden] for an empty tenant. Any failure resolving the namespace yields
-	// [ErrNamespaceNotFound] and any failure resolving the tag by name yields [ErrTagNameNotFound].
+	// [ErrNamespaceNotFound] and any failure resolving the tag by name yields [ErrTagNameNotFound], as
+	// does an update that finds the tag deleted by a parallel request since it was resolved.
 	// [ErrDuplicateTagName], carrying the conflicting field name(s), is returned whenever the conflict
 	// check reports the new name taken, even alongside a store failure, and when the update finds it
 	// taken by a rename or create that ran between the check and the update. Any other failure in the
@@ -232,11 +233,14 @@ func (s *service) updateTag(ctx context.Context, req *requests.UpdateTag) (*mode
 	}
 
 	if err := s.store.TagUpdate(ctx, tag); err != nil {
-		if errors.Is(err, store.ErrDuplicate) {
+		switch {
+		case errors.Is(err, store.ErrDuplicate):
 			return nil, NewErrTagDuplicated([]string{"name"}, err)
+		case errors.Is(err, store.ErrNoDocuments):
+			return nil, NewErrTagNotFound(req.Name, err)
+		default:
+			return nil, err
 		}
-
-		return nil, err
 	}
 
 	return s.store.TagResolve(ctx, sc, store.TagIDResolver, tag.ID)
