@@ -30,8 +30,8 @@ describe("deviceCapacity", () => {
 });
 
 describe("formatLicenseTimestamp", () => {
-  it('returns "Now" for -1', () => {
-    expect(formatLicenseTimestamp(-1)).toBe("Now");
+  it.each([-1, 0])('returns "Not set" for %i', (value) => {
+    expect(formatLicenseTimestamp(value)).toBe("Not set");
   });
 
   it("returns a formatted date string for a valid Unix timestamp", () => {

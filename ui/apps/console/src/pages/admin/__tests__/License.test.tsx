@@ -159,11 +159,13 @@ describe("AdminLicense", () => {
       expect(screen.getByText("Jan 1, 2025")).toBeInTheDocument();
     });
 
-    it("shows 'Now' for -1 timestamps", async () => {
-      setLicense({ ...validLicense, issued_at: -1, starts_at: -1 });
+    it("shows 'Not set' for -1 issue and start dates and 'Never' for a -1 expiry", async () => {
+      setLicense({ ...validLicense, issued_at: -1, starts_at: -1, expires_at: -1 });
       renderPage();
       await screen.findByText("License Information");
-      expect(screen.getAllByText("Now").length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText("Not set")).toHaveLength(2);
+      expect(screen.getByText("Never")).toBeInTheDocument();
+      expect(screen.queryByText("Now")).not.toBeInTheDocument();
     });
 
     it.each([

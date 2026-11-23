@@ -3,7 +3,8 @@ import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { cn } from "@shellhub/design-system/cn";
 import { useDeviceCapacity } from "@/hooks/useDeviceCapacity";
 import { formatCount } from "@/utils/count";
-import { formatLicenseTimestamp, type DeviceCapacity } from "@/utils/license";
+import { formatExpiry } from "@/utils/date";
+import type { DeviceCapacity } from "@/utils/license";
 import { LABEL_BASE } from "@/utils/styles";
 import { Panel, PanelError, Row } from "./Panel";
 
@@ -95,9 +96,7 @@ export default function LicensePanel() {
       {installedLicense && (
         <>
           <Row label="Expires">
-            {installedLicense.expires_at > 0
-              ? formatLicenseTimestamp(installedLicense.expires_at)
-              : "Never"}
+            {formatExpiry(installedLicense.expires_at)}
           </Row>
           {issuedTo && <Row label="Issued to">{issuedTo}</Row>}
         </>
