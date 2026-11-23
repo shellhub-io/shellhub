@@ -82,12 +82,19 @@ type SSHIdentityService interface {
 	// RenameSSHIdentity renames an enrolled identity. Renaming the caller's own needs
 	// SSHIdentityAdd; renaming another member's, or one an API key owns, needs
 	// SSHIdentityManage (signalled by req.Manage, resolved at the handler). It returns
-	// ErrForbidden when neither holds.
+	// ErrForbidden for an empty tenant or when neither holds, ErrSSHIdentityNotFound when the
+	// identity cannot be resolved, whatever the store's error, also when a parallel request deletes
+	// it before the update, and the store's error otherwise. A ctx cancelled or past its deadline
+	// fails the step it reaches with that step's error.
 	RenameSSHIdentity(ctx context.Context, req *requests.SSHIdentityUpdate) (*models.SSHIdentity, error)
 
 	// DeleteSSHIdentity revokes an identity. Revoking the caller's own needs
 	// SSHIdentityAdd; revoking another member's needs SSHIdentityManage
-	// (signalled by req.Manage, resolved at the handler).
+	// (signalled by req.Manage, resolved at the handler). It returns ErrForbidden for an empty
+	// tenant or when neither holds, ErrSSHIdentityNotFound when the identity cannot be resolved,
+	// whatever the store's error, also when a parallel request deletes it first, and the store's
+	// error otherwise. A ctx cancelled or past its deadline fails the step it reaches with that
+	// step's error.
 	DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdentityDelete) error
 }
 
@@ -301,7 +308,7 @@ func (s *service) RenameSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 	identity.Name = req.Name
 
 	if err := s.store.SSHIdentityUpdate(ctx, identity); err != nil {
-		return nil, err
+		return nil, sshIdentityStoreError(req.ID, err)
 	}
 
 	return identity, nil
@@ -322,5 +329,17 @@ func (s *service) DeleteSSHIdentity(ctx context.Context, req *requests.SSHIdenti
 		return NewErrForbidden(ErrForbidden, nil)
 	}
 
-	return s.store.SSHIdentityDelete(ctx, &models.SSHIdentity{ID: req.ID, TenantID: req.TenantID})
+	if err := s.store.SSHIdentityDelete(ctx, &models.SSHIdentity{ID: req.ID, TenantID: req.TenantID}); err != nil {
+		return sshIdentityStoreError(req.ID, err)
+	}
+
+	return nil
+}
+
+func sshIdentityStoreError(id string, err error) error {
+	if errors.Is(err, store.ErrNoDocuments) {
+		return NewErrSSHIdentityNotFound(id, err)
+	}
+
+	return err
 }
