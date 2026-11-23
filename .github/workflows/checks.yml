@@ -75,8 +75,16 @@ jobs:
               - 'devscripts/comment-scan'
               - 'tests/devscripts/comment-scan.bats'
               - '.github/workflows/checks.yml'
+            setup-script:
+              - 'bin/setup'
+              - 'bin/lib/env.sh'
+              - 'bin/docker-compose'
+              - '.env'
+              - 'tests/scripts/setup.bats'
+              - '.github/workflows/checks.yml'
             wrapper:
               - 'bin/docker-compose'
+              - 'bin/lib/env.sh'
               - '.env'
               - '.env.enterprise'
               - 'docker-compose*.yml'
@@ -292,6 +300,14 @@ jobs:
       - name: Run the merge-default-branch tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.merge-default-branch == 'true' }}
         run: bats tests/actions/merge-default-branch.bats
+
+      - name: Lint the setup script
+        if: ${{ !cancelled() && steps.shellcheck.outcome == 'success' && steps.changes.outputs.setup-script == 'true' }}
+        run: shellcheck -x -s sh -S warning bin/setup bin/docker-compose bin/lib/env.sh
+
+      - name: Run the setup script tests
+        if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.setup-script == 'true' }}
+        run: bats tests/scripts/setup.bats
 
       - name: Run the compose wrapper tests
         if: ${{ !cancelled() && steps.bats.outcome == 'success' && steps.changes.outputs.wrapper == 'true' }}
