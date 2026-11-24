@@ -30,6 +30,7 @@ import TimelineCard from "@/components/common/TimelineCard";
 import { Button, Card, IconButton } from "@shellhub/design-system/primitives";
 import { cn } from "@shellhub/design-system/cn";
 import ResourceNotFound from "@/components/common/ResourceNotFound";
+import { useHasPermission } from "@/hooks/useHasPermission";
 
 /**
  * Everything about one container: identity, tags, sessions and the actions on it.
@@ -47,6 +48,7 @@ export default function ContainerDetails() {
   const connect = useTerminalStore((s) => s.connect);
 
   const renameMutation = useRenameContainer();
+  const canRename = useHasPermission("DeviceUpdate");
   const addTagMutation = useAddContainerTag();
   const removeTagMutation = useRemoveContainerTag();
   const containerActions = useActionDialog({
@@ -111,6 +113,7 @@ export default function ContainerDetails() {
               uid={container.uid}
               currentName={container.name}
               rename={renameMutation.mutateAsync}
+              canRename={canRename}
               entityLabel="container"
             />
             <div className="flex items-center gap-2 mt-1.5">

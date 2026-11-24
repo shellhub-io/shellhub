@@ -99,7 +99,7 @@ export default function Containers() {
   const addContainerTag = useAddContainerTag();
   const removeContainerTag = useRemoveContainerTag();
   const renameContainer = useRenameContainer();
-  const canRename = useHasPermission("DeviceRename");
+  const canRename = useHasPermission("DeviceUpdate");
   const containerActions = useActionDialog();
   const { requestAction: requestContainerAction } = containerActions;
   const runContainerAction = useContainerActionRunner();

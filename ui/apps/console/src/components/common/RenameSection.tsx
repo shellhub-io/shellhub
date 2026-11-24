@@ -9,7 +9,9 @@ import { renameErrorMessage, renameFieldLabel } from "@/utils/rename";
 
 /**
  * Props of RenameSection. rename is passed in rather than chosen here, so the same section
- * serves devices, containers and anything else with a name.
+ * serves devices, containers and anything else with a name. canRename is whether the current
+ * role may call rename; for a device or a container that is DeviceUpdate, which guards the update
+ * route both renames go through.
  */
 export interface RenameSectionProps {
   uid: string;
@@ -19,7 +21,7 @@ export interface RenameSectionProps {
     body: { name: string };
   }) => Promise<unknown>;
   entityLabel: string;
-  canRename?: boolean;
+  canRename: boolean;
 }
 
 /**
@@ -30,7 +32,7 @@ export default function RenameSection({
   currentName,
   rename,
   entityLabel,
-  canRename = true,
+  canRename,
 }: RenameSectionProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(currentName);

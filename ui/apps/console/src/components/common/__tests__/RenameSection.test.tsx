@@ -21,6 +21,7 @@ const defaultProps: RenameSectionProps = {
   currentName: "my-device",
   rename: mockRename,
   entityLabel: "device",
+  canRename: true,
 };
 
 function renderAndEdit(overrides: Partial<RenameSectionProps> = {}) {

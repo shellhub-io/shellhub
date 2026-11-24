@@ -186,6 +186,25 @@ describe("DeviceDetails", () => {
       expect(screen.getByText("Ubuntu 22.04 LTS")).toBeInTheDocument();
     });
 
+    it("offers renaming to a role that may update devices", async () => {
+      seedAuthStore({ role: "operator" });
+      renderPage();
+
+      expect(
+        await screen.findByRole("button", { name: "Rename device" }),
+      ).toBeInTheDocument();
+    });
+
+    it("hides renaming from an observer", async () => {
+      seedAuthStore({ role: "observer" });
+      renderPage();
+      await screen.findByRole("heading", { name: "my-device" });
+
+      expect(
+        screen.queryByRole("button", { name: "Rename device" }),
+      ).not.toBeInTheDocument();
+    });
+
     it("names the source a keyless device registered through, linked to its activity", async () => {
       setDevice(makeDevice({ provisioning_key_id: "legacy-digest" }));
       server.use(

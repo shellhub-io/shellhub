@@ -182,6 +182,25 @@ describe("ContainerDetails", () => {
       ).toBeInTheDocument();
       expect(screen.getByText("Online")).toBeInTheDocument();
     });
+
+    it("offers renaming to a role that may update devices", async () => {
+      seedAuthStore({ role: "operator" });
+      renderPage();
+
+      expect(
+        await screen.findByRole("button", { name: "Rename container" }),
+      ).toBeInTheDocument();
+    });
+
+    it("hides renaming from an observer", async () => {
+      seedAuthStore({ role: "observer" });
+      renderPage();
+      await screen.findByRole("heading", { name: "my-container" });
+
+      expect(
+        screen.queryByRole("button", { name: "Rename container" }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("renders tag names flattened out of the generated tag objects", async () => {
