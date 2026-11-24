@@ -437,3 +437,36 @@ func TestInstallScriptRendersAValidShellScript(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, entries, 1, "the payload ran while the script was being parsed")
 }
+
+func TestGetSystemInfoReportsTheReachedHostInEveryEndpoint(t *testing.T) {
+	cases := []struct {
+		description string
+		reached     origin.Origin
+		api         string
+		ssh         string
+	}{
+		{description: "a name", reached: origin.Origin{Host: "shellhub.example"}, api: "shellhub.example", ssh: "shellhub.example:22"},
+		{description: "a name with the port on the host", reached: origin.Origin{Host: "localhost:8080"}, api: "localhost:8080", ssh: "localhost:22"},
+		{description: "a name with the port resolved", reached: origin.Origin{Host: "localhost", Port: "8080"}, api: "localhost:8080", ssh: "localhost:22"},
+		{description: "an IPv4 address", reached: origin.Origin{Host: "203.0.113.10", Port: "80"}, api: "203.0.113.10:80", ssh: "203.0.113.10:22"},
+		{description: "an IPv6 address", reached: origin.Origin{Host: "[2001:db8::10]"}, api: "[2001:db8::10]", ssh: "[2001:db8::10]:22"},
+		{description: "an IPv6 address with a port", reached: origin.Origin{Host: "[2001:db8::10]:8080", Port: "8080"}, api: "[2001:db8::10]:8080", ssh: "[2001:db8::10]:22"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			storeMock := storemock.NewMockStore(t)
+			cacheMock := cachemock.NewMockCache(t)
+
+			cacheMock.On("Get", mock.Anything, cache.SystemKey, mock.AnythingOfType("*models.System")).Return(nil).Once()
+			storeMock.On("SystemGet", mock.Anything).Return(&models.System{
+				Authentication: &models.SystemAuthentication{Local: &models.SystemAuthenticationLocal{Enabled: true}},
+			}, nil).Once()
+
+			info, err := NewService(storeMock, privateKey, publicKey, cacheMock, WithSystemInfo("v0.27.0", "22")).GetSystemInfo(t.Context(), tc.reached)
+			require.NoError(t, err)
+			assert.Equal(t, tc.api, info.Endpoints.API)
+			assert.Equal(t, tc.ssh, info.Endpoints.SSH)
+		})
+	}
+}
