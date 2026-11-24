@@ -200,8 +200,8 @@ github.com/oschwald/geoip2-golang/v2 v2.5.0/go.mod h1:xqrzE9hxQpB5eYtF+V5dez567G
 github.com/oschwald/maxminddb-golang/v2 v2.9.1 h1:7o5EFBYe8S7+3ppDmYNaoEn1x/GZ4P9P25vxS9vBGpM=
 github.com/oschwald/maxminddb-golang/v2 v2.9.1/go.mod h1:2hxnjBWl4k944SMuyOImUAWfOnrFGXDK99Bz8o5BDpo=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/posthog/posthog-go v1.42.0 h1:1aaYS+TKGzlXnynkmwgwBYinxz+fMEfSSceGp836nIs=
-github.com/posthog/posthog-go v1.42.0/go.mod h1:rN0C9Urenhytgo3KQ/QVorGkyGfpouquDTSs2Ujzr+g=
+github.com/posthog/posthog-go v1.44.1 h1:0EWi9vEXwW0u6NGtCYArOsPGPLiFuMFLyvTs+7a9X9o=
+github.com/posthog/posthog-go v1.44.1/go.mod h1:rN0C9Urenhytgo3KQ/QVorGkyGfpouquDTSs2Ujzr+g=
 github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 h1:o4JXh1EVt9k/+g42oCprj/FisM4qX9L3sZB3upGN2ZU=
 github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55/go.mod h1:OmDBASR4679mdNQnz2pUhc2G8CO2JrUAVFDRBDP/hJE=
 github.com/redis/go-redis/v9 v9.0.0-rc.4/go.mod h1:Vo3EsyWnicKnSKCA7HhgnvnyA74wOA69Cd2Meli5mmA=
