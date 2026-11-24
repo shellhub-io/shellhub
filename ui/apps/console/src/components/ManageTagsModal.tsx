@@ -26,8 +26,7 @@ import { Button, IconButton } from "@shellhub/design-system/primitives";
 import PageLoader from "@/components/common/PageLoader";
 import FormRootError from "@/components/common/fields/FormRootError";
 import ObjectName from "@/components/common/ObjectName";
-
-const TAG_PATTERN = /^[a-zA-Z0-9]+$/;
+import { tagNameProblem } from "@/utils/tagName";
 
 function deleteFailure(name: string, err: unknown) {
   const holders =
@@ -74,10 +73,8 @@ export default function ManageTagsModal({
     setError(null);
   });
 
-  const newNameValid =
-    newName.trim().length >= 3 &&
-    newName.trim().length <= 255 &&
-    TAG_PATTERN.test(newName.trim());
+  const newNameProblem = tagNameProblem(newName.trim());
+  const newNameValid = newNameProblem === null;
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -99,23 +96,16 @@ export default function ManageTagsModal({
   };
 
   const editNameTrimmed = editName.trim();
-  const editNameValid =
-    editNameTrimmed.length >= 3 &&
-    editNameTrimmed.length <= 255 &&
-    TAG_PATTERN.test(editNameTrimmed);
+  const editNameProblem = tagNameProblem(editNameTrimmed);
+  const editNameValid = editNameProblem === null;
   const editNameChanged = editingTag !== null && editNameTrimmed !== editingTag;
 
   const handleRename = async (currentName: string, fromBlur = false) => {
-    const trimmed = editName.trim();
-    if (!trimmed || trimmed === currentName) {
+    if (!editNameTrimmed || editNameTrimmed === currentName) {
       setEditingTag(null);
       return;
     }
-    if (
-      trimmed.length < 3 ||
-      trimmed.length > 255 ||
-      !TAG_PATTERN.test(trimmed)
-    ) {
+    if (!editNameValid) {
       if (fromBlur) setEditingTag(null);
       return;
     }
@@ -124,12 +114,12 @@ export default function ManageTagsModal({
     try {
       await updateTag.mutateAsync({
         path: { name: currentName },
-        body: { name: trimmed },
+        body: { name: editNameTrimmed },
       });
       skipBlurRef.current = true;
       setEditName("");
       setEditingTag(null);
-      onTagRenamed?.(currentName, trimmed);
+      onTagRenamed?.(currentName, editNameTrimmed);
     } catch {
       setError(`Failed to rename "${currentName}".`);
     } finally {
@@ -196,11 +186,7 @@ export default function ManageTagsModal({
           </div>
           {newName.trim() && !newNameValid && (
             <p className="mt-1.5 text-2xs text-text-muted">
-              {newName.trim().length < 3
-                ? "At least 3 characters"
-                : newName.trim().length > 255
-                  ? "At most 255 characters"
-                  : "Only letters and numbers"}
+              {newNameProblem?.hint}
             </p>
           )}
         </form>
@@ -272,11 +258,7 @@ export default function ManageTagsModal({
                       />
                       {editNameChanged && !editNameValid && (
                         <p className="mt-1 text-2xs text-accent-red">
-                          {editNameTrimmed.length < 3
-                            ? "At least 3 characters"
-                            : editNameTrimmed.length > 255
-                              ? "At most 255 characters"
-                              : "Only letters and numbers"}
+                          {editNameProblem?.hint}
                         </p>
                       )}
                     </div>

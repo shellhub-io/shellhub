@@ -97,10 +97,10 @@ describe("TagsSection", () => {
     });
 
     it.each([
-      { input: "ab", message: "Tag must be at least 3 characters." },
+      { input: "ab", message: "At least 3 characters" },
       {
         input: "my-tag",
-        message: "Tag must contain only letters and numbers.",
+        message: "Only letters and numbers",
       },
     ])('rejects "$input" with validation error', async ({ input, message }) => {
       const { addTag } = renderTagsSection();

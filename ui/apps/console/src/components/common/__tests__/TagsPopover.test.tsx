@@ -147,6 +147,40 @@ describe("TagsPopover", () => {
     expect(mockAddTag).not.toHaveBeenCalled();
   });
 
+  it("keeps listing matching tags while the name is too short to add", async () => {
+    setTags(["abacus"]);
+    renderPopover({ tags: [] });
+
+    await openPopover();
+    await userEvent.type(tagInput(), "ab");
+
+    expect(screen.getByText("At least 3 characters")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /^abacus$/ }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    { name: "a-", prefix: "a", rest: "-", tag: "data-old", hint: "At least 3 characters" },
+    { name: "web-01", prefix: "web", rest: "-01", tag: "web-01-old", hint: "Only letters and numbers" },
+  ])(
+    'stops listing tags and hints "$hint" once "$name" cannot become a tag',
+    async ({ prefix, rest, tag, hint }) => {
+      setTags([tag]);
+      renderPopover({ tags: [] });
+
+      await openPopover();
+      await userEvent.type(tagInput(), prefix);
+      await screen.findByRole("button", { name: new RegExp(`^${tag}$`) });
+      await userEvent.type(tagInput(), rest);
+
+      expect(screen.getByText(hint)).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: new RegExp(`^${tag}$`) }),
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it("calls removeTag when remove button is clicked", async () => {
     mockRemoveTag.mockResolvedValue(undefined);
     renderPopover({ tags: ["alpha"] });

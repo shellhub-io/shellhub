@@ -5,10 +5,12 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
+import { cn } from "@shellhub/design-system/cn";
 import { Dropdown } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTagRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
+import { tagNameProblem } from "@/utils/tagName";
 import {
   ContextualDialogHeader,
   KeyHint,
@@ -51,9 +53,7 @@ export default function TagsPopover({
     if (
       tags.includes(tag) ||
       tags.length >= 3 ||
-      tag.length < 3 ||
-      tag.length > 255 ||
-      !/^[a-zA-Z0-9]+$/.test(tag)
+      tagNameProblem(tag)
     )
       return;
     setLoading(true);
@@ -86,14 +86,12 @@ export default function TagsPopover({
   const suggestions = allTags.filter(
     (t) => !tags.includes(t) && t.toLowerCase().includes(input.toLowerCase()),
   );
+  const inputProblem = input.trim() ? tagNameProblem(input.trim()) : null;
   const isNew =
-    input.trim().length >= 3 &&
-    input.trim().length <= 255 &&
+    !inputProblem &&
     !allTags.includes(input.trim()) &&
     !tags.includes(input.trim());
-  const inputValid =
-    !input.trim() ||
-    (/^[a-zA-Z0-9]+$/.test(input.trim()) && input.trim().length <= 255);
+  const inputMalformed = !!inputProblem && !inputProblem.incomplete;
 
   return (
     <>
@@ -169,8 +167,8 @@ export default function TagsPopover({
                         onKeyDown={(e) => {
                           if (
                             e.key === "Enter" &&
-                            input.trim().length >= 3 &&
-                            inputValid
+                            input.trim() &&
+                            !inputProblem
                           ) {
                             e.preventDefault();
                             void handleAdd(input.trim());
@@ -180,22 +178,22 @@ export default function TagsPopover({
                         aria-label="Search or create tag"
                         className="w-full px-2.5 py-1.5 bg-card border border-border rounded-lg text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                       />
-                      {input.trim() && input.trim().length < 3 && (
-                        <p className="text-2xs text-text-muted mt-1">
-                          Min 3 characters
-                        </p>
-                      )}
-                      {input.trim().length >= 3 && !inputValid && (
-                        <p className="text-2xs text-accent-red mt-1">
-                          {input.trim().length > 255
-                            ? "At most 255 characters"
-                            : "Only letters and numbers"}
+                      {inputProblem && (
+                        <p
+                          className={cn(
+                            "text-2xs mt-1",
+                            inputProblem.incomplete
+                              ? "text-text-muted"
+                              : "text-accent-red",
+                          )}
+                        >
+                          {inputProblem.hint}
                         </p>
                       )}
 
                       {(suggestions.length > 0 || isNew) &&
                         input.trim() &&
-                        inputValid && (
+                        !inputMalformed && (
                           <div className="mt-1.5 max-h-[140px] overflow-y-auto border border-border rounded-lg divide-y divide-border/60">
                             {suggestions.map((tag) => (
                               <button
