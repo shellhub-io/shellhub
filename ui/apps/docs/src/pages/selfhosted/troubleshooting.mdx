@@ -51,6 +51,16 @@ alone stops the gateway from starting.
 at `SHELLHUB_DOMAIN`. Check the domain resolves to this host and that nothing is blocking the
 port.
 
+## The server answers 404 at its IP address
+
+**Symptom:** with `SHELLHUB_AUTO_SSL=true`, opening `http://<server-ip>` shows a page-not-found
+error, and `https://<server-ip>` a certificate error.
+
+**Cause:** with automatic HTTPS the gateway answers only at `SHELLHUB_DOMAIN`, the name its
+certificate is for. Over plain HTTP, with `SHELLHUB_AUTO_SSL` off, it answers at any address.
+
+**Fix:** open ShellHub at `https://<SHELLHUB_DOMAIN>`.
+
 ## HTTPS is not listening
 
 The HTTPS port is only bound when `SHELLHUB_AUTO_SSL=true` — the port mapping comes from an

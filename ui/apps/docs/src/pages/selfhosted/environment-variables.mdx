@@ -37,7 +37,7 @@ SHELLHUB_POSTGRES_PASSWORD=<not-admin>
 | `SHELLHUB_HTTP_PORT` | `80` | HTTP port |
 | `SHELLHUB_HTTPS_PORT` | `443` | HTTPS port. **Only bound when `SHELLHUB_AUTO_SSL=true`** |
 | `SHELLHUB_SSH_PORT` | `22` | SSH port. Published by the server, not the gateway |
-| `SHELLHUB_DOMAIN` | `localhost` | Public domain. Required for auto-SSL |
+| `SHELLHUB_DOMAIN` | `localhost` | Domain name users open ShellHub at, and the name auto-SSL gets its certificate for. Over plain HTTP the gateway answers at any address, the server's IP included; with auto-SSL it answers only at this name |
 | `SHELLHUB_NETWORK` | `shellhub_network` | Docker network name. Change to run several instances on one host |
 | `SHELLHUB_NETWORK_EXTERNAL` | `false` | Join `SHELLHUB_NETWORK` as an existing network instead of creating it. It must exist before the stack starts, and `down` leaves it in place |
 | `SHELLHUB_GATEWAY` | `true` | Run the gateway inside the server: it listens on the HTTP and HTTPS ports, obtains certificates, and serves the API, agent tunnels and web terminal with no proxy hop. Set `false` when a load balancer or Kubernetes ingress fronts the server, which then reaches it on port `8080` |
@@ -78,6 +78,10 @@ identity provider, from `SHELLHUB_DOMAIN`, with `https://` only when
 `SHELLHUB_PUBLIC_URL` so those links use `https://` without the gateway requesting certificates.
 Set it too when users reach ShellHub on a port `SHELLHUB_DOMAIN` does not name, such as
 `http://localhost:8080`, or the links leave the port out.
+
+Pass the client's `Host` header through unchanged. The server builds the endpoints `/info` reports
+and the `SERVER_ADDRESS` in the install script from it, and `SHELLHUB_PUBLIC_URL` replaces that
+address only when the two name the same host.
 
 `SHELLHUB_PROXY_TRUSTED_IPS` decides the client address of web sign-in, device enrollment and web
 terminal sessions, so their lockout, firewall rules and access policy source IPs depend on it. A

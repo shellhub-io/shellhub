@@ -137,11 +137,11 @@ func TestEnterpriseWebEndpointsDisabled(t *testing.T) {
 		}
 	})
 
-	t.Run("the gateway serves no site for an endpoint's address", func(t *testing.T) {
+	t.Run("the gateway serves the console, not a web endpoint, for an endpoint's address", func(t *testing.T) {
 		resp := visitWebEndpoint(t, compose, unknownAddress+"."+webEndpointDomain, "/")
 
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-		assert.Empty(t, resp.Body)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Contains(t, strings.ToLower(resp.Body), "<!doctype html>", "the console answered")
 	})
 }
 

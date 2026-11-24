@@ -84,9 +84,9 @@ func newCaddyfileData(cfg *GatewayConfig) (*caddyfileData, error) {
 
 	development := cfg.Env == "development"
 
-	scheme := "http://"
+	scheme, site := "http://", "http://"
 	if cfg.EnableAutoSSL {
-		scheme = "https://"
+		scheme, site = "https://", "https://"+cfg.Domain
 	}
 
 	domain := webendpoints.Domain(cfg.WebEndpointsDomain, cfg.Domain)
@@ -118,7 +118,7 @@ func newCaddyfileData(cfg *GatewayConfig) (*caddyfileData, error) {
 		Development: development,
 		TLS:         cfg.EnableAutoSSL,
 
-		SiteAddress: scheme + cfg.Domain,
+		SiteAddress: site,
 
 		WebEndpointsAddress: scheme + "*." + domain,
 		DNSProvider:         dnsProvider(cfg),

@@ -165,9 +165,10 @@ func TestTheSiteRoutesEachPathToTheServerOrTheConsole(t *testing.T) {
 		console("/admin/api/namespaces"),
 		console("/openapi/mock/info"),
 		{host: domain + ":8443", target: "/devices", upstream: "console", upstreamHost: domain},
-		{host: "elsewhere.example", target: "/api/namespaces", status: http.StatusNotFound},
-		{host: endpointAddress + "." + domain, target: "/", status: http.StatusNotFound},
-		{host: "mail." + domain, target: "/", status: http.StatusNotFound},
+		{host: "elsewhere.example", target: "/api/namespaces", served: true},
+		{host: "203.0.113.10", target: "/api/namespaces", served: true},
+		{host: endpointAddress + "." + domain, target: "/", upstream: "console"},
+		{host: "mail." + domain, target: "/", upstream: "console"},
 	}
 
 	t.Run("community", func(t *testing.T) {
@@ -177,7 +178,7 @@ func TestTheSiteRoutesEachPathToTheServerOrTheConsole(t *testing.T) {
 	t.Run("enterprise", func(t *testing.T) {
 		assertExchanges(t, configurations()["enterprise"], []exchange{
 			served("/admin/api/namespaces"),
-			{host: "mail." + domain, target: "/", status: http.StatusNotFound},
+			{host: "mail." + domain, target: "/", upstream: "console"},
 		})
 	})
 
@@ -197,10 +198,52 @@ func TestTheSiteRoutesEachPathToTheServerOrTheConsole(t *testing.T) {
 	t.Run("development community", func(t *testing.T) {
 		assertExchanges(t, configurations()["dev community"], []exchange{
 			vhost("website"),
-			{host: "idp." + domain, target: "/", status: http.StatusNotFound},
-			{host: "mail." + domain, target: "/", status: http.StatusNotFound},
+			{host: "idp." + domain, target: "/", upstream: "console"},
+			{host: "mail." + domain, target: "/", upstream: "console"},
 		})
 	})
+}
+
+var hostsTheDomainDoesNotName = []string{"203.0.113.10", "203.0.113.10:8080", "[2001:db8::10]", "elsewhere.example"}
+
+func TestEveryHostReachesTheSiteOverPlainHTTP(t *testing.T) {
+	for description, cfg := range configurations() {
+		if cfg.EnableAutoSSL {
+			continue
+		}
+
+		t.Run(description, func(t *testing.T) {
+			address := startServing(t, cfg, http.HandlerFunc(serverRecorder))
+
+			for _, host := range hostsTheDomainDoesNotName {
+				t.Run(host, func(t *testing.T) {
+					setup := send(t, noRedirects(), "http://"+address, host, "/setup")
+					assert.Equal(t, "console", setup.Header.Get("X-Upstream"))
+
+					info := send(t, noRedirects(), "http://"+address, host, "/info")
+					assert.Equal(t, http.StatusNoContent, info.StatusCode)
+					assert.Equal(t, "/info", info.Header.Get("X-Served-URI"))
+				})
+			}
+		})
+	}
+}
+
+func TestOnlyTheDomainReachesTheSiteWithTLS(t *testing.T) {
+	cfg := configurations()["supplied certificate"]
+	cfg.TLSCertFile, cfg.TLSKeyFile = selfSignedCertificate(t, cfg.Domain)
+
+	address := startServing(t, cfg, http.HandlerFunc(serverRecorder))
+
+	for _, host := range hostsTheDomainDoesNotName {
+		t.Run(host, func(t *testing.T) {
+			res := send(t, noRedirects(), "http://"+address, host, "/setup")
+
+			assert.Equal(t, http.StatusNotFound, res.StatusCode)
+			assert.Empty(t, res.Header.Get("X-Upstream"), "an upstream answered")
+			assert.Empty(t, res.Header.Get("X-Served-URI"), "the server answered")
+		})
+	}
 }
 
 func TestTheInstallScriptsAreNeverCached(t *testing.T) {
