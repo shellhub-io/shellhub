@@ -24,7 +24,7 @@ const (
 type GatewayConfig struct {
 	Env                     string       `env:"SHELLHUB_ENV"`
 	Edition                 envs.Edition `env:"SHELLHUB_EDITION"`
-	Domain                  string       `env:"SHELLHUB_DOMAIN,required" validate:"hostname"`
+	Domain                  string       `env:"SHELLHUB_DOMAIN,required" validate:"hostname_rfc1123"`
 	WebEndpoints            bool         `env:"SHELLHUB_WEB_ENDPOINTS,default=false"`
 	WebEndpointsDomain      string       `env:"SHELLHUB_WEB_ENDPOINTS_DOMAIN"`
 	WebEndpointsDNSProvider DNSProvider  `env:"SHELLHUB_WEB_ENDPOINTS_DNS_PROVIDER,default=digitalocean"`

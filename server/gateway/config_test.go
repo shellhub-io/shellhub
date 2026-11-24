@@ -78,3 +78,30 @@ func TestLoadGatewayConfigTrustsNoProxyUnlessListed(t *testing.T) {
 		assert.Empty(t, cfg.ProxyTrustedIPs)
 	})
 }
+
+func TestLoadGatewayConfigAcceptsAnRFC1123HostnameOrAnIPv4Address(t *testing.T) {
+	for _, domain := range []string{"shellhub.example", "localhost", "1shellhub.example", "2804-4b0-134b-3800--1.sslip.io", "203.0.113.10"} {
+		t.Run(domain, func(t *testing.T) {
+			t.Setenv("SHELLHUB_DOMAIN", domain)
+
+			cfg, err := LoadGatewayConfig(t.Context())
+			require.NoError(t, err)
+			assert.Equal(t, domain, cfg.Domain)
+		})
+	}
+}
+
+func TestLoadGatewayConfigRefusesADomainThatIsNotAHostname(t *testing.T) {
+	for _, domain := range []string{"shell hub.example", "-shellhub.example", "https://shellhub.example", "2001:db8::1"} {
+		t.Run(domain, func(t *testing.T) {
+			t.Setenv("SHELLHUB_DOMAIN", domain)
+
+			_, err := LoadGatewayConfig(t.Context())
+
+			var invalid validator.ValidationErrors
+			require.ErrorAs(t, err, &invalid)
+			require.Len(t, invalid, 1)
+			assert.Equal(t, "Domain", invalid[0].Field())
+		})
+	}
+}
