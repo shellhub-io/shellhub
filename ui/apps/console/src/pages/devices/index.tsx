@@ -97,7 +97,7 @@ export default function Devices() {
   const addDeviceTag = useAddDeviceTag();
   const removeDeviceTag = useRemoveDeviceTag();
   const renameDevice = useRenameDevice();
-  const canRename = useHasPermission("DeviceRename");
+  const canRename = useHasPermission("DeviceUpdate");
   const [manageTagsOpen, setManageTagsOpen] = useState(false);
 
   const { namespace: currentNamespace } = useCurrentNamespace();

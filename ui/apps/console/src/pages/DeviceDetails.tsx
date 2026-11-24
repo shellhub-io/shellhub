@@ -52,7 +52,7 @@ export default function DeviceDetails() {
   const { provisioningKeys } = useProvisioningKeys();
   const connect = useTerminalStore((s) => s.connect);
   const renameMutation = useRenameDevice();
-  const canRename = useHasPermission("DeviceRename");
+  const canRename = useHasPermission("DeviceUpdate");
   const addTagMutation = useAddDeviceTag();
   const removeTagMutation = useRemoveDeviceTag();
   const actionsController = useActionDialog({
