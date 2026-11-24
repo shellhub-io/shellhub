@@ -6,8 +6,8 @@ require (
 	github.com/bramvdbogaerde/go-scp v1.6.1
 	github.com/compose-spec/compose-go/v2 v2.16.2
 	github.com/containerd/errdefs v1.0.0
-	github.com/docker/cli v29.9.2+incompatible
-	github.com/docker/compose/v5 v5.7.0
+	github.com/docker/cli v29.9.3+incompatible
+	github.com/docker/compose/v5 v5.7.1
 	github.com/getkin/kin-openapi v0.153.0
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/go-resty/resty/v2 v2.17.2
@@ -162,7 +162,7 @@ require (
 	golang.org/x/time v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260825221802-da73d73af1c5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260825221802-da73d73af1c5 // indirect
-	google.golang.org/grpc v1.84.0 // indirect
+	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
