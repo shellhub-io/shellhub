@@ -125,7 +125,6 @@ export default function TagsPopover({
           <span
             role="presentation"
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
           >
             <Dropdown
               mode="content"
