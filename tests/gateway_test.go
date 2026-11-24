@@ -65,6 +65,22 @@ func fetch(t *testing.T, client *http.Client, target, host string, header http.H
 	return fetched{status: resp.StatusCode, header: resp.Header, body: string(body)}
 }
 
+func apiEndpoint(t *testing.T, compose *environment.DockerCompose, host string) string {
+	t.Helper()
+
+	info := fetch(t, withoutRedirects, compose.BaseURL()+"/info", host, nil)
+	require.Equal(t, http.StatusOK, info.status, info.body)
+
+	decoded := struct {
+		Endpoints struct {
+			API string `json:"api"`
+		} `json:"endpoints"`
+	}{}
+	require.NoError(t, json.Unmarshal([]byte(info.body), &decoded))
+
+	return decoded.Endpoints.API
+}
+
 func gatewayHost(t *testing.T, compose *environment.DockerCompose) string {
 	t.Helper()
 
@@ -236,11 +252,10 @@ func TestGateway(t *testing.T) {
 		assert.Equal(t, install.body, kickstart.body, "kickstart.sh is the install script under its other name")
 	})
 
-	t.Run("a request for a name the gateway does not serve is answered 404", func(t *testing.T) {
-		unknown := fetch(t, withoutRedirects, compose.BaseURL()+"/info", "unknown.example", nil)
-
-		assert.Equal(t, http.StatusNotFound, unknown.status)
-		assert.Empty(t, unknown.body)
+	t.Run("a request for a name other than the domain reaches the server over plain HTTP", func(t *testing.T) {
+		for _, name := range []string{"unknown.example", "203.0.113.10"} {
+			assert.Equal(t, name+":80", apiEndpoint(t, compose, name))
+		}
 	})
 
 	t.Run("a request under /internal is answered 404 rather than reaching the console", func(t *testing.T) {
@@ -296,22 +311,8 @@ func TestGateway(t *testing.T) {
 	})
 
 	t.Run("X-Forwarded-Port names the port the client addressed", func(t *testing.T) {
-		apiEndpoint := func(host string) string {
-			info := fetch(t, withoutRedirects, compose.BaseURL()+"/info", host, nil)
-			require.Equal(t, http.StatusOK, info.status, info.body)
-
-			decoded := struct {
-				Endpoints struct {
-					API string `json:"api"`
-				} `json:"endpoints"`
-			}{}
-			require.NoError(t, json.Unmarshal([]byte(info.body), &decoded))
-
-			return decoded.Endpoints.API
-		}
-
-		assert.Equal(t, "localhost:"+port, apiEndpoint(""), "the port in Host is the one the client addressed")
-		assert.Equal(t, "localhost:80", apiEndpoint("localhost"), "a Host without a port is answered with the port the gateway listens on")
+		assert.Equal(t, "localhost:"+port, apiEndpoint(t, compose, ""), "the port in Host is the one the client addressed")
+		assert.Equal(t, "localhost:80", apiEndpoint(t, compose, "localhost"), "a Host without a port is answered with the port the gateway listens on")
 	})
 
 	t.Run("a web terminal runs a command through the gateway", func(t *testing.T) {

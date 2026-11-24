@@ -155,10 +155,10 @@ http://{{ $cfg.Domain }} {
 	redir https://{host}{uri} 308
 }
 
-{{ end }}
 http:// {
 	respond 404
 }
+{{- end }}
 
 http://healthcheck.internal {
 	handle /healthz {
