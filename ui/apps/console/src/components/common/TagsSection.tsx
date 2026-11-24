@@ -5,6 +5,7 @@ import { isSdkError } from "@/api/errors";
 import { useTags } from "@/hooks/useTagRequests";
 import { useHasPermission } from "@/hooks/useHasPermission";
 import { LABEL_BASE } from "@/utils/styles";
+import { tagNameProblem } from "@/utils/tagName";
 
 interface TagsSectionProps {
   uid: string;
@@ -34,11 +35,7 @@ export default function TagsSection({
 
   const validate = (tag: string): string | null => {
     if (tags.includes(tag)) return "This tag is already added.";
-    if (tag.length < 3) return "Tag must be at least 3 characters.";
-    if (tag.length > 255) return "Tag must be at most 255 characters.";
-    if (!/^[a-zA-Z0-9]+$/.test(tag))
-      return "Tag must contain only letters and numbers.";
-    return null;
+    return tagNameProblem(tag)?.hint ?? null;
   };
 
   const handleAdd = async (value: string) => {
