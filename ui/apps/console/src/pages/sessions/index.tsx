@@ -129,7 +129,6 @@ function SessionActions({
         <div
           role="presentation"
           onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           <RecordingActionsMenu
             sessionUid={session.uid}

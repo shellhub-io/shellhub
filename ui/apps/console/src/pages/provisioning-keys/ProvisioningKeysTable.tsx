@@ -183,7 +183,6 @@ export default function ProvisioningKeysTable({
           <div
             role="presentation"
             onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
           >
             <ProvisioningKeyActionsMenu
               provisioningKey={key}
