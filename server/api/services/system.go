@@ -63,13 +63,14 @@ func (s *service) GetSystemInfo(ctx context.Context, reached origin.Origin) (*re
 		return nil, err
 	}
 
-	apiHost, _, _ := strings.Cut(reached.Host, ":")
+	hostname := reachedHostname(reached)
+
 	resp := &responses.SystemInfo{
 		Version: s.version,
 		Setup:   system.Setup,
 		Endpoints: &responses.SystemEndpointsInfo{
-			API: apiHost,
-			SSH: fmt.Sprintf("%s:%s", apiHost, s.sshPort),
+			API: reached.Host,
+			SSH: net.JoinHostPort(hostname, s.sshPort),
 		},
 		Authentication: &responses.SystemAuthenticationInfo{
 			Local: system.Authentication.Local.Enabled,
@@ -77,9 +78,7 @@ func (s *service) GetSystemInfo(ctx context.Context, reached origin.Origin) (*re
 	}
 
 	if reached.Port != "" {
-		resp.Endpoints.API = apiHost + ":" + reached.Port
-	} else {
-		resp.Endpoints.API = reached.Host
+		resp.Endpoints.API = net.JoinHostPort(hostname, reached.Port)
 	}
 
 	return resp, nil
@@ -130,12 +129,16 @@ func installServerAddress(reached origin.Origin, publicURL string) string {
 }
 
 func reachedPublicHost(reached origin.Origin, public *url.URL) bool {
+	return strings.EqualFold(reachedHostname(reached), public.Hostname())
+}
+
+func reachedHostname(reached origin.Origin) string {
 	host := reached.Host
 	if name, _, err := net.SplitHostPort(host); err == nil {
 		host = name
 	}
 
-	return strings.EqualFold(strings.Trim(host, "[]"), public.Hostname())
+	return strings.Trim(host, "[]")
 }
 
 func writeInstallOverride(b *strings.Builder, name, value string) {
