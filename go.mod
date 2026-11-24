@@ -16,7 +16,7 @@ require (
 	github.com/labstack/echo/v5 v5.4.6
 	github.com/maxmind/mmdbwriter v1.2.0
 	github.com/moby/moby/api v1.57.0
-	github.com/moby/moby/client v0.6.2
+	github.com/moby/moby/client v0.6.3
 	github.com/oschwald/geoip2-golang/v2 v2.5.0
 	github.com/posthog/posthog-go v1.44.1
 	github.com/redis/go-redis/v9 v9.23.0
