@@ -42,6 +42,26 @@ SHELLHUB_POSTGRES_EXTERNAL=$(env_var SHELLHUB_POSTGRES_EXTERNAL false)
 SHELLHUB_BILLING=$(env_var SHELLHUB_BILLING "")
 EXTRA_COMPOSE_FILE=${EXTRA_COMPOSE_FILE:-$(env_var EXTRA_COMPOSE_FILE "")}
 
+legacy_project=shellhub
+checkout_dir=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9_-' | sed 's/^[-_]*//')
+project_name=${COMPOSE_PROJECT_NAME:-$(env_var COMPOSE_PROJECT_NAME "")}
+
+legacy_project_started_here() {
+    docker ps -a --filter "label=com.docker.compose.project=$legacy_project" \
+        --format '{{.Label "com.docker.compose.project.working_dir"}}' 2>/dev/null \
+        | grep -qxF -- "$PWD"
+}
+
+if [ -z "$project_name" ] && [ "$checkout_dir" != "$legacy_project" ] && legacy_project_started_here; then
+    cat >&2 <<EOF
+🚫 ERROR: this checkout ran as compose project '$legacy_project'; without a name set, Compose would now call it '$checkout_dir'.
+  Add one line to $env_override:
+    COMPOSE_PROJECT_NAME=$legacy_project    keep the existing containers and data
+    COMPOSE_PROJECT_NAME=$checkout_dir    start a new, empty instance; run 'docker compose -p $legacy_project stop' first
+EOF
+    exit 1
+fi
+
 sbin_path="$PATH:/usr/sbin:/sbin"
 
 daemon_is_rootless() {

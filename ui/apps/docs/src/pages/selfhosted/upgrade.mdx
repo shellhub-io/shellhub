@@ -49,6 +49,12 @@ Your settings survive, because they are in `.env.override` and not in `.env`. If
 directly, the checkout has just overwritten your changes — which is why the quickstart says not
 to.
 
+Up to 0.31.1, every install ran as the Compose project `shellhub`, whatever its directory was
+called. Later releases name the project after the directory. If yours is not called `shellhub`,
+add `COMPOSE_PROJECT_NAME=shellhub` to `.env.override` now. Without it, `./bin/docker-compose`
+stops and asks for it when it finds the old containers. After a `docker compose down` there are
+none left to find, and the server comes up on a new, empty volume.
+
 Then pull and recreate:
 
 ```bash
