@@ -15,7 +15,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/labstack/echo/v5 v5.4.4
 	github.com/maxmind/mmdbwriter v1.2.0
-	github.com/moby/moby/api v1.56.1
+	github.com/moby/moby/api v1.57.0
 	github.com/moby/moby/client v0.6.2
 	github.com/oschwald/geoip2-golang/v2 v2.5.0
 	github.com/posthog/posthog-go v1.44.1
