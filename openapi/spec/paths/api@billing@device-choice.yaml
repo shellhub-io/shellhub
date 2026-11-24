@@ -1,7 +1,12 @@
 post:
   operationId: choiceDevices
   summary: Choice devices
-  description: Choice devices when device's limit is rechead.
+  description: |
+    Choose the devices to keep accepted when a namespace without an active subscription is above
+    its device limit. Every other accepted device moves to pending. The choice may name at most
+    as many distinct devices as the namespace's device limit. A choice above the limit is refused
+    with 400, and a namespace with an active subscription is refused with 409. Neither refusal
+    changes any device.
   security:
     - jwt: []
   tags:
@@ -17,11 +22,10 @@ post:
             choices:
               description: Device's list.
               type: array
+              minItems: 1
               items:
                 description: Device's ID.
                 type: string
-                minItems: 0
-                maxItems: 3
           required:
             - choices
   responses:
@@ -31,5 +35,9 @@ post:
       $ref: ../components/responses/400.yaml
     '403':
       $ref: ../components/responses/403.yaml
+    '404':
+      $ref: ../components/responses/404.yaml
+    '409':
+      $ref: ../components/responses/409.yaml
     '500':
       $ref: ../components/responses/500.yaml
