@@ -1839,6 +1839,7 @@ func TestService_AddNamespaceMember_FiresNotification(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	require.NotNil(t, created)
+	assert.Equal(t, ns.TenantID, got.TenantID)
 	assert.Equal(t, "invitee@test.com", got.RecipientEmail)
 	assert.Equal(t, "Invitee Person", got.RecipientName)
 	assert.Equal(t, now.Add(7*24*time.Hour), got.ExpiresAt)

@@ -206,6 +206,7 @@ func (s *service) intakeMembership(ctx context.Context, namespace *models.Namesp
 
 	if invitation != nil {
 		notification := &models.MembershipInvitationNotification{
+			TenantID:       namespace.TenantID,
 			Signature:      invitation.Sig,
 			ExpiresAt:      *invitation.ExpiresAt,
 			RecipientEmail: email,
