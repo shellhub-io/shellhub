@@ -60,7 +60,7 @@ func WithDeviceSelectorSource(source DeviceSelectorSource) Option {
 	}
 }
 
-var deviceSelectorInputs = []authorizer.Permission{authorizer.TagCreate, authorizer.TagDelete, authorizer.DeviceRename, authorizer.DeviceUpdate}
+var deviceSelectorInputs = []authorizer.Permission{authorizer.TagCreate, authorizer.TagDelete, authorizer.DeviceUpdate}
 
 func mustSetApart(source DeviceSelectorSource) {
 	edit := source.EditPermission()

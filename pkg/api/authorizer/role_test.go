@@ -114,7 +114,6 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceRemove,
 				authorizer.DeviceConnect,
-				authorizer.DeviceRename,
 				authorizer.DeviceDetails,
 				authorizer.DeviceUpdate,
 				authorizer.DeviceCustomFieldUpdate,
@@ -171,7 +170,6 @@ func TestRolePermissions(t *testing.T) {
 				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceRemove,
 				authorizer.DeviceConnect,
-				authorizer.DeviceRename,
 				authorizer.DeviceDetails,
 				authorizer.DeviceUpdate,
 				authorizer.DeviceCustomFieldUpdate,
@@ -217,7 +215,6 @@ func TestRolePermissions(t *testing.T) {
 			expected: []authorizer.Permission{
 				authorizer.DeviceStatusUpdate,
 				authorizer.DeviceConnect,
-				authorizer.DeviceRename,
 				authorizer.DeviceDetails,
 				authorizer.DeviceUpdate,
 				authorizer.DeviceCustomFieldUpdate,

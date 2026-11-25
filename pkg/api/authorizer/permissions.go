@@ -15,7 +15,6 @@ const (
 	DeviceUpdate
 	DeviceRemove
 	DeviceConnect
-	DeviceRename
 	DeviceDetails
 	DeviceCustomFieldUpdate
 
@@ -89,7 +88,6 @@ var observerPermissions = []Permission{
 var operatorPermissions = []Permission{
 	DeviceStatusUpdate,
 	DeviceConnect,
-	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,
@@ -110,7 +108,6 @@ var adminPermissions = []Permission{
 	DeviceStatusUpdate,
 	DeviceRemove,
 	DeviceConnect,
-	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,
@@ -165,7 +162,6 @@ var ownerPermissions = []Permission{
 	DeviceStatusUpdate,
 	DeviceRemove,
 	DeviceConnect,
-	DeviceRename,
 	DeviceDetails,
 	DeviceUpdate,
 	DeviceCustomFieldUpdate,

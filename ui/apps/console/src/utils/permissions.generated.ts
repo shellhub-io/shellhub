@@ -6,7 +6,6 @@ export type Permission =
   | "DeviceUpdate"
   | "DeviceRemove"
   | "DeviceConnect"
-  | "DeviceRename"
   | "DeviceDetails"
   | "DeviceCustomFieldUpdate"
   | "TagCreate"
@@ -60,7 +59,6 @@ export const rolePermissions = {
     "DeviceStatusUpdate",
     "DeviceRemove",
     "DeviceConnect",
-    "DeviceRename",
     "DeviceDetails",
     "DeviceUpdate",
     "DeviceCustomFieldUpdate",
@@ -113,7 +111,6 @@ export const rolePermissions = {
     "DeviceStatusUpdate",
     "DeviceRemove",
     "DeviceConnect",
-    "DeviceRename",
     "DeviceDetails",
     "DeviceUpdate",
     "DeviceCustomFieldUpdate",
@@ -155,7 +152,6 @@ export const rolePermissions = {
   operator: [
     "DeviceStatusUpdate",
     "DeviceConnect",
-    "DeviceRename",
     "DeviceDetails",
     "DeviceUpdate",
     "DeviceCustomFieldUpdate",

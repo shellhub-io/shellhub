@@ -273,7 +273,7 @@ func TestMountRefusesARowWhoseAccessDisagreesWithItsCaller(t *testing.T) {
 		},
 		{access: routetable.PathCode, admitted: []gateway.CallerKind{gateway.CallerUnstated}},
 		{
-			access:   routetable.Requires(authorizer.DeviceRename),
+			access:   routetable.Requires(authorizer.DeviceUpdate),
 			admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerPrincipal, gateway.CallerMember},
 		},
 		{access: routetable.Admin(allowAll), admitted: []gateway.CallerKind{gateway.CallerUnstated, gateway.CallerAdmin}},
@@ -348,7 +348,7 @@ func TestMountRefusesAPIKeysBeforeAMemberEndpoint(t *testing.T) {
 
 			router := newRouter()
 			require.NoError(t, routetable.Mount(router.Group("/api"), nil, []routetable.Route{
-				{Method: http.MethodGet, Path: "/row", Endpoint: gatewaytest.Recording(tc.kind, &reached), Access: routetable.Requires(authorizer.DeviceRename)},
+				{Method: http.MethodGet, Path: "/row", Endpoint: gatewaytest.Recording(tc.kind, &reached), Access: routetable.Requires(authorizer.DeviceUpdate)},
 			}))
 
 			assert.Equal(t, tc.status, serve(t, router, http.MethodGet, "/api/row", tc.caller, nil))
