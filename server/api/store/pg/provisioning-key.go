@@ -386,7 +386,7 @@ func (pg *Pg) ProvisioningKeyEventList(ctx context.Context, sc scope.Scope, keyD
 	history := db.NewSelect().
 		TableExpr("provisioning_key_events AS e").
 		ColumnExpr("e.*").
-		ColumnExpr("CASE WHEN e.refusal IS NULL AND e.replaced_device_uid IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid::text) END AS device_status").
+		ColumnExpr("CASE WHEN e.refusal IS NULL AND e.replaced_device_uid IS NULL THEN (SELECT status FROM devices d WHERE d.id = e.device_uid) END AS device_status").
 		ColumnExpr("(e.replaced_device_uid IS NULL AND e.created_at = MAX(e.created_at) FILTER (WHERE e.replaced_device_uid IS NULL) OVER (PARTITION BY e.device_uid)) AS is_current").
 		Where("e.provisioning_key_id = ?", keyDigest)
 
