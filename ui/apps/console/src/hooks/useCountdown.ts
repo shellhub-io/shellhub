@@ -1,46 +1,35 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 /**
- * Counts down to a timestamp, re-rendering each second, and reports when it passes. A null
- * target stops the timer rather than counting from zero.
+ * useCountdown returns the seconds left until endEpoch, a Unix time in seconds, with a fractional
+ * part the caller rounds as it shows them. It updates each second and stops at 0. It is null while
+ * endEpoch is null or not a finite number, and on the render that receives a new endEpoch, until
+ * the count for it starts, so an end never shows a count from before it was set.
  */
-export function useCountdown(targetTimestamp: number | null) {
-  const [timeLeft, setTimeLeft] = useState<string>("");
-  const [isExpired, setIsExpired] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+export function useCountdown(endEpoch: number | null): number | null {
+  const [latest, setLatest] = useState<{ epoch: number; left: number } | null>(null);
 
   useEffect(() => {
-    if (!targetTimestamp) return;
+    if (endEpoch === null || !Number.isFinite(endEpoch)) return;
 
-    const updateCountdown = () => {
-      const now = Date.now();
-      const diff = targetTimestamp * 1000 - now; // Convert to ms
-
-      if (diff <= 0) {
-        setTimeLeft("0 seconds");
-        setIsExpired(true);
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-        return;
-      }
-
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      setTimeLeft(
-        `${minutes} minute${minutes !== 1 ? "s" : ""} ${seconds} second${seconds !== 1 ? "s" : ""}`,
-      );
+    const update = () => {
+      const left = Math.max(0, endEpoch - Date.now() / 1000);
+      setLatest({ epoch: endEpoch, left });
+      return left;
     };
 
-    updateCountdown();
-    intervalRef.current = setInterval(updateCountdown, 1000);
+    const interval =
+      update() === 0
+        ? undefined
+        : setInterval(() => {
+            if (update() === 0) clearInterval(interval);
+          }, 1000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      clearInterval(interval);
+      setLatest(null);
     };
-  }, [targetTimestamp]);
+  }, [endEpoch]);
 
-  return { timeLeft, isExpired };
+  return latest?.epoch === endEpoch ? latest.left : null;
 }

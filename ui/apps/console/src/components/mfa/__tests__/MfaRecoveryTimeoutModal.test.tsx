@@ -46,7 +46,7 @@ describe("MfaRecoveryTimeoutModal", () => {
     it("displays countdown timer", () => {
       const now = Math.floor(Date.now() / 1000) * 1000;
       vi.setSystemTime(now);
-      const expiresAt = now / 1000 + 10 * 60; // 10 minutes
+      const expiresAt = now / 1000 + 61;
 
       render(
         <MfaRecoveryTimeoutModal
@@ -58,14 +58,14 @@ describe("MfaRecoveryTimeoutModal", () => {
       );
 
       expect(
-        screen.getByText(/\d+ minutes? \d+ seconds? remaining/i),
+        screen.getByText("1 minute 1 second remaining"),
       ).toBeInTheDocument();
     });
 
     it("updates countdown every second", () => {
       const now = Math.floor(Date.now() / 1000) * 1000;
       vi.setSystemTime(now);
-      const expiresAt = now / 1000 + 5 * 60; // 5 minutes
+      const expiresAt = now / 1000 + 5 * 60;
 
       render(
         <MfaRecoveryTimeoutModal
@@ -76,14 +76,17 @@ describe("MfaRecoveryTimeoutModal", () => {
         />,
       );
 
-      const initialText = screen.getByText(/remaining/).textContent;
+      expect(
+        screen.getByText("5 minutes 0 seconds remaining"),
+      ).toBeInTheDocument();
 
       act(() => {
         vi.advanceTimersByTime(1000);
       });
 
-      const updatedText = screen.getByText(/remaining/).textContent;
-      expect(initialText).not.toBe(updatedText);
+      expect(
+        screen.getByText("4 minutes 59 seconds remaining"),
+      ).toBeInTheDocument();
     });
 
     it("shows expired state when countdown reaches zero", () => {
@@ -325,17 +328,32 @@ describe("MfaRecoveryTimeoutModal", () => {
   });
 
   describe("Invalid Timestamp", () => {
-    it.each([NaN, 0])("still renders when expiresAt is %p", (expiresAt) => {
+    it("shows no time left when expiresAt is NaN", () => {
       render(
         <MfaRecoveryTimeoutModal
           open={true}
-          expiresAt={expiresAt}
+          expiresAt={NaN}
           onClose={onClose}
           onDisable={onDisable}
         />,
       );
 
       expect(screen.getByText(/recovery window/i)).toBeInTheDocument();
+      expect(screen.queryByText(/remaining|expired|NaN/i)).not.toBeInTheDocument();
+    });
+
+    it("reads an expiresAt of 0 as long expired", () => {
+      render(
+        <MfaRecoveryTimeoutModal
+          open={true}
+          expiresAt={0}
+          onClose={onClose}
+          onDisable={onDisable}
+        />,
+      );
+
+      expect(screen.getByText("Expired")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /disable mfa/i })).toBeDisabled();
     });
   });
 });

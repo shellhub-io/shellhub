@@ -259,7 +259,7 @@ describe("Login", () => {
   });
 
   describe("429 countdown", () => {
-    it("displays the remaining lockout time after the first interval tick", async () => {
+    it("shows the remaining lockout time before the first one-second tick", async () => {
       const epoch = Math.floor(Date.now() / 1000) + 30;
       setLoginError(429, { "x-account-lockout": String(epoch) });
 
@@ -269,11 +269,9 @@ describe("Login", () => {
       expect(
         await screen.findByText(/too many failed login attempts/i),
       ).toBeInTheDocument();
-
-      await waitFor(
-        () => expect(screen.getByText(/seconds/i)).toBeInTheDocument(),
-        { timeout: 2000 },
-      );
+      expect(
+        await screen.findByText(/\d+ seconds/, {}, { timeout: 500 }),
+      ).toBeInTheDocument();
     });
 
     it("allows a successful retry after the server deadline expires", async () => {
