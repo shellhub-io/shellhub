@@ -108,23 +108,20 @@ type DeviceService interface {
 	// deadline fails the step it reaches with that step's error.
 	DeleteDevice(ctx context.Context, uid models.UID, tenant string) error
 
-	// RenameDevice stores name, lowercased, as the name of the device uid in the namespace tenant. A
-	// name that differs only in case is left as it is. It returns ErrForbidden for an empty tenant,
-	// ErrDeviceNotFound when the device cannot be resolved, whatever the store's error, also when a
-	// parallel request deletes its row before the update, ErrDeviceDuplicated when another accepted
-	// device in the namespace holds the name, ErrDeviceSelectorOutOfReach when the new name moves the
-	// device into or out of the name pattern of a [DeviceSelector] whose source's EditPermission the
-	// role of the caller identity on ctx lacks, and the store's error otherwise. A device another
-	// request has only marked removed is still renamed. A ctx carrying no identity holds no
-	// permission. Any failure listing those rules is returned unchanged. This method is deprecated,
-	// use [DeviceService#UpdateDevice] instead.
-	RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error
-
 	LookupDevice(ctx context.Context, namespace, name string) (*models.Device, error)
 	OfflineDevice(ctx context.Context, tenant string, uid models.UID) error
 
-	// UpdateDevice renames the device the way RenameDevice does, and leaves it alone when req.Name
-	// is empty.
+	// UpdateDevice stores req.Name, lowercased, as the name of the device req.UID in the namespace
+	// req.TenantID. An empty name, or one that differs only in case, leaves the device as it is. It
+	// returns ErrForbidden for an empty tenant, ErrDeviceNotFound when the device cannot be resolved,
+	// whatever the store's error, also when a parallel request deletes its row before the update,
+	// ErrDeviceDuplicated when another accepted device in the namespace holds the name,
+	// ErrDeviceSelectorOutOfReach when the new name moves the device into or out of the name pattern
+	// of a [DeviceSelector] whose source's EditPermission the role of the caller identity on ctx
+	// lacks, and the store's error otherwise. A device another request has only marked removed is
+	// still renamed. A ctx carrying no identity holds no permission. Any failure listing those rules
+	// is returned unchanged. A ctx cancelled or past its deadline fails the step it reaches, with
+	// ErrDeviceNotFound at the device lookup and with that step's error after it.
 	UpdateDevice(ctx context.Context, req *requests.DeviceUpdate) error
 	// UpdateDeviceStatus updates a device's status. Devices that are already accepted cannot change their status.
 	//
@@ -414,24 +411,6 @@ func (s *service) MakeTeamDevice(ctx context.Context, tenantID, uid string) erro
 	}
 
 	return deviceStoreError(models.UID(uid), s.store.DeviceSetOwner(ctx, sc, uid, ""))
-}
-
-func (s *service) RenameDevice(ctx context.Context, uid models.UID, name, tenant string) error {
-	sc, err := BoundTo(tenant)
-	if err != nil {
-		return err
-	}
-
-	device, err := s.store.DeviceResolve(ctx, sc, store.DeviceUIDResolver, string(uid))
-	if err != nil {
-		return NewErrDeviceNotFound(uid, err)
-	}
-
-	if strings.EqualFold(device.Name, name) {
-		return nil
-	}
-
-	return s.renameDevice(ctx, sc, device, name)
 }
 
 func (s *service) renameDevice(ctx context.Context, sc scope.Scope, device *models.Device, name string) error {

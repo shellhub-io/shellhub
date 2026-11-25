@@ -197,7 +197,7 @@ func TestDeviceRenameFollowsTheRulesSelectingByName(t *testing.T) {
 
 			service := NewService(storeMock, privateKey, publicKey, nil, WithDeviceSelectorSource(firewallSelectors(tc.extra...)))
 
-			err := service.RenameDevice(ctx, models.UID(selectorDeviceUID), tc.to, "tenant1")
+			err := service.UpdateDevice(ctx, &requests.DeviceUpdate{TenantID: "tenant1", UID: selectorDeviceUID, Name: tc.to})
 
 			if tc.renamed {
 				require.NoError(t, err)
