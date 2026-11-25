@@ -34,7 +34,7 @@ var (
 	ownAccount      = routetable.OwnAccount.String()
 	pathCode        = routetable.PathCode.String()
 	namespaceMember = routetable.NamespaceMember.String()
-	permission      = routetable.Requires(authorizer.DeviceRename).String()
+	permission      = routetable.Requires(authorizer.DeviceUpdate).String()
 	deviceToken     = routetable.DeviceToken.String()
 	anonymous       = routetable.Anonymous.String()
 )

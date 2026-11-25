@@ -220,7 +220,7 @@ func TestDeviceSelectorSourceNamesAPermissionThatSetsItApart(t *testing.T) {
 	}{
 		{"a permission only administrators hold", authorizer.FirewallEdit, true},
 		{"the permission that moves tags", authorizer.TagCreate, false},
-		{"the permission that renames devices", authorizer.DeviceRename, false},
+		{"the permission that renames devices", authorizer.DeviceUpdate, false},
 		{"a permission every role that moves tags holds", authorizer.DeviceStatusUpdate, false},
 		{"a permission no role holds", authorizer.Permission(-1), false},
 	}
