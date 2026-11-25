@@ -1,3 +1,5 @@
+import { pluralize } from "@/utils/count";
+
 /**
  * The Unix time in seconds at which an account lockout ends, read from the `X-Account-Lockout`
  * header of a 429. A missing header, or one that is zero or not a number, gives null.
@@ -17,5 +19,5 @@ export function formatTimeLeft(seconds: number): string {
     ? [Math.floor(seconds), "second"]
     : [Math.floor(seconds / 60), "minute"];
 
-  return `${count} ${unit}${count === 1 ? "" : "s"}`;
+  return pluralize(count, unit);
 }

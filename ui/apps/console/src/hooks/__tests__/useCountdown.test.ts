@@ -2,124 +2,91 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useCountdown } from "../useCountdown";
 
+const NOW = 1_700_000_000;
+
+function renderRecordingCountdown(end: number | null) {
+  const seen: (number | null)[] = [];
+  const { rerender } = renderHook<number | null, { end: number | null }>(
+    ({ end }) => {
+      const left = useCountdown(end);
+      seen.push(left);
+      return left;
+    },
+    { initialProps: { end } },
+  );
+  return { seen, rerender };
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
+  vi.setSystemTime(NOW * 1000);
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
 describe("useCountdown", () => {
-  it("returns empty string when targetTimestamp is null", () => {
-    const { result } = renderHook(() => useCountdown(null));
-
-    expect(result.current.timeLeft).toBe("");
-    expect(result.current.isExpired).toBe(false);
+  it.each([null, NaN])("is null and runs no timer for an end of %p", (end) => {
+    const { result } = renderHook(() => useCountdown(end));
+    expect(result.current).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("calculates time left correctly", () => {
-    const now = Math.floor(Date.now() / 1000) * 1000;
-    vi.setSystemTime(now);
-
-    const target = now / 1000 + 330;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    expect(result.current.timeLeft).toBe("5 minutes 30 seconds");
-    expect(result.current.isExpired).toBe(false);
+  it("is 0 at once for an end already past", () => {
+    const { result } = renderHook(() => useCountdown(NOW - 5));
+    expect(result.current).toBe(0);
   });
 
-  it("handles singular minute and second", () => {
-    const now = Math.floor(Date.now() / 1000) * 1000;
-    vi.setSystemTime(now);
-
-    const target = now / 1000 + 61;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    expect(result.current.timeLeft).toBe("1 minute 1 second");
-  });
-
-  it("updates countdown every second", () => {
-    const now = Math.floor(Date.now() / 1000) * 1000;
-    vi.setSystemTime(now);
-
-    const target = now / 1000 + 10;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    expect(result.current.timeLeft).toBe("0 minutes 10 seconds");
+  it("counts the seconds left down each second, stopping at 0", () => {
+    const { result } = renderHook(() => useCountdown(NOW + 3));
+    expect(result.current).toBe(3);
 
     act(() => {
-      vi.advanceTimersByTime(3000);
+      vi.advanceTimersByTime(1000);
     });
-
-    expect(result.current.timeLeft).toBe("0 minutes 7 seconds");
-  });
-
-  it("marks as expired when time reaches zero", () => {
-    const now = Date.now();
-    vi.setSystemTime(now);
-
-    const target = Math.floor(now / 1000) + 2;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    expect(result.current.isExpired).toBe(false);
-
-    act(() => {
-      vi.advanceTimersByTime(3000);
-    });
-
-    expect(result.current.timeLeft).toBe("0 seconds");
-    expect(result.current.isExpired).toBe(true);
-  });
-
-  it("stops interval after expiry", () => {
-    const now = Date.now();
-    vi.setSystemTime(now);
-
-    const target = Math.floor(now / 1000) + 1;
-
-    const { result } = renderHook(() => useCountdown(target));
-
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-
-    const expiredTime = result.current.timeLeft;
+    expect(result.current).toBe(2);
 
     act(() => {
       vi.advanceTimersByTime(5000);
     });
-
-    expect(result.current.timeLeft).toBe(expiredTime);
+    expect(result.current).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("cleans up interval on unmount", () => {
-    const now = Date.now();
-    vi.setSystemTime(now);
-    const target = Math.floor(now / 1000) + 60;
-
-    const { unmount } = renderHook(() => useCountdown(target));
-
-    const timerCount = vi.getTimerCount();
+  it("stops its timer on unmount", () => {
+    const { unmount } = renderHook(() => useCountdown(NOW + 60));
     unmount();
-
-    expect(vi.getTimerCount()).toBeLessThan(timerCount);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("handles already expired timestamp", () => {
-    const now = Date.now();
-    vi.setSystemTime(now);
+  it("never shows the old end's count for a new end", () => {
+    const { seen, rerender } = renderRecordingCountdown(NOW + 1);
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    seen.length = 0;
 
-    const target = Math.floor(now / 1000) - 5;
+    rerender({ end: NOW + 60 });
 
-    const { result } = renderHook(() => useCountdown(target));
+    expect(seen).not.toContain(0);
+    expect(seen.at(-1)).toBe(58);
+  });
 
-    expect(result.current.timeLeft).toBe("0 seconds");
-    expect(result.current.isExpired).toBe(true);
+  it("never shows a count from before the end was cleared and set again", () => {
+    const { seen, rerender } = renderRecordingCountdown(NOW + 60);
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    rerender({ end: null });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    seen.length = 0;
+
+    rerender({ end: NOW + 60 });
+
+    expect(seen).not.toContain(58);
+    expect(seen.at(-1)).toBe(55);
   });
 });

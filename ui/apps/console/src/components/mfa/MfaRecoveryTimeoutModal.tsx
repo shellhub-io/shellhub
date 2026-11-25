@@ -5,6 +5,7 @@ import { apiErrorMessage, isSdkError } from "@/api/errors";
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import Modal from "@/components/common/Modal";
 import { useCountdown } from "@/hooks/useCountdown";
+import { pluralize } from "@/utils/count";
 
 const RECOVERY_SESSION_ENDED_MESSAGE =
   "This recovery session has expired or was already used. Sign in with another recovery code or contact support.";
@@ -14,6 +15,10 @@ interface MfaRecoveryTimeoutModalProps {
   expiresAt: number; // Unix timestamp
   onClose: () => void;
   onDisable: () => Promise<void>;
+}
+
+function minutesAndSeconds(secondsLeft: number) {
+  return `${pluralize(Math.floor(secondsLeft / 60), "minute")} ${pluralize(Math.floor(secondsLeft % 60), "second")}`;
 }
 
 /**
@@ -29,7 +34,8 @@ export default function MfaRecoveryTimeoutModal({
   const [hasAccess, setHasAccess] = useState(false);
   const [disabling, setDisabling] = useState(false);
   const [error, setError] = useState("");
-  const { timeLeft, isExpired } = useCountdown(expiresAt);
+  const secondsLeft = useCountdown(expiresAt);
+  const isExpired = secondsLeft === 0;
 
   const disableErrorMessage = (err: unknown) =>
     isSdkError(err) && (err.status === 401 || err.status === 403)
@@ -60,7 +66,11 @@ export default function MfaRecoveryTimeoutModal({
       description={
         <>
           <span className="font-mono text-accent-yellow">
-            {isExpired ? "Expired" : `${timeLeft} remaining`}
+            {secondsLeft === null
+              ? ""
+              : isExpired
+                ? "Expired"
+                : `${minutesAndSeconds(secondsLeft)} remaining`}
           </span>
           . You signed in with a recovery code, so you can turn MFA off now if
           you lost your authenticator.
