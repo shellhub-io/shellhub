@@ -175,28 +175,12 @@ func TestDeviceLifecycle(t *testing.T) {
 				expectedName: "put-renamed",
 			},
 			{
-				description:  "through PATCH to a name another accepted device holds fails",
+				description:  "through the removed PATCH route leaves the name alone",
 				method:       http.MethodPatch,
-				hostname:     "patch-duplicate",
-				name:         "taken",
-				expectedCode: http.StatusConflict,
-				expectedName: "patch-duplicate",
-			},
-			{
-				description:  "through PATCH to that name in another case fails",
-				method:       http.MethodPatch,
-				hostname:     "patch-duplicate-in-another-case",
-				name:         "TAKEN",
-				expectedCode: http.StatusConflict,
-				expectedName: "patch-duplicate-in-another-case",
-			},
-			{
-				description:  "through PATCH stores the new name in lowercase",
-				method:       http.MethodPatch,
-				hostname:     "patch-mixed-case",
-				name:         "Patch-Renamed",
-				expectedCode: http.StatusOK,
-				expectedName: "patch-renamed",
+				hostname:     "patch-removed",
+				name:         "patch-renamed",
+				expectedCode: http.StatusMethodNotAllowed,
+				expectedName: "patch-removed",
 			},
 		}
 

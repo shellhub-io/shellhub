@@ -339,7 +339,7 @@ func TestMCPDeleteDevice(t *testing.T) {
 func TestMCPRenameDevice(t *testing.T) {
 	mock := mocks.NewMockService(t)
 	mock.
-		On("RenameDevice", gomock.Anything, models.UID("uid1"), "newname", mcpCallerTenant).
+		On("UpdateDevice", gomock.Anything, &requests.DeviceUpdate{TenantID: mcpCallerTenant, UID: "uid1", Name: "newname"}).
 		Return(nil).
 		Once()
 
@@ -350,6 +350,28 @@ func TestMCPRenameDevice(t *testing.T) {
 	assert.False(t, isErr)
 	assert.Contains(t, text, "renamed")
 	mock.AssertExpectations(t)
+}
+
+func TestMCPRenameDeviceRejectsAnInvalidName(t *testing.T) {
+	cases := []struct {
+		description string
+		args        string
+		expected    string
+	}{
+		{description: "an empty name", args: `{"uid":"uid1","name":""}`, expected: "name must not be empty"},
+		{description: "a name outside the device name rule", args: `{"uid":"uid1","name":"a b"}`, expected: "internal error"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.description, func(t *testing.T) {
+			rec := mcpCall(t, mocks.NewMockService(t), mcpCallerTenant, authorizer.RoleOwner,
+				mcpToolCall("shellhub_rename_device", tc.args))
+
+			text, isErr := mcpToolResult(t, rec)
+			assert.True(t, isErr)
+			assert.Contains(t, text, tc.expected)
+		})
+	}
 }
 
 // TestMCPGetStats ensures the tool reaches the stats handler scoped to the

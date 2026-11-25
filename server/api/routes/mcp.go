@@ -242,9 +242,12 @@ func addDeviceTools(s *mcpserver.MCPServer, router http.Handler) {
 			args := req.GetArguments()
 			uid, _ := args["uid"].(string)
 			name, _ := args["name"].(string)
+			if name == "" {
+				return mcp.NewToolResultError("name must not be empty"), nil
+			}
 
 			body, _ := json.Marshal(map[string]string{"name": name})
-			rec := mcpAPICall(ctx, router, http.MethodPatch,
+			rec := mcpAPICall(ctx, router, http.MethodPut,
 				"/api/devices/"+url.PathEscape(uid), bytes.NewReader(body))
 
 			return mcpAPIOK(rec, fmt.Sprintf("device %s renamed to %s", uid, name)), nil
