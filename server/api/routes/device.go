@@ -25,7 +25,6 @@ const (
 	ResolveDeviceURL           = "/devices/resolve"
 	DeviceLocationsURL         = "/devices/locations"
 	DeleteDeviceURL            = "/devices/:uid"
-	RenameDeviceURL            = "/devices/:uid"
 	UpdateDeviceStatusURL      = "/devices/:uid/:status"
 	UpdateDevice               = "/devices/:uid"
 	SetDeviceCustomFieldURL    = "/devices/:uid/custom_fields/:key"
@@ -271,29 +270,6 @@ func (h *Handler) DeleteDevice(c *gateway.Context) error {
 	}
 
 	if err := h.service.DeleteDevice(c.Ctx(), models.UID(req.UID), tenant); err != nil {
-		return err
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-// RenameDevice changes a device's name, which is part of the SSHID clients connect by.
-func (h *Handler) RenameDevice(c *gateway.Context) error {
-	var req requests.DeviceRename
-	if err := c.Bind(&req); err != nil {
-		return err
-	}
-
-	if err := c.Validate(&req); err != nil {
-		return err
-	}
-
-	var tenant string
-	if c.Tenant() != nil {
-		tenant = c.Tenant().ID
-	}
-
-	if err := h.service.RenameDevice(c.Ctx(), models.UID(req.UID), req.Name, tenant); err != nil {
 		return err
 	}
 

@@ -74,12 +74,6 @@ type DeviceDelete struct {
 	DeviceParam
 }
 
-// DeviceRename is the structure to represent the request data for rename device endpoint.
-type DeviceRename struct {
-	DeviceParam
-	Name string `json:"name" validate:"required"`
-}
-
 // DeviceUpdateStatus is the request to accept, reject or re-pend a device. The target status is a
 // path parameter, so the same route serves all three transitions.
 type DeviceUpdateStatus struct {

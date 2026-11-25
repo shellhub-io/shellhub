@@ -285,71 +285,17 @@ func TestDeleteDevice(t *testing.T) {
 	}
 }
 
-func TestRenameDevice(t *testing.T) {
+func TestPatchDeviceDoesNotRename(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
-	cases := []struct {
-		title          string
-		renamePayload  requests.DeviceRename
-		tenant         string
-		requiredMocks  func(req requests.DeviceRename)
-		expectedStatus int
-	}{
-		{
-			title: "fails when bind fails to validate uid",
-			renamePayload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: ""},
-			},
-			tenant:         "tenant-id",
-			requiredMocks:  func(_ requests.DeviceRename) {},
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			title: "fails when try to rename a non-existing device",
-			renamePayload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "1234"},
-				Name:        "name",
-			},
-			tenant: "tenant-id",
-			requiredMocks: func(req requests.DeviceRename) {
-				mock.On("RenameDevice", gomock.Anything, models.UID("1234"), req.Name, "tenant-id").Return(svc.ErrNotFound)
-			},
-			expectedStatus: http.StatusNotFound,
-		},
-		{
-			title: "success when try to rename an existing device",
-			renamePayload: requests.DeviceRename{
-				DeviceParam: requests.DeviceParam{UID: "123"},
-				Name:        "name",
-			},
-			tenant: "tenant-id",
-			requiredMocks: func(req requests.DeviceRename) {
-				mock.On("RenameDevice", gomock.Anything, models.UID("123"), req.Name, "tenant-id").Return(nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/devices/123", strings.NewReader(`{"name":"renamed"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: "tenant-id"})
+	rec := httptest.NewRecorder()
 
-	for _, tc := range cases {
-		t.Run(tc.title, func(t *testing.T) {
-			tc.requiredMocks(tc.renamePayload)
+	newTestRouter(t, mock).ServeHTTP(rec, req)
 
-			jsonData, err := json.Marshal(tc.renamePayload)
-			if err != nil {
-				require.NoError(t, err)
-			}
-
-			req := httptest.NewRequestWithContext(t.Context(), http.MethodPatch, "/api/devices/"+tc.renamePayload.UID, strings.NewReader(string(jsonData)))
-			req.Header.Set("Content-Type", "application/json")
-			req = identitytest.As(req, identity.Identity{Role: authorizer.RoleOwner, TenantID: tc.tenant})
-			rec := httptest.NewRecorder()
-
-			e := newTestRouter(t, mock)
-			e.ServeHTTP(rec, req)
-
-			assert.Equal(t, tc.expectedStatus, rec.Result().StatusCode)
-		})
-	}
+	assert.Equal(t, http.StatusMethodNotAllowed, rec.Result().StatusCode)
 }
 
 func TestUpdateDeviceStatus(t *testing.T) {

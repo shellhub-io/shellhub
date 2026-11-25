@@ -55,7 +55,6 @@ func (h *Handler) publicRoutes() []routetable.Route {
 		{Method: http.MethodGet, Path: DeviceLocationsURL, Endpoint: gateway.Legacy(h.GetDeviceLocations), Access: routetable.NamespaceMember},
 		{Method: http.MethodGet, Path: ResolveDeviceURL, Endpoint: gateway.Legacy(h.ResolveDevice), Access: routetable.NamespaceMember},
 		{Method: http.MethodPut, Path: UpdateDevice, Endpoint: gateway.Legacy(h.UpdateDevice), Access: routetable.Requires(authorizer.DeviceUpdate)},
-		{Method: http.MethodPatch, Path: RenameDeviceURL, Endpoint: gateway.Legacy(h.RenameDevice), Access: routetable.Requires(authorizer.DeviceRename)},
 		{Method: http.MethodGet, Path: TenantRegistrationsURL, Endpoint: gateway.Legacy(h.TenantRegistrations), Access: routetable.Requires(authorizer.DeviceStatusUpdate)},
 		{Method: http.MethodPatch, Path: UpdateDeviceStatusURL, Endpoint: gateway.Legacy(h.UpdateDeviceStatus), Access: routetable.Requires(authorizer.DeviceStatusUpdate)},
 
