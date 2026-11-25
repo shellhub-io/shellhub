@@ -67,10 +67,12 @@ func (m MembershipInvitation) IsPending() bool {
 // invitation email, which reads it without a single store round-trip.
 //
 // It is the single contract across the shellhub↔cloud seam: JSON-encoded over the worker's
-// []byte transport, replacing the former positional colon-delimited string. It deliberately
-// carries only what the email template consumes — not the role or namespace name, which the
-// template uses neither of.
+// []byte transport, replacing the former positional colon-delimited string. It carries what the
+// email template consumes, and the inviting namespace's tenant ID so that delivery can be limited
+// per namespace; not the role or namespace name, which the template uses neither of.
 type MembershipInvitationNotification struct {
+	// TenantID is the namespace that issued the invitation.
+	TenantID string `json:"tenant_id"`
 	// Signature is the invitation's one-time signature; the accept-invite link is keyed by it.
 	Signature string `json:"signature"`
 	// ExpiresAt is when the invitation stops resolving, shown to the recipient as the link expiry.
