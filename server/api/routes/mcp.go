@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v5"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -27,9 +28,22 @@ type mcpCaller struct {
 
 var mcpCredentialHeaders = []string{"X-API-Key", "Authorization"}
 
-// SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp.
+const mcpSessionIdleTTL = 10 * time.Minute
+
+// SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp and /mcp/*. A session that receives
+// no request for mcpSessionIdleTTL is removed within half that again, by a sweeper goroutine that
+// runs for the life of the process. An open GET stream does not count as a request. Each later
+// request carrying the removed session's ID still runs, but without the client info and other
+// per-session state the old session held.
 func SetupMCPRoutes(router *echo.Echo) {
-	s := buildMCPServer(router)
+	streamable := newMCPHandler(router, mcpSessionIdleTTL)
+
+	router.Any("/mcp", echo.WrapHandler(streamable))
+	router.Any("/mcp/*", echo.WrapHandler(streamable))
+}
+
+func newMCPHandler(router http.Handler, idleTTL time.Duration, opts ...mcpserver.ServerOption) *mcpserver.StreamableHTTPServer {
+	s := buildMCPServer(router, opts...)
 
 	httpCtxFn := func(ctx context.Context, r *http.Request) context.Context {
 		caller, _ := identity.FromContext(r.Context())
@@ -47,17 +61,15 @@ func SetupMCPRoutes(router *echo.Echo) {
 		return context.WithValue(ctx, mcpCallerKey{}, mcpCaller{tenantID: caller.TenantID, credentials: credentials})
 	}
 
-	streamable := mcpserver.NewStreamableHTTPServer(s,
+	return mcpserver.NewStreamableHTTPServer(s,
 		mcpserver.WithHTTPContextFunc(httpCtxFn),
+		mcpserver.WithSessionIdleTTL(idleTTL),
 	)
-
-	router.Any("/mcp", echo.WrapHandler(streamable))
-	router.Any("/mcp/*", echo.WrapHandler(streamable))
 }
 
-func buildMCPServer(router http.Handler) *mcpserver.MCPServer {
+func buildMCPServer(router http.Handler, opts ...mcpserver.ServerOption) *mcpserver.MCPServer {
 	s := mcpserver.NewMCPServer("shellhub", "1.0.0",
-		mcpserver.WithToolCapabilities(true),
+		append([]mcpserver.ServerOption{mcpserver.WithToolCapabilities(true)}, opts...)...,
 	)
 
 	addDeviceTools(s, router)
