@@ -19,21 +19,24 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
+	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/sirupsen/logrus"
 )
 
 type mcpCallerKey struct{}
 
 type mcpCaller struct {
-	tenantID    string
-	credentials http.Header
+	tenantID string
+	apiKey   string
 }
-
-var mcpCredentialHeaders = []string{"X-API-Key", "Authorization"}
 
 const mcpSessionIdleTTL = 10 * time.Minute
 
-// SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp and /mcp/*. A session that receives
+// SetupMCPRoutes mounts the MCP Streamable HTTP server at /mcp and /mcp/*. It serves only a caller
+// that authenticated with a namespace API key, and each tool call it replays carries that key and no
+// other credential. A request with no credential, or one the authenticator cannot honour, gets 401
+// from the authenticator; one that authenticated any other way gets 403. Both are refused before
+// the transport sees the request, so a refused caller never opens a session. A session that receives
 // no request for mcpSessionIdleTTL is removed within half that again, by a sweeper goroutine that
 // runs for the life of the process. An open GET stream does not count as a request. Each later
 // request carrying the removed session's ID still runs, but without the client info and other
@@ -42,8 +45,8 @@ const mcpSessionIdleTTL = 10 * time.Minute
 func SetupMCPRoutes(router *echo.Echo) {
 	streamable := newMCPHandler(router, mcpSessionIdleTTL, logrus.NewEntry(logrus.StandardLogger()))
 
-	router.Any("/mcp", echo.WrapHandler(streamable))
-	router.Any("/mcp/*", echo.WrapHandler(streamable))
+	router.Any("/mcp", echo.WrapHandler(streamable), routesmiddleware.RequiresAPIKey)
+	router.Any("/mcp/*", echo.WrapHandler(streamable), routesmiddleware.RequiresAPIKey)
 }
 
 func newMCPHandler(router http.Handler, idleTTL time.Duration, log *logrus.Entry, opts ...mcpserver.ServerOption) *mcpserver.StreamableHTTPServer {
@@ -55,14 +58,7 @@ func newMCPHandler(router http.Handler, idleTTL time.Duration, log *logrus.Entry
 			return ctx
 		}
 
-		credentials := http.Header{}
-		for _, key := range mcpCredentialHeaders {
-			if value := r.Header.Get(key); value != "" {
-				credentials.Set(key, value)
-			}
-		}
-
-		return context.WithValue(ctx, mcpCallerKey{}, mcpCaller{tenantID: caller.TenantID, credentials: credentials})
+		return context.WithValue(ctx, mcpCallerKey{}, mcpCaller{tenantID: caller.TenantID, apiKey: caller.APIKey})
 	}
 
 	return mcpserver.NewStreamableHTTPServer(s,
@@ -110,12 +106,8 @@ func mcpAPICall(ctx context.Context, router http.Handler, method, target string,
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	if caller, ok := ctx.Value(mcpCallerKey{}).(mcpCaller); ok {
-		for key, values := range caller.credentials {
-			for _, value := range values {
-				req.Header.Add(key, value)
-			}
-		}
+	if caller, ok := ctx.Value(mcpCallerKey{}).(mcpCaller); ok && caller.apiKey != "" {
+		req.Header.Set("X-API-Key", caller.apiKey)
 	}
 
 	rec := httptest.NewRecorder()

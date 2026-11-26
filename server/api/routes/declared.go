@@ -10,7 +10,7 @@ import (
 // [routetable.Mount] and are not included.
 func Declared() map[string]string {
 	return map[string]string{
-		routetable.Address(echo.RouteAny, "/mcp"):   "the MCP server replays each tool call against the table's own routes",
-		routetable.Address(echo.RouteAny, "/mcp/*"): "the MCP server replays each tool call against the table's own routes",
+		routetable.Address(echo.RouteAny, "/mcp"):   "the MCP server replays each tool call against the table's own routes; RequiresAPIKey admits only an API key",
+		routetable.Address(echo.RouteAny, "/mcp/*"): "the MCP server replays each tool call against the table's own routes; RequiresAPIKey admits only an API key",
 	}
 }
