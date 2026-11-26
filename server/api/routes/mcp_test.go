@@ -20,6 +20,8 @@ import (
 	"github.com/shellhub-io/shellhub/pkg/models"
 	routesmiddleware "github.com/shellhub-io/shellhub/server/api/routes/middleware"
 	"github.com/shellhub-io/shellhub/server/api/services/mocks"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	gomock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -449,7 +451,8 @@ func TestMCPSweepsAnIdleSessionAndKeepsServingItsClient(t *testing.T) {
 		}
 	})
 
-	handler := newMCPHandler(router, time.Second, mcpserver.WithHooks(hooks))
+	logger, logs := test.NewNullLogger()
+	handler := newMCPHandler(router, time.Second, logrus.NewEntry(logger), mcpserver.WithHooks(hooks))
 	t.Cleanup(func() { require.NoError(t, handler.Shutdown(context.Background())) })
 
 	initialized := mcpSessionRequest(t, handler, "",
@@ -464,9 +467,27 @@ func TestMCPSweepsAnIdleSessionAndKeepsServingItsClient(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "the idle session was never swept")
 	}
+	assert.Empty(t, logs.AllEntries(), "a sweep is routine and must not write a log line per session")
 
 	text, isErr := mcpToolResult(t, mcpSessionRequest(t, handler, sessionID, mcpToolCall("shellhub_get_namespace", `{}`)))
 	assert.False(t, isErr, text)
 	assert.Contains(t, text, mcpCallerTenant)
 	service.AssertExpectations(t)
+}
+
+func TestMCPLoggerKeepsWarningsAndErrorsOnly(t *testing.T) {
+	logger, logs := test.NewNullLogger()
+	mcpLogger := newMCPLogger(logrus.NewEntry(logger)).With("component", "mcp")
+
+	mcpLogger.Info("Sweeping expired session", "session", "mcp-session-1")
+	mcpLogger.Warn("failed to terminate session", "session", "mcp-session-2")
+	mcpLogger.Error("panic in session cleanup goroutine")
+
+	entries := logs.AllEntries()
+	require.Len(t, entries, 2)
+	assert.Equal(t, logrus.WarnLevel, entries[0].Level)
+	assert.Equal(t, "failed to terminate session", entries[0].Message)
+	assert.Equal(t, "mcp-session-2", entries[0].Data["session"])
+	assert.Equal(t, "mcp", entries[0].Data["component"])
+	assert.Equal(t, logrus.ErrorLevel, entries[1].Level)
 }
