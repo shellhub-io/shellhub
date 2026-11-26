@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -203,4 +205,77 @@ func TestDockerConnectorListen(t *testing.T) {
 
 		require.NoError(t, requireListenReturned(t, listenUntil(t, ctx, daemon)))
 	})
+}
+
+func TestContainerKeyPath(t *testing.T) {
+	const id = "a1b2c3d4e5f6"
+
+	cases := []struct {
+		name          string
+		configured    string
+		inDir         bool
+		inParent      bool
+		parentUnknown bool
+		want          string
+	}{
+		{
+			name:       "uses the configured directory when the key is only there",
+			configured: "keys",
+			inDir:      true,
+			want:       "keys/a1b2c3d4e5f6.key",
+		},
+		{
+			name:       "keeps the key an earlier version wrote to the parent directory",
+			configured: "keys",
+			inParent:   true,
+			want:       "a1b2c3d4e5f6.key",
+		},
+		{
+			name:       "prefers the configured directory when the key is in both",
+			configured: "keys",
+			inDir:      true,
+			inParent:   true,
+			want:       "keys/a1b2c3d4e5f6.key",
+		},
+		{
+			name:       "creates a new key in the configured directory",
+			configured: "keys",
+			want:       "keys/a1b2c3d4e5f6.key",
+		},
+		{
+			name:          "keeps a parent key it cannot inspect rather than creating a new identity",
+			configured:    "keys",
+			parentUnknown: true,
+			want:          "a1b2c3d4e5f6.key",
+		},
+		{
+			name:       "uses the configured directory when it ends in a slash",
+			configured: "keys/",
+			inDir:      true,
+			want:       "keys/a1b2c3d4e5f6.key",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			parent := t.TempDir()
+			dir := filepath.Join(parent, "keys")
+			require.NoError(t, os.Mkdir(dir, 0o700))
+
+			if tc.inDir {
+				require.NoError(t, os.WriteFile(filepath.Join(dir, id+".key"), []byte("key"), 0o600))
+			}
+
+			if tc.inParent {
+				require.NoError(t, os.WriteFile(filepath.Join(parent, id+".key"), []byte("key"), 0o600))
+			}
+
+			if tc.parentUnknown {
+				loop := filepath.Join(parent, id+".key")
+				require.NoError(t, os.Symlink(loop, loop))
+			}
+
+			require.Equal(t, parent+"/"+tc.want, containerKeyPath(parent+"/"+tc.configured, id))
+		})
+	}
 }

@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path"
 	"runtime"
 	"strings"
 	"syscall"
@@ -222,8 +221,6 @@ func main() {
 					"version":      AgentVersion,
 				},
 			)
-
-			cfg.PrivateKeys = path.Dir(cfg.PrivateKeys)
 
 			logger.Info("Starting ShellHub Agent Connector")
 
