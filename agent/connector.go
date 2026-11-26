@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -151,7 +154,7 @@ func (d *DockerConnector) Start(ctx context.Context, id string, name string) {
 	ctx, d.cancels[id] = context.WithCancel(ctx)
 	d.mu.Unlock()
 
-	privateKey := fmt.Sprintf("%s/%s.key", d.privateKeys, id)
+	privateKey := containerKeyPath(d.privateKeys, id)
 	go initContainerAgent(ctx, d.cli, connector.Container{
 		ID:              id,
 		Name:            name,
@@ -174,6 +177,29 @@ func (d *DockerConnector) Stop(_ context.Context, id string) {
 		cancel()
 		delete(d.cancels, id)
 	}
+}
+
+func containerKeyPath(dir, id string) string {
+	key := filepath.Join(dir, id+".key")
+	if mightExist(key) {
+		return key
+	}
+
+	legacy := filepath.Join(filepath.Dir(dir), id+".key")
+	if mightExist(legacy) {
+		log.WithFields(log.Fields{"id": id, "path": legacy, "directory": dir}).
+			Warn("Using a container key from the parent of SHELLHUB_PRIVATE_KEYS, where earlier versions stored it")
+
+		return legacy
+	}
+
+	return key
+}
+
+func mightExist(path string) bool {
+	_, err := os.Stat(path)
+
+	return !errors.Is(err, fs.ErrNotExist)
 }
 
 func cancelled(ctx context.Context) bool {
