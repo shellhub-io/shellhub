@@ -2,11 +2,14 @@ package routes
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
 	"github.com/shellhub-io/shellhub/pkg/api/identity/identitytest"
@@ -50,10 +53,11 @@ func mcpCallAs(t *testing.T, router http.Handler, credential http.Header, body s
 	return mcpServe(router, req, credential)
 }
 
-func mcpServe(router http.Handler, req *http.Request, credential http.Header) *httptest.ResponseRecorder {
+func mcpServe(router http.Handler, req *http.Request, headers http.Header) *httptest.ResponseRecorder {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Mcp-Session-Id", "mcp-session-00000000-0000-4000-8000-000000000000")
-	for key, values := range credential {
+	for key, values := range headers {
+		req.Header.Del(key)
 		for _, value := range values {
 			req.Header.Add(key, value)
 		}
@@ -406,4 +410,63 @@ func TestMCPGetSession(t *testing.T) {
 	assert.False(t, isErr)
 	assert.Contains(t, text, "sess1")
 	mock.AssertExpectations(t)
+}
+
+const mcpSessionAPIKey = "mcp-session-test-api-key"
+
+func mcpSessionRequest(t *testing.T, handler http.Handler, sessionID, body string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
+	req = identitytest.As(req, identity.Identity{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner})
+
+	headers := http.Header{"X-API-Key": []string{mcpSessionAPIKey}, "Mcp-Session-Id": nil}
+	if sessionID != "" {
+		headers.Set("Mcp-Session-Id", sessionID)
+	}
+
+	return mcpServe(handler, req, headers)
+}
+
+func TestMCPSweepsAnIdleSessionAndKeepsServingItsClient(t *testing.T) {
+	service := mocks.NewMockService(t)
+	service.On("AuthAPIKey", gomock.Anything, mcpSessionAPIKey).
+		Return(&models.APIKey{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner}, nil).
+		Maybe()
+	service.
+		On("GetNamespace", gomock.Anything, scope.MustBounded(mcpCallerTenant), mcpCallerTenant).
+		Return(&models.Namespace{TenantID: mcpCallerTenant, Name: "dev"}, nil).
+		Once()
+
+	router := newTestRouter(t, service, WithAuthentication(routesmiddleware.NewAuthenticator(service)))
+
+	unregistered := make(chan string, 1)
+	hooks := &mcpserver.Hooks{}
+	hooks.AddOnUnregisterSession(func(_ context.Context, session mcpserver.ClientSession) {
+		select {
+		case unregistered <- session.SessionID():
+		default:
+		}
+	})
+
+	handler := newMCPHandler(router, time.Second, mcpserver.WithHooks(hooks))
+	t.Cleanup(func() { require.NoError(t, handler.Shutdown(context.Background())) })
+
+	initialized := mcpSessionRequest(t, handler, "",
+		`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}`)
+	require.Equal(t, http.StatusOK, initialized.Code, initialized.Body.String())
+	sessionID := initialized.Header().Get("Mcp-Session-Id")
+	require.NotEmpty(t, sessionID)
+
+	select {
+	case swept := <-unregistered:
+		assert.Equal(t, sessionID, swept)
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "the idle session was never swept")
+	}
+
+	text, isErr := mcpToolResult(t, mcpSessionRequest(t, handler, sessionID, mcpToolCall("shellhub_get_namespace", `{}`)))
+	assert.False(t, isErr, text)
+	assert.Contains(t, text, mcpCallerTenant)
+	service.AssertExpectations(t)
 }
