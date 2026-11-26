@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "../authStore";
+import { MfaTokenMissingError } from "../authErrors";
 import { mockUserAuth } from "@/tests/factories";
 import { VALID_JWT } from "@/tests/seedAuthStore";
 import { namespaceTab, useWorkspaceTabsStore } from "../workspaceTabsStore";
@@ -19,8 +20,6 @@ beforeEach(() => {
     tenant: null,
     role: null,
     name: null,
-    loading: false,
-    error: null,
     mfaEnabled: false,
     mfaToken: null,
     mfaRecoveryExpiry: null,
@@ -47,10 +46,9 @@ describe("authStore", () => {
       expect(state.userId).toBe("user-123");
       expect(state.email).toBe("admin@test.com");
       expect(state.tenant).toBe("tenant-456");
-      expect(state.loading).toBe(false);
     });
 
-    it("re-throws error and resets loading on failure", async () => {
+    it("re-throws error on failure", async () => {
       server.use(
         http.post("*/api/login", () => HttpResponse.json({}, { status: 401 })),
       );
@@ -59,9 +57,7 @@ describe("authStore", () => {
         useAuthStore.getState().login("admin", "wrong"),
       ).rejects.toThrow();
 
-      const state = useAuthStore.getState();
-      expect(state.token).toBeNull();
-      expect(state.loading).toBe(false);
+      expect(useAuthStore.getState().token).toBeNull();
     });
 
     it("re-throws on 403 (Login page handles redirect)", async () => {
@@ -73,9 +69,7 @@ describe("authStore", () => {
         useAuthStore.getState().login("admin", "password"),
       ).rejects.toThrow();
 
-      const state = useAuthStore.getState();
-      expect(state.token).toBeNull();
-      expect(state.loading).toBe(false);
+      expect(useAuthStore.getState().token).toBeNull();
     });
 
     it("clears mfaToken at start of login to prevent stale token reuse", async () => {
@@ -92,31 +86,6 @@ describe("authStore", () => {
       await useAuthStore.getState().login("admin", "password");
 
       expect(mfaTokenDuringRequest).toBeNull();
-    });
-
-    it("sets loading during request", async () => {
-      let resolveHandler!: (r: Response) => void;
-      const handlerReady = new Promise<void>((ready) => {
-        server.use(
-          http.post(
-            "*/api/login",
-            () =>
-              new Promise<Response>((resolve) => {
-                resolveHandler = resolve;
-                ready();
-              }),
-          ),
-        );
-      });
-
-      const promise = useAuthStore.getState().login("admin", "password");
-      await handlerReady;
-      expect(useAuthStore.getState().loading).toBe(true);
-
-      resolveHandler(HttpResponse.json(mockUserAuth()));
-      await promise;
-
-      expect(useAuthStore.getState().loading).toBe(false);
     });
 
     it("detects MFA requirement when interceptor sets mfaToken before reject", async () => {
@@ -137,8 +106,6 @@ describe("authStore", () => {
       const state = useAuthStore.getState();
       expect(state.user).toBe("admin");
       expect(state.mfaEnabled).toBe(true);
-      expect(state.error).toBeNull();
-      expect(state.loading).toBe(false);
     });
   });
 
@@ -386,7 +353,6 @@ describe("authStore", () => {
       expect(state.token).toBe(VALID_JWT);
       expect(state.userId).toBe("user-123");
       expect(state.onboardingSurvey).toBe("pending");
-      expect(state.loading).toBe(false);
     });
 
     it("signs the previous session out entirely when the account cannot be read", async () => {
@@ -425,7 +391,6 @@ describe("authStore", () => {
         tenant: "t",
         role: "owner",
         name: "Admin",
-        loading: true,
         username: "admin",
         recoveryEmail: "r@b.com",
         mfaEnabled: true,
@@ -448,7 +413,6 @@ describe("authStore", () => {
         mfaEnabled: true,
       });
 
-      expect(persisted).not.toHaveProperty("loading");
       expect(persisted).not.toHaveProperty("username");
       expect(persisted).not.toHaveProperty("recoveryEmail");
 
@@ -479,18 +443,17 @@ describe("authStore", () => {
       expect(state.token).toBe(VALID_JWT);
       expect(state.mfaToken).toBeNull();
       expect(state.mfaEnabled).toBe(true);
-      expect(state.loading).toBe(false);
     });
 
-    it("throws error when no mfaToken available", async () => {
+    it("throws MfaTokenMissingError without the password step's MFA token", async () => {
       useAuthStore.setState({ mfaToken: null });
 
       await expect(
         useAuthStore.getState().loginWithMfa("123456"),
-      ).rejects.toThrow("No MFA token available");
+      ).rejects.toBeInstanceOf(MfaTokenMissingError);
     });
 
-    it("sets error on invalid code", async () => {
+    it("throws the API error and keeps the MFA token on an invalid code", async () => {
       server.use(
         http.post("*/api/user/mfa/auth", () =>
           HttpResponse.json({}, { status: 401 }),
@@ -499,11 +462,8 @@ describe("authStore", () => {
 
       await expect(
         useAuthStore.getState().loginWithMfa("999999"),
-      ).rejects.toThrow("Invalid verification code");
-
-      const state = useAuthStore.getState();
-      expect(state.loading).toBe(false);
-      expect(state.error).toBe("Invalid verification code");
+      ).rejects.toMatchObject({ status: 401 });
+      expect(useAuthStore.getState().mfaToken).toBe("mfa-temp-token-123");
     });
   });
 
@@ -536,7 +496,6 @@ describe("authStore", () => {
       const state = useAuthStore.getState();
       expect(state.token).toBe("recovered-jwt");
       expect(state.mfaRecoveryExpiry).toBe(futureExpiry);
-      expect(state.loading).toBe(false);
     });
 
     it("clears mfaToken on successful recovery to prevent stale token re-use", async () => {
@@ -559,13 +518,10 @@ describe("authStore", () => {
 
       await expect(
         useAuthStore.getState().recoverWithCode("recovery-code"),
-      ).rejects.toThrow("No MFA token available");
-      expect(useAuthStore.getState().error).toBe(
-        "Sign in with your password first.",
-      );
+      ).rejects.toBeInstanceOf(MfaTokenMissingError);
     });
 
-    it("sets error on invalid recovery code", async () => {
+    it("throws the API error on an invalid recovery code", async () => {
       server.use(
         http.post("*/api/user/mfa/recover", () =>
           HttpResponse.json({}, { status: 403 }),
@@ -574,10 +530,7 @@ describe("authStore", () => {
 
       await expect(
         useAuthStore.getState().recoverWithCode("invalid-code"),
-      ).rejects.toThrow("Invalid recovery code");
-
-      const state = useAuthStore.getState();
-      expect(state.error).toBe("Invalid recovery code");
+      ).rejects.toMatchObject({ status: 403 });
     });
   });
 

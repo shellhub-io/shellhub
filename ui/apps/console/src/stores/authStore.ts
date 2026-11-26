@@ -14,7 +14,7 @@ import {
   type UserDelete,
 } from "../client";
 import { queryClient } from "../api/queryClient";
-import { isSdkError } from "../api/errors";
+import { MfaTokenMissingError } from "./authErrors";
 import { tearDownChatwoot } from "../hooks/chatwootRuntime";
 import { useVaultStore } from "./vaultStore";
 import { useTerminalStore } from "./terminalStore";
@@ -39,8 +39,6 @@ interface AuthState {
   role: Role | null;
   isAdmin: boolean;
   name: string | null;
-  loading: boolean;
-  error: string | null;
   mfaEnabled: boolean;
   mfaToken: string | null;
   mfaRecoveryExpiry: number | null;
@@ -92,8 +90,6 @@ const initialState = {
   role: null,
   isAdmin: false,
   name: null,
-  loading: false,
-  error: null,
   mfaEnabled: false,
   mfaToken: null,
   mfaRecoveryExpiry: null,
@@ -110,6 +106,14 @@ const initialState = {
  * Every request is from an abandoned session from the moment its sign-out is handed over to the
  * sign-in page until logout, or until the hand-over is withdrawn. Otherwise, only a request that
  * carried a token the store no longer holds is; one that carried none is not.
+ *
+ * The sign-in actions keep no request status: a screen tracks its own call. login throws the API
+ * error, or the fetch failure when the request never got an answer, except when the account has
+ * MFA on: then it resolves without a session and leaves mfaToken set, so a caller tells the two
+ * apart by reading mfaToken afterwards. loginWithToken signs out and throws a generic error when
+ * fetching the user with the token fails, for any reason. loginWithMfa and recoverWithCode throw
+ * MfaTokenMissingError without the password step's MFA token, and otherwise the API error or the
+ * fetch failure unchanged; authErrors maps them to the text to show.
  */
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -117,7 +121,7 @@ export const useAuthStore = create<AuthState>()(
       ...initialState,
 
       login: async (username: string, password: string) => {
-        set({ loading: true, mfaToken: null });
+        set({ mfaToken: null });
         try {
           const { data, response } = await loginSdk({
             body: { username, password },
@@ -127,36 +131,28 @@ export const useAuthStore = create<AuthState>()(
           const mfaToken = response.headers.get("x-mfa-token");
 
           if (mfaToken) {
-            set({
-              mfaToken,
-              mfaEnabled: true,
-              user: username,
-              loading: false,
-            });
+            set({ mfaToken, mfaEnabled: true, user: username });
             return;
           }
 
-          set({ ...signedInSession(data), loading: false });
+          set(signedInSession(data));
         } catch (err) {
-          const currentState = get();
-          if (currentState.mfaToken) {
-            set({ loading: false, user: username, mfaEnabled: true });
+          if (get().mfaToken) {
+            set({ user: username, mfaEnabled: true });
             return;
           }
-          set({ loading: false });
           throw err;
         }
       },
 
       loginWithToken: async (token: string) => {
-        set({ loading: true, token });
+        set({ token });
         try {
           const { data } = await getUserInfo({ throwOnError: true });
           set({
             ...signedInSession(data),
             token,
             origin: data.origin ?? null,
-            loading: false,
           });
         } catch {
           get().logout();
@@ -240,69 +236,36 @@ export const useAuthStore = create<AuthState>()(
 
       loginWithMfa: async (code: string) => {
         const { mfaToken } = get();
-        if (!mfaToken) {
-          throw new Error("No MFA token available");
-        }
+        if (!mfaToken) throw new MfaTokenMissingError();
 
-        set({ loading: true, error: null });
-        try {
-          const { data } = await authMfa({
-            body: { token: mfaToken, code },
-            throwOnError: true,
-          });
-          set({
-            ...signedInSession(data),
-            mfaToken: null, // Clear temporary token
-            mfaEnabled: true,
-            loading: false,
-          });
-        } catch (err) {
-          if (isSdkError(err) && err.status === 429) {
-            set({
-              loading: false,
-              error:
-                "Too many failed attempts. Please wait before trying again.",
-            });
-            throw err;
-          }
-          set({ loading: false, error: "Invalid verification code" });
-          throw new Error("Invalid verification code");
-        }
+        const { data } = await authMfa({
+          body: { token: mfaToken, code },
+          throwOnError: true,
+        });
+        set({
+          ...signedInSession(data),
+          mfaToken: null,
+          mfaEnabled: true,
+        });
       },
 
       recoverWithCode: async (code: string) => {
         const { mfaToken } = get();
-        if (!mfaToken) {
-          set({ error: "Sign in with your password first." });
-          throw new Error("No MFA token available");
-        }
+        if (!mfaToken) throw new MfaTokenMissingError();
 
-        set({ loading: true, error: null });
-        try {
-          const { data, response } = await mfaRecover({
-            body: { token: mfaToken, recovery_code: code },
-            throwOnError: true,
-          });
+        const { data, response } = await mfaRecover({
+          body: { token: mfaToken, recovery_code: code },
+          throwOnError: true,
+        });
 
-          const expiresAt = response.headers.get("x-expires-at") || "";
+        const expiry = parseInt(response.headers.get("x-expires-at") ?? "", 10);
 
-          let expiryValue: number | null = null;
-          if (expiresAt) {
-            const parsed = parseInt(expiresAt, 10);
-            expiryValue = !isNaN(parsed) ? parsed : null;
-          }
-
-          set({
-            ...signedInSession(data),
-            mfaEnabled: true,
-            mfaToken: null,
-            mfaRecoveryExpiry: expiryValue,
-            loading: false,
-          });
-        } catch {
-          set({ loading: false, error: "Invalid recovery code" });
-          throw new Error("Invalid recovery code");
-        }
+        set({
+          ...signedInSession(data),
+          mfaEnabled: true,
+          mfaToken: null,
+          mfaRecoveryExpiry: Number.isNaN(expiry) ? null : expiry,
+        });
       },
 
       updateMfaStatus: (enabled: boolean) => {

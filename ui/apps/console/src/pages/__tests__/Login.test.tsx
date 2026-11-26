@@ -15,6 +15,7 @@ import { mockInfo, mockUserAuth } from "@/tests/factories";
 import { EXPIRED_JWT, VALID_JWT, jwtExpiringAt } from "@/tests/seedAuthStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import { setEdition } from "@/tests/edition";
+import { createTestWrapper } from "@/tests/wrapper";
 import Login from "../Login";
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -29,6 +30,7 @@ function renderLogin(path = "/") {
     <MemoryRouter initialEntries={[path]}>
       <Login />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
@@ -65,7 +67,6 @@ describe("Login", () => {
       tenant: null,
       role: null,
       name: null,
-      loading: false,
     });
     server.use(
       http.post("*/api/login", () =>
@@ -818,6 +819,7 @@ describe("Login", () => {
         <MemoryRouter initialEntries={["/login?redirect=%2Fdevices"]}>
           <Login />
         </MemoryRouter>,
+        { wrapper: createTestWrapper() },
       );
       await fillAndSubmit();
 

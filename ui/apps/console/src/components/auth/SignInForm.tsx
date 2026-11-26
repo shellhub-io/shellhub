@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@shellhub/design-system/primitives";
@@ -42,7 +43,12 @@ export default function SignInForm({
   secondaryAction,
 }: SignInFormProps) {
   const navigate = useNavigate();
-  const { login, loading } = useAuthStore();
+  const login = useAuthStore((s) => s.login);
+  const signIn = useMutation({
+    mutationFn: ({ username, password }: LoginFormValues) =>
+      login(username, password),
+  });
+  const loading = signIn.isPending;
   const [error, setError] = useState<string | null>(null);
   const [secondFactor, setSecondFactor] = useState(false);
   const { lockFrom, clearLockout, countdownDisplay, lockoutExpired } =
@@ -58,7 +64,7 @@ export default function SignInForm({
     setError(null);
     clearLockout();
     try {
-      await login(values.username, values.password);
+      await signIn.mutateAsync(values);
 
       if (useAuthStore.getState().mfaToken) {
         if (onSignedIn) {

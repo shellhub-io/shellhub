@@ -19,3 +19,35 @@ export function mfaResetRequestError(err: unknown): string {
 
   return "Unable to send reset emails. Please try again.";
 }
+
+/**
+ * MfaTokenMissingError is thrown by a second-factor sign-in action called without the MFA token
+ * the password step leaves.
+ */
+export class MfaTokenMissingError extends Error {
+  override name = "MfaTokenMissingError";
+}
+
+/**
+ * mfaCodeErrorMessage turns a failed authenticator-code sign-in into the text to show: a 429 says
+ * to wait, anything else says the code is invalid. It does not single out MfaTokenMissingError,
+ * since the code form is never shown without the password step's MFA token.
+ */
+export function mfaCodeErrorMessage(err: unknown): string {
+  if (isSdkError(err) && err.status === 429) {
+    return "Too many failed attempts. Please wait before trying again.";
+  }
+
+  return "Invalid verification code";
+}
+
+/**
+ * recoveryCodeErrorMessage turns a failed recovery-code sign-in into the text to show: without the
+ * password step's MFA token it asks for the password first, anything else says the code is
+ * invalid.
+ */
+export function recoveryCodeErrorMessage(err: unknown): string {
+  if (err instanceof MfaTokenMissingError) return "Sign in with your password first.";
+
+  return "Invalid recovery code";
+}

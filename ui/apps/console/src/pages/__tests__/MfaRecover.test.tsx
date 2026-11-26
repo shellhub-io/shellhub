@@ -5,6 +5,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
+import { createTestWrapper } from "@/tests/wrapper";
+import { mockUserAuth } from "@/tests/factories";
 import MfaRecover from "../MfaRecover";
 
 function renderRecover() {
@@ -12,6 +14,28 @@ function renderRecover() {
     <MemoryRouter>
       <MfaRecover />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
+  );
+}
+
+function serveRecovery(expiresAt?: number) {
+  const bodies: unknown[] = [];
+  server.use(
+    http.post("*/api/user/mfa/recover", async ({ request }) => {
+      bodies.push(await request.json());
+      return HttpResponse.json(mockUserAuth(), {
+        headers: expiresAt ? { "x-expires-at": String(expiresAt) } : {},
+      });
+    }),
+  );
+  return bodies;
+}
+
+function refuseRecovery() {
+  server.use(
+    http.post("*/api/user/mfa/recover", () =>
+      HttpResponse.json({}, { status: 403 }),
+    ),
   );
 }
 
@@ -28,20 +52,13 @@ beforeEach(() => {
       () => new HttpResponse(null, { status: 204 }),
     ),
   );
-  useAuthStore.setState({
-    user: "admin",
-    mfaToken: "mfa-temp-token",
-    loading: false,
-    error: null,
-    recoverWithCode: vi.fn(),
-    mfaRecoveryExpiry: null,
-  });
+  useAuthStore.setState(useAuthStore.getInitialState(), true);
+  useAuthStore.setState({ user: "admin", mfaToken: "mfa-temp-token" });
 });
 
 describe("MfaRecover", () => {
   it("submits recovery code successfully", async () => {
-    const mockRecover = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({ recoverWithCode: mockRecover });
+    const bodies = serveRecovery();
 
     renderRecover();
 
@@ -53,16 +70,14 @@ describe("MfaRecover", () => {
     await user.click(screen.getByRole("button", { name: /recover/i }));
 
     await waitFor(() => {
-      expect(mockRecover).toHaveBeenCalledWith("ABC-123-XYZ");
+      expect(bodies).toEqual([
+        { token: "mfa-temp-token", recovery_code: "ABC-123-XYZ" },
+      ]);
     });
   });
 
   it("displays error message on invalid code", async () => {
-    const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ error: "Invalid recovery code" });
-      throw new Error("Invalid recovery code");
-    });
-    useAuthStore.setState({ recoverWithCode: mockRecover });
+    refuseRecovery();
 
     renderRecover();
 
@@ -89,12 +104,14 @@ describe("MfaRecover", () => {
     expect(screen.getByRole("button", { name: /recover/i })).not.toBeDisabled();
   });
 
-  it("shows loading state during submission", () => {
-    useAuthStore.setState({ loading: true });
-
+  it("shows loading state during submission", async () => {
+    server.use(http.post("*/api/user/mfa/recover", () => new Promise(() => {})));
     renderRecover();
 
-    expect(screen.getByText(/Recovering.../i)).toBeInTheDocument();
+    const user = await typeRecoveryCode("ABC-123-XYZ");
+    await user.click(screen.getByRole("button", { name: /recover/i }));
+
+    expect(await screen.findByText(/Recovering.../i)).toBeInTheDocument();
   });
 
   it("has link back to MFA login", () => {
@@ -107,12 +124,7 @@ describe("MfaRecover", () => {
   });
 
   it("shows timeout modal after successful recovery", async () => {
-    const futureTime = Math.floor(Date.now() / 1000) + 300;
-    const mockRecover = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({
-      recoverWithCode: mockRecover,
-      mfaRecoveryExpiry: futureTime,
-    });
+    serveRecovery(Math.floor(Date.now() / 1000) + 300);
 
     renderRecover();
 
@@ -123,9 +135,6 @@ describe("MfaRecover", () => {
     );
     await user.click(screen.getByRole("button", { name: /recover/i }));
 
-    await waitFor(() => {
-      expect(mockRecover).toHaveBeenCalled();
-    });
     expect(
       await screen.findByText(/Recovery Window Active/i),
     ).toBeInTheDocument();
@@ -141,6 +150,7 @@ describe("MfaRecover", () => {
           <Route path="/login" element={<div>Login Page</div>} />
         </Routes>
       </MemoryRouter>,
+      { wrapper: createTestWrapper() },
     );
 
     await waitFor(() => {
@@ -149,8 +159,7 @@ describe("MfaRecover", () => {
   });
 
   it("clears the recovery code field after a failed submission", async () => {
-    const mockRecover = vi.fn().mockRejectedValue(new Error("Invalid"));
-    useAuthStore.setState({ recoverWithCode: mockRecover });
+    refuseRecovery();
 
     renderRecover();
 
@@ -165,8 +174,7 @@ describe("MfaRecover", () => {
   });
 
   it("clears the recovery code field after a successful submission", async () => {
-    const mockRecover = vi.fn().mockResolvedValue(undefined);
-    useAuthStore.setState({ recoverWithCode: mockRecover });
+    serveRecovery();
 
     renderRecover();
 
@@ -188,11 +196,7 @@ describe("MfaRecover", () => {
         return new HttpResponse(null, { status: 204 });
       }),
     );
-    const futureExpiry = Math.floor(Date.now() / 1000) + 600;
-    const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ mfaRecoveryExpiry: futureExpiry });
-    });
-    useAuthStore.setState({ recoverWithCode: mockRecover });
+    serveRecovery(Math.floor(Date.now() / 1000) + 600);
 
     render(
       <MemoryRouter initialEntries={["/recover-mfa"]}>
@@ -201,6 +205,7 @@ describe("MfaRecover", () => {
           <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>,
+      { wrapper: createTestWrapper() },
     );
 
     const user = userEvent.setup();
@@ -222,15 +227,7 @@ describe("MfaRecover", () => {
   });
 
   it("navigates to dashboard and updates MFA status after successful disable", async () => {
-    const futureExpiry = Math.floor(Date.now() / 1000) + 600;
-    const mockRecover = vi.fn().mockImplementation(async () => {
-      useAuthStore.setState({ mfaRecoveryExpiry: futureExpiry });
-    });
-    const mockUpdateMfaStatus = vi.fn();
-    useAuthStore.setState({
-      recoverWithCode: mockRecover,
-      updateMfaStatus: mockUpdateMfaStatus,
-    });
+    serveRecovery(Math.floor(Date.now() / 1000) + 600);
 
     render(
       <MemoryRouter initialEntries={["/recover-mfa"]}>
@@ -239,6 +236,7 @@ describe("MfaRecover", () => {
           <Route path="/dashboard" element={<div>Dashboard</div>} />
         </Routes>
       </MemoryRouter>,
+      { wrapper: createTestWrapper() },
     );
 
     const user = userEvent.setup();
@@ -254,11 +252,7 @@ describe("MfaRecover", () => {
 
     await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
-    await waitFor(() => {
-      expect(mockUpdateMfaStatus).toHaveBeenCalledWith(false);
-    });
-    await waitFor(() => {
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    });
+    expect(await screen.findByText("Dashboard")).toBeInTheDocument();
+    expect(useAuthStore.getState().mfaEnabled).toBe(false);
   });
 });

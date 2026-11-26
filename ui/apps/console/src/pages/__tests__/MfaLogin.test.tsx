@@ -6,6 +6,7 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
@@ -15,7 +16,9 @@ import {
   hasPendingDeviceCode,
   setPendingDeviceCode,
 } from "@/utils/navigation";
+import { createTestWrapper } from "@/tests/wrapper";
 import MfaLogin from "../MfaLogin";
+import MfaRecover from "../MfaRecover";
 
 function renderMfaLogin(initialEntry = "/login-mfa") {
   return render(
@@ -28,6 +31,7 @@ function renderMfaLogin(initialEntry = "/login-mfa") {
         <Route path="/accept-device" element={<div>Accept Device</div>} />
       </Routes>
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
@@ -158,12 +162,55 @@ describe("MfaLogin", () => {
     else expect(verify).not.toBeDisabled();
   });
 
-  it("shows loading state during submission", () => {
-    useAuthStore.setState({ loading: true });
+  it("shows loading state during submission", async () => {
+    server.use(http.post("*/api/user/mfa/auth", () => new Promise(() => {})));
     renderMfaLogin();
     fillCode();
+    submitCode();
 
-    expect(screen.getByText(/Verifying.../i)).toBeInTheDocument();
+    expect(await screen.findByText(/Verifying.../i)).toBeInTheDocument();
+  });
+
+  describe("errors from an earlier screen", () => {
+    it("shows no error left from a failed recovery code", async () => {
+      server.use(
+        http.post("*/api/user/mfa/recover", () =>
+          HttpResponse.json({}, { status: 403 }),
+        ),
+      );
+      const user = userEvent.setup();
+      const recover = render(
+        <MemoryRouter>
+          <MfaRecover />
+        </MemoryRouter>,
+        { wrapper: createTestWrapper() },
+      );
+      await user.type(screen.getByPlaceholderText(/recovery code/i), "BAD-CODE");
+      await user.click(screen.getByRole("button", { name: /recover/i }));
+      await screen.findByText("Invalid recovery code");
+      recover.unmount();
+
+      renderMfaLogin();
+
+      expect(
+        screen.queryByText("Invalid recovery code"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows no error left from an earlier wrong code", async () => {
+      respondToCode(401);
+      const first = renderMfaLogin();
+      fillCode(6, "9");
+      submitCode();
+      await screen.findByText("Invalid verification code");
+      first.unmount();
+
+      renderMfaLogin();
+
+      expect(
+        screen.queryByText("Invalid verification code"),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe("pending device code", () => {

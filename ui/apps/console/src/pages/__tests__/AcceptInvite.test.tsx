@@ -65,7 +65,6 @@ beforeEach(() => {
     tenant: null,
     role: null,
     name: null,
-    loading: false,
     loginWithToken: async () => {
       useAuthStore.setState({
         token: VALID_JWT,
@@ -73,7 +72,6 @@ beforeEach(() => {
         userId: "u1",
         email: "alice@example.com",
         name: "Alice",
-        loading: false,
       });
     },
   });
@@ -134,7 +132,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
-        loading: false,
       });
     });
 
@@ -174,7 +171,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "other-user-id",
         email: "other@example.com",
-        loading: false,
       });
       renderPage(VALID_PARAMS);
       expect(
@@ -410,7 +406,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
-        loading: false,
       });
       const user = userEvent.setup();
       const { container } = renderPage(VALID_PARAMS);

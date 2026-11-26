@@ -1,7 +1,9 @@
 import type { FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
+import { mfaCodeErrorMessage } from "@/stores/authErrors";
 import { useLockout } from "@/hooks/useLockout";
 import { useOtpInput } from "@/hooks/useOtpInput";
 import OtpCells from "@/components/mfa/OtpCells";
@@ -27,7 +29,12 @@ export default function MfaCodeForm({
   links,
 }: MfaCodeFormProps) {
   const otp = useOtpInput(6);
-  const { loginWithMfa, loading, error } = useAuthStore();
+  const loginWithMfa = useAuthStore((s) => s.loginWithMfa);
+  const verify = useMutation({
+    mutationFn: (code: string) => loginWithMfa(code),
+  });
+  const loading = verify.isPending;
+  const error = verify.error ? mfaCodeErrorMessage(verify.error) : null;
   const { lockFrom, clearLockout, countdownDisplay, lockoutExpired } =
     useLockout();
 
@@ -37,7 +44,7 @@ export default function MfaCodeForm({
 
     clearLockout();
     try {
-      await loginWithMfa(otp.getValue());
+      await verify.mutateAsync(otp.getValue());
       onVerified();
     } catch (err) {
       if (isSdkError(err) && err.status === 429) {

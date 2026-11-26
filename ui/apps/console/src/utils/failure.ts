@@ -5,8 +5,7 @@
  *
  * Reach for it only where the failure genuinely has no consequence — a best-effort cleanup, an
  * optional integration that may not be loaded. Where the error is shown somewhere else, say that
- * instead: a react-query mutation surfaces its own error through mutate(), and a store action
- * that records the failure in state should be read from state.
+ * instead: a react-query mutation surfaces its own error through mutate().
  */
 export function ignoreFailure(): undefined {
   return undefined;

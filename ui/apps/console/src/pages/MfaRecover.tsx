@@ -1,9 +1,11 @@
 import { useState, FormEvent, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { useAuthStore } from "@/stores/authStore";
+import { recoveryCodeErrorMessage } from "@/stores/authErrors";
 import { recoveryDisableMfa } from "@/client";
 import MfaRecoveryTimeoutModal from "@/components/mfa/MfaRecoveryTimeoutModal";
 import { landingAfterSignIn } from "@/utils/navigation";
@@ -19,8 +21,6 @@ import { mfaRecoverSchema, type MfaRecoverFormValues } from "./setup/schemas";
 export default function MfaRecover() {
   const {
     recoverWithCode,
-    loading,
-    error,
     mfaRecoveryExpiry,
     updateMfaStatus,
     user,
@@ -28,6 +28,11 @@ export default function MfaRecover() {
     token,
   } = useAuthStore();
   const navigate = useNavigate();
+  const recover = useMutation({
+    mutationFn: (code: string) => recoverWithCode(code),
+  });
+  const loading = recover.isPending;
+  const error = recover.error ? recoveryCodeErrorMessage(recover.error) : null;
 
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
 
@@ -37,10 +42,6 @@ export default function MfaRecover() {
       mode: "onTouched",
       defaultValues: { recoveryCode: "" },
     });
-
-  useEffect(() => {
-    useAuthStore.setState({ error: null });
-  }, []);
 
   const inSignIn = !!mfaToken || !!token;
 
@@ -56,7 +57,7 @@ export default function MfaRecover() {
 
   const onSubmit = async (values: MfaRecoverFormValues) => {
     try {
-      await recoverWithCode(values.recoveryCode);
+      await recover.mutateAsync(values.recoveryCode);
       reset();
       setShowTimeoutModal(true);
     } catch {
