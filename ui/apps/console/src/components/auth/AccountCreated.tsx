@@ -3,23 +3,24 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
 import { signedInSession } from "@/stores/authSession";
-import { useSignUpStore } from "@/stores/signUpStore";
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
+import type { UserAuth } from "@/client";
 
 /**
- * The screen after sign-up: what was sent, where, and how to have it sent again.
+ * The screen after a sign-up that returned a session (auth). A session with a tenant signs the user
+ * in and moves on to the invitation after five seconds, or at once through the button. One without
+ * a tenant signs no one in and only moves on through the button.
  */
-export default function AccountCreated() {
+export default function AccountCreated({ auth: signUpAuth }: { auth: UserAuth }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const signUpAuth = useSignUpStore((s) => s.signUpAuth);
 
   const acceptInviteTarget = `/accept-invite${location.search}`;
 
   useEffect(() => {
-    if (!signUpAuth?.tenant) return;
+    if (!signUpAuth.tenant) return;
 
     useAuthStore.setState(signedInSession(signUpAuth));
 

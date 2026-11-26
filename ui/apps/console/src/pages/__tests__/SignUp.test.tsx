@@ -4,8 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
+import { mockUserAuth } from "@/tests/factories";
 import { USERNAME_HINT } from "@/utils/validation";
-import { useSignUpStore } from "@/stores/signUpStore";
+import { createTestWrapper } from "@/tests/wrapper";
 import {
   clearPendingDeviceCode,
   setPendingDeviceCode,
@@ -24,6 +25,7 @@ function renderSignUp(search = "") {
     <MemoryRouter initialEntries={[`/signup${search}`]}>
       <SignUp />
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
@@ -77,12 +79,6 @@ function captureRegisterBody() {
 beforeEach(() => {
   vi.clearAllMocks();
   clearPendingDeviceCode();
-  useSignUpStore.setState({
-    signUpLoading: false,
-    signUpError: null,
-    signUpServerFields: {},
-    signUpAuth: null,
-  });
   server.use(
     http.post("*/api/register", () => new HttpResponse(null, { status: 204 })),
   );
@@ -331,6 +327,110 @@ describe("SignUp", () => {
       expect(
         screen.getByRole("button", { name: /create account/i }),
       ).toBeEnabled();
+    });
+
+    it("shows a field refused with a 409 on that field", async () => {
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json(
+            { message: "user conflict", fields: { username: "invalid" } },
+            { status: 409 },
+          ),
+        ),
+      );
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      expect(
+        await screen.findByText(/this username already exists/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("while the request is in flight", () => {
+    it("shows the button busy", async () => {
+      server.use(http.post("*/api/register", () => new Promise(() => {})));
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      expect(
+        await screen.findByRole("button", { name: /creating account/i }),
+      ).toBeDisabled();
+    });
+  });
+
+  describe("a session in the response", () => {
+    it("shows the account created screen", async () => {
+      server.use(
+        http.post("*/api/register", () => HttpResponse.json(mockUserAuth())),
+      );
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      expect(
+        await screen.findByRole("heading", {
+          name: /account creation successful/i,
+        }),
+      ).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("errors without a field", () => {
+    it.each([
+      [400, /some values are invalid/i],
+      [500, /something went wrong on our side/i],
+    ])("shows the message for a %i", async (status, message) => {
+      server.use(
+        http.post("*/api/register", () => HttpResponse.json({}, { status })),
+      );
+      const user = userEvent.setup();
+      renderSignUp();
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("drops the message once a retry goes through", async () => {
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
+      const user = userEvent.setup();
+      renderSignUp();
+      await fillValidForm(user);
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+      await screen.findByText(/something went wrong on our side/i);
+
+      server.use(
+        http.post(
+          "*/api/register",
+          () => new HttpResponse(null, { status: 204 }),
+        ),
+      );
+      await user.click(screen.getByRole("button", { name: /create account/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.queryByText(/something went wrong on our side/i),
+        ).not.toBeInTheDocument(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining("/confirm-account"),
+      );
     });
   });
 });

@@ -2,10 +2,10 @@ import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signUpSchema, type SignUpFormValues } from "./setup/schemas";
-import { useSignUpStore } from "../stores/signUpStore";
-import AccountCreated from "../components/auth/AccountCreated";
+import { useMutation } from "@tanstack/react-query";
 import { Button, Callout } from "@shellhub/design-system/primitives";
+import { registerUserMutation, type UserAuth } from "@/client";
+import { apiErrorFields, apiErrorMessage, isSdkError } from "@/api/errors";
 import PendingDeviceCallout from "@/components/auth/PendingDeviceCallout";
 import { getPendingDeviceCode, hasPendingDeviceCode } from "@/utils/navigation";
 import { parsePairingCode } from "@/utils/pairingCode";
@@ -18,6 +18,8 @@ import {
 import CheckboxField from "@/components/common/fields/CheckboxField";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import { emailRefusalMessage } from "@/utils/emailRefusal";
+import AccountCreated from "@/components/auth/AccountCreated";
+import { signUpSchema, type SignUpFormValues } from "./setup/schemas";
 
 const SERVER_FIELD_MAP: Record<string, keyof SignUpFormValues> = {
   username: "username",
@@ -39,22 +41,22 @@ const SERVER_FIELD_MESSAGES: Record<string, string> = {
  */
 export default function SignUp() {
   const navigate = useNavigate();
-  const signUp = useSignUpStore((s) => s.signUp);
-  const signUpLoading = useSignUpStore((s) => s.signUpLoading);
-  const signUpError = useSignUpStore((s) => s.signUpError);
-  const signUpServerFields = useSignUpStore((s) => s.signUpServerFields);
-  const clearSignUpServerField = useSignUpStore(
-    (s) => s.clearSignUpServerField,
-  );
-  const resetSignUpErrors = useSignUpStore((s) => s.resetSignUpErrors);
+  const register = useMutation(registerUserMutation());
+  const [signUpServerFields, setSignUpServerFields] = useState<
+    Record<string, string>
+  >({});
   const hasServerFieldErrors = Object.keys(signUpServerFields).length > 0;
+  const signUpError =
+    register.error && Object.keys(apiErrorFields(register.error)).length === 0
+      ? apiErrorMessage(register.error)
+      : null;
 
-  useEffect(() => {
-    resetSignUpErrors();
-  }, [resetSignUpErrors]);
+  const clearSignUpServerField = (field: string) =>
+    setSignUpServerFields((fields) =>
+      Object.fromEntries(Object.entries(fields).filter(([f]) => f !== field)),
+    );
 
   const [acceptMarketing, setAcceptMarketing] = useState(false);
-  const [accountCreated, setAccountCreated] = useState(false);
 
   const { control, handleSubmit, setError, formState } =
     useForm<SignUpFormValues>({
@@ -86,39 +88,46 @@ export default function SignUp() {
   const onSubmit = async (values: SignUpFormValues) => {
     if (hasServerFieldErrors) return;
 
-    resetSignUpErrors();
-
     const deviceCode = parsePairingCode(getPendingDeviceCode());
-    const token = await signUp({
-      name: values.name,
-      email: values.email,
-      username: values.username,
-      password: values.password,
-      email_marketing: acceptMarketing,
-      ...(deviceCode && { device_code: deviceCode }),
-    });
-
-    const { signUpError: err, signUpServerFields: fields } =
-      useSignUpStore.getState();
-
-    if (err !== null || Object.keys(fields).length > 0) return;
-
-    if (!token) {
-      const confirm = new URLSearchParams({ identifier: values.email });
-      if (deviceCode) confirm.set("device", deviceCode);
-      void navigate(`/confirm-account?${confirm.toString()}`);
+    let auth: UserAuth | void;
+    try {
+      auth = await register.mutateAsync({
+        body: {
+          name: values.name,
+          email: values.email,
+          username: values.username,
+          password: values.password,
+          email_marketing: acceptMarketing,
+          ...(deviceCode && { device_code: deviceCode }),
+        },
+      });
+    } catch (error: unknown) {
+      const fields = apiErrorFields(error);
+      if (Object.keys(fields).length > 0) {
+        setSignUpServerFields(fields);
+        return;
+      }
+      if (import.meta.env.DEV && isSdkError(error)) {
+        console.warn("Unhandled sign-up error response:", {
+          status: error.status,
+        });
+      }
       return;
     }
 
-    setAccountCreated(true);
+    if (!auth?.token) {
+      const confirm = new URLSearchParams({ identifier: values.email });
+      if (deviceCode) confirm.set("device", deviceCode);
+      void navigate(`/confirm-account?${confirm.toString()}`);
+    }
   };
 
   const handleFormSubmit = (e: FormEvent) => {
     void handleSubmit(onSubmit)(e);
   };
 
-  if (accountCreated) {
-    return <AccountCreated />;
+  if (register.data?.token) {
+    return <AccountCreated auth={register.data} />;
   }
 
   return (
@@ -236,12 +245,12 @@ export default function SignUp() {
                 size="lg"
                 fullWidth
                 type="submit"
-                loading={signUpLoading}
+                loading={register.isPending}
                 disabled={
-                  signUpLoading || !formState.isValid || hasServerFieldErrors
+                  register.isPending || !formState.isValid || hasServerFieldErrors
                 }
               >
-                {signUpLoading ? "Creating account..." : "Create Account"}
+                {register.isPending ? "Creating account..." : "Create Account"}
               </Button>
             }
             links={[

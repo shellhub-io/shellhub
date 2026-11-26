@@ -9,7 +9,6 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useAuthStore } from "@/stores/authStore";
-import { useSignUpStore } from "@/stores/signUpStore";
 import { useSwitchNamespace } from "@/hooks/useNamespaceRequests";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import {
@@ -17,7 +16,12 @@ import {
   FormPasswordField,
 } from "@/components/common/fields/rhf";
 import { Button, Spinner, Callout } from "@shellhub/design-system/primitives";
-import { acceptInviteMutation, resolveInvitationOptions } from "@/client";
+import {
+  acceptInviteMutation,
+  registerUserMutation,
+  resolveInvitationOptions,
+} from "@/client";
+import { apiErrorFields, apiErrorMessage } from "@/api/errors";
 import {
   useInvalidateByIds,
   NAMESPACE_QUERIES,
@@ -67,9 +71,7 @@ export default function AcceptInvite() {
   });
   const switchNamespace = useSwitchNamespace();
 
-  const signUp = useSignUpStore((s) => s.signUp);
-  const signUpLoading = useSignUpStore((s) => s.signUpLoading);
-  const signUpError = useSignUpStore((s) => s.signUpError);
+  const register = useMutation(registerUserMutation());
 
   const { data: invitation, isLoading, isError } = useQuery({
     ...resolveInvitationOptions({ query: { invite } }),
@@ -135,20 +137,24 @@ export default function AcceptInvite() {
   const handleSignUp = async (values: InviteFormValues) => {
     setError("");
 
-    const token = await signUp({
-      name: values.name,
-      username: values.username,
-      email: inviteEmail,
-      password: values.password,
-      email_marketing: false,
-      sig: invite,
-    });
-
-    const { signUpError: err, signUpServerFields } = useSignUpStore.getState();
-    if (err) return;
-    if (Object.keys(signUpServerFields).length > 0) {
+    let token: string | undefined;
+    try {
+      const auth = await register.mutateAsync({
+        body: {
+          name: values.name,
+          username: values.username,
+          email: inviteEmail,
+          password: values.password,
+          email_marketing: false,
+          sig: invite,
+        },
+      });
+      token = auth?.token;
+    } catch (err: unknown) {
       setError(
-        "That username or email is already in use. Try a different username.",
+        Object.keys(apiErrorFields(err)).length > 0
+          ? "That username or email is already in use. Try a different username."
+          : apiErrorMessage(err),
       );
       return;
     }
@@ -245,7 +251,6 @@ export default function AcceptInvite() {
       ),
       children: (
         <>
-          <ErrorCallout message={signUpError} />
           <ErrorCallout message={error} />
 
           <form
@@ -285,8 +290,12 @@ export default function AcceptInvite() {
               control={control}
               autoComplete="new-password"
             />
-            <Button type="submit" className="w-full" loading={signUpLoading}>
-              Join Namespace
+            <Button
+              type="submit"
+              className="w-full"
+              loading={register.isPending}
+            >
+              <span>Join Namespace</span>
             </Button>
           </form>
         </>
