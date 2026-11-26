@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,6 +18,8 @@ import (
 	mcpserver "github.com/mark3labs/mcp-go/server"
 	"github.com/shellhub-io/shellhub/pkg/api/authorizer"
 	"github.com/shellhub-io/shellhub/pkg/api/identity"
+	pkgmiddleware "github.com/shellhub-io/shellhub/pkg/middleware"
+	"github.com/sirupsen/logrus"
 )
 
 type mcpCallerKey struct{}
@@ -34,15 +37,16 @@ const mcpSessionIdleTTL = 10 * time.Minute
 // no request for mcpSessionIdleTTL is removed within half that again, by a sweeper goroutine that
 // runs for the life of the process. An open GET stream does not count as a request. Each later
 // request carrying the removed session's ID still runs, but without the client info and other
-// per-session state the old session held.
+// per-session state the old session held. The transport writes only its warnings and errors,
+// through the standard logrus logger.
 func SetupMCPRoutes(router *echo.Echo) {
-	streamable := newMCPHandler(router, mcpSessionIdleTTL)
+	streamable := newMCPHandler(router, mcpSessionIdleTTL, logrus.NewEntry(logrus.StandardLogger()))
 
 	router.Any("/mcp", echo.WrapHandler(streamable))
 	router.Any("/mcp/*", echo.WrapHandler(streamable))
 }
 
-func newMCPHandler(router http.Handler, idleTTL time.Duration, opts ...mcpserver.ServerOption) *mcpserver.StreamableHTTPServer {
+func newMCPHandler(router http.Handler, idleTTL time.Duration, log *logrus.Entry, opts ...mcpserver.ServerOption) *mcpserver.StreamableHTTPServer {
 	s := buildMCPServer(router, opts...)
 
 	httpCtxFn := func(ctx context.Context, r *http.Request) context.Context {
@@ -64,7 +68,28 @@ func newMCPHandler(router http.Handler, idleTTL time.Duration, opts ...mcpserver
 	return mcpserver.NewStreamableHTTPServer(s,
 		mcpserver.WithHTTPContextFunc(httpCtxFn),
 		mcpserver.WithSessionIdleTTL(idleTTL),
+		mcpserver.WithStreamableHTTPLogger(newMCPLogger(log)),
 	)
+}
+
+func newMCPLogger(log *logrus.Entry) *slog.Logger {
+	return slog.New(warnAndAbove{pkgmiddleware.NewSlogLogger(log).Handler()})
+}
+
+type warnAndAbove struct {
+	slog.Handler
+}
+
+func (h warnAndAbove) Enabled(ctx context.Context, level slog.Level) bool {
+	return level >= slog.LevelWarn && h.Handler.Enabled(ctx, level)
+}
+
+func (h warnAndAbove) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return warnAndAbove{h.Handler.WithAttrs(attrs)}
+}
+
+func (h warnAndAbove) WithGroup(name string) slog.Handler {
+	return warnAndAbove{h.Handler.WithGroup(name)}
 }
 
 func buildMCPServer(router http.Handler, opts ...mcpserver.ServerOption) *mcpserver.MCPServer {
