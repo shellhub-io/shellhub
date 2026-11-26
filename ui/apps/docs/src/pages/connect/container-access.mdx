@@ -50,6 +50,10 @@ The Connector takes its own variables, which differ from the agent's in one impo
 separate devices need separate identities. Put that directory on a volume — if the keys are lost,
 every container comes back as a new device.
 
+Earlier versions of the Connector stored the keys in the parent of this directory. When the
+directory has no key for a container, the Connector still reads the one in the parent, so
+containers registered before an upgrade keep their devices. New keys go into the directory itself.
+
 `SHELLHUB_CONNECTOR_LABEL` is how you avoid registering every container on a busy host. Set it,
 label the containers you actually want reachable, and the rest are ignored.
 
