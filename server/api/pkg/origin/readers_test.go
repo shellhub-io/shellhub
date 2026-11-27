@@ -17,7 +17,7 @@ import (
 
 var requestHeaderReaders = []string{
 	"api/pkg/origin/origin.go:Resolve",
-	"api/routes/mcp.go:mcpCredentialHeaders",
+	"api/routes/mcp.go:mcpAPICall",
 	"api/routes/middleware/authn.go:Resolve",
 }
 

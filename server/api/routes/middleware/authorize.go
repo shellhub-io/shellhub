@@ -43,6 +43,21 @@ func BlockAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// RequiresAPIKey refuses with [routes.ErrForbidden] a request whose resolved identity did not
+// authenticate with an API key, a namespace's or the instance's, and a request with no identity at
+// all. Like [BlockAPIKey], it reads the identity the authenticator put on the request's context,
+// never the request's headers, and leaves the context unchanged. It must run after the
+// authenticator, which is why it refuses a request with no identity instead of passing it on.
+func RequiresAPIKey(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		if caller, ok := identity.FromContext(c.Request().Context()); !ok || caller.APIKey == "" {
+			return routes.NewErrForbidden(nil)
+		}
+
+		return next(c)
+	}
+}
+
 // RequiresAnyPermission refuses the request with [routes.ErrForbidden] unless the caller's role
 // holds at least one of permissions, or when no gateway context was installed. Given no
 // permissions, it refuses every request.

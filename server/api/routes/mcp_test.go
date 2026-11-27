@@ -173,50 +173,26 @@ func TestMCPListDevices(t *testing.T) {
 	mock.AssertExpectations(t)
 }
 
-func TestMCPForwardsEveryCredentialsActor(t *testing.T) {
-	const userID = "000000000000000000000000"
-
-	privateKey, err := testSigningKey()
-	require.NoError(t, err)
-
-	bearer, err := jwttoken.EncodeUserClaims(authorizer.UserClaims{
-		ID: userID, TenantID: mcpCallerTenant,
-	}, "http://localhost", privateKey, clock.New().Now())
-	require.NoError(t, err)
-
-	credentials := map[string]struct {
-		header http.Header
-		setup  func(*mocks.MockService)
-	}{
-		"a user token names the acting person": {
-			header: http.Header{"Authorization": []string{"Bearer " + bearer}},
-			setup: func(service *mocks.MockService) {
-				service.On("AuthUserClaims", gomock.Anything, gomock.MatchedBy(func(claims *authorizer.UserClaims) bool {
-					return claims.ID == userID
-				})).Return(&models.User{ID: userID}, nil)
-				service.On("ResolveNamespaceRole", gomock.Anything, mcpCallerTenant, userID).
-					Return(&models.Namespace{TenantID: mcpCallerTenant}, authorizer.RoleOwner.String(), nil)
-			},
-		},
-		"an API key names no person": {
-			header: http.Header{"X-API-Key": []string{"mcp-api-key"}},
-			setup: func(service *mocks.MockService) {
-				service.On("AuthAPIKey", gomock.Anything, "mcp-api-key").
-					Return(&models.APIKey{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner}, nil)
-			},
+func TestMCPServesAnAPIKeyCaller(t *testing.T) {
+	credentials := map[string]http.Header{
+		"an API key alone": {"X-API-Key": []string{"mcp-api-key"}},
+		"an API key beside an Authorization header": {
+			"X-API-Key":     []string{"mcp-api-key"},
+			"Authorization": []string{"Bearer not-a-token"},
 		},
 	}
 
-	for description, credential := range credentials {
+	for description, header := range credentials {
 		t.Run(description, func(t *testing.T) {
 			router, _, service := authenticatedRouter(t)
-			credential.setup(service)
+			service.On("AuthAPIKey", gomock.Anything, "mcp-api-key").
+				Return(&models.APIKey{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner}, nil)
 			service.
 				On("ListDevices", gomock.Anything, gomock.Anything, gomock.AnythingOfType("*requests.DeviceList")).
 				Return([]models.Device{{UID: "uid1"}}, int64(7), nil).
 				Once()
 
-			rec := mcpCallAs(t, router, credential.header, mcpToolCall("shellhub_list_devices", `{}`))
+			rec := mcpCallAs(t, router, header, mcpToolCall("shellhub_list_devices", `{}`))
 
 			text, isErr := mcpToolResult(t, rec)
 			require.False(t, isErr, text)
@@ -226,19 +202,8 @@ func TestMCPForwardsEveryCredentialsActor(t *testing.T) {
 	}
 }
 
-func TestMCPServesAUserTokenThroughTheAuthenticator(t *testing.T) {
+func TestMCPRefusesAUserToken(t *testing.T) {
 	const userID = "000000000000000000000000"
-
-	router, _, service := authenticatedRouter(t)
-	service.On("AuthUserClaims", gomock.Anything, gomock.MatchedBy(func(claims *authorizer.UserClaims) bool {
-		return claims.ID == userID
-	})).Return(&models.User{ID: userID}, nil)
-	service.On("ResolveNamespaceRole", gomock.Anything, mcpCallerTenant, userID).
-		Return(&models.Namespace{TenantID: mcpCallerTenant}, authorizer.RoleOwner.String(), nil)
-	service.
-		On("GetDevice", gomock.Anything, scope.MustBounded(mcpCallerTenant), models.UID("uid1")).
-		Return(&models.Device{UID: "uid1", Name: "dev1"}, nil).
-		Once()
 
 	privateKey, err := testSigningKey()
 	require.NoError(t, err)
@@ -247,23 +212,41 @@ func TestMCPServesAUserTokenThroughTheAuthenticator(t *testing.T) {
 	}, "http://localhost", privateKey, clock.New().Now())
 	require.NoError(t, err)
 
-	rec := mcpCallAs(t, router, http.Header{"Authorization": []string{"Bearer " + bearer}},
-		mcpToolCall("shellhub_get_device", `{"uid":"uid1"}`))
+	calls := map[string]string{
+		"initialize": `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18",` +
+			`"capabilities":{},"clientInfo":{"name":"test","version":"1"}}}`,
+		"a tool call": mcpToolCall("shellhub_get_device", `{"uid":"uid1"}`),
+	}
 
-	text, isErr := mcpToolResult(t, rec)
-	require.False(t, isErr, text)
-	assert.Contains(t, text, "dev1")
-	service.AssertExpectations(t)
+	for description, body := range calls {
+		t.Run(description, func(t *testing.T) {
+			router, _, service := authenticatedRouter(t)
+			service.On("AuthUserClaims", gomock.Anything, gomock.MatchedBy(func(claims *authorizer.UserClaims) bool {
+				return claims.ID == userID
+			})).Return(&models.User{ID: userID}, nil)
+			service.On("ResolveNamespaceRole", gomock.Anything, mcpCallerTenant, userID).
+				Return(&models.Namespace{TenantID: mcpCallerTenant}, authorizer.RoleOwner.String(), nil)
+
+			rec := mcpCallAs(t, router, http.Header{"Authorization": []string{"Bearer " + bearer}}, body)
+
+			assert.Equal(t, http.StatusForbidden, rec.Code, rec.Body.String())
+			assert.Empty(t, rec.Header().Get("Mcp-Session-Id"))
+		})
+	}
 }
 
-func TestMCPRefusesACallCarryingNoCredential(t *testing.T) {
+func TestMCPRefusesAToolCallForAnIdentityWithoutAKey(t *testing.T) {
 	mock := mocks.NewMockService(t)
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp",
 		bytes.NewBufferString(mcpToolCall("shellhub_get_device", `{"uid":"uid1"}`)))
 	req = identitytest.As(req, identity.Identity{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner})
 
-	rec := mcpServe(newTestRouter(t, mock), req, http.Header{})
+	logger, _ := test.NewNullLogger()
+	handler := newMCPHandler(newTestRouter(t, mock), time.Minute, logrus.NewEntry(logger))
+	t.Cleanup(func() { _ = handler.Shutdown(context.Background()) })
+
+	rec := mcpServe(handler, req, http.Header{})
 
 	text, isErr := mcpToolResult(t, rec)
 	assert.True(t, isErr)
@@ -442,7 +425,7 @@ func mcpSessionRequest(t *testing.T, handler http.Handler, sessionID, body strin
 	t.Helper()
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp", bytes.NewBufferString(body))
-	req = identitytest.As(req, identity.Identity{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner})
+	req = identitytest.As(req, identity.Identity{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner, APIKey: mcpSessionAPIKey})
 
 	headers := http.Header{"X-API-Key": []string{mcpSessionAPIKey}, "Mcp-Session-Id": nil}
 	if sessionID != "" {
@@ -512,4 +495,30 @@ func TestMCPLoggerKeepsWarningsAndErrorsOnly(t *testing.T) {
 	assert.Equal(t, "mcp-session-2", entries[0].Data["session"])
 	assert.Equal(t, "mcp", entries[0].Data["component"])
 	assert.Equal(t, logrus.ErrorLevel, entries[1].Level)
+}
+
+func TestMCPReplaysOnlyTheAPIKey(t *testing.T) {
+	var replayed http.Header
+	api := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		replayed = r.Header.Clone()
+		_, _ = w.Write([]byte(`{}`))
+	})
+
+	logger, _ := test.NewNullLogger()
+	handler := newMCPHandler(api, time.Minute, logrus.NewEntry(logger))
+	t.Cleanup(func() { _ = handler.Shutdown(context.Background()) })
+
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/mcp",
+		bytes.NewBufferString(mcpToolCall("shellhub_get_stats", `{}`)))
+	req = identitytest.As(req, identity.Identity{TenantID: mcpCallerTenant, Role: authorizer.RoleOwner, APIKey: mcpSessionAPIKey})
+
+	text, isErr := mcpToolResult(t, mcpServe(handler, req, http.Header{
+		"X-API-Key":     []string{"a-header-the-authenticator-did-not-verify"},
+		"Authorization": []string{"Bearer a-user-token"},
+	}))
+	require.False(t, isErr, text)
+
+	require.NotNil(t, replayed)
+	assert.Equal(t, mcpSessionAPIKey, replayed.Get("X-API-Key"))
+	assert.Empty(t, replayed.Get("Authorization"))
 }
