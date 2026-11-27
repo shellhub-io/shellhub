@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
+	logtest "github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -294,5 +296,32 @@ func TestRedirectsStopAfterThree(t *testing.T) {
 			require.ErrorIs(t, err, errTooManyRedirects)
 			assert.Equal(t, int32(4), redirect.hits.Load())
 		})
+	}
+}
+
+func TestARefusedRedirectIsLoggedWithTheRuleThatRefusedIt(t *testing.T) {
+	target, _ := newTarget(t, false)
+	redirect := newRedirector(t, false)
+	redirect.redirectTo(onOtherHost(target.URL))
+
+	backend, hook := logtest.NewNullLogger()
+	backend.SetLevel(logrus.DebugLevel)
+
+	cli, err := NewClient(redirect.server.URL, withTestTransport(t, 1), WithLogger(backend))
+	require.NoError(t, err)
+
+	_, err = cli.GetDeviceAuthStatus("device-token")
+	require.Error(t, err)
+
+	var refusals []error
+	for _, entry := range hook.AllEntries() {
+		if logged, ok := entry.Data[logrus.ErrorKey].(error); ok {
+			refusals = append(refusals, logged)
+		}
+	}
+
+	require.NotEmpty(t, refusals)
+	for _, logged := range refusals {
+		assert.ErrorIs(t, logged, errRedirectOtherHost)
 	}
 }

@@ -15,9 +15,10 @@ import (
 const maxRedirects = 3
 
 var (
-	errRedirectOtherHost = errors.New("redirect to another host refused")
-	errRedirectDowngrade = errors.New("redirect from a secure to an insecure scheme refused")
-	errTooManyRedirects  = errors.New("too many redirects")
+	errRedirectRefused   = errors.New("redirect refused")
+	errRedirectOtherHost = fmt.Errorf("%w: another host", errRedirectRefused)
+	errRedirectDowngrade = fmt.Errorf("%w: a secure to an insecure scheme", errRedirectRefused)
+	errTooManyRedirects  = fmt.Errorf("%w: too many redirects", errRedirectRefused)
 )
 
 func isSecureScheme(scheme string) bool {

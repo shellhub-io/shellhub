@@ -126,6 +126,8 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 			connectivity.Lost(client.entry(), r.Request.Attempt, err)
 		case serverAtFault(r.StatusCode()):
 			connectivity.Lost(client.entry(), r.Request.Attempt, answer(r))
+		case errors.Is(err, errRedirectRefused):
+			connectivity.Refused(client.entry(), r.Request.Attempt, err)
 		default:
 			connectivity.Refused(client.entry(), r.Request.Attempt, answer(r))
 		}
