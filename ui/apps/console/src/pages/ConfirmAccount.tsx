@@ -8,7 +8,6 @@ import {
 import { Button, Callout } from "@shellhub/design-system/primitives";
 import { isSdkError } from "@/api/errors";
 import { useAuthStore } from "@/stores/authStore";
-import { useSignUpStore } from "@/stores/signUpStore";
 import { useResendEmail } from "@/hooks/useResendEmail";
 import { useLockout } from "@/hooks/useLockout";
 import { useOtpInput } from "@/hooks/useOtpInput";
@@ -51,7 +50,6 @@ export default function ConfirmAccount() {
     (location.state as { sendCode?: unknown } | null)?.sendCode === true;
 
   const confirmAccount = useAuthStore((s) => s.confirmAccount);
-  const resetResendError = useSignUpStore((s) => s.resetResendError);
   const otp = useOtpInput(6);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +72,6 @@ export default function ConfirmAccount() {
     resendSuccess,
     resendCooldown,
   } = useResendEmail(identifier);
-
-  useEffect(() => {
-    resetResendError();
-  }, [resetResendError]);
 
   const confirm = async (code: string, fromLink = false) => {
     setConfirming(true);

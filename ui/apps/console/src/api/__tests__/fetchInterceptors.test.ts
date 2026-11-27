@@ -65,8 +65,6 @@ beforeEach(() => {
     tenant: null,
     role: null,
     name: null,
-    loading: false,
-    error: null,
     mfaToken: null,
     signOutHandedOver: false,
   });

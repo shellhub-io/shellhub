@@ -5,8 +5,7 @@
  *
  * Reach for it only where the failure genuinely has no consequence — a best-effort cleanup, an
  * optional integration that may not be loaded. Where the error is shown somewhere else, say that
- * instead: a react-query mutation surfaces its own error through mutate(), and a store action
- * that records the failure in state should be read from state.
+ * instead: a react-query mutation surfaces its own error through mutate().
  */
 export function ignoreFailure(): undefined {
   return undefined;
@@ -34,16 +33,4 @@ export function attempt(action: () => void): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Whether a promise resolved, discarding both the value and the reason. For a call whose failure
- * is already recorded somewhere the screen reads — a store that puts the message in its own
- * state — where all the caller needs is whether to carry on.
- */
-export function succeeded(promise: Promise<unknown>): Promise<boolean> {
-  return promise.then(
-    () => true,
-    () => false,
-  );
 }

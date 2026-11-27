@@ -7,6 +7,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { simulateBrowserTranslation } from "@/tests/simulateBrowserTranslation";
 import { createTestWrapper } from "@/tests/wrapper";
 import { VALID_JWT } from "@/tests/seedAuthStore";
+import { mockUserAuth } from "@/tests/factories";
 import { getConfig, defaultConfig } from "@/env";
 import { setEdition } from "@/tests/edition";
 import AcceptInvite from "../AcceptInvite";
@@ -22,24 +23,6 @@ vi.mock("react-router-dom", async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-const { mockSignUp, signUpState } = vi.hoisted(() => {
-  const mockSignUp = vi.fn();
-  const signUpState = {
-    signUp: mockSignUp,
-    signUpLoading: false,
-    signUpError: null as string | null,
-    signUpServerFields: {} as Record<string, string>,
-  };
-  return { mockSignUp, signUpState };
-});
-
-vi.mock("@/stores/signUpStore", () => ({
-  useSignUpStore: Object.assign(
-    (selector: (s: typeof signUpState) => unknown) => selector(signUpState),
-    { getState: () => signUpState },
-  ),
-}));
-
 const INVITE_CODE = "INVITECODE12";
 const VALID_PARAMS = `invite=${INVITE_CODE}`;
 
@@ -49,6 +32,19 @@ const resolvedData = {
   email: "alice@example.com",
   status: "confirmed",
 };
+
+function serveRegister(token: string | null) {
+  const captured: { body?: Record<string, unknown> } = {};
+  server.use(
+    http.post("*/api/register", async ({ request }) => {
+      captured.body = (await request.json()) as Record<string, unknown>;
+      return token
+        ? HttpResponse.json(mockUserAuth({ token }))
+        : new HttpResponse(null, { status: 204 });
+    }),
+  );
+  return captured;
+}
 
 function renderPage(search = VALID_PARAMS) {
   return render(<AcceptInvite />, {
@@ -69,7 +65,6 @@ beforeEach(() => {
     tenant: null,
     role: null,
     name: null,
-    loading: false,
     loginWithToken: async () => {
       useAuthStore.setState({
         token: VALID_JWT,
@@ -77,13 +72,9 @@ beforeEach(() => {
         userId: "u1",
         email: "alice@example.com",
         name: "Alice",
-        loading: false,
       });
     },
   });
-  signUpState.signUpLoading = false;
-  signUpState.signUpError = null;
-  signUpState.signUpServerFields = {};
   server.use(
     http.get("*/api/invitations/resolve", () =>
       HttpResponse.json(resolvedData),
@@ -141,7 +132,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
-        loading: false,
       });
     });
 
@@ -181,7 +171,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "other-user-id",
         email: "other@example.com",
-        loading: false,
       });
       renderPage(VALID_PARAMS);
       expect(
@@ -228,20 +217,21 @@ describe("AcceptInvite", () => {
     });
 
     it("submits with the invite code as sig, no marketing, and switches namespace on token", async () => {
-      mockSignUp.mockResolvedValue("tok");
+      const captured = serveRegister("tok");
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
       await screen.findByRole("heading", { name: /you've been invited/i });
       await fillForm(user);
       await user.click(screen.getByRole("button", { name: /join namespace/i }));
 
-      await waitFor(() => expect(mockSignUp).toHaveBeenCalledTimes(1));
-      expect(mockSignUp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: "alice@example.com",
-          sig: INVITE_CODE,
-          email_marketing: false,
-        }),
+      await waitFor(() =>
+        expect(captured.body).toEqual(
+          expect.objectContaining({
+            email: "alice@example.com",
+            sig: INVITE_CODE,
+            email_marketing: false,
+          }),
+        ),
       );
 
       await waitFor(() =>
@@ -252,7 +242,7 @@ describe("AcceptInvite", () => {
     });
 
     it("announces the loading state to screen readers when switching namespace", async () => {
-      mockSignUp.mockResolvedValue("tok");
+      serveRegister("tok");
       server.use(
         http.get("*/api/auth/token/:tenant", () => new Promise(() => {})),
       );
@@ -285,7 +275,7 @@ describe("AcceptInvite", () => {
         ...defaultConfig,
         edition: "cloud",
       });
-      mockSignUp.mockResolvedValue(null);
+      serveRegister(null);
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
       await screen.findByRole("heading", { name: /you've been invited/i });
@@ -304,7 +294,7 @@ describe("AcceptInvite", () => {
         ...defaultConfig,
         edition: "enterprise",
       });
-      mockSignUp.mockResolvedValue(null);
+      serveRegister(null);
       const user = userEvent.setup();
       renderPage(VALID_PARAMS);
       await screen.findByRole("heading", { name: /you've been invited/i });
@@ -317,6 +307,46 @@ describe("AcceptInvite", () => {
         ).toBeInTheDocument(),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it("says the username or email is taken when the server refuses a field", async () => {
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json(
+            { message: "user invalid", fields: { username: "invalid" } },
+            { status: 400 },
+          ),
+        ),
+      );
+      const user = userEvent.setup();
+      renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /you've been invited/i });
+      await fillForm(user);
+      await user.click(screen.getByRole("button", { name: /join namespace/i }));
+
+      expect(
+        await screen.findByText(/that username or email is already in use/i),
+      ).toBeInTheDocument();
+    });
+
+    it("shows no sign-up error left from an earlier attempt", async () => {
+      server.use(
+        http.post("*/api/register", () =>
+          HttpResponse.json({}, { status: 500 }),
+        ),
+      );
+      const user = userEvent.setup();
+      const first = renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /you've been invited/i });
+      await fillForm(user);
+      await user.click(screen.getByRole("button", { name: /join namespace/i }));
+      await screen.findByText(/something went wrong/i);
+      first.unmount();
+
+      renderPage(VALID_PARAMS);
+      await screen.findByRole("heading", { name: /you've been invited/i });
+
+      expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument();
     });
   });
 
@@ -354,7 +384,7 @@ describe("AcceptInvite", () => {
           HttpResponse.json({ ...resolvedData, status: "invited" }),
         ),
       );
-      mockSignUp.mockResolvedValue("tok");
+      serveRegister("tok");
       const user = userEvent.setup();
       const { container } = renderPage(VALID_PARAMS);
       await screen.findByRole("heading", { name: /you've been invited/i });
@@ -376,7 +406,6 @@ describe("AcceptInvite", () => {
         token: VALID_JWT,
         userId: "u1",
         email: "alice@example.com",
-        loading: false,
       });
       const user = userEvent.setup();
       const { container } = renderPage(VALID_PARAMS);

@@ -1,10 +1,11 @@
 import { useState, FormEvent, useId } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { disableMfa } from "@/client";
+import { disableMfaMutation, requestResetMfaMutation } from "@/client";
 import { lockoutMessage } from "@/api/errors";
 import { useHandOverSignOut } from "@/hooks/useHandOverSignOut";
 import { useOtpInput } from "@/hooks/useOtpInput";
@@ -12,9 +13,8 @@ import { useResetOnOpen } from "@/hooks/useResetOnOpen";
 import { useAuthStore } from "@/stores/authStore";
 import {
   mfaResetCodesRejectedMessage,
-  mfaResetRequestFailedMessage,
-  useMfaResetStore,
-} from "@/stores/mfaResetStore";
+  mfaResetRequestError,
+} from "@/stores/authErrors";
 import BaseDialog from "@/components/common/BaseDialog";
 import DialogHeader from "@/components/common/DialogHeader";
 import OtpCells from "@/components/mfa/OtpCells";
@@ -42,14 +42,14 @@ export default function MfaDisableDialog({
   const dialogDescriptionId = useId();
   const otp = useOtpInput(6);
   const [recoveryCode, setRecoveryCode] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [emailRequested, setEmailRequested] = useState(false);
-  const [requestingEmail, setRequestingEmail] = useState(false);
+  const requestReset = useMutation(requestResetMfaMutation());
+  const requestingEmail = requestReset.isPending;
+  const disable = useMutation(disableMfaMutation());
   const otpMainEmail = useOtpInput(5, true);
   const otpRecoveryEmail = useOtpInput(5, true);
   const { user, username } = useAuthStore();
-  const { requestMfaReset } = useMfaResetStore();
   const handOverSignOut = useHandOverSignOut();
 
   useResetOnOpen(open, () => {
@@ -71,46 +71,35 @@ export default function MfaDisableDialog({
       return;
     }
 
-    setRequestingEmail(true);
     setError("");
     try {
-      await requestMfaReset(identifier);
+      await requestReset.mutateAsync({ body: { identifier } });
       setEmailRequested(true);
-    } catch {
-      setError(useMfaResetStore.getState().error ?? mfaResetRequestFailedMessage);
-    } finally {
-      setRequestingEmail(false);
+    } catch (err) {
+      setError(mfaResetRequestError(err));
     }
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    setSubmitting(true);
 
     try {
       if (mode === "totp") {
         if (!otp.isComplete) return;
-        await disableMfa({
-          body: { code: otp.getValue() },
-          throwOnError: true,
-        });
+        await disable.mutateAsync({ body: { code: otp.getValue() } });
       } else if (mode === "recovery") {
         if (!recoveryCode.trim()) return;
-        await disableMfa({
-          body: { recovery_code: recoveryCode },
-          throwOnError: true,
-        });
+        await disable.mutateAsync({ body: { recovery_code: recoveryCode } });
       } else if (mode === "email-reset") {
         if (!otpMainEmail.isComplete || !otpRecoveryEmail.isComplete) return;
         await handOverSignOut(
           () =>
-            disableMfa({
+            disable.mutateAsync({
               body: {
                 main_email_code: otpMainEmail.getValue(),
                 recovery_email_code: otpRecoveryEmail.getValue(),
               },
-              throwOnError: true,
             }),
           "MFA disabled. Sign in again.",
         );
@@ -137,8 +126,6 @@ export default function MfaDisableDialog({
         otpMainEmail.reset();
         otpRecoveryEmail.reset();
       }
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -316,7 +303,7 @@ export default function MfaDisableDialog({
                 type="submit"
                 variant="destructive"
                 disabled={!isComplete}
-                loading={submitting}
+                loading={disable.isPending}
               >
                 Disable MFA
               </Button>

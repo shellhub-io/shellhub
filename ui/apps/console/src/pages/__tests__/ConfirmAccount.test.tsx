@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
-import { useSignUpStore } from "@/stores/signUpStore";
+import { createTestWrapper } from "@/tests/wrapper";
 import { mockUserAuth } from "@/tests/factories";
 import {
   clearPendingDeviceCode,
@@ -55,6 +55,7 @@ function renderConfirmAccount(search = "", state?: unknown) {
         />
       </Routes>
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
   return user;
 }
@@ -97,7 +98,6 @@ function resendWith(sent: unknown[]) {
 beforeEach(() => {
   clearPendingDeviceCode();
   useAuthStore.setState(useAuthStore.getInitialState(), true);
-  useSignUpStore.setState({ resendLoading: false, resendError: null });
   server.use(
     http.post(
       "*/api/user/resend_email",

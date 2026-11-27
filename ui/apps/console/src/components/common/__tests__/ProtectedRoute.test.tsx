@@ -13,7 +13,6 @@ beforeEach(() => {
     tenant: null,
     role: null,
     name: null,
-    loading: false,
   });
 });
 

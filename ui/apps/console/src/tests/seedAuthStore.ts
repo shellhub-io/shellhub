@@ -22,7 +22,6 @@ type AuthData = Pick<
   | "recoveryEmail"
   | "mfaEnabled"
   | "origin"
-  | "loading"
   | "token"
   | "userId"
   | "tenant"
@@ -46,7 +45,6 @@ export function seedAuthStore(overrides: Partial<AuthData> = {}) {
     recoveryEmail: auth.recovery_email,
     mfaEnabled: auth.mfa,
     origin: auth.origin,
-    loading: false,
     token: auth.token,
     userId: auth.id,
     tenant: auth.tenant,

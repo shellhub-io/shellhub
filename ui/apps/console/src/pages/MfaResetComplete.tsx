@@ -1,10 +1,9 @@
-import { FormEvent, useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import type { FormEvent } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { resetMfa } from "../client";
-import { useAuthStore } from "../stores/authStore";
-import { mfaResetCodesRejectedMessage, mfaResetNotice } from "../stores/mfaResetStore";
-import { useOtpInput } from "../hooks/useOtpInput";
+import { mfaResetCodesRejectedMessage } from "@/stores/authErrors";
+import { useCompleteMfaReset } from "@/hooks/useUserRequests";
+import { useOtpInput } from "@/hooks/useOtpInput";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
 import OtpCells from "@/components/mfa/OtpCells";
@@ -15,44 +14,34 @@ import OtpCells from "@/components/mfa/OtpCells";
  */
 export default function MfaResetComplete() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const reset = useCompleteMfaReset();
+  const loading = reset.isPending;
+  const error = reset.error ? mfaResetCodesRejectedMessage : null;
 
   const otpMain = useOtpInput(5, true);
   const otpRecovery = useOtpInput(5, true);
 
   const userId = searchParams.get("id");
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!userId || !otpMain.isComplete || !otpRecovery.isComplete) return;
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      await resetMfa({
+    reset.mutate(
+      {
         path: { "user-id": userId },
         body: {
           main_email_code: otpMain.getValue(),
           recovery_email_code: otpRecovery.getValue(),
         },
-        throwOnError: true,
-      });
-
-      useAuthStore.setState({ mfaToken: null });
-      void navigate("/login", {
-        state: { notice: mfaResetNotice, signOut: true },
-      });
-    } catch {
-      setError(mfaResetCodesRejectedMessage);
-      otpMain.reset();
-      otpRecovery.reset();
-    } finally {
-      setLoading(false);
-    }
+      },
+      {
+        onError: () => {
+          otpMain.reset();
+          otpRecovery.reset();
+        },
+      },
+    );
   };
 
   if (!userId) {
@@ -83,7 +72,7 @@ export default function MfaResetComplete() {
         lead="Enter the codes from both emails to complete the MFA reset. Both are required to prove ownership of your account's email addresses, and they expire after 24 hours."
       />
 
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && <Callout variant="error">{error}</Callout>}
 
         <OtpCells
