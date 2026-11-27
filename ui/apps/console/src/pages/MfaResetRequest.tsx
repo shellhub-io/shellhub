@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
 import { Button, Callout } from "@shellhub/design-system/primitives";
-import { useAuthStore } from "../stores/authStore";
-import { useMfaResetStore } from "../stores/mfaResetStore";
+import { useAuthStore } from "@/stores/authStore";
+import { mfaResetRequestError } from "@/stores/authErrors";
+import { requestResetMfaMutation } from "@/client";
 import AuthActions from "@/components/auth/AuthActions";
 import ScreenIntro from "@/components/layout/ScreenIntro";
-import { succeeded } from "@/utils/failure";
 
 /**
  * Starts an MFA reset for someone with neither their authenticator nor a recovery code. It goes
@@ -14,16 +15,14 @@ import { succeeded } from "@/utils/failure";
  */
 export default function MfaResetRequest() {
   const { user, username, mfaToken } = useAuthStore();
-  const { requestMfaReset, loading, error } = useMfaResetStore();
+  const request = useMutation(requestResetMfaMutation());
+  const loading = request.isPending;
+  const error = request.error ? mfaResetRequestError(request.error) : null;
   const navigate = useNavigate();
 
   const identifier = user || username;
 
   const { handleSubmit } = useForm();
-
-  useEffect(() => {
-    useMfaResetStore.setState({ error: null });
-  }, []);
 
   useEffect(() => {
     if (!identifier && !mfaToken) {
@@ -35,10 +34,14 @@ export default function MfaResetRequest() {
     return null;
   }
 
-  const onSubmit = async () => {
-    if (await succeeded(requestMfaReset(identifier))) {
-      void navigate("/mfa-reset-verify");
-    }
+  const onSubmit = () => {
+    request.mutate(
+      { body: { identifier } },
+      {
+        onSuccess: ({ token }) =>
+          void navigate("/mfa-reset-verify", { state: { token, identifier } }),
+      },
+    );
   };
 
   return (

@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { server } from "@/tests/msw";
 import { useAuthStore } from "@/stores/authStore";
+import { createTestWrapper } from "@/tests/wrapper";
 import MfaResetComplete from "../MfaResetComplete";
 
 function LoginNotice() {
@@ -26,6 +27,7 @@ function renderPage() {
         <Route path="/login" element={<LoginNotice />} />
       </Routes>
     </MemoryRouter>,
+    { wrapper: createTestWrapper() },
   );
 }
 
