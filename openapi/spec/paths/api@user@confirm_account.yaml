@@ -25,6 +25,7 @@ post:
             identifier:
               description: The account's username or email.
               type: string
+              maxLength: 320
             code:
               description: The six-digit code emailed to the account.
               type: string

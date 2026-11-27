@@ -20,6 +20,7 @@ post:
             identifier:
               description: The account's username or email.
               type: string
+              maxLength: 320
           required:
             - identifier
           example:

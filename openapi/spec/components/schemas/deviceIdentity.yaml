@@ -9,6 +9,7 @@ properties:
       chooses, commonly the equipment's serial number. A provisioning key in `allowlist`
       mode matches its `allowed_identities` against this value.
     type: string
+    maxLength: 64
     example: '00:00:00:00:00:00'
 required:
   - mac

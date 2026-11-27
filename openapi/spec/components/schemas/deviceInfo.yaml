@@ -4,22 +4,27 @@ properties:
   id:
     description: Device's OS name
     type: string
+    maxLength: 64
     example: example
   pretty_name:
     description: Device's OS pretty name
     type: string
+    maxLength: 256
     example: linux
   version:
     description: Device's OS version
     type: string
+    maxLength: 32
     example: latest
   arch:
     description: Device's OS arch
     type: string
+    maxLength: 16
     example: x86_64
   platform:
     description: Device's OS platform
     type: string
+    maxLength: 32
     enum:
       - docker
       - native
