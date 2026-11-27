@@ -2,10 +2,16 @@ package services
 
 import (
 	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
+	"slices"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -94,5 +100,155 @@ func TestDeviceSigner(t *testing.T) {
 
 		_, err := minted.service.AuthPublicKey(t.Context(), "device-a", minted.request)
 		require.ErrorIs(t, err, ErrPublicKeyNotFound)
+	})
+}
+
+type recordingGenerator struct {
+	mu        sync.Mutex
+	pool      []*rsa.PrivateKey
+	generated int
+}
+
+func newRecordingGenerator(t *testing.T, size int) *recordingGenerator {
+	t.Helper()
+
+	pool := make([]*rsa.PrivateKey, size)
+	for i := range pool {
+		key, err := rsa.GenerateKey(rand.Reader, deviceSignerBits)
+		require.NoError(t, err)
+
+		pool[i] = key
+	}
+
+	return &recordingGenerator{pool: pool}
+}
+
+func (g *recordingGenerator) generate() (*rsa.PrivateKey, error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if g.generated == len(g.pool) {
+		return nil, errors.New("the test ran out of keys")
+	}
+
+	key := g.pool[g.generated]
+	g.generated++
+
+	return key, nil
+}
+
+func (g *recordingGenerator) generatedSoFar() []*rsa.PrivateKey {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	return slices.Clone(g.pool[:g.generated])
+}
+
+func TestDeviceSignerReserve(t *testing.T) {
+	generator := newRecordingGenerator(t, 16)
+
+	synctest.Test(t, func(t *testing.T) {
+		at := clock.NewFixed(time.Date(2026, time.January, 15, 12, 0, 0, 0, time.UTC))
+		s := NewService(storemock.NewMockStore(t), privateKey, publicKey, newExpiringMemoryCache(at), WithClock(at), withDeviceSignerReserve(2, 2, generator.generate))
+
+		seen := map[string]bool{}
+
+		for range 3 {
+			synctest.Wait()
+			ahead := generator.generatedSoFar()
+
+			key, err := s.MintDeviceSigner(t.Context(), "device-a")
+			require.NoError(t, err)
+
+			require.True(t, slices.ContainsFunc(ahead, func(reserved *rsa.PrivateKey) bool { return reserved.Equal(key) }), "the key must have been generated before the mint asked for it")
+
+			public, err := ssh.NewPublicKey(&key.PublicKey)
+			require.NoError(t, err)
+
+			fingerprint := ssh.FingerprintLegacyMD5(public)
+			require.False(t, seen[fingerprint], "the reserve handed the same key out twice")
+			seen[fingerprint] = true
+
+			_, err = s.AuthPublicKey(t.Context(), "device-a", requests.PublicKeyAuth{Fingerprint: fingerprint, Data: "data"})
+			require.NoError(t, err)
+		}
+	})
+}
+
+func TestDeviceSignerReserveStopsRefillingWhileItsGeneratorFails(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		const spinning = 100
+
+		var calls atomic.Int32
+
+		stuck := make(chan struct{})
+		failing := func() (*rsa.PrivateKey, error) {
+			if calls.Add(1) > spinning {
+				<-stuck
+			}
+
+			return nil, errors.New("no entropy")
+		}
+
+		at := clock.NewFixed(time.Date(2026, time.January, 15, 12, 0, 0, 0, time.UTC))
+		s := NewService(storemock.NewMockStore(t), privateKey, publicKey, newExpiringMemoryCache(at), WithClock(at), withDeviceSignerReserve(2, 2, failing))
+
+		synctest.Wait()
+		require.LessOrEqual(t, calls.Load(), int32(2), "a failing generator must not be retried until a key is asked for")
+
+		_, err := s.MintDeviceSigner(t.Context(), "device-a")
+		require.Error(t, err)
+
+		synctest.Wait()
+		require.LessOrEqual(t, calls.Load(), int32(5), "a failing generator must not be retried until a key is asked for")
+
+		close(stuck)
+	})
+}
+
+func TestDeviceSignerReserveRefillsEveryTakenKeyInParallel(t *testing.T) {
+	const size = 4
+
+	generator := newRecordingGenerator(t, 2*size)
+
+	synctest.Test(t, func(t *testing.T) {
+		var (
+			filled   atomic.Bool
+			inFlight atomic.Int32
+		)
+
+		release := make(chan struct{})
+		open := sync.OnceFunc(func() { close(release) })
+		defer open()
+
+		gated := func() (*rsa.PrivateKey, error) {
+			if filled.Load() {
+				inFlight.Add(1)
+				defer inFlight.Add(-1)
+
+				<-release
+			}
+
+			return generator.generate()
+		}
+
+		at := clock.NewFixed(time.Date(2026, time.January, 15, 12, 0, 0, 0, time.UTC))
+		s := NewService(storemock.NewMockStore(t), privateKey, publicKey, newExpiringMemoryCache(at), WithClock(at), withDeviceSignerReserve(size, size, gated))
+
+		synctest.Wait()
+		filled.Store(true)
+
+		for taken := 1; taken <= size; taken++ {
+			_, err := s.MintDeviceSigner(t.Context(), "device-a")
+			require.NoError(t, err)
+
+			synctest.Wait()
+			require.Equal(t, int32(taken), inFlight.Load(), "each key taken must start generating its replacement")
+		}
+
+		open()
+		synctest.Wait()
+
+		require.Len(t, generator.generatedSoFar(), 2*size, "the reserve must refill every key it handed out")
 	})
 }

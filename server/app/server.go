@@ -213,6 +213,8 @@ type tunnelPingInterval time.Duration
 
 const maxTunnelPingInterval = time.Minute
 
+const deviceSignerReserve = 16
+
 var errTunnelPingInterval = errors.New("SHELLHUB_TUNNEL_PING_INTERVAL must be a positive duration under 1m, such as 15s")
 
 func (i *tunnelPingInterval) UnmarshalText(text []byte) error {
@@ -358,6 +360,7 @@ func (s *Server) Setup(ctx context.Context) error {
 
 	servicesOptions = append(servicesOptions,
 		services.WithIssuer(s.publicURL),
+		services.WithDeviceSignerReserve(deviceSignerReserve),
 		services.WithEdition(s.env.Edition),
 		services.WithSystemInfo(s.env.Version, s.env.SSHPort),
 		services.WithDevelopmentMode(s.env.Development()),

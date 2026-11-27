@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"net/netip"
+	"runtime"
 	"slices"
 
 	"github.com/shellhub-io/shellhub/pkg/cache"
@@ -41,6 +42,7 @@ type service struct {
 	issuer            string
 	challengeKey      []byte
 	clock             clock.Clock
+	signers           *signerReserve
 
 	namespaceRequireVerifiedDeviceKey bool
 
@@ -136,6 +138,29 @@ func WithSessionRecordingPruner(rp SessionRecordingPruner) Option {
 func WithClock(c clock.Clock) Option {
 	return func(service *APIService) {
 		service.clock = c
+	}
+}
+
+// WithDeviceSignerReserve keeps up to size device signer keys generated ahead of use, so
+// [SSHKeysService.MintDeviceSigner] hands one out instead of generating it while a connection
+// waits. The reserve fills in the background from construction. Each key it hands out starts
+// generating a replacement, alongside those already generating, up to half the CPUs; each key is
+// still handed out once. A key generation that fails is not retried until the next key is asked
+// for. A size of zero or less, the default, generates every key on the call.
+func WithDeviceSignerReserve(size int) Option {
+	return withDeviceSignerReserve(size, max(runtime.GOMAXPROCS(0)/2, 1), generateDeviceSigner)
+}
+
+func withDeviceSignerReserve(size, workers int, generate func() (*rsa.PrivateKey, error)) Option {
+	return func(service *APIService) {
+		if size <= 0 {
+			service.signers = nil
+
+			return
+		}
+
+		service.signers = newSignerReserve(size, workers, generate)
+		service.signers.refill()
 	}
 }
 

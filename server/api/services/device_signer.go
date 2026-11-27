@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"sync/atomic"
 	"time"
 
 	"github.com/shellhub-io/shellhub/pkg/api/requests"
@@ -30,8 +31,70 @@ func deviceSignerKey(fingerprint string) string {
 	return "device-signer/" + fingerprint
 }
 
+type signerReserve struct {
+	keys     chan *rsa.PrivateKey
+	filling  atomic.Int32
+	workers  int32
+	generate func() (*rsa.PrivateKey, error)
+}
+
+func generateDeviceSigner() (*rsa.PrivateKey, error) {
+	return rsa.GenerateKey(rand.Reader, deviceSignerBits)
+}
+
+func newSignerReserve(size, workers int, generate func() (*rsa.PrivateKey, error)) *signerReserve {
+	return &signerReserve{keys: make(chan *rsa.PrivateKey, size), workers: int32(min(workers, size)), generate: generate} //nolint:gosec // workers is capped by size, a channel capacity that fits int32 by far
+}
+
+func (r *signerReserve) take() (*rsa.PrivateKey, error) {
+	if r == nil {
+		return generateDeviceSigner()
+	}
+
+	defer r.refill()
+
+	select {
+	case key := <-r.keys:
+		return key, nil
+	default:
+		return r.generate()
+	}
+}
+
+func (r *signerReserve) refill() {
+	for range r.workers {
+		filling := r.filling.Load()
+		if filling >= r.workers || int(filling) >= cap(r.keys)-len(r.keys) {
+			return
+		}
+
+		if r.filling.CompareAndSwap(filling, filling+1) {
+			go r.fill()
+		}
+	}
+}
+
+func (r *signerReserve) fill() {
+	for len(r.keys) < cap(r.keys) {
+		key, err := r.generate()
+		if err != nil {
+			r.filling.Add(-1)
+
+			return
+		}
+
+		select {
+		case r.keys <- key:
+		default:
+		}
+	}
+
+	r.filling.Add(-1)
+	r.refill()
+}
+
 func (s *service) MintDeviceSigner(ctx context.Context, device models.UID) (*rsa.PrivateKey, error) {
-	key, err := rsa.GenerateKey(rand.Reader, deviceSignerBits)
+	key, err := s.signers.take()
 	if err != nil {
 		return nil, err
 	}
