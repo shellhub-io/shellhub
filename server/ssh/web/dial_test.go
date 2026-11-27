@@ -54,7 +54,7 @@ func TestDialDeviceStopsWhenItsContextEnds(t *testing.T) {
 	done := make(chan error, 1)
 
 	go func() {
-		_, err := dialDevice(ctx, nil, webhandoff.NewStore(), nil, creds, Info{IP: "127.0.0.1"}, hostKey, listener.Addr().String(), log.NewEntry(log.StandardLogger()))
+		_, err := dialDevice(ctx, nil, webhandoff.NewStore(), nil, creds, defaultDimensions, Info{IP: "127.0.0.1"}, hostKey, listener.Addr().String(), log.NewEntry(log.StandardLogger()))
 		done <- err
 	}()
 
@@ -78,6 +78,6 @@ func TestDialDeviceReportsAGatewayItCannotReach(t *testing.T) {
 
 	creds := &Credentials{Username: "user", Password: "password", Device: "device"} //nolint:exhaustruct // a password login names nothing else
 
-	_, err = dialDevice(t.Context(), nil, webhandoff.NewStore(), nil, creds, Info{IP: "127.0.0.1"}, testHostKey(t), address, log.NewEntry(log.StandardLogger()))
+	_, err = dialDevice(t.Context(), nil, webhandoff.NewStore(), nil, creds, defaultDimensions, Info{IP: "127.0.0.1"}, testHostKey(t), address, log.NewEntry(log.StandardLogger()))
 	require.ErrorIs(t, err, ErrConnect)
 }

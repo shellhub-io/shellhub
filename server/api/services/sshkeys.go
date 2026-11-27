@@ -42,10 +42,12 @@ type SSHKeysService interface {
 	// also when a parallel request deletes it first, and the store's error otherwise. A ctx
 	// cancelled or past its deadline fails the step it reaches with that step's error.
 	DeletePublicKey(ctx context.Context, fingerprint, tenant string) error
-	// MintDeviceSigner generates the key the SSH gateway logs in to device with, and keeps it for a
-	// minute, bound to device, so the device's agent can have [AuthService.AuthPublicKey] vouch for
-	// it. ctx bounds only the cache write, not the key generation. It returns the key generation's
-	// error, or the cache's, ctx's cancellation included, when the key cannot be kept.
+	// MintDeviceSigner hands out the key the SSH gateway logs in to device with, taken from the
+	// reserve [WithDeviceSignerReserve] keeps, or generated on the call when that reserve is empty or
+	// unset, and keeps it for a minute, bound to device, so the device's agent can have
+	// [AuthService.AuthPublicKey] vouch for it. ctx bounds only the cache write, not the key
+	// generation. It returns the key generation's error, or the cache's, ctx's cancellation included,
+	// when the key cannot be kept.
 	MintDeviceSigner(ctx context.Context, device models.UID) (*rsa.PrivateKey, error)
 }
 

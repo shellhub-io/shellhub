@@ -96,3 +96,29 @@ func TestDeviceSigner(t *testing.T) {
 		require.ErrorIs(t, err, ErrPublicKeyNotFound)
 	})
 }
+
+func TestDeviceSignerReserve(t *testing.T) {
+	at := clock.NewFixed(time.Date(2026, time.January, 15, 12, 0, 0, 0, time.UTC))
+	s := NewService(storemock.NewMockStore(t), privateKey, publicKey, newExpiringMemoryCache(at), WithClock(at), WithDeviceSignerReserve(2))
+
+	require.Eventually(t, func() bool { return len(s.signers.keys) == 2 }, time.Minute, 10*time.Millisecond)
+
+	seen := map[string]bool{}
+
+	for range 3 {
+		key, err := s.MintDeviceSigner(t.Context(), "device-a")
+		require.NoError(t, err)
+
+		public, err := ssh.NewPublicKey(&key.PublicKey)
+		require.NoError(t, err)
+
+		fingerprint := ssh.FingerprintLegacyMD5(public)
+		require.False(t, seen[fingerprint], "the reserve handed the same key out twice")
+		seen[fingerprint] = true
+
+		_, err = s.AuthPublicKey(t.Context(), "device-a", requests.PublicKeyAuth{Fingerprint: fingerprint, Data: "data"})
+		require.NoError(t, err)
+	}
+
+	require.Eventually(t, func() bool { return len(s.signers.keys) == 2 }, time.Minute, 10*time.Millisecond)
+}
