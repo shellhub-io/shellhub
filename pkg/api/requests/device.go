@@ -127,7 +127,7 @@ type DevicePairingCreate struct {
 	Info      *DeviceInfo     `json:"info" validate:"required"`
 	Hostname  string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	Identity  *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
-	PublicKey string          `json:"public_key" validate:"required"`
+	PublicKey string          `json:"public_key" validate:"required,max=4096"`
 }
 
 // DevicePairingAccept is the structure to represent the request data for the device pairing accept endpoint.
@@ -149,17 +149,17 @@ type DevicePairingStatus struct {
 // DeviceIdentity is the hardware identity an agent sends when authenticating. It mirrors
 // models.DeviceIdentity, kept apart so the wire shape can change without moving the stored one.
 type DeviceIdentity struct {
-	MAC string `json:"mac"`
+	MAC string `json:"mac" validate:"max=64"`
 }
 
 // DeviceInfo is the operating-system description an agent sends when authenticating. It mirrors
 // models.DeviceInfo, kept apart so the wire shape can change without moving the stored one.
 type DeviceInfo struct {
-	ID         string `json:"id"`
-	PrettyName string `json:"pretty_name"`
-	Version    string `json:"version"`
-	Arch       string `json:"arch"`
-	Platform   string `json:"platform"`
+	ID         string `json:"id" validate:"max=64"`
+	PrettyName string `json:"pretty_name" validate:"max=256"`
+	Version    string `json:"version" validate:"max=32"`
+	Arch       string `json:"arch" validate:"max=16"`
+	Platform   string `json:"platform" validate:"max=32"`
 }
 
 // DeviceAuth is the structure to represent the request data for device auth endpoint.
@@ -168,7 +168,7 @@ type DeviceAuth struct {
 	Sessions        []string        `json:"sessions,omitempty"`
 	Hostname        string          `json:"hostname,omitempty" validate:"required_without=Identity,omitempty,device_name" hash:"-"`
 	Identity        *DeviceIdentity `json:"identity,omitempty" validate:"required_without=Hostname,omitempty"`
-	PublicKey       string          `json:"public_key" validate:"required"`
+	PublicKey       string          `json:"public_key" validate:"required,max=4096"`
 	TenantID        string          `json:"tenant_id" validate:"required_without=ProvisioningKey"`
 	ProvisioningKey string          `json:"provisioning_key,omitempty"`
 	Challenge       string          `json:"challenge,omitempty" validate:"omitempty,max=128"`

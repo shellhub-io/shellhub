@@ -169,6 +169,73 @@ func TestAuthDevice(t *testing.T) {
 	}
 }
 
+func TestAuthDeviceBoundsFields(t *testing.T) {
+	newRequest := func() *requests.DeviceAuth {
+		return &requests.DeviceAuth{
+			Info: &requests.DeviceInfo{
+				ID:         "ubuntu",
+				PrettyName: "Ubuntu 24.04.1 LTS",
+				Version:    "v0.31.1",
+				Arch:       "arm64",
+				Platform:   "native",
+			},
+			Identity:  &requests.DeviceIdentity{MAC: "00:11:22:33:44:55"},
+			PublicKey: "public-key",
+			TenantID:  "00000000-0000-4000-0000-000000000000",
+		}
+	}
+
+	fields := func(req *requests.DeviceAuth) deviceFields {
+		return deviceFields{info: req.Info, identity: req.Identity, publicKey: &req.PublicKey}
+	}
+
+	expectAuth := func(mock *mocks.MockService) {
+		mock.On("AuthDevice", gomock.Anything, gomock.AnythingOfType("requests.DeviceAuth"), "192.0.2.1", "example.com").
+			Return(&models.DeviceAuthResponse{}, nil).Once()
+	}
+
+	routes := []struct {
+		name string
+		url  string
+	}{
+		{"devices auth", "/api" + AuthDeviceURL},
+		{"auth device", "/api" + AuthDeviceURLV2},
+	}
+
+	for _, route := range routes {
+		t.Run(route.name+" accepts a native agent with a 4096-bit key", func(t *testing.T) {
+			mock := mocks.NewMockService(t)
+			expectAuth(mock)
+
+			req := newRequest()
+			req.PublicKey = rsa4096AgentPublicKey(t)
+
+			assert.Equal(t, http.StatusOK, postDeviceJSON(t, mock, route.url, req))
+		})
+
+		for _, bound := range deviceFieldBounds {
+			t.Run(route.name+" "+bound.field+" at its limit is accepted", func(t *testing.T) {
+				mock := mocks.NewMockService(t)
+				expectAuth(mock)
+
+				req := newRequest()
+				bound.set(fields(req), strings.Repeat("a", bound.limit))
+
+				assert.Equal(t, http.StatusOK, postDeviceJSON(t, mock, route.url, req))
+			})
+
+			t.Run(route.name+" "+bound.field+" over its limit is refused before the service", func(t *testing.T) {
+				mock := mocks.NewMockService(t)
+
+				req := newRequest()
+				bound.set(fields(req), strings.Repeat("a", bound.limit+1))
+
+				assert.Equal(t, http.StatusBadRequest, postDeviceJSON(t, mock, route.url, req))
+			})
+		}
+	}
+}
+
 func TestAuthLocalUser(t *testing.T) {
 	mock := mocks.NewMockService(t)
 

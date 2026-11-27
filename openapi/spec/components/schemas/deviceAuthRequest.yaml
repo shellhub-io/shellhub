@@ -16,6 +16,7 @@ properties:
   public_key:
     description: Device's public key in PEM format.
     type: string
+    maxLength: 4096
     example: "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA0vH2Bob3mn+uWVaHlOoZD8ai01W6VnRTnXlnHVF7Ny1Vb7pl1Hc4\nD8bsBhb1vt7aZOYHbCyDR2r5lsrWXCELE8pY8vzfFDA+jNrLbBCJ66E1BcmTqfXC\nJcLospWD2lIAwU2O7IPxwZujuVkHrF8nYuEFsKeG60QTWNS++RTqydqe2KmFMEdW\nCQmYPm/ykN871fSR9+PzoRJMYWidY6Szn+X2ardGmS/Ldhl/PEu9h7xjcQXANWz6\nyV/RVReGVkLcK6TxlfuxgdpbsWAx+cS52P7xWrshNefHqjpdlm3KNbo6vqfTpU8L\nd/FFISXXaa1Md5GyAHF+jzuRzQ5z5aKBGwIDAQAB\n-----END RSA PUBLIC KEY-----"
   tenant_id:
     $ref: namespaceTenantID.yaml

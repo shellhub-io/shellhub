@@ -30,6 +30,7 @@ post:
             identifier:
               description: The same as the login identifier; can be either the user's email or username.
               type: string
+              maxLength: 320
               example: john_doe
           required:
             - identifier

@@ -29,6 +29,7 @@ post:
             public_key:
               description: Device's public key in PEM format.
               type: string
+              maxLength: 4096
           required:
             - info
             - public_key
