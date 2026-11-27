@@ -87,7 +87,7 @@ func NewClient(address string, opts ...Opt) (Client, error) {
 	client.retryWait = randomWaitTimeSecs
 	client.http = resty.New()
 	client.http.SetRetryCount(math.MaxInt32)
-	client.http.SetRedirectPolicy(SameDomainRedirectPolicy())
+	client.http.SetRedirectPolicy(sameHostRedirectPolicy())
 	client.http.SetBaseURL(uri.String())
 	client.http.SetContentLength(true)
 	client.http.AddRetryCondition(func(r *resty.Response, err error) bool {

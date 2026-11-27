@@ -3,82 +3,94 @@ package client
 import (
 	"context"
 	"errors"
-	"net"
+	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
 )
 
-func getHostname(host string) (hostname string) {
-	if strings.Index(host, ":") > 0 {
-		host, _, _ = net.SplitHostPort(host)
-	}
-	hostname = strings.ToLower(host)
+const maxRedirects = 3
 
-	return
+var (
+	errRedirectOtherHost = errors.New("redirect to another host refused")
+	errRedirectDowngrade = errors.New("redirect from a secure to an insecure scheme refused")
+	errTooManyRedirects  = errors.New("too many redirects")
+)
+
+func isSecureScheme(scheme string) bool {
+	return scheme == "https" || scheme == "wss"
 }
 
-func getDomain(host string) string {
-	host = getHostname(host)
-	ss := strings.Split(host, ".")
-	if len(ss) < 3 {
-		return host
-	}
-	ss = ss[1:]
-
-	return strings.Join(ss, ".")
-}
-
-// SameDomainRedirectPolicy allows redirect only if the redirected domain
-// is the same as original domain, e.g. redirect to "www.imroc.cc" from
-// "imroc.cc" is allowed, but redirect to "google.com" is not allowed.
-func SameDomainRedirectPolicy() resty.RedirectPolicyFunc {
-	return func(req *http.Request, via []*http.Request) error {
-		if getDomain(req.URL.Host) != getDomain(via[0].URL.Host) {
-			return errors.New("different domain name is not allowed")
-		}
-
+func checkRedirect(origin, target *url.URL, followed int) error {
+	switch {
+	case followed >= maxRedirects:
+		return fmt.Errorf("%w: stopped after %d", errTooManyRedirects, maxRedirects)
+	case !strings.EqualFold(origin.Hostname(), target.Hostname()):
+		return fmt.Errorf("%w: %s to %s", errRedirectOtherHost, origin.Hostname(), target.Hostname())
+	case isSecureScheme(origin.Scheme) && !isSecureScheme(target.Scheme):
+		return fmt.Errorf("%w: %s to %s", errRedirectDowngrade, origin.Scheme, target.Scheme)
+	default:
 		return nil
 	}
 }
 
-// DialContext creates a websocket connection to ShellHub's SSH server.
-//
-// It receivees the endpoint to connect and the necessary headers for authentication on the server. If the server
-// redirect the connection with status [http.StatusTemporaryRedirect] or [http.StatusPermanentRedirect], the DialContext
-// method will follow. Any other response from the server will result in an error as result of this function.
-func DialContext(ctx context.Context, address string, header http.Header) (*websocket.Conn, *http.Response, error) {
-	parseToWS := func(uri string) string {
-		return regexp.MustCompile(`^http`).ReplaceAllString(uri, "ws")
+func sameHostRedirectPolicy() resty.RedirectPolicyFunc {
+	return func(req *http.Request, via []*http.Request) error {
+		return checkRedirect(via[0].URL, req.URL, len(via)-1)
 	}
+}
 
+func useWebSocketScheme(u *url.URL) {
+	if rest, ok := strings.CutPrefix(u.Scheme, "http"); ok {
+		u.Scheme = "ws" + rest
+	}
+}
+
+// DialContext creates a websocket connection to ShellHub's SSH server, sending header on the handshake.
+//
+// It follows a [http.StatusTemporaryRedirect] or [http.StatusPermanentRedirect] at most three times, sending header
+// to every hop, and only while the target keeps the hostname of address and, when address is secure, a secure
+// scheme. It returns an error when address does not unescape or parse, when it refuses a redirect, naming the
+// rule that refused it, when a redirect has no Location header, returning [http.ErrNoLocation], and when a Location
+// header does not parse. Any other failure returns the dialer's error. The response is nil whenever the error is not.
+// ctx bounds every hop.
+func DialContext(ctx context.Context, address string, header http.Header) (*websocket.Conn, *http.Response, error) {
 	uri, err := url.QueryUnescape(address)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	conn, res, err := websocket.DefaultDialer.DialContext(ctx, parseToWS(uri), header)
+	origin, err := url.Parse(uri)
 	if err != nil {
-		if res == nil {
-			return nil, nil, err
-		}
-
-		switch res.StatusCode {
-		case http.StatusTemporaryRedirect, http.StatusPermanentRedirect:
-			location, err := res.Location()
-			if err != nil {
-				return nil, nil, err
-			}
-
-			return DialContext(ctx, parseToWS(location.String()), header)
-		default:
-			return nil, nil, err
-		}
+		return nil, nil, err
 	}
 
-	return conn, res, nil
+	useWebSocketScheme(origin)
+
+	target := origin
+	for followed := 0; ; followed++ {
+		conn, res, err := websocket.DefaultDialer.DialContext(ctx, target.String(), header)
+		if err == nil {
+			return conn, res, nil
+		}
+
+		if res == nil || (res.StatusCode != http.StatusTemporaryRedirect && res.StatusCode != http.StatusPermanentRedirect) {
+			return nil, nil, err
+		}
+
+		location, err := res.Location()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		useWebSocketScheme(location)
+		if err := checkRedirect(origin, location, followed); err != nil {
+			return nil, nil, err
+		}
+
+		target = location
+	}
 }
